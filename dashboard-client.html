@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace Client — Bathily Convoyage</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --red:#c0392b;--red-dark:#a93226;--red-glow:rgba(192,57,43,.1);
+  --black:#0a0808;--ink:#1e1e1e;--ink2:#161616;--fog:#f0eded;--slate:#888;--green:#27ae60;--orange:#e67e22;--blue:#2980b9;
+  --border:rgba(192,57,43,.15);--border2:rgba(240,237,237,.08);
+  --fd:'Cormorant Garamond',Georgia,serif;--fs:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--fog);font-family:var(--fb);font-weight:300;min-height:100vh;display:flex;flex-direction:column}
+
+/* TOPBAR */
+.topbar{background:var(--ink2);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-logo{font-family:var(--fd);font-size:20px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;color:var(--fog)}
+.topbar-logo span{color:var(--red)}
+.topbar-center{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--slate)}
+.topbar-right{display:flex;align-items:center;gap:20px}
+.topbar-notif{position:relative;cursor:pointer;color:var(--slate);font-size:16px;transition:color .2s}
+.topbar-notif:hover{color:var(--fog)}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--red);border-radius:50%;font-family:var(--fs);font-size:7px;font-weight:700;color:var(--fog);display:flex;align-items:center;justify-content:center}
+.topbar-user{display:flex;align-items:center;gap:10px;cursor:pointer}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:var(--red-glow);border:1px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:10px;font-weight:700;color:var(--red)}
+.user-name{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.topbar-back{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);text-decoration:none;transition:color .2s}
+.topbar-back:hover{color:var(--fog)}
+.topbar-logout{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);text-decoration:none;transition:color .2s;cursor:pointer;background:none;border:none}
+.topbar-logout:hover{color:var(--red)}
+
+/* LAYOUT */
+.dash-layout{display:flex;flex:1}
+
+/* SIDEBAR NAV */
+.dash-nav{width:220px;background:var(--ink2);border-right:1px solid var(--border2);padding:32px 0;flex-shrink:0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
+.nav-section{margin-bottom:32px}
+.nav-section-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--slate);padding:0 24px;margin-bottom:10px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 24px;font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,237,237,.45);cursor:pointer;transition:all .2s;border-left:2px solid transparent;text-decoration:none}
+.nav-item:hover{color:var(--fog);background:rgba(240,237,237,.03)}
+.nav-item.active{color:var(--fog);border-left-color:var(--red);background:rgba(192,57,43,.06)}
+.nav-item i{font-size:13px;width:16px;flex-shrink:0}
+
+/* MAIN */
+.dash-main{flex:1;padding:40px 48px;overflow-y:auto}
+
+/* HEADER */
+.dash-header{margin-bottom:40px}
+.dash-hello{font-family:var(--fd);font-size:clamp(28px,3vw,44px);font-weight:300;margin-bottom:6px}
+.dash-hello em{font-style:italic;color:var(--red)}
+.dash-date{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate)}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:40px}
+.stat-card{background:var(--ink);border:1px solid var(--border2);padding:28px 24px;position:relative;overflow:hidden;transition:border-color .3s}
+.stat-card:hover{border-color:rgba(192,57,43,.25)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .35s}
+.stat-card:hover::before{transform:scaleX(1)}
+.stat-ico{font-size:20px;color:var(--red);margin-bottom:16px}
+.stat-val{font-family:var(--fd);font-size:44px;font-weight:300;line-height:1;margin-bottom:4px}
+.stat-val em{font-style:normal;color:var(--red)}
+.stat-lbl{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
+.stat-trend{position:absolute;top:22px;right:20px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;padding:3px 8px;border-radius:2px}
+.trend-up{background:rgba(39,174,96,.12);color:var(--green)}
+.trend-neutral{background:rgba(136,136,136,.12);color:var(--slate)}
+
+/* SECTION TITLE */
+.sec-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.sec-h{font-family:var(--fd);font-size:26px;font-weight:300}
+.sec-h em{font-style:italic;color:var(--red)}
+.sec-action{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--fog);background:var(--red);padding:10px 20px;border-radius:2px;border:none;cursor:pointer;text-decoration:none;transition:background .2s}
+.sec-action:hover{background:var(--red-dark)}
+.sec-action-ghost{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);background:transparent;padding:10px 20px;border-radius:2px;border:1px solid var(--border2);cursor:pointer;text-decoration:none;transition:all .2s}
+.sec-action-ghost:hover{border-color:var(--fog);color:var(--fog)}
+
+/* MISSIONS EN COURS */
+.missions-list{display:flex;flex-direction:column;gap:2px;margin-bottom:40px}
+.mission-card{background:var(--ink);border:1px solid var(--border2);padding:24px 28px;display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:20px;transition:border-color .3s}
+.mission-card:hover{border-color:rgba(192,57,43,.25)}
+.mc-status{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.status-en-cours{background:var(--green);box-shadow:0 0 8px rgba(39,174,96,.5)}
+.status-planifie{background:var(--orange)}
+.status-termine{background:var(--slate)}
+.status-annule{background:var(--red)}
+.mc-info{}
+.mc-ref{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:5px}
+.mc-route{font-family:var(--fd);font-size:20px;font-weight:300;margin-bottom:4px}
+.mc-route em{font-style:italic;color:var(--red)}
+.mc-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.mc-tag{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:2px}
+.tag-auto{background:rgba(41,128,185,.12);border:1px solid rgba(41,128,185,.2);color:var(--blue)}
+.tag-moto{background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.2);color:var(--red)}
+.tag-plateau{background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.2);color:var(--orange)}
+.tag-route{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.2);color:var(--green)}
+.mc-date{font-size:12px;font-weight:300;color:var(--slate)}
+.mc-pack{font-size:12px;font-weight:300;color:var(--slate)}
+.mc-progress{text-align:center;min-width:80px}
+.progress-circle{width:52px;height:52px;margin:0 auto 6px}
+.progress-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)}
+.mc-actions{display:flex;flex-direction:column;gap:8px;min-width:110px}
+.btn-sm{display:inline-flex;align-items:center;gap:7px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:8px 14px;border-radius:2px;border:none;cursor:pointer;transition:all .2s;text-decoration:none}
+.btn-sm-red{background:var(--red);color:var(--fog)}
+.btn-sm-red:hover{background:var(--red-dark)}
+.btn-sm-ghost{background:transparent;color:var(--slate);border:1px solid var(--border2)}
+.btn-sm-ghost:hover{border-color:var(--fog);color:var(--fog)}
+
+/* EMPTY STATE */
+.empty-state{background:var(--ink);border:1px solid var(--border2);padding:60px 40px;text-align:center}
+.empty-ico{font-size:36px;color:var(--slate);margin-bottom:16px;opacity:.4}
+.empty-h{font-family:var(--fd);font-size:24px;font-weight:300;margin-bottom:8px}
+.empty-p{font-size:13px;font-weight:300;color:var(--slate);margin-bottom:24px}
+
+/* HISTORIQUE TABLE */
+.data-table{width:100%;border-collapse:collapse;margin-bottom:40px}
+.data-table thead tr{border-bottom:1px solid rgba(192,57,43,.3)}
+.data-table th{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);padding:12px 16px;text-align:left}
+.data-table tbody tr{border-bottom:1px solid var(--border2);transition:background .2s}
+.data-table tbody tr:hover{background:rgba(192,57,43,.025)}
+.data-table td{padding:14px 16px;font-size:12px;font-weight:300;color:rgba(240,237,237,.65)}
+.data-table td:first-child{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fog)}
+.td-price{font-family:var(--fd);font-size:18px;font-weight:300;color:var(--fog)}
+.td-status{display:inline-flex;align-items:center;gap:6px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:2px}
+.ts-ok{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.2);color:var(--green)}
+.ts-att{background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.2);color:var(--orange)}
+
+/* VEHICULES */
+.vehi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:40px}
+.vehi-card{background:var(--ink);border:1px solid var(--border2);padding:28px 24px;transition:border-color .3s;position:relative}
+.vehi-card:hover{border-color:rgba(192,57,43,.25)}
+.vehi-ico{font-size:28px;color:var(--red);margin-bottom:16px}
+.vehi-name{font-family:var(--fd);font-size:22px;font-weight:300;margin-bottom:4px}
+.vehi-plate{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.2);color:var(--red);padding:3px 10px;border-radius:2px;display:inline-block;margin-bottom:12px}
+.vehi-meta{font-size:12px;font-weight:300;color:var(--slate);line-height:1.6}
+.vehi-actions{margin-top:16px;display:flex;gap:8px}
+.add-vehi{background:var(--ink);border:1px dashed var(--border2);padding:28px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;text-align:center;gap:12px}
+.add-vehi:hover{border-color:rgba(192,57,43,.4);background:rgba(192,57,43,.02)}
+.add-vehi i{font-size:24px;color:var(--slate)}
+.add-vehi span{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
+
+/* FACTURES */
+.fact-list{display:flex;flex-direction:column;gap:2px;margin-bottom:40px}
+.fact-item{background:var(--ink);border:1px solid var(--border2);padding:18px 24px;display:flex;align-items:center;gap:20px;transition:border-color .3s}
+.fact-item:hover{border-color:rgba(192,57,43,.25)}
+.fact-ico{font-size:20px;color:var(--red);flex-shrink:0}
+.fact-ref{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--fog);margin-bottom:3px}
+.fact-date{font-size:12px;font-weight:300;color:var(--slate)}
+.fact-montant{font-family:var(--fd);font-size:26px;font-weight:300;color:var(--fog);margin-left:auto}
+.fact-status{margin-left:16px}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border2);margin-bottom:28px}
+.tab-btn{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:12px 22px;cursor:pointer;border-bottom:2px solid transparent;color:var(--slate);transition:all .25s;background:none;border-top:none;border-left:none;border-right:none}
+.tab-btn:hover{color:var(--fog)}
+.tab-btn.active{color:var(--red);border-bottom-color:var(--red)}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fu .25s ease}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,8,8,.85);z-index:900;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--ink);border:1px solid var(--border);padding:48px;max-width:540px;width:90%;position:relative}
+.modal-close{position:absolute;top:20px;right:20px;font-size:18px;color:var(--slate);cursor:pointer;background:none;border:none;transition:color .2s}
+.modal-close:hover{color:var(--fog)}
+.modal-h{font-family:var(--fd);font-size:32px;font-weight:300;margin-bottom:6px}
+.modal-h em{font-style:italic;color:var(--red)}
+.modal-sub{font-size:13px;color:var(--slate);margin-bottom:28px}
+.f-grp{margin-bottom:18px}
+.f-grp label{display:block;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);margin-bottom:7px}
+.f-grp input,.f-grp select,.f-grp textarea{width:100%;background:rgba(240,237,237,.03);border:1px solid var(--border2);color:var(--fog);padding:12px 14px;font-family:var(--fb);font-size:13px;font-weight:300;outline:none;transition:border-color .2s;border-radius:2px;-webkit-appearance:none}
+.f-grp input:focus,.f-grp select:focus{border-color:var(--red)}
+.f-grp select option{background:var(--ink)}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.modal-btns{display:flex;gap:12px;margin-top:8px}
+.btn-red{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--fog);background:var(--red);padding:13px 24px;border:none;cursor:pointer;border-radius:2px;transition:background .2s}
+.btn-red:hover{background:var(--red-dark)}
+.btn-outline{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);background:transparent;padding:13px 24px;border:1px solid var(--border2);cursor:pointer;border-radius:2px;transition:all .2s}
+.btn-outline:hover{border-color:var(--fog);color:var(--fog)}
+
+/* QUICK ACTIONS */
+.qa-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:40px}
+.qa-item{background:var(--ink);border:1px solid var(--border2);padding:28px 20px;text-align:center;cursor:pointer;transition:all .3s;text-decoration:none}
+.qa-item:hover{border-color:rgba(192,57,43,.28);background:rgba(192,57,43,.03)}
+.qa-ico{font-size:22px;color:var(--red);margin-bottom:12px}
+.qa-lbl{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,237,237,.6)}
+
+/* SUPPORT */
+.support-card{background:var(--ink);border:1px solid var(--border);padding:32px;margin-bottom:40px;display:flex;align-items:center;gap:28px}
+.support-ico{width:52px;height:52px;border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--red);flex-shrink:0}
+.support-content{}
+.support-h{font-family:var(--fs);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.support-p{font-size:13px;font-weight:300;color:var(--slate)}
+.support-actions{margin-left:auto;display:flex;gap:10px;flex-shrink:0}
+
+@media(max-width:900px){.dash-nav{display:none}.dash-main{padding:24px}.stats-row{grid-template-columns:1fr 1fr}.vehi-grid{grid-template-columns:1fr 1fr}.qa-grid{grid-template-columns:1fr 1fr}.mission-card{grid-template-columns:auto 1fr;gap:12px}.mc-progress,.mc-actions{grid-column:span 2}}
+@media(max-width:600px){.stats-row{grid-template-columns:1fr}.vehi-grid{grid-template-columns:1fr}.qa-grid{grid-template-columns:1fr 1fr}.topbar-center{display:none}.f-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a href="index.html" class="topbar-logo">Bathily<span>.</span></a>
+  <span class="topbar-center">Espace Client</span>
+  <div class="topbar-right">
+    <div class="topbar-notif" title="Notifications">
+      <i class="fas fa-bell"></i>
+      <div class="notif-badge">2</div>
+    </div>
+    <a href="devis.html" class="sec-action" style="padding:8px 16px;font-size:8px"><i class="fas fa-plus"></i> Nouveau devis</a>
+    <div class="topbar-user">
+      <div class="user-avatar">JD</div>
+      <span class="user-name">Jean D.</span>
+    </div>
+    <button class="topbar-logout" onclick="window.location.href='login.html'" title="Déconnexion">
+      <i class="fas fa-sign-out-alt"></i>
+    </button>
+  </div>
+</div>
+
+<div class="dash-layout">
+
+  <!-- NAV SIDEBAR -->
+  <nav class="dash-nav">
+    <div class="nav-section">
+      <div class="nav-section-lbl">Principal</div>
+      <div class="nav-item active" onclick="showTab('accueil',this)"><i class="fas fa-home"></i> Tableau de bord</div>
+      <div class="nav-item" onclick="showTab('missions',this)"><i class="fas fa-route"></i> Mes missions</div>
+      <div class="nav-item" onclick="showTab('vehicules',this)"><i class="fas fa-car"></i> Mes véhicules</div>
+      <div class="nav-item" onclick="showTab('factures',this)"><i class="fas fa-file-invoice"></i> Mes factures</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-lbl">Compte</div>
+      <div class="nav-item" onclick="showTab('profil',this)"><i class="fas fa-user"></i> Mon profil</div>
+      <div class="nav-item" onclick="showTab('support',this)"><i class="fas fa-headset"></i> Support</div>
+      <a href="devis.html" class="nav-item"><i class="fas fa-calculator"></i> Nouveau devis</a>
+      <a href="index.html" class="nav-item"><i class="fas fa-globe"></i> Site public</a>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="dash-main">
+
+    <!-- ═══ ACCUEIL ═══ -->
+    <div class="tab-content active" id="tab-accueil">
+      <div class="dash-header">
+        <h1 class="dash-hello">Bonjour, <em>Jean</em></h1>
+        <div class="dash-date" id="dashDate"></div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-ico"><i class="fas fa-route"></i></div>
+          <div class="stat-val">2</div>
+          <div class="stat-lbl">Missions en cours</div>
+          <div class="stat-trend trend-up">Actives</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ico"><i class="fas fa-check-circle"></i></div>
+          <div class="stat-val">14</div>
+          <div class="stat-lbl">Missions terminées</div>
+          <div class="stat-trend trend-neutral">Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ico"><i class="fas fa-euro-sign"></i></div>
+          <div class="stat-val">3<em>,</em>840</div>
+          <div class="stat-lbl">Dépensé en 2025</div>
+          <div class="stat-trend trend-neutral">HT</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ico"><i class="fas fa-car"></i></div>
+          <div class="stat-val">3</div>
+          <div class="stat-lbl">Véhicules enregistrés</div>
+          <div class="stat-trend trend-neutral">Profil</div>
+        </div>
+      </div>
+
+      <!-- Actions rapides -->
+      <div class="sec-title"><h2 class="sec-h">Actions <em>rapides</em></h2></div>
+      <div class="qa-grid">
+        <a href="devis.html" class="qa-item"><div class="qa-ico"><i class="fas fa-calculator"></i></div><div class="qa-lbl">Demander un devis</div></a>
+        <div class="qa-item" onclick="showTab('vehicules',document.querySelector('[onclick*=vehicules]'))"><div class="qa-ico"><i class="fas fa-car"></i></div><div class="qa-lbl">Mes véhicules</div></div>
+        <div class="qa-item" onclick="showTab('factures',document.querySelector('[onclick*=factures]'))"><div class="qa-ico"><i class="fas fa-file-invoice"></i></div><div class="qa-lbl">Mes factures</div></div>
+        <div class="qa-item" onclick="showTab('support',document.querySelector('[onclick*=support]'))"><div class="qa-ico"><i class="fas fa-headset"></i></div><div class="qa-lbl">Contacter le support</div></div>
+      </div>
+
+      <!-- Missions actives -->
+      <div class="sec-title">
+        <h2 class="sec-h">Missions <em>en cours</em></h2>
+        <div class="nav-item" onclick="showTab('missions',null)" style="padding:0;color:var(--red);font-size:9px;cursor:pointer;font-family:var(--fs);font-weight:700;letter-spacing:.14em;text-transform:uppercase">Voir tout <i class="fas fa-arrow-right"></i></div>
+      </div>
+      <div class="missions-list">
+        <div class="mission-card">
+          <div class="mc-status status-en-cours"></div>
+          <div class="mc-info">
+            <div class="mc-ref">BC-2025-0847</div>
+            <div class="mc-route">Paris <em>→</em> Lyon</div>
+            <div class="mc-meta">
+              <span class="mc-tag tag-auto">Automobile</span>
+              <span class="mc-tag tag-route">Route</span>
+              <span class="mc-date"><i class="fas fa-calendar" style="margin-right:4px"></i>12 mai 2025</span>
+              <span class="mc-pack"><i class="fas fa-box" style="margin-right:4px"></i>Pack Sérénité</span>
+            </div>
+          </div>
+          <div class="mc-progress">
+            <svg class="progress-circle" viewBox="0 0 52 52">
+              <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(240,237,237,.08)" stroke-width="3"/>
+              <circle cx="26" cy="26" r="22" fill="none" stroke="#c0392b" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="48" stroke-linecap="round" transform="rotate(-90 26 26)"/>
+              <text x="26" y="31" text-anchor="middle" fill="#f0eded" font-family="Cormorant Garamond" font-size="12" font-weight="300">65%</text>
+            </svg>
+            <div class="progress-lbl">En transit</div>
+          </div>
+          <div class="mc-actions">
+            <button class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> Suivre</button>
+            <button class="btn-sm btn-sm-ghost"><i class="fas fa-file"></i> Détails</button>
+          </div>
+        </div>
+        <div class="mission-card">
+          <div class="mc-status status-planifie"></div>
+          <div class="mc-info">
+            <div class="mc-ref">BC-2025-0851</div>
+            <div class="mc-route">Bordeaux <em>→</em> Nice</div>
+            <div class="mc-meta">
+              <span class="mc-tag tag-auto">Automobile</span>
+              <span class="mc-tag tag-plateau">Plateau</span>
+              <span class="mc-date"><i class="fas fa-calendar" style="margin-right:4px"></i>15 mai 2025</span>
+              <span class="mc-pack"><i class="fas fa-box" style="margin-right:4px"></i>Pack Excellence</span>
+            </div>
+          </div>
+          <div class="mc-progress">
+            <svg class="progress-circle" viewBox="0 0 52 52">
+              <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(240,237,237,.08)" stroke-width="3"/>
+              <circle cx="26" cy="26" r="22" fill="none" stroke="#e67e22" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="124" stroke-linecap="round" transform="rotate(-90 26 26)"/>
+              <text x="26" y="31" text-anchor="middle" fill="#f0eded" font-family="Cormorant Garamond" font-size="12" font-weight="300">10%</text>
+            </svg>
+            <div class="progress-lbl">Planifiée</div>
+          </div>
+          <div class="mc-actions">
+            <button class="btn-sm btn-sm-ghost"><i class="fas fa-file"></i> Détails</button>
+            <button class="btn-sm btn-sm-ghost" style="color:var(--red);border-color:rgba(192,57,43,.3)"><i class="fas fa-times"></i> Annuler</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MISSIONS ═══ -->
+    <div class="tab-content" id="tab-missions">
+      <div class="dash-header">
+        <h1 class="dash-hello">Mes <em>missions</em></h1>
+      </div>
+      <div class="sec-title">
+        <div class="tabs" style="margin-bottom:0;border:none">
+          <button class="tab-btn active" onclick="filterMissions('all',this)">Toutes</button>
+          <button class="tab-btn" onclick="filterMissions('cours',this)">En cours</button>
+          <button class="tab-btn" onclick="filterMissions('planifie',this)">Planifiées</button>
+          <button class="tab-btn" onclick="filterMissions('termine',this)">Terminées</button>
+        </div>
+        <a href="devis.html" class="sec-action"><i class="fas fa-plus"></i> Nouvelle mission</a>
+      </div>
+      <div style="margin-bottom:20px"></div>
+      <div class="missions-list" id="missionsList">
+        <!-- En cours -->
+        <div class="mission-card" data-status="cours">
+          <div class="mc-status status-en-cours"></div>
+          <div class="mc-info">
+            <div class="mc-ref">BC-2025-0847</div>
+            <div class="mc-route">Paris <em>→</em> Lyon</div>
+            <div class="mc-meta">
+              <span class="mc-tag tag-auto">Automobile</span><span class="mc-tag tag-route">Route</span>
+              <span class="mc-date"><i class="fas fa-calendar" style="margin-right:4px"></i>12 mai 2025</span>
+              <span class="mc-pack">BMW Série 3 · Pack Sérénité · 340€ HT</span>
+            </div>
+          </div>
+          <div class="mc-progress">
+            <svg class="progress-circle" viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="none" stroke="rgba(240,237,237,.08)" stroke-width="3"/><circle cx="26" cy="26" r="22" fill="none" stroke="#c0392b" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="48" stroke-linecap="round" transform="rotate(-90 26 26)"/><text x="26" y="31" text-anchor="middle" fill="#f0eded" font-family="Cormorant Garamond" font-size="12">65%</text></svg>
+            <div class="progress-lbl">En transit</div>
+          </div>
+          <div class="mc-actions"><button class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> Suivre GPS</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-camera"></i> Photos</button></div>
+        </div>
+        <!-- Planifiée -->
+        <div class="mission-card" data-status="planifie">
+          <div class="mc-status status-planifie"></div>
+          <div class="mc-info">
+            <div class="mc-ref">BC-2025-0851</div>
+            <div class="mc-route">Bordeaux <em>→</em> Nice</div>
+            <div class="mc-meta">
+              <span class="mc-tag tag-auto">Automobile</span><span class="mc-tag tag-plateau">Plateau</span>
+              <span class="mc-date"><i class="fas fa-calendar" style="margin-right:4px"></i>15 mai 2025</span>
+              <span class="mc-pack">Renault Clio · Pack Excellence · 880€ HT</span>
+            </div>
+          </div>
+          <div class="mc-progress">
+            <svg class="progress-circle" viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="none" stroke="rgba(240,237,237,.08)" stroke-width="3"/><circle cx="26" cy="26" r="22" fill="none" stroke="#e67e22" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="124" stroke-linecap="round" transform="rotate(-90 26 26)"/><text x="26" y="31" text-anchor="middle" fill="#f0eded" font-family="Cormorant Garamond" font-size="12">10%</text></svg>
+            <div class="progress-lbl">Planifiée</div>
+          </div>
+          <div class="mc-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-file"></i> Détails</button><button class="btn-sm btn-sm-ghost" style="color:var(--red);border-color:rgba(192,57,43,.3)"><i class="fas fa-times"></i> Annuler</button></div>
+        </div>
+        <!-- Terminée 1 -->
+        <div class="mission-card" data-status="termine">
+          <div class="mc-status status-termine"></div>
+          <div class="mc-info">
+            <div class="mc-ref">BC-2025-0821</div>
+            <div class="mc-route">Lyon <em>→</em> Marseille</div>
+            <div class="mc-meta">
+              <span class="mc-tag tag-moto">Moto</span><span class="mc-tag tag-plateau">Plateau</span>
+              <span class="mc-date"><i class="fas fa-calendar" style="margin-right:4px"></i>28 avr. 2025</span>
+              <span class="mc-pack">Kawasaki Z900 · Pack Starter · 550€ HT</span>
+            </div>
+          </div>
+          <div class="mc-progress">
+            <svg class="progress-circle" viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="none" stroke="rgba(240,237,237,.08)" stroke-width="3"/><circle cx="26" cy="26" r="22" fill="none" stroke="#27ae60" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 26 26)"/><text x="26" y="31" text-anchor="middle" fill="#f0eded" font-family="Cormorant Garamond" font-size="12">100%</text></svg>
+            <div class="progress-lbl">Livré</div>
+          </div>
+          <div class="mc-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-camera"></i> Photos</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i> Facture</button></div>
+        </div>
+        <!-- Terminée 2 -->
+        <div class="mission-card" data-status="termine">
+          <div class="mc-status status-termine"></div>
+          <div class="mc-info">
+            <div class="mc-ref">BC-2025-0803</div>
+            <div class="mc-route">Paris <em>→</em> Bordeaux</div>
+            <div class="mc-meta">
+              <span class="mc-tag tag-auto">Automobile</span><span class="mc-tag tag-route">Route</span>
+              <span class="mc-date"><i class="fas fa-calendar" style="margin-right:4px"></i>10 avr. 2025</span>
+              <span class="mc-pack">Tesla Model 3 · Pack Sérénité · 620€ HT</span>
+            </div>
+          </div>
+          <div class="mc-progress">
+            <svg class="progress-circle" viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="none" stroke="rgba(240,237,237,.08)" stroke-width="3"/><circle cx="26" cy="26" r="22" fill="none" stroke="#27ae60" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 26 26)"/><text x="26" y="31" text-anchor="middle" fill="#f0eded" font-family="Cormorant Garamond" font-size="12">100%</text></svg>
+            <div class="progress-lbl">Livré</div>
+          </div>
+          <div class="mc-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-camera"></i> Photos</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i> Facture</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VEHICULES ═══ -->
+    <div class="tab-content" id="tab-vehicules">
+      <div class="dash-header">
+        <h1 class="dash-hello">Mes <em>véhicules</em></h1>
+      </div>
+      <div class="sec-title"><h2 class="sec-h">Véhicules <em>enregistrés</em></h2>
+        <button class="sec-action" onclick="openModal('modalVehicule')"><i class="fas fa-plus"></i> Ajouter</button>
+      </div>
+      <div class="vehi-grid">
+        <div class="vehi-card">
+          <div class="vehi-ico"><i class="fas fa-car"></i></div>
+          <div class="vehi-name">BMW Série 3</div>
+          <div class="vehi-plate">IJ-789-KL</div>
+          <div class="vehi-meta">2023 · Hybride · 190 CV<br>Berline · Dernière mission : 12 mai 2025</div>
+          <div class="vehi-actions">
+            <button class="btn-sm btn-sm-red"><i class="fas fa-route"></i> Nouveau convoyage</button>
+            <button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button>
+          </div>
+        </div>
+        <div class="vehi-card">
+          <div class="vehi-ico"><i class="fas fa-bolt" style="color:var(--green)"></i></div>
+          <div class="vehi-name">Tesla Model 3</div>
+          <div class="vehi-plate">MN-012-OP</div>
+          <div class="vehi-meta">2023 · Électrique · 283 CV<br>Berline · Dernière mission : 10 avr. 2025</div>
+          <div class="vehi-actions">
+            <button class="btn-sm btn-sm-red"><i class="fas fa-route"></i> Nouveau convoyage</button>
+            <button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button>
+          </div>
+        </div>
+        <div class="vehi-card">
+          <div class="vehi-ico"><i class="fas fa-motorcycle"></i></div>
+          <div class="vehi-name">Kawasaki Z900</div>
+          <div class="vehi-plate">KL-890-MN</div>
+          <div class="vehi-meta">2022 · Essence · 125 CV<br>Moto · Dernière mission : 28 avr. 2025</div>
+          <div class="vehi-actions">
+            <button class="btn-sm btn-sm-red"><i class="fas fa-route"></i> Nouveau convoyage</button>
+            <button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button>
+          </div>
+        </div>
+        <div class="add-vehi" onclick="openModal('modalVehicule')">
+          <i class="fas fa-plus"></i>
+          <span>Ajouter un véhicule</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FACTURES ═══ -->
+    <div class="tab-content" id="tab-factures">
+      <div class="dash-header">
+        <h1 class="dash-hello">Mes <em>factures</em></h1>
+      </div>
+      <div class="sec-title"><h2 class="sec-h">Historique <em>facturation</em></h2></div>
+      <div class="fact-list">
+        <div class="fact-item">
+          <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
+          <div>
+            <div class="fact-ref">FAC-2025-0847</div>
+            <div class="fact-date">12 mai 2025 · Paris → Lyon · BMW Série 3</div>
+          </div>
+          <div class="fact-montant">340€</div>
+          <div class="fact-status"><span class="td-status ts-att">En attente</span></div>
+          <button class="btn-sm btn-sm-ghost" style="margin-left:12px"><i class="fas fa-download"></i> PDF</button>
+        </div>
+        <div class="fact-item">
+          <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
+          <div>
+            <div class="fact-ref">FAC-2025-0821</div>
+            <div class="fact-date">28 avr. 2025 · Lyon → Marseille · Kawasaki Z900</div>
+          </div>
+          <div class="fact-montant">550€</div>
+          <div class="fact-status"><span class="td-status ts-ok">Payée</span></div>
+          <button class="btn-sm btn-sm-ghost" style="margin-left:12px"><i class="fas fa-download"></i> PDF</button>
+        </div>
+        <div class="fact-item">
+          <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
+          <div>
+            <div class="fact-ref">FAC-2025-0803</div>
+            <div class="fact-date">10 avr. 2025 · Paris → Bordeaux · Tesla Model 3</div>
+          </div>
+          <div class="fact-montant">620€</div>
+          <div class="fact-status"><span class="td-status ts-ok">Payée</span></div>
+          <button class="btn-sm btn-sm-ghost" style="margin-left:12px"><i class="fas fa-download"></i> PDF</button>
+        </div>
+        <div class="fact-item">
+          <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
+          <div>
+            <div class="fact-ref">FAC-2025-0774</div>
+            <div class="fact-date">15 mars 2025 · Marseille → Paris · BMW Série 3</div>
+          </div>
+          <div class="fact-montant">480€</div>
+          <div class="fact-status"><span class="td-status ts-ok">Payée</span></div>
+          <button class="btn-sm btn-sm-ghost" style="margin-left:12px"><i class="fas fa-download"></i> PDF</button>
+        </div>
+      </div>
+      <div style="text-align:center;padding:20px 0;border-top:1px solid var(--border2)">
+        <span style="font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)">Total 2025 : <span style="color:var(--fog)">1 990€ HT</span></span>
+      </div>
+    </div>
+
+    <!-- ═══ PROFIL ═══ -->
+    <div class="tab-content" id="tab-profil">
+      <div class="dash-header">
+        <h1 class="dash-hello">Mon <em>profil</em></h1>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;max-width:700px">
+        <div class="f-grp"><label>Prénom</label><input type="text" value="Jean"></div>
+        <div class="f-grp"><label>Nom</label><input type="text" value="Dupont"></div>
+        <div class="f-grp"><label>Email</label><input type="email" value="jean.dupont@email.fr"></div>
+        <div class="f-grp"><label>Téléphone</label><input type="tel" value="+33 6 12 34 56 78"></div>
+        <div class="f-grp" style="grid-column:span 2"><label>Société (optionnel)</label><input type="text" value="Dupont & Associés"></div>
+      </div>
+      <button class="btn-red" style="margin-top:8px"><i class="fas fa-save"></i> Enregistrer</button>
+    </div>
+
+    <!-- ═══ SUPPORT ═══ -->
+    <div class="tab-content" id="tab-support">
+      <div class="dash-header">
+        <h1 class="dash-hello">Support <em>client</em></h1>
+      </div>
+      <div class="support-card">
+        <div class="support-ico"><i class="fas fa-headset"></i></div>
+        <div class="support-content">
+          <div class="support-h">Besoin d'aide ?</div>
+          <p class="support-p">Notre équipe est disponible du lundi au vendredi, 9h–18h. Urgences 24h/24.</p>
+        </div>
+        <div class="support-actions">
+          <a href="contact.html" class="btn-red"><i class="fas fa-envelope"></i> Email</a>
+          <button class="btn-outline"><i class="fas fa-phone"></i> Appeler</button>
+        </div>
+      </div>
+      <div class="sec-title"><h2 class="sec-h">Nouveau <em>ticket</em></h2></div>
+      <div style="max-width:560px">
+        <div class="f-grp"><label>Sujet</label>
+          <select><option>Question sur une mission</option><option>Problème de facturation</option><option>Problème technique</option><option>Autre</option></select>
+        </div>
+        <div class="f-grp"><label>Référence mission (optionnel)</label><input type="text" placeholder="BC-2025-XXXX"></div>
+        <div class="f-grp"><label>Message</label><textarea rows="5" placeholder="Décrivez votre demande…"></textarea></div>
+        <button class="btn-red"><i class="fas fa-paper-plane"></i> Envoyer</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL VEHICULE -->
+<div class="modal-overlay" id="modalVehicule">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modalVehicule')"><i class="fas fa-times"></i></button>
+    <h3 class="modal-h">Ajouter un <em>véhicule</em></h3>
+    <p class="modal-sub">Renseignez les informations de votre véhicule</p>
+    <div class="f-grp"><label>Plaque d'immatriculation</label><input type="text" placeholder="AB-123-CD"></div>
+    <div class="f-row">
+      <div class="f-grp"><label>Marque</label><input type="text" placeholder="BMW"></div>
+      <div class="f-grp"><label>Modèle</label><input type="text" placeholder="Série 3"></div>
+    </div>
+    <div class="f-row">
+      <div class="f-grp"><label>Année</label><input type="number" placeholder="2023"></div>
+      <div class="f-grp"><label>Carburant</label>
+        <select><option>Essence</option><option>Diesel</option><option>Hybride</option><option>Électrique</option></select>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-red" onclick="closeModal('modalVehicule')"><i class="fas fa-save"></i> Enregistrer</button>
+      <button class="btn-outline" onclick="closeModal('modalVehicule')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// DATE
+document.getElementById('dashDate').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+// TABS SIDEBAR
+function showTab(id, el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+}
+
+// FILTER MISSIONS
+function filterMissions(status, btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.querySelectorAll('#missionsList .mission-card').forEach(c=>{
+    c.style.display=(status==='all'||c.dataset.status===status)?'grid':'none';
+  });
+}
+
+// MODAL
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+</script>
+</body>
+</html>

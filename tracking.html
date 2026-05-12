@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi de mission — Bathily Convoyage</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --red:#c0392b;--red-dark:#a93226;--red-glow:rgba(192,57,43,.1);
+  --black:#0a0808;--ink:#1e1e1e;--ink2:#161616;--fog:#f0eded;--slate:#888;
+  --green:#27ae60;--orange:#e67e22;--blue:#2980b9;
+  --border:rgba(192,57,43,.15);--border2:rgba(240,237,237,.08);
+  --fd:'Cormorant Garamond',Georgia,serif;--fs:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--fog);font-family:var(--fb);font-weight:300;overflow-x:hidden;min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:var(--ink2);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.topbar-logo{font-family:var(--fd);font-size:20px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;color:var(--fog)}
+.topbar-logo span{color:var(--red)}
+.topbar-mid{display:flex;flex-direction:column;align-items:center}
+.topbar-title{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--slate)}
+.topbar-ref{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--red)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.live-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:var(--green);padding:5px 12px;border-radius:2px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.tb-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:8px 14px;border-radius:2px;border:none;cursor:pointer;transition:all .2s;text-decoration:none}
+.tb-ghost{background:transparent;color:var(--slate);border:1px solid var(--border2)}
+.tb-ghost:hover{border-color:var(--fog);color:var(--fog)}
+
+/* LAYOUT PRINCIPAL */
+.tracking-layout{display:grid;grid-template-columns:420px 1fr;min-height:calc(100vh - 60px)}
+
+/* PANNEAU GAUCHE INFO */
+.info-panel{background:var(--ink2);border-right:1px solid var(--border2);display:flex;flex-direction:column;overflow-y:auto;max-height:calc(100vh - 60px);position:sticky;top:60px}
+
+/* HERO STATUS */
+.status-hero{background:var(--ink);border-bottom:1px solid var(--border2);padding:28px 28px 24px}
+.sh-mission-ref{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--red);margin-bottom:10px}
+.sh-status{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sh-status-badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border-radius:2px}
+.status-transit{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:var(--green)}
+.status-prise{background:rgba(41,128,185,.1);border:1px solid rgba(41,128,185,.3);color:var(--blue)}
+.status-livraison{background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.3);color:var(--orange)}
+.status-termine{background:rgba(136,136,136,.1);border:1px solid rgba(136,136,136,.2);color:var(--slate)}
+.sh-vehicle{font-family:var(--fd);font-size:26px;font-weight:300;margin-bottom:4px}
+.sh-vehicle em{font-style:italic;color:var(--red)}
+.sh-plate{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;background:var(--red-glow);border:1px solid rgba(192,57,43,.25);color:var(--red);padding:3px 10px;border-radius:2px;display:inline-block;margin-bottom:14px}
+
+/* PROGRESS BAR TRAJET */
+.route-progress{margin-bottom:0}
+.rp-cities{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.rp-city{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.rp-city.active{color:var(--green)}
+.rp-city.done{color:var(--red)}
+.rp-bar-wrap{position:relative;height:4px;background:var(--border2);border-radius:2px;margin-bottom:8px;overflow:visible}
+.rp-bar-fill{height:100%;background:linear-gradient(to right,var(--red),var(--green));border-radius:2px;transition:width 1s ease;position:relative}
+.rp-car{position:absolute;top:-8px;right:-10px;font-size:16px;transition:all 1s ease;filter:drop-shadow(0 0 6px rgba(192,57,43,.6))}
+.rp-pct{display:flex;justify-content:space-between;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.rp-pct span{color:var(--slate)}
+.rp-pct strong{color:var(--green)}
+
+/* STATS RAPIDES */
+.quick-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;border-top:1px solid var(--border2);border-bottom:1px solid var(--border2)}
+.qs-item{padding:16px 20px;background:var(--ink);border-right:1px solid var(--border2)}
+.qs-item:nth-child(2){border-right:none}
+.qs-item:nth-child(3){border-right:1px solid var(--border2);border-top:1px solid var(--border2)}
+.qs-item:nth-child(4){border-top:1px solid var(--border2)}
+.qs-lbl{font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);margin-bottom:5px}
+.qs-val{font-family:var(--fd);font-size:24px;font-weight:300;color:var(--fog);line-height:1}
+.qs-val em{color:var(--red);font-style:normal;font-size:14px}
+.qs-sub{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-top:2px}
+
+/* ETA */
+.eta-card{background:var(--red-glow);border-bottom:1px solid rgba(192,57,43,.2);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.eta-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:4px}
+.eta-time{font-family:var(--fd);font-size:28px;font-weight:300;color:var(--fog)}
+.eta-sub{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--slate)}
+.eta-right{text-align:right}
+.eta-right .eta-lbl{text-align:right}
+.eta-countdown{font-family:var(--fd);font-size:22px;font-weight:300;color:var(--green)}
+
+/* CONVOYEUR */
+.conv-section{padding:20px 28px;border-bottom:1px solid var(--border2)}
+.cs-title{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);margin-bottom:12px}
+.conv-card{display:flex;align-items:center;gap:14px}
+.conv-ava{width:40px;height:40px;border-radius:50%;background:var(--red-glow);border:1px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:11px;font-weight:700;color:var(--red);flex-shrink:0;position:relative}
+.conv-online{position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--ink2)}
+.conv-name{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.conv-meta{font-size:11px;color:var(--slate)}
+.conv-rating{color:var(--orange);font-size:10px;margin-top:2px}
+
+/* ÉTAPES */
+.steps-section{padding:20px 28px;border-bottom:1px solid var(--border2);flex:1}
+.steps-title{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);margin-bottom:16px}
+.steps-list{display:flex;flex-direction:column;gap:0;position:relative}
+.steps-list::before{content:'';position:absolute;left:10px;top:14px;bottom:10px;width:1px;background:var(--border2)}
+.step-item{display:flex;align-items:flex-start;gap:14px;padding-bottom:16px;position:relative}
+.step-item:last-child{padding-bottom:0}
+.step-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;z-index:1;display:flex;align-items:center;justify-content:center;font-size:8px;transition:all .3s}
+.sd-done{background:var(--green);border:1px solid var(--green);color:var(--fog)}
+.sd-active{background:var(--red-glow);border:1px solid var(--red);color:var(--red);animation:pulseBorder 2s ease-in-out infinite}
+@keyframes pulseBorder{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,.4)}50%{box-shadow:0 0 0 4px rgba(192,57,43,0)}}
+.sd-pending{background:var(--black);border:1px solid var(--border2);color:var(--slate)}
+.step-content{flex:1;padding-top:1px}
+.step-label{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.step-content .step-label.done{color:rgba(240,237,237,.5)}
+.step-content .step-label.active{color:var(--fog)}
+.step-content .step-label.pending{color:var(--slate)}
+.step-time{font-size:10px;font-weight:300;color:var(--slate)}
+.step-time.done{color:var(--green)}
+.step-time.active{color:var(--red)}
+
+/* NOTIFICATIONS */
+.notif-section{padding:16px 28px;border-bottom:1px solid var(--border2)}
+.notif-title{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);margin-bottom:10px}
+.notif-list{display:flex;flex-direction:column;gap:6px}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border2);border-radius:2px;transition:border-color .2s}
+.notif-item.new{border-color:rgba(192,57,43,.3);background:var(--red-glow)}
+.notif-ico{font-size:11px;flex-shrink:0;margin-top:1px}
+.notif-text{font-size:11px;font-weight:300;color:rgba(240,237,237,.7);line-height:1.5;flex:1}
+.notif-text strong{color:var(--fog);font-weight:500}
+.notif-time{font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);flex-shrink:0;margin-top:2px}
+
+/* ACTIONS CLIENT */
+.actions-section{padding:16px 28px}
+.action-btns{display:flex;flex-direction:column;gap:8px}
+.action-btn{display:flex;align-items:center;gap:12px;padding:13px 16px;border:1px solid var(--border2);border-radius:2px;cursor:pointer;transition:all .2s;background:none;color:var(--fog);font-family:var(--fb);text-decoration:none;width:100%}
+.action-btn:hover{border-color:rgba(192,57,43,.3);background:var(--red-glow)}
+.action-btn i{font-size:14px;color:var(--red);width:18px;flex-shrink:0}
+.action-btn-content{}
+.action-btn-title{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1px}
+.action-btn-sub{font-size:11px;color:var(--slate)}
+
+/* CARTE */
+.map-panel{position:relative;background:var(--black);display:flex;flex-direction:column}
+.map-container{flex:1;position:relative;overflow:hidden;min-height:calc(100vh - 60px)}
+.map-bg{width:100%;height:100%;background:
+  radial-gradient(ellipse 80% 60% at 60% 40%, rgba(10,8,8,0) 0%, rgba(10,8,8,0) 100%),
+  #0d1117;
+  position:relative;overflow:hidden}
+
+/* GRILLE CARTE STYLISÉE */
+.map-grid{position:absolute;inset:0;overflow:hidden;opacity:.15}
+.map-grid::before{content:'';position:absolute;inset:0;background-image:
+  linear-gradient(rgba(192,57,43,.3) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(192,57,43,.3) 1px, transparent 1px);
+  background-size:40px 40px}
+.map-roads{position:absolute;inset:0}
+
+/* ROUTE SVG ANIMÉE */
+.map-route-svg{position:absolute;inset:0;width:100%;height:100%}
+
+/* MARQUEURS */
+.map-marker{position:absolute;transform:translate(-50%,-50%);z-index:10;cursor:pointer}
+.marker-depart{bottom:auto;top:auto}
+.marker-content{display:flex;flex-direction:column;align-items:center;gap:4px}
+.marker-pin{width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.marker-pin i{transform:rotate(45deg);font-size:14px}
+.marker-pin.dep{background:var(--blue);border:2px solid rgba(255,255,255,.3)}
+.marker-pin.arr{background:var(--green);border:2px solid rgba(255,255,255,.3)}
+.marker-pin.car{background:var(--red);border:2px solid rgba(255,255,255,.3);animation:markerPulse 2s ease-in-out infinite}
+@keyframes markerPulse{0%,100%{box-shadow:0 4px 12px rgba(0,0,0,.4),0 0 0 0 rgba(192,57,43,.4)}50%{box-shadow:0 4px 12px rgba(0,0,0,.4),0 0 0 12px rgba(192,57,43,0)}}
+.marker-label{background:rgba(10,8,8,.85);border:1px solid var(--border2);color:var(--fog);font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:2px;white-space:nowrap;backdrop-filter:blur(4px)}
+.marker-label.car-label{border-color:rgba(192,57,43,.4);color:var(--red)}
+
+/* INFO BULLE CARTE */
+.map-info-overlay{position:absolute;top:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:20}
+.map-info-card{background:rgba(10,8,8,.88);border:1px solid var(--border2);padding:14px 18px;backdrop-filter:blur(12px);border-radius:2px;min-width:180px}
+.mic-title{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);margin-bottom:6px}
+.mic-val{font-family:var(--fd);font-size:22px;font-weight:300;color:var(--fog);line-height:1;margin-bottom:2px}
+.mic-val em{color:var(--red);font-style:normal;font-size:14px}
+.mic-sub{font-size:11px;color:var(--slate)}
+
+/* POSITION ACTUELLE */
+.current-pos{position:absolute;bottom:20px;left:20px;background:rgba(10,8,8,.88);border:1px solid var(--border2);padding:14px 18px;backdrop-filter:blur(12px);border-radius:2px;z-index:20}
+.cp-title{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.cp-loc{font-size:13px;font-weight:300;color:var(--fog);margin-bottom:3px}
+.cp-coords{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.06em;color:var(--slate)}
+.cp-update{font-size:10px;color:var(--slate);margin-top:4px}
+
+/* MAP CONTROLS */
+.map-controls{position:absolute;top:20px;left:20px;display:flex;flex-direction:column;gap:6px;z-index:20}
+.map-ctrl-btn{width:36px;height:36px;background:rgba(10,8,8,.88);border:1px solid var(--border2);border-radius:2px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--slate);font-size:14px;transition:all .2s;backdrop-filter:blur(8px)}
+.map-ctrl-btn:hover{border-color:var(--red);color:var(--red)}
+.map-ctrl-btn.active{border-color:var(--red);color:var(--red);background:var(--red-glow)}
+
+/* BOTTOM BAR CARTE */
+.map-bottom-bar{background:rgba(10,8,8,.92);border-top:1px solid var(--border2);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;backdrop-filter:blur(12px);flex-wrap:wrap;z-index:20}
+.mbb-item{display:flex;align-items:center;gap:10px}
+.mbb-ico{font-size:14px;color:var(--red)}
+.mbb-content{}
+.mbb-lbl{font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);margin-bottom:2px}
+.mbb-val{font-family:var(--fd);font-size:18px;font-weight:300;color:var(--fog)}
+.mbb-val em{color:var(--red);font-style:normal;font-size:11px}
+.refresh-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:8px 14px;background:transparent;border:1px solid var(--border2);border-radius:2px;cursor:pointer;color:var(--slate);transition:all .2s}
+.refresh-btn:hover{border-color:var(--fog);color:var(--fog)}
+.refresh-btn.spinning i{animation:spin .6s linear}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* MODAL SIGNALEMENT */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,8,8,.88);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--ink);border:1px solid var(--border);padding:36px;max-width:460px;width:92%;position:relative}
+.modal-close{position:absolute;top:14px;right:14px;font-size:16px;color:var(--slate);cursor:pointer;background:none;border:none;transition:color .2s}
+.modal-close:hover{color:var(--fog)}
+.modal-h{font-family:var(--fd);font-size:26px;font-weight:300;margin-bottom:4px}
+.modal-h em{font-style:italic;color:var(--red)}
+.modal-sub{font-size:12px;color:var(--slate);margin-bottom:20px}
+.f-grp{margin-bottom:14px}
+.f-grp label{display:block;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);margin-bottom:6px}
+.f-grp select,.f-grp textarea,.f-grp input{width:100%;background:rgba(240,237,237,.03);border:1px solid var(--border2);color:var(--fog);padding:11px 13px;font-family:var(--fb);font-size:13px;font-weight:300;outline:none;transition:border-color .2s;border-radius:2px;-webkit-appearance:none}
+.f-grp select:focus,.f-grp textarea:focus,.f-grp input:focus{border-color:var(--red)}
+.f-grp select option,.f-grp textarea{background:var(--ink)}
+.f-grp textarea{resize:vertical;min-height:80px}
+.modal-btns{display:flex;gap:10px;margin-top:16px}
+.btn-red{display:inline-flex;align-items:center;gap:7px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--fog);background:var(--red);padding:12px 20px;border:none;cursor:pointer;border-radius:2px;transition:background .2s}
+.btn-red:hover{background:var(--red-dark)}
+.btn-outline{display:inline-flex;align-items:center;gap:7px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);background:transparent;padding:12px 20px;border:1px solid var(--border2);cursor:pointer;border-radius:2px;transition:all .2s}
+.btn-outline:hover{border-color:var(--fog);color:var(--fog)}
+
+/* MODAL PHOTOS EDL */
+.photos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.photo-thumb{aspect-ratio:4/3;background:rgba(240,237,237,.04);border:1px solid var(--border2);border-radius:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:all .2s}
+.photo-thumb:hover{border-color:rgba(192,57,43,.35);background:var(--red-glow)}
+.photo-thumb i{font-size:20px;color:var(--slate)}
+.photo-thumb span{font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);text-align:center}
+
+/* TIMELINE COMPACT TERMINÉ */
+.done-overlay{display:none;position:absolute;inset:0;background:rgba(10,8,8,.7);z-index:30;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.done-overlay.show{display:flex}
+.done-card{background:var(--ink);border:1px solid rgba(39,174,96,.4);padding:48px 56px;text-align:center;border-radius:2px}
+.done-ico{font-size:52px;color:var(--green);margin-bottom:20px}
+.done-h{font-family:var(--fd);font-size:42px;font-weight:300;margin-bottom:6px}
+.done-h em{font-style:italic;color:var(--green)}
+.done-sub{font-size:14px;color:var(--slate);margin-bottom:24px;line-height:1.7}
+.done-ref{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);margin-bottom:4px}
+.done-ref-val{font-family:var(--fd);font-size:24px;font-weight:300;color:var(--fog);margin-bottom:24px}
+
+/* PAGE EXPIRÉE */
+.expired-page{display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px}
+.expired-page.show{display:flex}
+
+/* SHARE */
+.share-row{display:flex;gap:8px;margin-top:10px}
+.share-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:8px 12px;border-radius:2px;border:1px solid var(--border2);cursor:pointer;background:none;color:var(--slate);transition:all .2s}
+.share-btn:hover{border-color:var(--fog);color:var(--fog)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .tracking-layout{grid-template-columns:1fr}
+  .map-panel{min-height:55vh}
+  .info-panel{max-height:none;position:relative;top:0}
+  .map-container{min-height:55vh}
+}
+@media(max-width:600px){
+  .topbar-mid{display:none}
+  .map-info-overlay{top:10px;right:10px}
+  .map-info-card{min-width:140px;padding:10px 14px}
+  .mbb-item:nth-child(n+3){display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a href="index.html" class="topbar-logo">Bathily<span>.</span></a>
+  <div class="topbar-mid">
+    <div class="topbar-title">Suivi de mission en temps réel</div>
+    <div class="topbar-ref" id="topRef">BC-2025-0847 · BMW Série 3 · Paris → Lyon</div>
+  </div>
+  <div class="topbar-right">
+    <div class="live-badge"><div class="live-dot"></div> EN DIRECT</div>
+    <button class="tb-btn tb-ghost" onclick="openModal('modalShare')"><i class="fas fa-share-alt"></i> Partager</button>
+  </div>
+</div>
+
+<div class="tracking-layout">
+
+  <!-- ══ PANNEAU INFO GAUCHE ══ -->
+  <div class="info-panel">
+
+    <!-- STATUS HERO -->
+    <div class="status-hero">
+      <div class="sh-mission-ref">Mission · BC-2025-0847</div>
+      <div class="sh-status">
+        <div class="sh-status-badge status-transit"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block"></span> En transit</div>
+      </div>
+      <div class="sh-vehicle">BMW <em>Série 3</em></div>
+      <div class="sh-plate">IJ-789-KL</div>
+
+      <!-- PROGRESS TRAJET -->
+      <div class="route-progress">
+        <div class="rp-cities">
+          <div>
+            <div class="rp-city done">Paris</div>
+            <div style="font-size:10px;color:var(--slate)">Départ 09:00</div>
+          </div>
+          <div style="text-align:right">
+            <div class="rp-city active">Lyon</div>
+            <div style="font-size:10px;color:var(--slate)">Arrivée ~15:30</div>
+          </div>
+        </div>
+        <div class="rp-bar-wrap">
+          <div class="rp-bar-fill" id="progressBar" style="width:65%">
+            <div class="rp-car" id="carMarker"><i class="fas fa-car"></i></div>
+          </div>
+        </div>
+        <div class="rp-pct">
+          <span id="kmDone">305 km parcourus</span>
+          <strong id="pctDone">65% — 165 km restants</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- ETA -->
+    <div class="eta-card">
+      <div>
+        <div class="eta-lbl">Arrivée estimée</div>
+        <div class="eta-time" id="etaTime">15:28</div>
+        <div class="eta-sub">À Lyon Part-Dieu</div>
+      </div>
+      <div class="eta-right">
+        <div class="eta-lbl">Temps restant</div>
+        <div class="eta-countdown" id="countdown">2h 14min</div>
+        <div class="eta-sub">Mise à jour il y a 32s</div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="quick-stats">
+      <div class="qs-item">
+        <div class="qs-lbl">Vitesse moyenne</div>
+        <div class="qs-val">98<em> km/h</em></div>
+        <div class="qs-sub">En déplacement</div>
+      </div>
+      <div class="qs-item">
+        <div class="qs-lbl">Distance restante</div>
+        <div class="qs-val">165<em> km</em></div>
+        <div class="qs-sub">Sur 470 km</div>
+      </div>
+      <div class="qs-item">
+        <div class="qs-lbl">Dernière position</div>
+        <div class="qs-val" style="font-size:16px">Beaune</div>
+        <div class="qs-sub">A6 · Il y a 32s</div>
+      </div>
+      <div class="qs-item">
+        <div class="qs-lbl">Carburant / Charge</div>
+        <div class="qs-val">48<em>%</em></div>
+        <div class="qs-sub">Niveau suffisant</div>
+      </div>
+    </div>
+
+    <!-- CONVOYEUR -->
+    <div class="conv-section">
+      <div class="cs-title">Convoyeur assigné</div>
+      <div class="conv-card">
+        <div class="conv-ava">MB<div class="conv-online"></div></div>
+        <div>
+          <div class="conv-name">M. Bathily</div>
+          <div class="conv-meta">Convoyeur Senior · Certifié SIV</div>
+          <div class="conv-rating">★★★★★ 4.9 / 5</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÉTAPES -->
+    <div class="steps-section">
+      <div class="steps-title">Étapes de la mission</div>
+      <div class="steps-list">
+        <div class="step-item">
+          <div class="step-dot sd-done"><i class="fas fa-check"></i></div>
+          <div class="step-content">
+            <div class="step-label done">Prise en charge</div>
+            <div class="step-time done"><i class="fas fa-check-circle" style="margin-right:3px"></i>09:14 · Paris 1er</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-dot sd-done"><i class="fas fa-check"></i></div>
+          <div class="step-content">
+            <div class="step-label done">État des lieux départ signé</div>
+            <div class="step-time done"><i class="fas fa-check-circle" style="margin-right:3px"></i>09:32 · 20 photos + signature</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-dot sd-done"><i class="fas fa-check"></i></div>
+          <div class="step-content">
+            <div class="step-label done">Départ effectué</div>
+            <div class="step-time done"><i class="fas fa-check-circle" style="margin-right:3px"></i>09:38 · Suivi GPS activé</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-dot sd-done"><i class="fas fa-check"></i></div>
+          <div class="step-content">
+            <div class="step-label done">Pause — Auxerre</div>
+            <div class="step-time done"><i class="fas fa-check-circle" style="margin-right:3px"></i>11:22 · 15 min · Vérif. OK</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-dot sd-active"><i class="fas fa-truck" style="font-size:7px"></i></div>
+          <div class="step-content">
+            <div class="step-label active">En transit — Approche Beaune</div>
+            <div class="step-time active" id="currentTime">13:14 · A6 · 165 km restants</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-dot sd-pending">6</div>
+          <div class="step-content">
+            <div class="step-label pending">Nettoyage véhicule (Sérénité)</div>
+            <div class="step-time">Prévu ~14:30 · Avant Lyon</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-dot sd-pending">7</div>
+          <div class="step-content">
+            <div class="step-label pending">Livraison</div>
+            <div class="step-time">Estimée 15:28 · Lyon 3ème</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-dot sd-pending">8</div>
+          <div class="step-content">
+            <div class="step-label pending">État des lieux arrivée</div>
+            <div class="step-time">20 photos + signature client</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="notif-section">
+      <div class="notif-title">Dernières notifications</div>
+      <div class="notif-list" id="notifList">
+        <div class="notif-item new">
+          <i class="fas fa-map-marker-alt notif-ico" style="color:var(--red)"></i>
+          <div class="notif-text"><strong>Position mise à jour</strong> — A6 km 301, Beaune-la-Rolande</div>
+          <div class="notif-time">13:14</div>
+        </div>
+        <div class="notif-item">
+          <i class="fas fa-pause-circle notif-ico" style="color:var(--green)"></i>
+          <div class="notif-text"><strong>Pause effectuée</strong> — Aire d'Auxerre, 15 min. Véhicule vérifié, tout est normal.</div>
+          <div class="notif-time">11:22</div>
+        </div>
+        <div class="notif-item">
+          <i class="fas fa-play-circle notif-ico" style="color:var(--blue)"></i>
+          <div class="notif-text"><strong>Mission démarrée</strong> — M. Bathily a pris en charge votre BMW Série 3 à Paris.</div>
+          <div class="notif-time">09:38</div>
+        </div>
+        <div class="notif-item">
+          <i class="fas fa-clipboard-check notif-ico" style="color:var(--green)"></i>
+          <div class="notif-text"><strong>État des lieux signé</strong> — 20 photos prises, aucun dommage signalé. Document envoyé par email.</div>
+          <div class="notif-time">09:32</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS CLIENT -->
+    <div class="actions-section">
+      <button class="action-btn" onclick="openModal('modalContact')">
+        <i class="fas fa-phone-alt"></i>
+        <div class="action-btn-content">
+          <div class="action-btn-title">Contacter le convoyeur</div>
+          <div class="action-btn-sub">Via le dispatch Bathily · Réponse immédiate</div>
+        </div>
+      </button>
+      <button class="action-btn" onclick="openModal('modalPhotos')">
+        <i class="fas fa-images"></i>
+        <div class="action-btn-content">
+          <div class="action-btn-title">Voir les photos EDL départ</div>
+          <div class="action-btn-sub">20 photos disponibles · Signé à 09:32</div>
+        </div>
+      </button>
+      <button class="action-btn" onclick="openModal('modalSignalement')">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div class="action-btn-content">
+          <div class="action-btn-title">Signaler un problème</div>
+          <div class="action-btn-sub">Contacter le support · Urgence 24h/24</div>
+        </div>
+      </button>
+      <button class="action-btn" onclick="openModal('modalShare')">
+        <i class="fas fa-share-alt"></i>
+        <div class="action-btn-content">
+          <div class="action-btn-title">Partager le suivi</div>
+          <div class="action-btn-sub">Envoyer le lien à un proche</div>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ PANNEAU CARTE DROITE ══ -->
+  <div class="map-panel">
+    <div class="map-container">
+      <div class="map-bg">
+        <div class="map-grid"></div>
+
+        <!-- SVG ROUTE ANIMÉE -->
+        <svg class="map-route-svg" viewBox="0 0 800 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Routes secondaires -->
+          <path d="M 100,400 Q 200,350 300,300 Q 400,250 500,200" stroke="rgba(240,237,237,.04)" stroke-width="8" fill="none"/>
+          <path d="M 150,500 Q 250,420 350,380 Q 450,340 550,280" stroke="rgba(240,237,237,.04)" stroke-width="5" fill="none"/>
+          <!-- Route principale A6 -->
+          <path id="mainRoute" d="M 160,510 Q 220,460 280,400 Q 360,330 420,270 Q 500,200 580,150 Q 640,120 680,100" stroke="rgba(192,57,43,.2)" stroke-width="12" fill="none" stroke-linecap="round"/>
+          <!-- Route parcourue -->
+          <path id="doneRoute" d="M 160,510 Q 220,460 280,400 Q 360,330 420,270 Q 460,240 490,218" stroke="url(#routeGrad)" stroke-width="6" fill="none" stroke-linecap="round">
+            <animate attributeName="stroke-dashoffset" from="600" to="0" dur="2s" fill="freeze"/>
+          </path>
+          <defs>
+            <linearGradient id="routeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:var(--blue);stop-opacity:1"/>
+              <stop offset="100%" style="stop-color:var(--red);stop-opacity:1"/>
+            </linearGradient>
+          </defs>
+          <!-- Étiquettes villes -->
+          <text x="145" y="530" fill="rgba(240,237,237,.5)" font-family="var(--fs)" font-size="11" font-weight="700" letter-spacing="2">PARIS</text>
+          <text x="660" y="92" fill="rgba(39,174,96,.7)" font-family="var(--fs)" font-size="11" font-weight="700" letter-spacing="2">LYON</text>
+          <text x="290" y="395" fill="rgba(240,237,237,.25)" font-family="var(--fs)" font-size="9" font-weight="700">AUXERRE</text>
+          <text x="385" y="320" fill="rgba(240,237,237,.25)" font-family="var(--fs)" font-size="9" font-weight="700">BEAUNE</text>
+          <text x="460" y="255" fill="rgba(192,57,43,.6)" font-family="var(--fs)" font-size="9" font-weight="700" letter-spacing="1">▶ POSITION ACTUELLE</text>
+        </svg>
+
+        <!-- MARQUEUR DÉPART -->
+        <div class="map-marker" style="left:20%;bottom:15%">
+          <div class="marker-content">
+            <div class="marker-label">Paris · Départ 09:14</div>
+            <div class="marker-pin dep"><i class="fas fa-map-marker-alt" style="color:white"></i></div>
+          </div>
+        </div>
+
+        <!-- MARQUEUR ARRIVÉE -->
+        <div class="map-marker" style="right:12%;top:14%">
+          <div class="marker-content">
+            <div class="marker-label">Lyon · ~15:28</div>
+            <div class="marker-pin arr"><i class="fas fa-flag-checkered" style="color:white"></i></div>
+          </div>
+        </div>
+
+        <!-- MARQUEUR VÉHICULE -->
+        <div class="map-marker" id="carMarkerMap" style="left:61%;top:36%">
+          <div class="marker-content">
+            <div class="marker-label car-label" id="carLabel">BMW S3 · IJ-789-KL · A6 km 305</div>
+            <div class="marker-pin car"><i class="fas fa-car" style="color:white"></i></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- INFO OVERLAYS -->
+      <div class="map-info-overlay">
+        <div class="map-info-card">
+          <div class="mic-title">Vitesse actuelle</div>
+          <div class="mic-val" id="speedVal">112<em> km/h</em></div>
+          <div class="mic-sub">A6 · Circulation fluide</div>
+        </div>
+        <div class="map-info-card">
+          <div class="mic-title">ETA Lyon</div>
+          <div class="mic-val" id="etaVal">15<em>h28</em></div>
+          <div class="mic-sub">Dans 2h 14min</div>
+        </div>
+        <div class="map-info-card">
+          <div class="mic-title">Progression</div>
+          <div class="mic-val">65<em>%</em></div>
+          <div class="mic-sub">305 km / 470 km</div>
+        </div>
+      </div>
+
+      <!-- POSITION ACTUELLE -->
+      <div class="current-pos">
+        <div class="cp-title"><div class="live-dot" style="width:6px;height:6px"></div> Position actuelle</div>
+        <div class="cp-loc" id="currentLoc">A6 · Hauteur de Beaune</div>
+        <div class="cp-coords" id="currentCoords">47°01'N · 4°50'E</div>
+        <div class="cp-update">Mis à jour il y a <span id="lastUpdate">32</span>s</div>
+      </div>
+
+      <!-- CONTROLES CARTE -->
+      <div class="map-controls">
+        <div class="map-ctrl-btn active" title="Centrer sur le véhicule" onclick="centerOnCar()"><i class="fas fa-crosshairs"></i></div>
+        <div class="map-ctrl-btn" title="Vue satellite" onclick="toggleSatellite(this)"><i class="fas fa-satellite"></i></div>
+        <div class="map-ctrl-btn" title="Itinéraire complet" onclick="showRoute(this)"><i class="fas fa-route"></i></div>
+        <div class="map-ctrl-btn" title="Mode plein écran" onclick="toggleFullscreen()"><i class="fas fa-expand"></i></div>
+      </div>
+
+      <!-- OVERLAY MISSION TERMINÉE -->
+      <div class="done-overlay" id="doneOverlay">
+        <div class="done-card">
+          <div class="done-ico"><i class="fas fa-check-circle"></i></div>
+          <h2 class="done-h">Mission <em>livrée !</em></h2>
+          <p class="done-sub">Votre BMW Série 3 a été livrée avec succès à Lyon.<br>L'état des lieux d'arrivée est disponible par email.</p>
+          <div class="done-ref">Référence</div>
+          <div class="done-ref-val">BC-2025-0847</div>
+          <a href="dashboard-client.html" class="btn-red"><i class="fas fa-home"></i> Mon espace client</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM BAR CARTE -->
+    <div class="map-bottom-bar">
+      <div class="mbb-item">
+        <div class="mbb-ico"><i class="fas fa-map-marker-alt"></i></div>
+        <div class="mbb-content">
+          <div class="mbb-lbl">Position</div>
+          <div class="mbb-val">A6 · Beaune</div>
+        </div>
+      </div>
+      <div class="mbb-item">
+        <div class="mbb-ico"><i class="fas fa-tachometer-alt"></i></div>
+        <div class="mbb-content">
+          <div class="mbb-lbl">Vitesse</div>
+          <div class="mbb-val" id="speedBar">112<em> km/h</em></div>
+        </div>
+      </div>
+      <div class="mbb-item">
+        <div class="mbb-ico"><i class="fas fa-route"></i></div>
+        <div class="mbb-content">
+          <div class="mbb-lbl">Restant</div>
+          <div class="mbb-val">165<em> km</em></div>
+        </div>
+      </div>
+      <div class="mbb-item">
+        <div class="mbb-ico"><i class="fas fa-gas-pump"></i></div>
+        <div class="mbb-content">
+          <div class="mbb-lbl">Carburant</div>
+          <div class="mbb-val">48<em>%</em></div>
+        </div>
+      </div>
+      <button class="refresh-btn" onclick="refreshData(this)">
+        <i class="fas fa-sync-alt"></i> Actualiser
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ MODALS ══ -->
+
+<!-- CONTACT -->
+<div class="modal-overlay" id="modalContact">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modalContact')"><i class="fas fa-times"></i></button>
+    <h3 class="modal-h">Contacter le <em>dispatch</em></h3>
+    <p class="modal-sub">Pour joindre M. Bathily, passez par notre dispatch qui relaiera votre message immédiatement.</p>
+    <div style="background:var(--red-glow);border:1px solid rgba(192,57,43,.3);padding:16px;border-radius:2px;margin-bottom:16px">
+      <div style="font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin-bottom:4px">Dispatch Bathily · Urgence 24h/24</div>
+      <div style="font-family:var(--fd);font-size:22px;font-weight:300">Disponible maintenant</div>
+    </div>
+    <div class="f-grp"><label>Votre message</label>
+      <textarea placeholder="Ex : Pouvez-vous me confirmer l'heure d'arrivée ?…" rows="3"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-red" onclick="closeModal('modalContact')"><i class="fas fa-paper-plane"></i> Envoyer</button>
+      <button class="btn-outline" onclick="closeModal('modalContact')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- PHOTOS EDL -->
+<div class="modal-overlay" id="modalPhotos">
+  <div class="modal-box" style="max-width:560px">
+    <button class="modal-close" onclick="closeModal('modalPhotos')"><i class="fas fa-times"></i></button>
+    <h3 class="modal-h">Photos <em>état des lieux départ</em></h3>
+    <p class="modal-sub">20 photos prises le 12 mai 2025 à 09:32 · Aucun dommage signalé</p>
+    <div class="photos-grid">
+      <div class="photo-thumb"><i class="fas fa-car"></i><span>Avant</span></div>
+      <div class="photo-thumb"><i class="fas fa-car"></i><span>Arrière</span></div>
+      <div class="photo-thumb"><i class="fas fa-car-side"></i><span>Côté G.</span></div>
+      <div class="photo-thumb"><i class="fas fa-car-side"></i><span>Côté D.</span></div>
+      <div class="photo-thumb"><i class="fas fa-car"></i><span>Toit</span></div>
+      <div class="photo-thumb"><i class="fas fa-tachometer-alt"></i><span>Tableau bord</span></div>
+      <div class="photo-thumb"><i class="fas fa-chair"></i><span>Siège AV G.</span></div>
+      <div class="photo-thumb"><i class="fas fa-chair"></i><span>Siège AV D.</span></div>
+      <div class="photo-thumb"><i class="fas fa-chair"></i><span>Sièges AR</span></div>
+      <div class="photo-thumb"><i class="fas fa-box"></i><span>Coffre</span></div>
+    </div>
+    <div style="text-align:center">
+      <button class="btn-outline" onclick="closeModal('modalPhotos')"><i class="fas fa-download"></i> Télécharger toutes les photos</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNALEMENT -->
+<div class="modal-overlay" id="modalSignalement">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modalSignalement')"><i class="fas fa-times"></i></button>
+    <h3 class="modal-h">Signaler un <em>problème</em></h3>
+    <p class="modal-sub">Notre équipe sera notifiée immédiatement et vous contactera dans les plus brefs délais.</p>
+    <div class="f-grp"><label>Type de problème</label>
+      <select>
+        <option>Retard important (> 1h)</option>
+        <option>Contact convoyeur impossible</option>
+        <option>Inquiétude sur l'état du véhicule</option>
+        <option>Problème de livraison</option>
+        <option>Urgence / Accident</option>
+        <option>Autre</option>
+      </select>
+    </div>
+    <div class="f-grp"><label>Description</label>
+      <textarea placeholder="Décrivez le problème en détail…" rows="3"></textarea>
+    </div>
+    <div class="f-grp"><label>Votre téléphone (pour rappel urgent)</label>
+      <input type="tel" placeholder="+33 6 12 34 56 78">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-red" onclick="closeModal('modalSignalement')"><i class="fas fa-exclamation-triangle"></i> Signaler maintenant</button>
+      <button class="btn-outline" onclick="closeModal('modalSignalement')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- PARTAGE -->
+<div class="modal-overlay" id="modalShare">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modalShare')"><i class="fas fa-times"></i></button>
+    <h3 class="modal-h">Partager le <em>suivi</em></h3>
+    <p class="modal-sub">Envoyez ce lien à un proche pour qu'il puisse suivre la mission en temps réel.</p>
+    <div style="background:rgba(240,237,237,.03);border:1px solid var(--border2);padding:12px 16px;border-radius:2px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div style="font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--slate);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">bathily-convoyage.fr/tracking/BC-2025-0847</div>
+      <button onclick="copyLink()" style="font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:var(--red);color:var(--fog);border:none;padding:6px 12px;border-radius:2px;cursor:pointer;flex-shrink:0" id="copyBtn">Copier</button>
+    </div>
+    <div style="font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);margin-bottom:10px">Partager via</div>
+    <div class="share-row">
+      <button class="share-btn" onclick="closeModal('modalShare')"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+      <button class="share-btn" onclick="closeModal('modalShare')"><i class="fas fa-sms"></i> SMS</button>
+      <button class="share-btn" onclick="closeModal('modalShare')"><i class="fas fa-envelope"></i> Email</button>
+    </div>
+    <div style="margin-top:16px;font-size:11px;color:var(--slate)">Ce lien est valable 48h après la livraison.</div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════
+// SIMULATION GPS EN TEMPS RÉEL
+// ══════════════════════════════
+let progress=65;
+let lastUpdateSec=32;
+let etaMinutes=134; // 2h14min
+
+const locations=[
+  {pct:65,loc:'A6 · Hauteur de Beaune',coords:"47°01'N · 4°50'E",km:305,speed:112},
+  {pct:67,loc:'A6 · Sortie Beaune',coords:"47°02'N · 4°48'E",km:315,speed:108},
+  {pct:70,loc:'A6 · Avant Mâcon',coords:"46°42'N · 4°51'E",km:329,speed:115},
+  {pct:73,loc:'A6 · Hauteur de Mâcon',coords:"46°18'N · 4°54'E",km:343,speed:106},
+  {pct:77,loc:'A6 · Villefranche-sur-Saône',coords:"45°59'N · 4°43'E",km:362,speed:112},
+  {pct:82,loc:'A6 → A46 · Bifurcation Lyon Nord',coords:"45°53'N · 4°41'E",km:385,speed:95},
+  {pct:88,loc:'A46 · Périphérique Lyon',coords:"45°45'N · 4°51'E",km:414,speed:78},
+  {pct:93,loc:'Lyon · Approche livraison',coords:"45°44'N · 4°53'E",km:437,speed:45},
+  {pct:100,loc:'Lyon 3ème · Livraison',coords:"45°45'N · 4°55'E",km:470,speed:0},
+];
+let locIndex=0;
+
+// Notifications dynamiques
+const notifMessages=[
+  {ico:'fas fa-map-marker-alt',color:'var(--red)',text:'<strong>Position mise à jour</strong> — A6 km 315, sortie Beaune',time:'13:18'},
+  {ico:'fas fa-gas-pump',color:'var(--orange)',text:'<strong>Carburant</strong> — Niveau à 45%, autonomie suffisante jusqu\'à Lyon',time:'13:22'},
+  {ico:'fas fa-map-marker-alt',color:'var(--red)',text:'<strong>Position mise à jour</strong> — A6 km 329, avant Mâcon',time:'13:31'},
+  {ico:'fas fa-tachometer-alt',color:'var(--blue)',text:'<strong>Circulation</strong> — Trafic fluide, aucun ralentissement détecté',time:'13:38'},
+  {ico:'fas fa-map-marker-alt',color:'var(--red)',text:'<strong>Position mise à jour</strong> — A6 km 343, hauteur Mâcon',time:'13:44'},
+];
+let notifIndex=0;
+
+// ── MISE À JOUR POSITION ──
+function updatePosition(){
+  if(locIndex>=locations.length-1){
+    showMissionDone();return;
+  }
+  locIndex++;
+  const loc=locations[locIndex];
+  progress=loc.pct;
+
+  // Barre de progression
+  document.getElementById('progressBar').style.width=progress+'%';
+  document.getElementById('pctDone').textContent=progress+'% — '+(470-loc.km)+' km restants';
+  document.getElementById('kmDone').textContent=loc.km+' km parcourus';
+
+  // Vitesse
+  document.getElementById('speedVal').textContent=loc.speed+'<em> km/h</em>';
+  document.getElementById('speedBar').innerHTML=loc.speed+'<em> km/h</em>';
+
+  // Position
+  document.getElementById('currentLoc').textContent=loc.loc;
+  document.getElementById('currentCoords').textContent=loc.coords;
+  document.getElementById('carLabel').textContent='BMW S3 · IJ-789-KL · A6 km '+loc.km;
+
+  // ETA
+  etaMinutes=Math.max(0,Math.round((470-loc.km)/98*60));
+  const h=Math.floor(etaMinutes/60);const m=etaMinutes%60;
+  const now=new Date();const eta=new Date(now.getTime()+etaMinutes*60000);
+  const etaStr=eta.getHours().toString().padStart(2,'0')+':'+eta.getMinutes().toString().padStart(2,'0');
+  document.getElementById('etaTime').textContent=etaStr;
+  document.getElementById('etaVal').innerHTML=eta.getHours()+'<em>h'+eta.getMinutes().toString().padStart(2,'0')+'</em>';
+  document.getElementById('countdown').textContent=(h>0?h+'h ':'')+m+'min';
+  document.getElementById('currentTime').textContent=now.toTimeString().slice(0,5)+' · '+loc.loc;
+
+  // Notif
+  if(notifIndex<notifMessages.length){
+    addNotif(notifMessages[notifIndex]);
+    notifIndex++;
+  }
+
+  lastUpdateSec=0;
+}
+
+function addNotif(n){
+  const list=document.getElementById('notifList');
+  // Retirer "new" des précédentes
+  list.querySelectorAll('.notif-item.new').forEach(i=>i.classList.remove('new'));
+  const div=document.createElement('div');
+  div.className='notif-item new';
+  div.innerHTML=`<i class="${n.ico} notif-ico" style="color:${n.color}"></i><div class="notif-text">${n.text}</div><div class="notif-time">${n.time}</div>`;
+  list.insertBefore(div,list.firstChild);
+  if(list.children.length>5)list.removeChild(list.lastChild);
+}
+
+// ── COMPTEUR DERNIÈRE MAJ ──
+setInterval(()=>{
+  lastUpdateSec++;
+  document.getElementById('lastUpdate').textContent=lastUpdateSec;
+},1000);
+
+// ── SIMULATION DÉPLACEMENT ──
+setTimeout(()=>updatePosition(),8000);
+setTimeout(()=>updatePosition(),16000);
+setTimeout(()=>updatePosition(),24000);
+setTimeout(()=>updatePosition(),32000);
+setTimeout(()=>updatePosition(),40000);
+setTimeout(()=>updatePosition(),48000);
+setTimeout(()=>updatePosition(),56000);
+setTimeout(()=>showMissionDone(),64000);
+
+function showMissionDone(){
+  progress=100;
+  document.getElementById('progressBar').style.width='100%';
+  document.getElementById('doneOverlay').classList.add('show');
+  document.querySelector('.live-badge').innerHTML='<i class="fas fa-check-circle" style="color:var(--green)"></i> LIVRÉ';
+  document.querySelector('.sh-status-badge').className='sh-status-badge status-termine';
+  document.querySelector('.sh-status-badge').textContent='Mission terminée';
+  addNotif({ico:'fas fa-check-circle',color:'var(--green)',text:'<strong>Mission livrée !</strong> Votre BMW Série 3 a été livrée à Lyon. État des lieux d\'arrivée signé.',time:new Date().toTimeString().slice(0,5)});
+}
+
+// ── CONTROLES CARTE ──
+function centerOnCar(){
+  const btn=document.querySelector('.map-ctrl-btn');
+  btn.classList.add('active');
+}
+function toggleSatellite(btn){btn.classList.toggle('active');}
+function showRoute(btn){btn.classList.toggle('active');}
+function toggleFullscreen(){
+  if(!document.fullscreenElement){document.documentElement.requestFullscreen();}
+  else{document.exitFullscreen();}
+}
+
+// ── REFRESH ──
+function refreshData(btn){
+  btn.classList.add('spinning');
+  lastUpdateSec=0;
+  setTimeout(()=>{btn.classList.remove('spinning');},1000);
+}
+
+// ── COPY LINK ──
+function copyLink(){
+  navigator.clipboard.writeText('https://bathily-convoyage.fr/tracking/BC-2025-0847');
+  const btn=document.getElementById('copyBtn');
+  btn.textContent='Copié !';btn.style.background='var(--green)';
+  setTimeout(()=>{btn.textContent='Copier';btn.style.background='';},2000);
+}
+
+// ── MODAL ──
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+
+// ── INIT HEURE ──
+const now=new Date();
+document.getElementById('currentTime').textContent=now.toTimeString().slice(0,5)+' · A6 · 165 km restants';
+</script><script type="module">
+  // 1. Importation des modules (Méthode CDN pour éviter le proxy)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // 2. Ta configuration officielle
+  const firebaseConfig = {
+    apiKey: "AIzaSyAbPM7pM4umkuG1k_MAUYxddHQMNP9UebM",
+    authDomain: "bathily-convoyage-c211b.firebaseapp.com",
+    databaseURL: "https://bathily-convoyage-c211b-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "bathily-convoyage-c211b",
+    storageBucket: "bathily-convoyage-c211b.firebasestorage.app",
+    messagingSenderId: "115133170172",
+    appId: "1:115133170172:web:5fcdc2b835f6df157b3279"
+  };
+
+  // 3. Initialisation
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // 4. Écoute des données en temps réel
+  // On suppose que le convoyeur envoie ses données dans 'trips/BC-2025-0847'
+  const tripRef = ref(db, 'trips/BC-2025-0847');
+
+  onValue(tripRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      console.log("Données reçues :", data);
+
+      // Mise à jour de la vitesse
+      if (data.vitesse) {
+        document.querySelector('.qs-val').innerHTML = `${Math.round(data.vitesse)}<em> km/h</em>`;
+      }
+
+      // Mise à jour de la barre de progression (exemple basé sur un trajet de 470km)
+      if (data.distanceParcourue) {
+        let totalTrip = 470;
+        let pct = (data.distanceParcourue / totalTrip) * 100;
+        document.getElementById('progressBar').style.width = pct + "%";
+        document.getElementById('pctDone').innerText = `${Math.round(pct)}% — ${Math.round(totalTrip - data.distanceParcourue)} km restants`;
+        document.getElementById('kmDone').innerText = `${Math.round(data.distanceParcourue)} km parcourus`;
+      }
+
+      // Mise à jour du temps (Heure actuelle du convoyeur)
+      const now = new Date();
+      document.getElementById('currentTime').innerText = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} · A6 · En mouvement`;
+      
+      // Si le statut change à "arrived", on peut déclencher une alerte
+      if (data.status === "arrived") {
+        alert("Le véhicule est arrivé à Lyon !");
+      }
+    }
+  });
+</script>
+</body>
+</html>

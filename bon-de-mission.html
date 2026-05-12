@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bon de Mission — Bathily Convoyage</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --red:#c0392b;--red-dark:#a93226;--red-glow:rgba(192,57,43,.1);
+  --black:#0a0808;--ink:#1e1e1e;--ink2:#161616;--fog:#f0eded;--slate:#888;
+  --green:#27ae60;--orange:#e67e22;--blue:#2980b9;
+  --border:rgba(192,57,43,.15);--border2:rgba(240,237,237,.08);
+  --fd:'Cormorant Garamond',Georgia,serif;--fs:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--fog);font-family:var(--fb);font-weight:300;overflow-x:hidden}
+
+/* TOPBAR */
+.topbar{background:var(--ink2);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;gap:16px}
+.topbar-logo{font-family:var(--fd);font-size:20px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;color:var(--fog);flex-shrink:0}
+.topbar-logo span{color:var(--red)}
+.topbar-mid{display:flex;flex-direction:column;align-items:center;flex:1}
+.topbar-title{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--fog)}
+.topbar-ref{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--red)}
+.topbar-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.tb-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:8px 14px;border-radius:2px;border:none;cursor:pointer;transition:all .2s;text-decoration:none}
+.tb-red{background:var(--red);color:var(--fog)}
+.tb-red:hover{background:var(--red-dark)}
+.tb-green{background:var(--green);color:var(--fog)}
+.tb-green:hover{background:#1e8449}
+.tb-ghost{background:transparent;color:var(--slate);border:1px solid var(--border2)}
+.tb-ghost:hover{border-color:var(--fog);color:var(--fog)}
+
+/* STATUS BAR */
+.status-bar{background:var(--ink);border-bottom:1px solid var(--border2);padding:12px 32px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.sb-item{display:flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)}
+.sb-item i{font-size:11px}
+.sb-val{color:var(--fog)}
+.sb-status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:2px;font-size:8px}
+.ss-planifie{background:rgba(41,128,185,.1);border:1px solid rgba(41,128,185,.25);color:var(--blue)}
+.ss-cours{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);color:var(--green)}
+.ss-termine{background:rgba(136,136,136,.1);border:1px solid rgba(136,136,136,.2);color:var(--slate)}
+.ss-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* MAIN */
+.bon-main{max-width:960px;margin:0 auto;padding:40px 32px 80px}
+
+/* DOCUMENT HEADER */
+.doc-header{background:var(--ink);border:1px solid var(--border2);padding:36px 40px;margin-bottom:2px;display:flex;align-items:flex-start;justify-content:space-between;gap:32px}
+.dh-left{}
+.dh-logo{font-family:var(--fd);font-size:32px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fog);margin-bottom:4px}
+.dh-logo span{color:var(--red)}
+.dh-tagline{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--slate);margin-bottom:14px}
+.dh-contact{font-size:12px;font-weight:300;color:var(--slate);line-height:1.7}
+.dh-right{text-align:right;flex-shrink:0}
+.dh-doc-title{font-family:var(--fd);font-size:28px;font-weight:300;color:var(--fog);margin-bottom:6px}
+.dh-doc-title em{font-style:italic;color:var(--red)}
+.dh-ref{font-family:var(--fs);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--fog);margin-bottom:4px}
+.dh-date{font-size:12px;font-weight:300;color:var(--slate)}
+.dh-badges{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.dh-badge{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;border-radius:2px}
+.badge-depart{background:rgba(41,128,185,.12);border:1px solid rgba(41,128,185,.25);color:var(--blue)}
+.badge-urgence{background:var(--red-glow);border:1px solid rgba(192,57,43,.3);color:var(--red)}
+.badge-ev{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);color:var(--green)}
+.badge-plateau{background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.25);color:var(--orange)}
+
+/* SECTIONS */
+.section{background:var(--ink);border:1px solid var(--border2);margin-bottom:2px;overflow:hidden;transition:border-color .3s}
+.section:hover{border-color:rgba(192,57,43,.2)}
+.section-header{padding:18px 28px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sh-left{display:flex;align-items:center;gap:10px}
+.sh-ico{font-size:13px;color:var(--red)}
+.sh-title{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--fog)}
+.sh-tag{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:var(--red-glow);border:1px solid rgba(192,57,43,.25);color:var(--red)}
+.section-body{padding:24px 28px}
+
+/* DATA GRID */
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.data-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.data-grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.data-item{}
+.data-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);margin-bottom:5px}
+.data-val{font-size:13px;font-weight:300;color:var(--fog);line-height:1.5}
+.data-val strong{font-weight:500;color:var(--fog)}
+.data-val.highlight{font-family:var(--fd);font-size:20px;font-weight:300;color:var(--red)}
+.data-val.green{color:var(--green)}
+.data-val.orange{color:var(--orange)}
+
+/* ROUTE VISUAL */
+.route-visual{display:flex;align-items:center;gap:0;margin:20px 0;padding:20px 24px;background:rgba(240,237,237,.02);border:1px solid var(--border2);border-radius:2px}
+.rv-point{flex-shrink:0;text-align:center}
+.rv-dot{width:14px;height:14px;border-radius:50%;margin:0 auto 8px;border:2px solid}
+.rv-dot-dep{border-color:var(--blue);background:rgba(41,128,185,.2)}
+.rv-dot-arr{border-color:var(--green);background:rgba(39,174,96,.2)}
+.rv-city{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fog);margin-bottom:2px}
+.rv-addr{font-size:11px;font-weight:300;color:var(--slate);max-width:160px;line-height:1.4}
+.rv-line{flex:1;height:2px;background:linear-gradient(to right,var(--blue),var(--green));position:relative;margin:0 16px}
+.rv-line::after{content:'▶';position:absolute;right:-8px;top:-8px;color:var(--green);font-size:14px}
+.rv-infos{position:absolute;left:50%;transform:translateX(-50%);top:-24px;white-space:nowrap;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);background:var(--ink);padding:2px 8px;border-radius:2px}
+.rv-line-wrap{flex:1;position:relative;margin:0 16px;padding-top:28px}
+
+/* VÉHICULE CARD */
+.vehicule-card{display:flex;align-items:flex-start;gap:24px;padding:20px;background:rgba(240,237,237,.02);border:1px solid var(--border2);border-radius:2px}
+.vc-ico{width:56px;height:56px;border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--red);flex-shrink:0}
+.vc-info{}
+.vc-name{font-family:var(--fd);font-size:22px;font-weight:300;margin-bottom:4px}
+.vc-plate{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.2em;background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.2);color:var(--red);padding:3px 10px;border-radius:2px;display:inline-block;margin-bottom:8px}
+.vc-specs{display:flex;gap:16px;flex-wrap:wrap}
+.vc-spec{font-size:12px;font-weight:300;color:var(--slate);display:flex;align-items:center;gap:5px}
+.vc-spec i{color:var(--red);font-size:10px}
+
+/* CONVOYEUR CARD */
+.conv-card{display:flex;align-items:center;gap:18px;padding:16px 20px;background:rgba(240,237,237,.02);border:1px solid var(--border2);border-radius:2px}
+.conv-ava{width:44px;height:44px;border-radius:50%;background:var(--red-glow);border:1px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:12px;font-weight:700;color:var(--red);flex-shrink:0}
+.conv-name{font-family:var(--fs);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.conv-meta{font-size:12px;font-weight:300;color:var(--slate)}
+
+/* CHECKLIST */
+.checklist{display:flex;flex-direction:column;gap:2px}
+.check-item{display:flex;align-items:flex-start;gap:14px;padding:12px 16px;border:1px solid var(--border2);border-radius:2px;transition:border-color .2s;cursor:pointer}
+.check-item:hover{border-color:rgba(192,57,43,.25)}
+.check-item.checked{border-color:rgba(39,174,96,.3);background:rgba(39,174,96,.04)}
+.check-box{width:18px;height:18px;border-radius:2px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;margin-top:1px}
+.check-item.checked .check-box{background:var(--green);border-color:var(--green)}
+.check-item.checked .check-box::after{content:'✓';font-size:10px;color:var(--fog)}
+.check-content{}
+.check-title{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.check-desc{font-size:12px;font-weight:300;color:var(--slate)}
+.check-required{font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red);margin-left:auto;flex-shrink:0;align-self:flex-start;margin-top:3px}
+
+/* TIMELINE */
+.timeline{display:flex;flex-direction:column;gap:0;position:relative}
+.timeline::before{content:'';position:absolute;left:14px;top:18px;bottom:18px;width:1px;background:var(--border2)}
+.tl-item{display:flex;align-items:flex-start;gap:16px;padding:0 0 20px}
+.tl-item:last-child{padding-bottom:0}
+.tl-dot{width:28px;height:28px;border-radius:50%;border:1px solid var(--border2);background:var(--black);display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:9px;font-weight:700;color:var(--slate);flex-shrink:0;z-index:1}
+.tl-dot.active{border-color:var(--red);background:var(--red-glow);color:var(--red)}
+.tl-dot.done{border-color:var(--green);background:var(--green);color:var(--fog)}
+.tl-content{flex:1;padding-top:4px}
+.tl-time{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin-bottom:3px}
+.tl-title{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.tl-sub{font-size:12px;font-weight:300;color:var(--slate);line-height:1.5}
+
+/* TARIFICATION */
+.tarif-table{width:100%;border-collapse:collapse}
+.tarif-table thead tr{border-bottom:1px solid rgba(192,57,43,.3)}
+.tarif-table th{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--red);padding:10px 14px;text-align:left}
+.tarif-table tbody tr{border-bottom:1px solid var(--border2)}
+.tarif-table tbody tr:last-child{border-bottom:none}
+.tarif-table td{padding:11px 14px;font-size:12px;font-weight:300;color:rgba(240,237,237,.7)}
+.tarif-table td:first-child{color:var(--fog)}
+.tarif-total{background:rgba(192,57,43,.06);border-top:1px solid rgba(192,57,43,.3)!important}
+.tarif-total td{color:var(--fog)!important;font-weight:500!important}
+.price-td{font-family:var(--fd);font-size:18px;font-weight:300;color:var(--green)}
+.price-td-total{font-family:var(--fd);font-size:22px;font-weight:300;color:var(--red)}
+
+/* INSTRUCTIONS */
+.instructions-list{display:flex;flex-direction:column;gap:8px}
+.instr-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-left:2px solid var(--border);background:rgba(240,237,237,.02);border-radius:0 2px 2px 0}
+.instr-item.important{border-left-color:var(--red);background:var(--red-glow)}
+.instr-item.info{border-left-color:var(--blue);background:rgba(41,128,185,.04)}
+.instr-item.success{border-left-color:var(--green);background:rgba(39,174,96,.04)}
+.instr-ico{font-size:13px;flex-shrink:0;margin-top:1px}
+.instr-item.important .instr-ico{color:var(--red)}
+.instr-item.info .instr-ico{color:var(--blue)}
+.instr-item.success .instr-ico{color:var(--green)}
+.instr-text{font-size:13px;font-weight:300;line-height:1.65;color:rgba(240,237,237,.7)}
+.instr-text strong{color:var(--fog);font-weight:500}
+
+/* URGENCE CONTACTS */
+.urgence-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.urgence-card{border:1px solid var(--border2);padding:16px 18px}
+.urg-title{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin-bottom:6px}
+.urg-val{font-family:var(--fd);font-size:20px;font-weight:300;color:var(--fog);margin-bottom:2px}
+.urg-note{font-size:11px;color:var(--slate)}
+
+/* SIGNATURE SECTION */
+.sig-section{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.sig-block{border:1px solid var(--border2);padding:24px 22px}
+.sig-title{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);margin-bottom:12px}
+.sig-name{font-family:var(--fd);font-size:18px;font-weight:300;margin-bottom:4px}
+.sig-date{font-size:11px;color:var(--slate);margin-bottom:16px}
+.sig-area{height:90px;border:1px dashed var(--border2);border-radius:2px;display:flex;align-items:center;justify-content:center}
+.sig-area span{font-size:11px;color:rgba(240,237,237,.2);font-style:italic}
+.sig-done-badge{display:none;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);color:var(--green);font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:2px;margin-top:10px;width:fit-content;align-items:center;gap:6px}
+.sig-done-badge.show{display:flex}
+
+/* QR CODE */
+.qr-section{display:flex;align-items:center;gap:20px;padding:20px;background:rgba(240,237,237,.02);border:1px solid var(--border2);border-radius:2px;margin-bottom:2px}
+.qr-code{width:80px;height:80px;border:1px solid var(--border2);border-radius:2px;background:rgba(240,237,237,.04);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:32px;color:var(--slate)}
+.qr-info{}
+.qr-title{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin-bottom:4px}
+.qr-sub{font-size:12px;font-weight:300;color:var(--slate);line-height:1.6}
+
+/* NAV ACTIONS */
+.doc-actions{position:sticky;bottom:0;background:var(--ink2);border-top:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;z-index:100}
+.da-left{display:flex;gap:10px}
+.da-right{display:flex;gap:10px;align-items:center}
+.da-progress{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)}
+.da-progress span{color:var(--green)}
+
+/* ALERT */
+.alert{padding:14px 18px;border-radius:2px;margin-bottom:16px;display:flex;align-items:flex-start;gap:12px}
+.alert i{font-size:14px;flex-shrink:0;margin-top:1px}
+.alert-warn{background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.25);color:var(--orange)}
+.alert-info{background:rgba(41,128,185,.08);border:1px solid rgba(41,128,185,.2);color:var(--blue)}
+.alert-success{background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.25);color:var(--green)}
+.alert p{font-size:13px;font-weight:300;line-height:1.6}
+.alert strong{font-weight:500}
+
+/* MAP PLACEHOLDER */
+.map-ph{height:200px;background:rgba(240,237,237,.02);border:1px solid var(--border2);border-radius:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--slate)}
+.map-ph i{font-size:32px;opacity:.3}
+.map-ph span{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.4}
+
+/* PRINT */
+@media print{
+  .topbar,.status-bar,.doc-actions{display:none!important}
+  body{background:white;color:black}
+  .section,.doc-header,.qr-section{border-color:#ddd!important;background:white!important}
+  .section-header{background:#f8f8f8!important}
+  .data-val,.sh-title,.tl-title,.check-title,.conv-name{color:black!important}
+  .data-val.highlight,.sh-ico,.vc-plate,.dh-logo span,.dh-ref,.check-required,.tl-time{color:#c0392b!important}
+  .data-lbl,.data-val .check-desc,.tl-sub,.urg-note,.conv-meta,.dh-tagline,.dh-contact{color:#555!important}
+  .price-td{color:#27ae60!important}
+  .bon-main{padding:20px;max-width:100%}
+  .sig-area{height:80px;border:1px solid #ccc}
+  .route-visual{background:#f8f8f8;border:1px solid #ddd}
+  .check-item.checked{background:#f0fff4;border-color:#27ae60!important}
+  .dh-logo{color:black!important}
+}
+
+@media(max-width:768px){
+  .topbar-mid{display:none}
+  .doc-header{flex-direction:column}
+  .dh-right{text-align:left}
+  .dh-badges{justify-content:flex-start}
+  .data-grid,.data-grid-3,.data-grid-4,.sig-section,.urgence-grid{grid-template-columns:1fr}
+  .bon-main{padding:20px 16px 100px}
+  .vehicule-card{flex-direction:column}
+  .da-left,.da-right{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a href="index.html" class="topbar-logo">Bathily<span>.</span></a>
+  <div class="topbar-mid">
+    <div class="topbar-title">Bon de Mission</div>
+    <div class="topbar-ref" id="topRef">BC-2025-0847 · Paris → Lyon · 12 mai 2025</div>
+  </div>
+  <div class="topbar-right">
+    <button class="tb-btn tb-ghost" onclick="window.location.href='dashboard-convoyeur.html'"><i class="fas fa-arrow-left"></i> Retour</button>
+    <button class="tb-btn tb-ghost" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
+    <button class="tb-btn tb-ghost" onclick="window.print()"><i class="fas fa-download"></i> PDF</button>
+    <button class="tb-btn tb-green" onclick="startMission()"><i class="fas fa-play"></i> Démarrer la mission</button>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="sb-item"><i class="fas fa-hashtag"></i> Réf : <span class="sb-val">BC-2025-0847</span></div>
+  <div class="sb-item"><i class="fas fa-calendar"></i> Date : <span class="sb-val">12 mai 2025</span></div>
+  <div class="sb-item"><i class="fas fa-clock"></i> Départ : <span class="sb-val">09:00</span></div>
+  <div class="sb-item"><i class="fas fa-route"></i> Distance : <span class="sb-val">470 km</span></div>
+  <div class="sb-item"><i class="fas fa-circle" style="color:var(--blue)"></i>
+    <span class="sb-status ss-planifie"><span class="ss-dot"></span> Planifiée</span>
+  </div>
+  <div class="sb-item" style="margin-left:auto">
+    <div class="sb-val" id="checkCount" style="color:var(--slate)">0 / 7 vérifications effectuées</div>
+  </div>
+</div>
+
+<div class="bon-main">
+
+  <!-- EN-TÊTE DOCUMENT -->
+  <div class="doc-header">
+    <div class="dh-left">
+      <div class="dh-logo">Bathily<span>.</span></div>
+      <div class="dh-tagline">La solution digitale de convoyage automobile & moto</div>
+      <div class="dh-contact">
+        contact@bathily-convoyage.fr · France entière<br>
+        <strong style="color:var(--red)">Votre route, notre engagement.</strong>
+      </div>
+    </div>
+    <div class="dh-right">
+      <div class="dh-doc-title">Bon de <em>Mission</em></div>
+      <div class="dh-ref" id="docRef">N° BC-2025-0847</div>
+      <div class="dh-date">Émis le <span id="emitDate"></span></div>
+      <div class="dh-badges">
+        <span class="dh-badge badge-depart"><i class="fas fa-map-marker-alt"></i> Départ</span>
+        <span class="dh-badge badge-ev"><i class="fas fa-bolt"></i> Hybride</span>
+        <span class="dh-badge badge-plateau" id="modeBadge" style="display:none"><i class="fas fa-truck"></i> Plateau</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISSION & TRAJET -->
+  <div class="section">
+    <div class="section-header">
+      <div class="sh-left"><i class="fas fa-route sh-ico"></i><span class="sh-title">Trajet & Horaires</span></div>
+      <span class="sh-tag">Mission principale</span>
+    </div>
+    <div class="section-body">
+      <div class="route-visual">
+        <div class="rv-point">
+          <div class="rv-dot rv-dot-dep"></div>
+          <div class="rv-city">Paris</div>
+          <div class="rv-addr">15 Rue de Rivoli<br>75001 Paris 1er</div>
+        </div>
+        <div class="rv-line-wrap">
+          <div class="rv-infos">470 km · ~4h30 · Route</div>
+          <div class="rv-line"></div>
+        </div>
+        <div class="rv-point" style="text-align:right">
+          <div class="rv-dot rv-dot-arr"></div>
+          <div class="rv-city">Lyon</div>
+          <div class="rv-addr">3 Rue Servient<br>69003 Lyon 3ème</div>
+        </div>
+      </div>
+      <div class="data-grid-4" style="margin-top:20px">
+        <div class="data-item">
+          <div class="data-lbl">Date de la mission</div>
+          <div class="data-val"><strong>Lundi 12 mai 2025</strong></div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Heure de prise en charge</div>
+          <div class="data-val highlight">09:00</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Heure de livraison souhaitée</div>
+          <div class="data-val highlight">15:30</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Mode de transport</div>
+          <div class="data-val"><strong>Route</strong> · Convoyeur</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Distance estimée</div>
+          <div class="data-val">470 km</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Durée estimée</div>
+          <div class="data-val">4h30 (hors pauses)</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Flexibilité horaire</div>
+          <div class="data-val">± 1 heure</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Option urgence</div>
+          <div class="data-val green">Non</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VÉHICULE -->
+  <div class="section">
+    <div class="section-header">
+      <div class="sh-left"><i class="fas fa-car sh-ico"></i><span class="sh-title">Véhicule à convoyer</span></div>
+      <span class="sh-tag">Identification SIV</span>
+    </div>
+    <div class="section-body">
+      <div class="vehicule-card" style="margin-bottom:20px">
+        <div class="vc-ico"><i class="fas fa-car"></i></div>
+        <div class="vc-info">
+          <div class="vc-name">BMW Série 3 — Gris Mineralgrau</div>
+          <div class="vc-plate">IJ-789-KL</div>
+          <div class="vc-specs">
+            <span class="vc-spec"><i class="fas fa-calendar"></i> 2023</span>
+            <span class="vc-spec"><i class="fas fa-gas-pump"></i> Hybride</span>
+            <span class="vc-spec"><i class="fas fa-tachometer-alt"></i> 190 CV</span>
+            <span class="vc-spec"><i class="fas fa-cog"></i> Automatique</span>
+            <span class="vc-spec"><i class="fas fa-car-side"></i> Berline</span>
+          </div>
+        </div>
+      </div>
+      <div class="data-grid-4">
+        <div class="data-item">
+          <div class="data-lbl">Kilométrage départ</div>
+          <div class="data-val highlight" id="kmDepart">À relever</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Tolérance kilométrique</div>
+          <div class="data-val orange">+470 km (trajet)</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Niveau carburant départ</div>
+          <div class="data-val highlight" id="fuelDepart">À noter</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Prochain CT</div>
+          <div class="data-val">Octobre 2025</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">N° de série (VIN)</div>
+          <div class="data-val" style="font-size:11px">WBA3D31050F890123</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Assurance valable jusqu'au</div>
+          <div class="data-val">31 décembre 2025</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Clés remises</div>
+          <div class="data-val">Principale + Secours</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Documents présents</div>
+          <div class="data-val green">Carte grise + Assurance</div>
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top:12px">
+        <i class="fas fa-bolt"></i>
+        <p><strong>Véhicule hybride :</strong> Veillez à activer le mode éco-conduite. En cas de recharge nécessaire, utilisez le réseau IONITY ou Fastned. Ne chargez pas en dessous de 20% pour préserver la batterie.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENT -->
+  <div class="section">
+    <div class="section-header">
+      <div class="sh-left"><i class="fas fa-user sh-ico"></i><span class="sh-title">Informations client</span></div>
+      <span class="sh-tag">Contact prioritaire</span>
+    </div>
+    <div class="section-body">
+      <div class="data-grid" style="margin-bottom:16px">
+        <div class="data-item">
+          <div class="data-lbl">Nom & Prénom</div>
+          <div class="data-val"><strong>Jean Dupont</strong></div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Téléphone</div>
+          <div class="data-val highlight">+33 6 12 34 56 78</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Email</div>
+          <div class="data-val">jean.dupont@email.fr</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Société</div>
+          <div class="data-val">Dupont & Associés</div>
+        </div>
+      </div>
+      <div class="data-grid">
+        <div class="data-item">
+          <div class="data-lbl">Contact à la prise en charge</div>
+          <div class="data-val"><strong>Jean Dupont</strong> · +33 6 12 34 56 78<br><span style="font-size:11px;color:var(--slate)">Présent sur place · Sonnette "Dupont" au 2ème</span></div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Contact à la livraison</div>
+          <div class="data-val"><strong>Marie Dupont</strong> · +33 6 98 76 54 32<br><span style="font-size:11px;color:var(--slate)">Présente à partir de 14h · Interphone "Dupont-Lyon"</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONVOYEUR -->
+  <div class="section">
+    <div class="section-header">
+      <div class="sh-left"><i class="fas fa-truck sh-ico"></i><span class="sh-title">Convoyeur assigné</span></div>
+      <span class="sh-tag">Certifié SIV</span>
+    </div>
+    <div class="section-body">
+      <div class="conv-card" style="margin-bottom:20px">
+        <div class="conv-ava">MB</div>
+        <div>
+          <div class="conv-name">M. Bathily</div>
+          <div class="conv-meta">Convoyeur Senior · Zone IDF & Rhône-Alpes · Certifié SIV 360°</div>
+          <div class="conv-meta" style="margin-top:3px">+33 6 98 76 54 32 · m.bathily@convoyeur.fr</div>
+        </div>
+      </div>
+      <div class="data-grid-3">
+        <div class="data-item">
+          <div class="data-lbl">N° permis de conduire</div>
+          <div class="data-val">XX-123456-XX</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Permis valable jusqu'au</div>
+          <div class="data-val">15 juin 2030</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">RC Pro (N° police)</div>
+          <div class="data-val">AXA-2025-XX-XXXX</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Missions réalisées</div>
+          <div class="data-val green">47 missions · 4.9★</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Certification SIV</div>
+          <div class="data-val green">Valide — 2025</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Expérience</div>
+          <div class="data-val">+3 ans</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PACK & TARIFICATION -->
+  <div class="section">
+    <div class="section-header">
+      <div class="sh-left"><i class="fas fa-euro-sign sh-ico"></i><span class="sh-title">Pack & Tarification</span></div>
+      <span class="sh-tag">Pack Sérénité</span>
+    </div>
+    <div class="section-body">
+      <table class="tarif-table">
+        <thead>
+          <tr><th>Prestation</th><th>Détail</th><th>Montant HT</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Convoyage routier</td><td>470 km × 1,00€/km</td><td class="price-td">470,00€</td></tr>
+          <tr><td>Pack Sérénité</td><td>Nettoyage HP + Mise à niveau carburant + Check-list digitale</td><td class="price-td">49,00€</td></tr>
+          <tr><td>Double assurance RC Pro</td><td>Inclus dans chaque mission</td><td class="price-td">0,00€</td></tr>
+          <tr><td>État des lieux numérisé</td><td>20 photos départ + arrivée, rapport envoyé par email</td><td class="price-td">0,00€</td></tr>
+          <tr><td>Suivi GPS temps réel</td><td>Notifications automatiques client</td><td class="price-td">0,00€</td></tr>
+          <tr class="tarif-total"><td><strong>Total HT</strong></td><td></td><td class="price-td-total">519,00€</td></tr>
+          <tr><td>TVA (20%)</td><td></td><td class="price-td" style="color:var(--slate)">103,80€</td></tr>
+          <tr class="tarif-total"><td><strong>Total TTC</strong></td><td></td><td class="price-td-total">622,80€</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:16px">
+        <div class="data-grid">
+          <div class="data-item">
+            <div class="data-lbl">Rémunération convoyeur (net)</div>
+            <div class="data-val highlight">247,00€</div>
+          </div>
+          <div class="data-item">
+            <div class="data-lbl">Modalités de paiement</div>
+            <div class="data-val">Virement sous 48h après validation EDL arrivée</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLANNING DÉTAILLÉ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="sh-left"><i class="fas fa-calendar-alt sh-ico"></i><span class="sh-title">Planning détaillé de la mission</span></div>
+    </div>
+    <div class="section-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot active">01</div>
+          <div class="tl-content">
+            <div class="tl-time">08:30 — Préparation</div>
+            <div class="tl-title">Briefing & Vérification documents</div>
+            <div class="tl-sub">Consulter ce bon de mission, vérifier les coordonnées client, vérifier les documents RC Pro.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">02</div>
+          <div class="tl-content">
+            <div class="tl-time">09:00 — Prise en charge</div>
+            <div class="tl-title">Arrivée chez le client · Prise en charge du véhicule</div>
+            <div class="tl-sub">15 Rue de Rivoli, 75001 Paris. Contacter Jean Dupont (+33 6 12 34 56 78) à l'arrivée. Effectuer l'état des lieux de départ (20 photos + signature client).</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">03</div>
+          <div class="tl-content">
+            <div class="tl-time">09:30 — Départ</div>
+            <div class="tl-title">Départ pour Lyon · Activation suivi GPS</div>
+            <div class="tl-sub">Activer le suivi GPS via l'application Bathily. Itinéraire recommandé : A6 via Auxerre. Pause obligatoire toutes les 2h.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">04</div>
+          <div class="tl-content">
+            <div class="tl-time">~11:30 — Pause</div>
+            <div class="tl-title">Pause obligatoire · Vérification véhicule</div>
+            <div class="tl-sub">Pause de 15-20 min recommandée. Vérifier la température moteur, les pneus, le niveau de carburant/charge. Mettre à jour la position GPS.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">05</div>
+          <div class="tl-content">
+            <div class="tl-time">~14:00 — Nettoyage</div>
+            <div class="tl-title">Nettoyage extérieur (Pack Sérénité)</div>
+            <div class="tl-sub">Station de lavage à l'approche de Lyon. Mise à niveau carburant si nécessaire. Estimation carburant : +15L pour 470 km.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">06</div>
+          <div class="tl-content">
+            <div class="tl-time">15:30 — Livraison</div>
+            <div class="tl-title">Arrivée à Lyon · Livraison du véhicule</div>
+            <div class="tl-sub">3 Rue Servient, 69003 Lyon. Contacter Marie Dupont (+33 6 98 76 54 32) 30 min avant l'arrivée. Effectuer l'état des lieux d'arrivée (20 photos + signature client).</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">07</div>
+          <div class="tl-content">
+            <div class="tl-time">Après livraison</div>
+            <div class="tl-title">Clôture de mission</div>
+            <div class="tl-sub">Soumettre le rapport de mission via l'application. Envoyer les documents signés. La rémunération est déclenchée après validation des deux EDL.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ITINÉRAIRE -->
+  <div class="section">
+    <div class="section-header">
+      <div class="sh-left"><i class="fas fa-map sh-ico"></i><span class="sh-title">Itinéraire recommandé</span></div>
+    </div>
+    <div class="section-body">
+      <div class="map-ph">
+        <i class="fas fa-map-marked-alt"></i>
+        <span>Carte interactive — Paris → Lyon via A6</span>
+      </div>
+      <div class="data-grid" style="margin-top:16px">
+        <div class="data-item">
+          <div class="data-lbl">Route conseillée</div>
+          <div class="data-val">Paris (A6) → Auxerre → Beaune → Lyon<br><span style="font-size:11px;color:var(--slate)">Éviter A7 si bouchons · Vérifier Bison Futé</span></div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Péages estimés</div>
+          <div class="data-val">~45€ (inclus dans la rémunération)<br><span style="font-size:11px;color:var(--slate)">Conserver les justificatifs pour remboursement</span></div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Consommation estimée</div>
+          <div class="data-val">~15L · ~25€ (inclus dans rémunération)</div>
+        </div>
+        <div class="data-item">
+          <div class="data-lbl">Bornes de recharge (si nécessaire)</div>
+          <div class="data-val">IONITY Auxerre (A6 km 165)<br>Fastned Beaune (A6 km 300)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST CONVOYEUR -->
+  <div class="section">
+    <div class="section-header">
+      <div class="sh-left"><i class="fas fa-clipboard-check sh-ico"></i><span class="sh-title">Checklist convoyeur</span></div>
+      <span class="sh-tag">À compléter avant départ</span>
+    </div>
+    <div class="section-body">
+      <div class="alert alert-warn" style="margin-bottom:16px">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>Toutes les étapes marquées <strong>OBLIGATOIRE</strong> doivent être complétées avant le départ. La mission ne peut démarrer qu'après validation de la checklist.</p>
+      </div>
+      <div class="checklist" id="checklist">
+        <div class="check-item" onclick="toggleCheck(this,0)">
+          <div class="check-box"></div>
+          <div class="check-content">
+            <div class="check-title">Documents vérifiés</div>
+            <div class="check-desc">Bon de mission lu, coordonnées client notées, RC Pro en poche</div>
+          </div>
+          <div class="check-required">Obligatoire</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this,1)">
+          <div class="check-box"></div>
+          <div class="check-content">
+            <div class="check-title">Prise en charge confirmée avec le client</div>
+            <div class="check-desc">Appel ou SMS de confirmation d'arrivée envoyé à Jean Dupont</div>
+          </div>
+          <div class="check-required">Obligatoire</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this,2)">
+          <div class="check-box"></div>
+          <div class="check-content">
+            <div class="check-title">État des lieux de départ complété</div>
+            <div class="check-desc">20 photos prises (5 ext. + 5 int. minimum), état général noté, dommages signalés</div>
+          </div>
+          <div class="check-required">Obligatoire</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this,3)">
+          <div class="check-box"></div>
+          <div class="check-content">
+            <div class="check-title">Signature client obtenue</div>
+            <div class="check-desc">EDL de départ signé électroniquement par Jean Dupont</div>
+          </div>
+          <div class="check-required">Obligatoire</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this,4)">
+          <div class="check-box"></div>
+          <div class="check-content">
+            <div class="check-title">Kilométrage de départ noté</div>
+            <div class="check-desc">Relevé exact du compteur kilométrique au moment de la prise en charge</div>
+          </div>
+          <div class="check-required">Obligatoire</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this,5)">
+          <div class="check-box"></div>
+          <div class="check-content">
+            <div class="check-title">Niveau carburant / charge noté</div>
+            <div class="check-desc">Niveau exact en % ou barre de jauge au départ</div>
+          </div>
+          <div class="check-required">Obligatoire</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this,6)">
+          <div class="check-box"></div>
+          <div class="check-content">
+            <div class="check-title">Suivi GPS activé</div>
+            <div class="check-desc">Application Bathily ouverte, position GPS partagée, client notifié du départ</div>
+          </div>
+          <div class="check-required">Obligatoire</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this,7)">
+          <div class="check-box"></div>
+          <div class="check-content">
+            <div class="check-title">Itinéraire vérifié</div>
+            <div class="check-desc">Bison Futé consulté, GPS paramétré, plein de carburant si nécessaire</div>
+          </div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this,8)">
+          <div class="check-box"></div>
+          <div class="check-content">
+            <div class="check-title">Contact livraison confirmé</div>
+            <div class="check-desc">Marie Dupont informée de l'heure d'arrivée estimée (+33 6 98 76 54 32)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTRUCTIONS SPÉCIALES -->
+  <div class="section">
+    <div class="section-header">
+      <div class="sh-left"><i class="fas fa-info-circle sh-ico"></i><span class="sh-title">Instructions particulières</span></div>
+    </div>
+    <div class="section-body">
+      <div class="instructions-list">
+        <div class="instr-item important">
+          <i class="fas fa-exclamation-triangle instr-ico"></i>
+          <p class="instr-text"><strong>Véhicule hybride :</strong> Ne pas laisser le moteur tourner à l'arrêt plus de 5 minutes. Activer systématiquement le mode éco-conduite pour préserver la batterie haute tension.</p>
+        </div>
+        <div class="instr-item important">
+          <i class="fas fa-camera instr-ico"></i>
+          <p class="instr-text"><strong>Pack Sérénité inclus :</strong> Effectuer un nettoyage extérieur haute pression avant la livraison. Faire le plein / recharger à 100% si possible. Conserver les justificatifs.</p>
+        </div>
+        <div class="instr-item info">
+          <i class="fas fa-parking instr-ico"></i>
+          <p class="instr-text"><strong>Livraison :</strong> Parking souterrain disponible au 3 Rue Servient, Lyon (accès badge fourni par le client). Se garer au niveau -1, place réservée "DUPONT".</p>
+        </div>
+        <div class="instr-item info">
+          <i class="fas fa-phone instr-ico"></i>
+          <p class="instr-text"><strong>Communication :</strong> Prévenir le client 30 minutes avant l'arrivée. En cas de retard de plus de 30 min, prévenir le client ET le dispatch Bathily immédiatement.</p>
+        </div>
+        <div class="instr-item success">
+          <i class="fas fa-check-circle instr-ico"></i>
+          <p class="instr-text"><strong>Objets dans le véhicule :</strong> Un sac de voyage bleu est présent dans le coffre. Ne pas le déplacer. Un casque de vélo est sur la banquette arrière. Le client confirmera à la livraison.</p>
+        </div>
+        <div class="instr-item">
+          <i class="fas fa-shield-alt instr-ico" style="color:var(--slate)"></i>
+          <p class="instr-text"><strong>Assurance :</strong> Double RC Pro active pour cette mission. En cas d'incident, NE PAS admettre de responsabilité. Contacter immédiatement le dispatch Bathily et remplir le constat amiable si nécessaire.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACTS URGENCE -->
+  <div class="section">
+    <div class="section-header">
+      <div class="sh-left"><i class="fas fa-phone-alt sh-ico"></i><span class="sh-title">Contacts d'urgence</span></div>
+    </div>
+    <div class="section-body">
+      <div class="urgence-grid">
+        <div class="urgence-card">
+          <div class="urg-title"><i class="fas fa-bolt" style="margin-right:5px"></i> Dispatch Bathily — Urgence 24h</div>
+          <div class="urg-val">Disponible 24h/24</div>
+          <div class="urg-note">Pour tout incident, accident, panne ou problème en mission</div>
+        </div>
+        <div class="urgence-card">
+          <div class="urg-title"><i class="fas fa-user" style="margin-right:5px"></i> Client — Jean Dupont</div>
+          <div class="urg-val">+33 6 12 34 56 78</div>
+          <div class="urg-note">Prise en charge · Joignable toute la journée</div>
+        </div>
+        <div class="urgence-card">
+          <div class="urg-title"><i class="fas fa-user" style="margin-right:5px"></i> Contact livraison — Marie Dupont</div>
+          <div class="urg-val">+33 6 98 76 54 32</div>
+          <div class="urg-note">Livraison · Disponible à partir de 14h</div>
+        </div>
+        <div class="urgence-card">
+          <div class="urg-title"><i class="fas fa-car-crash" style="margin-right:5px"></i> Assistance routière</div>
+          <div class="urg-val">17 — 15 — 18</div>
+          <div class="urg-note">Police · SAMU · Pompiers</div>
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top:14px">
+        <i class="fas fa-info-circle"></i>
+        <p>En cas d'accident : <strong>1)</strong> Sécuriser les lieux <strong>2)</strong> Appeler le 15/17/18 si nécessaire <strong>3)</strong> Appeler le dispatch Bathily <strong>4)</strong> Ne pas déplacer le véhicule avant accord <strong>5)</strong> Remplir le constat amiable <strong>6)</strong> Prendre en photos tous les dommages.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR CODE TRACKING -->
+  <div class="qr-section">
+    <div class="qr-code"><i class="fas fa-qrcode"></i></div>
+    <div class="qr-info">
+      <div class="qr-title">Lien de suivi client</div>
+      <div class="qr-sub">Le client peut suivre sa mission en temps réel via ce QR code ou le lien envoyé par SMS.<br>
+      <strong style="color:var(--fog)">bathily-convoyage.fr/tracking/BC-2025-0847</strong><br>
+      <span style="color:var(--slate)">Lien valable 48h après la livraison</span></div>
+    </div>
+  </div>
+
+  <!-- SIGNATURES -->
+  <div class="section">
+    <div class="section-header">
+      <div class="sh-left"><i class="fas fa-signature sh-ico"></i><span class="sh-title">Signatures & Acceptation</span></div>
+      <span class="sh-tag">Engagement contractuel</span>
+    </div>
+    <div class="section-body">
+      <div class="alert alert-success" style="margin-bottom:16px">
+        <i class="fas fa-check-circle"></i>
+        <p>En signant ce bon de mission, le convoyeur certifie avoir lu et accepté l'ensemble des conditions, instructions et responsabilités liées à cette mission. Le client confirme la remise du véhicule et valide les informations renseignées.</p>
+      </div>
+      <div class="sig-section">
+        <div class="sig-block">
+          <div class="sig-title">Signature du convoyeur</div>
+          <div class="sig-name">M. Bathily</div>
+          <div class="sig-date">Convoyeur Certifié SIV · <span id="sigDate1"></span></div>
+          <div class="sig-area" id="sigArea1" onclick="signDoc(1)"><span>Cliquer pour signer</span></div>
+          <div class="sig-done-badge" id="sigBadge1"><i class="fas fa-check-circle"></i> Signé et accepté</div>
+        </div>
+        <div class="sig-block">
+          <div class="sig-title">Signature du client (prise en charge)</div>
+          <div class="sig-name">Jean Dupont</div>
+          <div class="sig-date">Client · <span id="sigDate2"></span></div>
+          <div class="sig-area" id="sigArea2" onclick="signDoc(2)"><span>Cliquer pour signer</span></div>
+          <div class="sig-done-badge" id="sigBadge2"><i class="fas fa-check-circle"></i> Signé — véhicule remis</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENTIONS LÉGALES -->
+  <div style="background:var(--ink);border:1px solid var(--border2);padding:20px 24px;margin-top:2px">
+    <p style="font-size:10px;font-weight:300;color:rgba(240,237,237,.3);line-height:1.8;text-align:justify">
+      Ce bon de mission constitue un document contractuel entre Bathily Convoyage, le convoyeur assigné et le client. Il est régi par les Conditions Générales de Vente de Bathily Convoyage disponibles sur bathily-convoyage.fr/cgv. 
+      La double assurance RC Pro couvre les dommages survenus au véhicule pendant la durée de la mission, définie entre la signature de l'état des lieux de départ et la signature de l'état des lieux d'arrivée. 
+      Toute modification des informations renseignées sur ce document doit être validée par le dispatch Bathily. 
+      © 2025 Bathily Convoyage — Document confidentiel — Réf. BC-2025-0847
+    </p>
+  </div>
+
+</div>
+
+<!-- ACTIONS STICKY -->
+<div class="doc-actions">
+  <div class="da-left">
+    <a href="dashboard-convoyeur.html" class="tb-btn tb-ghost"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    <button class="tb-btn tb-ghost" onclick="window.location.href='etat-des-lieux.html'"><i class="fas fa-clipboard-list"></i> État des lieux</button>
+    <button class="tb-btn tb-ghost" onclick="window.print()"><i class="fas fa-print"></i> Imprimer PDF</button>
+  </div>
+  <div class="da-right">
+    <div class="da-progress" id="progressLabel">Checklist : <span>0 / 9</span> vérifications</div>
+    <button class="tb-btn tb-green" id="startBtn" onclick="startMission()"><i class="fas fa-play"></i> Démarrer la mission</button>
+  </div>
+</div>
+
+<script>
+// INIT
+document.addEventListener('DOMContentLoaded',()=>{
+  const now=new Date();
+  document.getElementById('emitDate').textContent=now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  [1,2].forEach(i=>document.getElementById('sigDate'+i).textContent=now.toLocaleDateString('fr-FR'));
+});
+
+// CHECKLIST
+let checkState=new Array(9).fill(false);
+const TOTAL_REQUIRED=7;
+
+function toggleCheck(el,i){
+  el.classList.toggle('checked');
+  checkState[i]=el.classList.contains('checked');
+  const done=checkState.filter(Boolean).length;
+  document.getElementById('checkCount').textContent=done+' / 9 vérifications effectuées';
+  document.getElementById('checkCount').style.color=done>=TOTAL_REQUIRED?'var(--green)':'var(--slate)';
+  document.getElementById('progressLabel').innerHTML='Checklist : <span>'+done+' / 9</span> vérifications';
+  // Activer bouton démarrer si obligatoires OK
+  const requiredDone=checkState.slice(0,7).every(Boolean);
+  const btn=document.getElementById('startBtn');
+  if(requiredDone){btn.style.background='var(--green)';btn.innerHTML='<i class="fas fa-check-circle"></i> Prêt à démarrer';}
+  else{btn.style.background='';btn.innerHTML='<i class="fas fa-play"></i> Démarrer la mission';}
+}
+
+// SIGNATURES
+function signDoc(n){
+  const area=document.getElementById('sigArea'+n);
+  const badge=document.getElementById('sigBadge'+n);
+  const now=new Date().toLocaleString('fr-FR');
+  area.innerHTML=`<div style="text-align:center;color:var(--green);padding:10px"><i class="fas fa-check-circle" style="font-size:24px;margin-bottom:8px;display:block"></i><div style="font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Signé le ${now}</div></div>`;
+  area.style.borderColor='rgba(39,174,96,.35)';area.style.background='rgba(39,174,96,.04)';area.style.cursor='default';
+  badge.classList.add('show');
+}
+
+// DÉMARRER
+function startMission(){
+  const requiredDone=checkState.slice(0,7).every(Boolean);
+  if(!requiredDone){
+    alert('Veuillez compléter les 7 étapes obligatoires de la checklist avant de démarrer la mission.');
+    document.getElementById('checklist').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  if(confirm('Confirmer le démarrage de la mission BC-2025-0847 ?\n\nLe client et le dispatch Bathily seront notifiés automatiquement.')){
+    document.getElementById('startBtn').innerHTML='<i class="fas fa-check"></i> Mission démarrée';
+    document.getElementById('startBtn').style.background='var(--green)';
+    document.querySelector('.status-bar .sb-status').className='sb-status ss-cours';
+    document.querySelector('.status-bar .sb-status').innerHTML='<span class="ss-dot"></span> En cours';
+    document.querySelector('.status-bar .ss-dot').style.background='currentColor';
+  }
+}
+</script>
+
+</body>
+</html>

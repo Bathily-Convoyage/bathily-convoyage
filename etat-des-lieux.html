@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>État des Lieux Numérisé — Bathily Convoyage</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --red:#c0392b;--red-dark:#a93226;--red-glow:rgba(192,57,43,.1);
+  --black:#0a0808;--ink:#1e1e1e;--ink2:#161616;--fog:#f0eded;--slate:#888;
+  --green:#27ae60;--orange:#e67e22;--blue:#2980b9;
+  --border:rgba(192,57,43,.15);--border2:rgba(240,237,237,.08);
+  --fd:'Cormorant Garamond',Georgia,serif;--fs:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--fog);font-family:var(--fb);font-weight:300;overflow-x:hidden}
+
+/* TOPBAR */
+.topbar{background:var(--ink2);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.topbar-logo{font-family:var(--fd);font-size:20px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;color:var(--fog)}
+.topbar-logo span{color:var(--red)}
+.topbar-mid{display:flex;flex-direction:column;align-items:center}
+.topbar-title{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--fog)}
+.topbar-ref{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--red)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:8px 16px;border-radius:2px;border:none;cursor:pointer;transition:all .2s}
+.tb-red{background:var(--red);color:var(--fog)}
+.tb-red:hover{background:var(--red-dark)}
+.tb-ghost{background:transparent;color:var(--slate);border:1px solid var(--border2)}
+.tb-ghost:hover{border-color:var(--fog);color:var(--fog)}
+
+/* PROGRESS BAR */
+.progress-bar{background:var(--ink2);border-bottom:1px solid var(--border2);padding:0 32px}
+.pb-inner{display:flex;align-items:center;gap:0;height:52px}
+.pb-step{display:flex;align-items:center;gap:10px;flex:1;position:relative;cursor:pointer}
+.pb-num{width:24px;height:24px;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:8px;font-weight:700;color:var(--slate);transition:all .3s;flex-shrink:0}
+.pb-num.active{border-color:var(--red);color:var(--red);background:var(--red-glow)}
+.pb-num.done{border-color:var(--red);background:var(--red);color:var(--fog)}
+.pb-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);white-space:nowrap}
+.pb-lbl.active{color:var(--fog)}
+.pb-line{flex:1;height:1px;background:var(--border2);margin:0 10px;transition:background .4s}
+.pb-line.done{background:var(--red)}
+
+/* MAIN */
+.edl-main{max-width:1100px;margin:0 auto;padding:40px 32px 80px}
+
+/* STEP */
+.edl-step{display:none;animation:fu .3s ease}
+.edl-step.active{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* SECTION TITLE */
+.step-header{margin-bottom:32px}
+.step-tag{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--red);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.step-tag::before{content:'';display:block;width:24px;height:1px;background:var(--red)}
+.step-title{font-family:var(--fd);font-size:clamp(28px,3vw,44px);font-weight:300;margin-bottom:6px}
+.step-title em{font-style:italic;color:var(--red)}
+.step-sub{font-size:13px;font-weight:300;color:var(--slate);line-height:1.65}
+
+/* CARDS */
+.card{background:var(--ink);border:1px solid var(--border2);padding:28px 24px;margin-bottom:2px;transition:border-color .3s}
+.card:hover{border-color:rgba(192,57,43,.18)}
+.card-title{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.card-title i{font-size:12px}
+
+/* FORM */
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.f-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.f-row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.f-grp{margin-bottom:16px}
+.f-grp label{display:block;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);margin-bottom:7px}
+.f-grp input,.f-grp select,.f-grp textarea{width:100%;background:rgba(240,237,237,.03);border:1px solid var(--border2);color:var(--fog);padding:11px 13px;font-family:var(--fb);font-size:13px;font-weight:300;outline:none;transition:border-color .2s;border-radius:2px;-webkit-appearance:none}
+.f-grp input:focus,.f-grp select:focus,.f-grp textarea:focus{border-color:var(--red)}
+.f-grp input[readonly]{color:var(--red);cursor:default}
+.f-grp select option{background:var(--ink)}
+.f-grp textarea{resize:vertical;min-height:80px}
+.f-grp input.highlight{border-color:var(--orange);color:var(--orange)}
+
+/* SCHÉMA VÉHICULE */
+.vehicle-schema{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:24px}
+.schema-view{background:var(--ink);border:1px solid var(--border2);padding:24px;position:relative}
+.schema-label{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);margin-bottom:16px;text-align:center}
+.schema-svg{width:100%;max-width:380px;display:block;margin:0 auto;position:relative}
+.damage-point{cursor:pointer;transition:all .2s}
+.damage-point circle{fill:rgba(39,174,96,.15);stroke:var(--green);stroke-width:1.5;transition:all .2s}
+.damage-point:hover circle,.damage-point.has-damage circle{fill:rgba(192,57,43,.2);stroke:var(--red)}
+.damage-point text{fill:var(--slate);font-family:var(--fs);font-size:9px;font-weight:700;transition:fill .2s}
+.damage-point:hover text,.damage-point.has-damage text{fill:var(--fog)}
+.damage-tooltip{position:absolute;background:var(--ink2);border:1px solid var(--border);padding:8px 12px;border-radius:2px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fog);white-space:nowrap;z-index:10;pointer-events:none;display:none}
+
+/* ZONES ÉTAT */
+.zones-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:24px}
+.zone-card{border:1px solid var(--border2);padding:16px 14px;cursor:pointer;transition:all .25s;text-align:center;position:relative}
+.zone-card:hover{border-color:rgba(192,57,43,.3)}
+.zone-card.etat-bon{border-color:var(--green);background:rgba(39,174,96,.06)}
+.zone-card.etat-raye{border-color:var(--orange);background:rgba(230,126,34,.06)}
+.zone-card.etat-enfonce{border-color:var(--red);background:var(--red-glow)}
+.zone-card.etat-casse{border-color:var(--red);background:rgba(192,57,43,.15)}
+.zone-ico{font-size:18px;margin-bottom:8px;display:block;color:var(--slate)}
+.zone-card.etat-bon .zone-ico{color:var(--green)}
+.zone-card.etat-raye .zone-ico{color:var(--orange)}
+.zone-card.etat-enfonce .zone-ico,.zone-card.etat-casse .zone-ico{color:var(--red)}
+.zone-name{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;color:var(--fog)}
+.zone-selector{width:100%;background:rgba(240,237,237,.04);border:1px solid var(--border2);color:var(--fog);padding:6px 8px;font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;outline:none;border-radius:2px;cursor:pointer;-webkit-appearance:none;appearance:none}
+.zone-selector option{background:var(--ink)}
+
+/* LÉGENDE ÉTATS */
+.legend-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.legend-item{display:flex;align-items:center;gap:6px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--slate)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ld-bon{background:var(--green)}
+.ld-raye{background:var(--orange)}
+.ld-enfonce{background:var(--red);opacity:.7}
+.ld-casse{background:var(--red)}
+
+/* PHOTOS */
+.photos-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.photo-slot{aspect-ratio:4/3;border:1px dashed var(--border2);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .3s;background:rgba(240,237,237,.02);position:relative;overflow:hidden}
+.photo-slot:hover{border-color:rgba(192,57,43,.45);background:var(--red-glow)}
+.photo-slot.taken{border-style:solid;border-color:rgba(39,174,96,.4);background:rgba(39,174,96,.04)}
+.photo-slot.taken:hover{border-color:rgba(39,174,96,.7)}
+.ps-ico{font-size:20px;color:var(--slate);transition:color .2s}
+.photo-slot:hover .ps-ico{color:var(--red)}
+.photo-slot.taken .ps-ico{color:var(--green)}
+.ps-lbl{font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);text-align:center;line-height:1.3;transition:color .2s}
+.photo-slot.taken .ps-lbl{color:var(--green)}
+.ps-check{position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--green);display:none;align-items:center;justify-content:center;font-size:8px;color:var(--fog)}
+.photo-slot.taken .ps-check{display:flex}
+.photo-count{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:12px}
+.photo-count span{color:var(--fog)}
+.photo-progress{height:3px;background:var(--border2);border-radius:2px;margin-bottom:20px;overflow:hidden}
+.photo-progress-bar{height:100%;background:var(--green);transition:width .3s ease;border-radius:2px}
+
+/* CARBURANT / CHARGE */
+.fuel-gauge{display:flex;flex-direction:column;gap:8px}
+.fuel-label{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);margin-bottom:4px}
+.fuel-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;outline:none;cursor:pointer;background:linear-gradient(to right,var(--red) 0%,var(--orange) 50%,var(--green) 100%)}
+.fuel-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--fog);border:2px solid var(--red);cursor:pointer;transition:border-color .2s}
+.fuel-marks{display:flex;justify-content:space-between;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.08em;color:var(--slate)}
+.fuel-val{font-family:var(--fd);font-size:36px;font-weight:300;color:var(--fog);text-align:center;margin-top:8px}
+.fuel-val em{color:var(--red);font-style:normal}
+
+/* DOMMAGES */
+.dommage-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.dommage-item{display:flex;align-items:flex-start;gap:12px;background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.2);padding:12px 16px;border-radius:2px}
+.dommage-item-ico{font-size:14px;color:var(--red);margin-top:1px;flex-shrink:0}
+.dommage-item-info{flex:1}
+.dommage-zone{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fog);margin-bottom:2px}
+.dommage-desc{font-size:12px;color:var(--slate)}
+.dommage-del{background:none;border:none;color:var(--slate);cursor:pointer;font-size:12px;transition:color .2s;padding:2px 6px}
+.dommage-del:hover{color:var(--red)}
+.btn-add-dommage{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--red);background:var(--red-glow);border:1px solid rgba(192,57,43,.3);padding:10px 18px;border-radius:2px;cursor:pointer;transition:all .2s}
+.btn-add-dommage:hover{background:rgba(192,57,43,.15)}
+
+/* SIGNATURE PAD */
+.sig-container{background:rgba(240,237,237,.02);border:1px solid var(--border2);border-radius:2px;overflow:hidden;margin-bottom:14px}
+.sig-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border2);background:rgba(240,237,237,.02)}
+.sig-header-lbl{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--slate)}
+.sig-clear{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);background:none;border:none;cursor:pointer;transition:color .2s}
+.sig-clear:hover{color:var(--red)}
+canvas{display:block;width:100%;height:160px;background:rgba(240,237,237,.015);cursor:crosshair;touch-action:none}
+.sig-done{border:1px solid rgba(39,174,96,.3);background:rgba(39,174,96,.06);padding:10px 14px;display:none;align-items:center;gap:10px;border-radius:2px;margin-bottom:8px}
+.sig-done.show{display:flex}
+.sig-done i{color:var(--green);font-size:14px}
+.sig-done span{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green)}
+
+/* ACCORDION CONFORMITÉ */
+.conformite-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:20px}
+.conf-item{border:1px solid var(--border2);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:border-color .2s}
+.conf-item:hover{border-color:rgba(192,57,43,.25)}
+.conf-lbl{font-size:12px;font-weight:300;color:rgba(240,237,237,.7);flex:1}
+.conf-toggle{display:flex;gap:6px}
+.conf-btn{font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border-radius:2px;border:1px solid var(--border2);cursor:pointer;background:none;color:var(--slate);transition:all .2s}
+.conf-btn:hover{border-color:var(--fog);color:var(--fog)}
+.conf-btn.ok{background:rgba(39,174,96,.12);border-color:rgba(39,174,96,.3);color:var(--green)}
+.conf-btn.nok{background:var(--red-glow);border-color:rgba(192,57,43,.3);color:var(--red)}
+
+/* RECAP */
+.recap-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:24px}
+.recap-card{background:var(--ink);border:1px solid var(--border2);padding:22px 20px}
+.recap-card-title{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:14px}
+.recap-line{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border2);font-size:12px}
+.recap-line:last-child{border-bottom:none}
+.recap-line span:first-child{color:var(--slate)}
+.recap-line span:last-child{color:var(--fog);font-weight:400}
+.recap-status{display:inline-flex;align-items:center;gap:5px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:2px}
+.rs-ok{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.2);color:var(--green)}
+.rs-warn{background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.2);color:var(--orange)}
+.rs-err{background:var(--red-glow);border:1px solid rgba(192,57,43,.2);color:var(--red)}
+
+/* NAVIGATION */
+.step-nav{display:flex;align-items:center;justify-content:space-between;margin-top:32px;padding-top:28px;border-top:1px solid var(--border2)}
+.btn-nav{display:inline-flex;align-items:center;gap:9px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:13px 24px;border:none;cursor:pointer;transition:all .2s;border-radius:2px}
+.btn-prev{background:transparent;color:var(--slate);border:1px solid var(--border2)}
+.btn-prev:hover{border-color:var(--fog);color:var(--fog)}
+.btn-prev:disabled{opacity:.2;cursor:default}
+.btn-next{background:var(--red);color:var(--fog)}
+.btn-next:hover{background:var(--red-dark)}
+
+/* MODAL DOMMAGE */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,8,8,.88);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--ink);border:1px solid var(--border);padding:36px;max-width:480px;width:92%;position:relative}
+.modal-close{position:absolute;top:14px;right:14px;font-size:16px;color:var(--slate);cursor:pointer;background:none;border:none;transition:color .2s}
+.modal-close:hover{color:var(--fog)}
+.modal-h{font-family:var(--fd);font-size:26px;font-weight:300;margin-bottom:4px}
+.modal-h em{font-style:italic;color:var(--red)}
+.modal-sub{font-size:12px;color:var(--slate);margin-bottom:20px}
+.modal-btns{display:flex;gap:10px;margin-top:16px}
+.btn-red{display:inline-flex;align-items:center;gap:7px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--fog);background:var(--red);padding:12px 22px;border:none;cursor:pointer;border-radius:2px;transition:background .2s}
+.btn-red:hover{background:var(--red-dark)}
+.btn-outline{display:inline-flex;align-items:center;gap:7px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);background:transparent;padding:12px 22px;border:1px solid var(--border2);cursor:pointer;border-radius:2px;transition:all .2s}
+.btn-outline:hover{border-color:var(--fog);color:var(--fog)}
+
+/* SUCCESS FINAL */
+.success-final{text-align:center;padding:60px 40px;border:1px solid rgba(39,174,96,.25);background:rgba(39,174,96,.04);display:none}
+.success-final.show{display:block}
+.sf-ico{font-size:56px;color:var(--green);margin-bottom:24px}
+.sf-h{font-family:var(--fd);font-size:44px;font-weight:300;margin-bottom:8px}
+.sf-h em{font-style:italic;color:var(--green)}
+.sf-ref{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--slate);margin-bottom:6px;margin-top:20px}
+.sf-ref-val{font-family:var(--fd);font-size:28px;font-weight:300;color:var(--fog);margin-bottom:28px}
+.sf-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+/* ALERT */
+.alert-required{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:300;color:var(--red);border-radius:2px;margin-bottom:14px;display:none}
+.alert-required.show{display:flex}
+
+/* TYPE BADGE */
+.type-badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:6px 14px;border-radius:2px;margin-bottom:20px}
+.badge-depart{background:rgba(41,128,185,.1);border:1px solid rgba(41,128,185,.25);color:var(--blue)}
+.badge-arrivee{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);color:var(--green)}
+
+@media(max-width:900px){.edl-main{padding:24px 20px 60px}.f-row,.f-row3,.f-row4{grid-template-columns:1fr 1fr}.photos-grid{grid-template-columns:repeat(3,1fr)}.zones-grid{grid-template-columns:repeat(2,1fr)}.vehicle-schema{grid-template-columns:1fr}.conformite-grid{grid-template-columns:1fr}.recap-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.f-row,.f-row3,.f-row4{grid-template-columns:1fr}.photos-grid{grid-template-columns:repeat(2,1fr)}.zones-grid{grid-template-columns:1fr 1fr}.topbar-mid{display:none}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a href="index.html" class="topbar-logo">Bathily<span>.</span></a>
+  <div class="topbar-mid">
+    <div class="topbar-title">État des Lieux Numérisé</div>
+    <div class="topbar-ref" id="topRef">BC-2025-0847 · BMW Série 3 · IJ-789-KL</div>
+  </div>
+  <div class="topbar-right">
+    <button class="topbar-btn tb-ghost" onclick="saveDraft()"><i class="fas fa-save"></i> Sauvegarder</button>
+    <button class="topbar-btn tb-red" onclick="printEdl()"><i class="fas fa-print"></i> Imprimer PDF</button>
+    <a href="dashboard-convoyeur.html" class="topbar-btn tb-ghost"><i class="fas fa-times"></i></a>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar">
+  <div class="pb-inner">
+    <div class="pb-step" onclick="goStep(1)">
+      <div class="pb-num active" id="pn1">01</div>
+      <div class="pb-lbl active" id="pl1">Mission</div>
+      <div class="pb-line" id="pline1"></div>
+    </div>
+    <div class="pb-step" onclick="goStep(2)">
+      <div class="pb-num" id="pn2">02</div>
+      <div class="pb-lbl" id="pl2">Véhicule</div>
+      <div class="pb-line" id="pline2"></div>
+    </div>
+    <div class="pb-step" onclick="goStep(3)">
+      <div class="pb-num" id="pn3">03</div>
+      <div class="pb-lbl" id="pl3">Photos départ</div>
+      <div class="pb-line" id="pline3"></div>
+    </div>
+    <div class="pb-step" onclick="goStep(4)">
+      <div class="pb-num" id="pn4">04</div>
+      <div class="pb-lbl" id="pl4">Zones & Dommages</div>
+      <div class="pb-line" id="pline4"></div>
+    </div>
+    <div class="pb-step" onclick="goStep(5)">
+      <div class="pb-num" id="pn5">05</div>
+      <div class="pb-lbl" id="pl5">Conformité</div>
+      <div class="pb-line" id="pline5"></div>
+    </div>
+    <div class="pb-step" onclick="goStep(6)">
+      <div class="pb-num" id="pn6">06</div>
+      <div class="pb-lbl" id="pl6">Signatures</div>
+      <div class="pb-line" id="pline6"></div>
+    </div>
+    <div class="pb-step" onclick="goStep(7)">
+      <div class="pb-num" id="pn7">07</div>
+      <div class="pb-lbl" id="pl7">Validation</div>
+    </div>
+  </div>
+</div>
+
+<div class="edl-main">
+
+  <!-- ════════════════════════════════
+       ÉTAPE 1 — INFOS MISSION
+  ════════════════════════════════ -->
+  <div class="edl-step active" data-step="1">
+    <div class="step-header">
+      <div class="step-tag">Étape 1 / 7</div>
+      <h2 class="step-title">Informations <em>mission</em></h2>
+      <p class="step-sub">Vérifiez et complétez les informations de la mission avant de commencer l'état des lieux.</p>
+    </div>
+
+    <!-- Type EDL -->
+    <div style="display:flex;gap:10px;margin-bottom:24px">
+      <div id="badgeDepart" class="type-badge badge-depart" style="cursor:pointer" onclick="setEdlType('depart')"><i class="fas fa-map-marker-alt"></i> État des lieux de DÉPART</div>
+      <div id="badgeArrivee" class="type-badge" style="cursor:pointer;background:rgba(240,237,237,.04);border:1px solid var(--border2);color:var(--slate)" onclick="setEdlType('arrivee')"><i class="fas fa-flag-checkered"></i> État des lieux d'ARRIVÉE</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-route"></i> Détails de la mission</div>
+      <div class="f-row">
+        <div class="f-grp"><label>Référence mission *</label><input type="text" id="mRef" value="BC-2025-0847" oninput="updateRef()"></div>
+        <div class="f-grp"><label>Date & heure *</label><input type="datetime-local" id="mDate"></div>
+      </div>
+      <div class="f-row">
+        <div class="f-grp"><label>Convoyeur *</label><input type="text" id="mConvoyeur" value="M. Bathily"></div>
+        <div class="f-grp"><label>N° permis de conduire</label><input type="text" id="mPermis" placeholder="XX-XXXXXX-XX"></div>
+      </div>
+      <div class="f-row">
+        <div class="f-grp"><label>Ville de départ</label><input type="text" id="mDepart" value="Paris 8ème — 15 Rue de Rivoli"></div>
+        <div class="f-grp"><label>Ville d'arrivée</label><input type="text" id="mArrivee" value="Lyon Part-Dieu — 3 Rue Servient"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-user"></i> Informations client</div>
+      <div class="f-row">
+        <div class="f-grp"><label>Nom & prénom *</label><input type="text" id="cNom" value="Jean Dupont"></div>
+        <div class="f-grp"><label>Téléphone *</label><input type="tel" id="cTel" value="+33 6 12 34 56 78"></div>
+      </div>
+      <div class="f-grp"><label>Email</label><input type="email" id="cEmail" value="jean.dupont@email.fr"></div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-nav btn-prev" disabled><i class="fas fa-arrow-left"></i> Précédent</button>
+      <button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       ÉTAPE 2 — IDENTIFICATION VÉHICULE
+  ════════════════════════════════ -->
+  <div class="edl-step" data-step="2">
+    <div class="step-header">
+      <div class="step-tag">Étape 2 / 7</div>
+      <h2 class="step-title">Identification <em>véhicule</em></h2>
+      <p class="step-sub">Vérifiez les informations SIV et complétez les données du véhicule au moment de la prise en charge.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-search"></i> Données SIV</div>
+      <div class="f-row">
+        <div class="f-grp"><label>Plaque d'immatriculation *</label><input type="text" id="vPlaque" value="IJ-789-KL" oninput="fmtPlaque(this)"></div>
+        <div class="f-grp"><label>Type de véhicule</label>
+          <select id="vType" onchange="updateSchemaType()">
+            <option value="berline" selected>Berline</option>
+            <option value="suv">SUV / 4x4</option>
+            <option value="break">Break</option>
+            <option value="utilitaire">Utilitaire</option>
+            <option value="moto">Moto</option>
+            <option value="coupe">Coupé</option>
+            <option value="cabriolet">Cabriolet</option>
+          </select>
+        </div>
+      </div>
+      <div class="f-row3">
+        <div class="f-grp"><label>Marque *</label><input type="text" id="vMarque" value="BMW"></div>
+        <div class="f-grp"><label>Modèle *</label><input type="text" id="vModele" value="Série 3"></div>
+        <div class="f-grp"><label>Année</label><input type="number" id="vAnnee" value="2023" min="1990" max="2025"></div>
+      </div>
+      <div class="f-row3">
+        <div class="f-grp"><label>Couleur *</label><input type="text" id="vCouleur" value="Gris Mineralgrau"></div>
+        <div class="f-grp"><label>Énergie</label>
+          <select id="vEnergie"><option>Essence</option><option selected>Hybride</option><option>Diesel</option><option>Électrique</option><option>GPL</option></select>
+        </div>
+        <div class="f-grp"><label>Transmission</label>
+          <select id="vTransmission"><option>Manuelle</option><option selected>Automatique</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-tachometer-alt"></i> Relevés au départ</div>
+      <div class="f-row4">
+        <div class="f-grp">
+          <label>Kilométrage *</label>
+          <input type="number" id="vKm" placeholder="Ex : 24 500" oninput="this.classList.add('highlight')">
+        </div>
+        <div class="f-grp">
+          <label>N° de série (VIN)</label>
+          <input type="text" id="vVin" placeholder="17 caractères">
+        </div>
+        <div class="f-grp">
+          <label>Prochain CT</label>
+          <input type="month" id="vCt">
+        </div>
+        <div class="f-grp">
+          <label>Assurance valable jusqu'au</label>
+          <input type="date" id="vAssurance">
+        </div>
+      </div>
+
+      <!-- CARBURANT -->
+      <div class="f-grp">
+        <label>Niveau carburant / charge batterie</label>
+        <div class="fuel-gauge">
+          <div class="fuel-marks"><span>0 — Vide</span><span>25%</span><span>50%</span><span>75%</span><span>100% — Plein</span></div>
+          <input type="range" class="fuel-slider" id="fuelSlider" min="0" max="100" value="65" step="5" oninput="updFuel(this.value)">
+          <div class="fuel-val" id="fuelVal">65<em>%</em></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-clipboard-check"></i> Présence des documents & accessoires</div>
+      <div class="conformite-grid">
+        <div class="conf-item"><span class="conf-lbl">Carte grise</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Présent</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Absent</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Assurance (attestation)</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Présent</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Absent</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Clé principale</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Présent</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Absent</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Clé de secours</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Présent</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Absent</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Manuel du propriétaire</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Présent</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Absent</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Roue de secours / Kit crevaison</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Présent</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Absent</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Triangle de signalisation</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Présent</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Absent</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Gilet de sécurité</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Présent</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Absent</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Câble de recharge (EV)</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Présent</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Absent</button><button class="conf-btn" onclick="confToggle(this,'na')">— N/A</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Vignette Crit'Air</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Présent</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Absent</button></div></div>
+      </div>
+      <div class="f-grp"><label>Objets personnels dans le véhicule</label><textarea id="vObjets" placeholder="Listez les objets présents dans le véhicule (bagages, effets personnels, équipements…) ou indiquez 'Aucun'"></textarea></div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button>
+      <button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       ÉTAPE 3 — PHOTOS
+  ════════════════════════════════ -->
+  <div class="edl-step" data-step="3">
+    <div class="step-header">
+      <div class="step-tag">Étape 3 / 7</div>
+      <h2 class="step-title">Photos <em>obligatoires</em></h2>
+      <p class="step-sub">10 photos minimum requises : 5 extérieures + 5 intérieures. Cliquez sur chaque slot pour prendre la photo.</p>
+    </div>
+
+    <!-- EXTÉRIEUR -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-car"></i> Extérieur — 5 photos requises</div>
+      <div class="photo-count">Photos prises : <span id="photoExtCount">0</span> / 5</div>
+      <div class="photo-progress"><div class="photo-progress-bar" id="photoExtBar" style="width:0%"></div></div>
+      <div class="photos-grid" id="photoExtGrid">
+        <div class="photo-slot" onclick="takePhoto(this,'Avant')" data-label="Avant">
+          <i class="fas fa-camera ps-ico"></i><span class="ps-lbl">Avant</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Arrière')" data-label="Arrière">
+          <i class="fas fa-camera ps-ico"></i><span class="ps-lbl">Arrière</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Côté Gauche')" data-label="Côté Gauche">
+          <i class="fas fa-camera ps-ico"></i><span class="ps-lbl">Côté Gauche</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Côté Droit')" data-label="Côté Droit">
+          <i class="fas fa-camera ps-ico"></i><span class="ps-lbl">Côté Droit</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Toit')" data-label="Toit">
+          <i class="fas fa-camera ps-ico"></i><span class="ps-lbl">Toit</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTÉRIEUR -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-chair"></i> Intérieur — 5 photos requises</div>
+      <div class="photo-count">Photos prises : <span id="photoIntCount">0</span> / 5</div>
+      <div class="photo-progress"><div class="photo-progress-bar" id="photoIntBar" style="width:0%"></div></div>
+      <div class="photos-grid" id="photoIntGrid">
+        <div class="photo-slot" onclick="takePhoto(this,'Tableau de bord')" data-label="Tableau de bord">
+          <i class="fas fa-camera ps-ico"></i><span class="ps-lbl">Tableau de bord</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Siège AV Gauche')" data-label="Siège AV Gauche">
+          <i class="fas fa-camera ps-ico"></i><span class="ps-lbl">Siège AV G.</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Siège AV Droit')" data-label="Siège AV Droit">
+          <i class="fas fa-camera ps-ico"></i><span class="ps-lbl">Siège AV D.</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Sièges Arrière')" data-label="Sièges Arrière">
+          <i class="fas fa-camera ps-ico"></i><span class="ps-lbl">Sièges AR</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Coffre')" data-label="Coffre">
+          <i class="fas fa-camera ps-ico"></i><span class="ps-lbl">Coffre</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHOTOS SUPPLÉMENTAIRES -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-plus-circle"></i> Photos supplémentaires (optionnel)</div>
+      <p style="font-size:12px;color:var(--slate);margin-bottom:16px">Ajoutez des photos de dommages existants, d'équipements particuliers ou de zones spécifiques.</p>
+      <div class="photos-grid" id="photoSupGrid">
+        <div class="photo-slot" onclick="takePhoto(this,'Dommage 1')" data-label="Dommage 1">
+          <i class="fas fa-plus ps-ico"></i><span class="ps-lbl">Ajouter</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Dommage 2')" data-label="Dommage 2">
+          <i class="fas fa-plus ps-ico"></i><span class="ps-lbl">Ajouter</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Dommage 3')" data-label="Dommage 3">
+          <i class="fas fa-plus ps-ico"></i><span class="ps-lbl">Ajouter</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Détail 4')" data-label="Détail 4">
+          <i class="fas fa-plus ps-ico"></i><span class="ps-lbl">Ajouter</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="photo-slot" onclick="takePhoto(this,'Détail 5')" data-label="Détail 5">
+          <i class="fas fa-plus ps-ico"></i><span class="ps-lbl">Ajouter</span><div class="ps-check"><i class="fas fa-check"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert-required" id="photoAlert"><i class="fas fa-exclamation-circle"></i> Veuillez prendre au minimum les 10 photos obligatoires avant de continuer.</div>
+
+    <div class="step-nav">
+      <button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button>
+      <button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       ÉTAPE 4 — ZONES & DOMMAGES
+  ════════════════════════════════ -->
+  <div class="edl-step" data-step="4">
+    <div class="step-header">
+      <div class="step-tag">Étape 4 / 7</div>
+      <h2 class="step-title">Zones & <em>dommages</em></h2>
+      <p class="step-sub">Évaluez l'état de chaque zone du véhicule et notez tous les dommages existants.</p>
+    </div>
+
+    <!-- SCHÉMA VÉHICULE SVG -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-car-crash"></i> Schéma interactif du véhicule</div>
+      <p style="font-size:12px;color:var(--slate);margin-bottom:16px">Cliquez sur une zone pour noter un dommage. Points rouges = dommage signalé.</p>
+      <div class="vehicle-schema">
+        <!-- VUE DESSUS -->
+        <div class="schema-view">
+          <div class="schema-label">Vue de dessus</div>
+          <svg class="schema-svg" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- Carrosserie -->
+            <rect x="80" y="20" width="160" height="160" rx="30" fill="rgba(240,237,237,.06)" stroke="rgba(240,237,237,.2)" stroke-width="1.5"/>
+            <rect x="95" y="55" width="130" height="90" rx="8" fill="rgba(240,237,237,.04)" stroke="rgba(240,237,237,.12)" stroke-width="1"/>
+            <!-- Roues -->
+            <ellipse cx="90" cy="50" rx="12" ry="16" fill="rgba(240,237,237,.08)" stroke="rgba(240,237,237,.2)" stroke-width="1.5"/>
+            <ellipse cx="230" cy="50" rx="12" ry="16" fill="rgba(240,237,237,.08)" stroke="rgba(240,237,237,.2)" stroke-width="1.5"/>
+            <ellipse cx="90" cy="150" rx="12" ry="16" fill="rgba(240,237,237,.08)" stroke="rgba(240,237,237,.2)" stroke-width="1.5"/>
+            <ellipse cx="230" cy="150" rx="12" ry="16" fill="rgba(240,237,237,.08)" stroke="rgba(240,237,237,.2)" stroke-width="1.5"/>
+            <!-- Points de dommage cliquables -->
+            <g class="damage-point" onclick="markDamage(this,'Pare-choc avant')" id="dp-avant">
+              <circle cx="160" cy="18" r="10"/><text x="160" y="22" text-anchor="middle">AV</text>
+            </g>
+            <g class="damage-point" onclick="markDamage(this,'Pare-choc arrière')" id="dp-arriere">
+              <circle cx="160" cy="182" r="10"/><text x="160" y="186" text-anchor="middle">AR</text>
+            </g>
+            <g class="damage-point" onclick="markDamage(this,'Aile avant gauche')" id="dp-avg">
+              <circle cx="75" cy="45" r="9"/><text x="75" y="49" text-anchor="middle" font-size="7">AVG</text>
+            </g>
+            <g class="damage-point" onclick="markDamage(this,'Aile avant droite')" id="dp-avd">
+              <circle cx="245" cy="45" r="9"/><text x="245" y="49" text-anchor="middle" font-size="7">AVD</text>
+            </g>
+            <g class="damage-point" onclick="markDamage(this,'Flanc gauche')" id="dp-fg">
+              <circle cx="75" cy="100" r="9"/><text x="75" y="104" text-anchor="middle" font-size="7">FG</text>
+            </g>
+            <g class="damage-point" onclick="markDamage(this,'Flanc droit')" id="dp-fd">
+              <circle cx="245" cy="100" r="9"/><text x="245" y="104" text-anchor="middle" font-size="7">FD</text>
+            </g>
+            <g class="damage-point" onclick="markDamage(this,'Aile arrière gauche')" id="dp-arg">
+              <circle cx="75" cy="155" r="9"/><text x="75" y="159" text-anchor="middle" font-size="7">ARG</text>
+            </g>
+            <g class="damage-point" onclick="markDamage(this,'Aile arrière droite')" id="dp-ard">
+              <circle cx="245" cy="155" r="9"/><text x="245" y="159" text-anchor="middle" font-size="7">ARD</text>
+            </g>
+            <g class="damage-point" onclick="markDamage(this,'Toit')" id="dp-toit">
+              <circle cx="160" cy="100" r="10"/><text x="160" y="104" text-anchor="middle" font-size="8">Toit</text>
+            </g>
+          </svg>
+        </div>
+        <!-- VUE FACE -->
+        <div class="schema-view">
+          <div class="schema-label">Vue de face</div>
+          <svg class="schema-svg" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="60" y="30" width="200" height="140" rx="20" fill="rgba(240,237,237,.06)" stroke="rgba(240,237,237,.2)" stroke-width="1.5"/>
+            <rect x="80" y="50" width="160" height="80" rx="10" fill="rgba(41,128,185,.06)" stroke="rgba(41,128,185,.2)" stroke-width="1"/>
+            <!-- Phares -->
+            <ellipse cx="90" cy="60" rx="22" ry="14" fill="rgba(230,126,34,.06)" stroke="rgba(230,126,34,.2)" stroke-width="1"/>
+            <ellipse cx="230" cy="60" rx="22" ry="14" fill="rgba(230,126,34,.06)" stroke="rgba(230,126,34,.2)" stroke-width="1"/>
+            <!-- Calandre -->
+            <rect x="120" y="140" width="80" height="20" rx="5" fill="rgba(240,237,237,.04)" stroke="rgba(240,237,237,.12)" stroke-width="1"/>
+            <!-- Roues -->
+            <ellipse cx="75" cy="165" rx="30" ry="15" fill="rgba(240,237,237,.08)" stroke="rgba(240,237,237,.2)" stroke-width="1.5"/>
+            <ellipse cx="245" cy="165" rx="30" ry="15" fill="rgba(240,237,237,.08)" stroke="rgba(240,237,237,.2)" stroke-width="1.5"/>
+            <!-- Points -->
+            <g class="damage-point" onclick="markDamage(this,'Phare avant gauche')">
+              <circle cx="90" cy="60" r="10"/><text x="90" y="64" text-anchor="middle" font-size="7">PHG</text>
+            </g>
+            <g class="damage-point" onclick="markDamage(this,'Phare avant droit')">
+              <circle cx="230" cy="60" r="10"/><text x="230" y="64" text-anchor="middle" font-size="7">PHD</text>
+            </g>
+            <g class="damage-point" onclick="markDamage(this,'Pare-brise')">
+              <circle cx="160" cy="75" r="10"/><text x="160" y="79" text-anchor="middle" font-size="7">PB</text>
+            </g>
+            <g class="damage-point" onclick="markDamage(this,'Calandre / Bouclier avant')">
+              <circle cx="160" cy="150" r="10"/><text x="160" y="154" text-anchor="middle" font-size="7">CAL</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONES PAR ZONE -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-layer-group"></i> État par zone</div>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-dot ld-bon"></div> Bon état</div>
+        <div class="legend-item"><div class="legend-dot ld-raye"></div> Rayure / Éraflure</div>
+        <div class="legend-item"><div class="legend-dot ld-enfonce"></div> Enfoncement / Bosse</div>
+        <div class="legend-item"><div class="legend-dot ld-casse"></div> Cassé / Brisé</div>
+      </div>
+      <div class="zones-grid" id="zonesGrid">
+        <!-- Generated by JS -->
+      </div>
+    </div>
+
+    <!-- LISTE DES DOMMAGES -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-exclamation-triangle"></i> Dommages signalés</div>
+      <div class="dommage-list" id="dommageList">
+        <div style="font-size:12px;color:var(--slate);font-style:italic;padding:8px 0" id="noDommage">Aucun dommage signalé pour l'instant.</div>
+      </div>
+      <button class="btn-add-dommage" onclick="openModal('modalDommage')"><i class="fas fa-plus"></i> Ajouter un dommage manuellement</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-sticky-note"></i> Observations générales</div>
+      <div class="f-grp"><label>Commentaires sur l'état général du véhicule</label>
+        <textarea id="obsGenerales" placeholder="Décrivez l'état général du véhicule, les odeurs, la propreté, les bruits anormaux constatés au démarrage…" rows="4"></textarea>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button>
+      <button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       ÉTAPE 5 — CONFORMITÉ
+  ════════════════════════════════ -->
+  <div class="edl-step" data-step="5">
+    <div class="step-header">
+      <div class="step-tag">Étape 5 / 7</div>
+      <h2 class="step-title">Contrôle de <em>conformité</em></h2>
+      <p class="step-sub">Vérification technique et réglementaire du véhicule avant prise en charge.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-shield-alt"></i> Équipements de sécurité</div>
+      <div class="conformite-grid">
+        <div class="conf-item"><span class="conf-lbl">Feux avant fonctionnels</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Feux arrière fonctionnels</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Clignotants fonctionnels</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Feux de recul fonctionnels</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Klaxon fonctionnel</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Essuie-glaces fonctionnels</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Rétroviseurs intacts</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Ceintures de sécurité</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-cog"></i> État mécanique visuel</div>
+      <div class="conformite-grid">
+        <div class="conf-item"><span class="conf-lbl">Voyants tableau de bord</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Aucun</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Allumé(s)</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Pression des pneus (visuel)</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ À vérifier</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Usure des pneus</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Correcte</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Insuffisante</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Liquide de refroidissement</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Niveau OK</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Insuffisant</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Huile moteur (jauge visuelle)</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Niveau OK</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Insuffisant</button></div></div>
+        <div class="conf-item"><span class="conf-lbl">Démarrage du moteur</span><div class="conf-toggle"><button class="conf-btn" onclick="confToggle(this,'ok')">✓ Normal</button><button class="conf-btn" onclick="confToggle(this,'nok')">✗ Anomalie</button></div></div>
+      </div>
+      <div class="f-grp" style="margin-top:8px"><label>Remarques techniques</label>
+        <textarea id="remTech" placeholder="Bruits moteur, vibrations, odeurs, comportement au démarrage…" rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button>
+      <button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       ÉTAPE 6 — SIGNATURES
+  ════════════════════════════════ -->
+  <div class="edl-step" data-step="6">
+    <div class="step-header">
+      <div class="step-tag">Étape 6 / 7</div>
+      <h2 class="step-title">Signatures <em>électroniques</em></h2>
+      <p class="step-sub">Les deux signatures sont obligatoires pour valider l'état des lieux. Le document sera envoyé par email aux deux parties.</p>
+    </div>
+
+    <!-- SIGNATURE CONVOYEUR -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-truck"></i> Signature du convoyeur</div>
+      <div class="f-row" style="margin-bottom:16px">
+        <div class="f-grp"><label>Nom du convoyeur</label><input type="text" id="sigConvNom" value="M. Bathily" readonly></div>
+        <div class="f-grp"><label>Horodatage</label><input type="text" id="sigConvDate" readonly></div>
+      </div>
+      <div class="sig-done" id="sigConvDone"><i class="fas fa-check-circle"></i><span>Signature convoyeur enregistrée</span></div>
+      <div class="sig-container">
+        <div class="sig-header">
+          <span class="sig-header-lbl">Je soussigné(e) M. Bathily, convoyeur certifié Bathily Convoyage, certifie l'exactitude de cet état des lieux.</span>
+          <button class="sig-clear" onclick="clearSig('sigConv')">Effacer</button>
+        </div>
+        <canvas id="sigConv" width="800" height="160"></canvas>
+      </div>
+      <button class="btn-red" onclick="saveSig('sigConv','sigConvDone','sigConvDate')"><i class="fas fa-check"></i> Valider ma signature</button>
+    </div>
+
+    <!-- SIGNATURE CLIENT -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-user"></i> Signature du client</div>
+      <div class="f-row" style="margin-bottom:16px">
+        <div class="f-grp"><label>Nom du client</label><input type="text" id="sigCliNom" value="Jean Dupont" readonly></div>
+        <div class="f-grp"><label>Horodatage</label><input type="text" id="sigCliDate" readonly></div>
+      </div>
+      <div class="sig-done" id="sigCliDone"><i class="fas fa-check-circle"></i><span>Signature client enregistrée</span></div>
+      <div class="sig-container">
+        <div class="sig-header">
+          <span class="sig-header-lbl">Je soussigné(e) Jean Dupont, client, confirme avoir vérifié l'état de mon véhicule et valide cet état des lieux.</span>
+          <button class="sig-clear" onclick="clearSig('sigCli')">Effacer</button>
+        </div>
+        <canvas id="sigCli" width="800" height="160"></canvas>
+      </div>
+      <button class="btn-red" onclick="saveSig('sigCli','sigCliDone','sigCliDate')"><i class="fas fa-check"></i> Valider ma signature</button>
+    </div>
+
+    <div class="alert-required" id="sigAlert"><i class="fas fa-exclamation-circle"></i> Les deux signatures sont requises pour valider l'état des lieux.</div>
+
+    <div class="step-nav">
+      <button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button>
+      <button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       ÉTAPE 7 — VALIDATION FINALE
+  ════════════════════════════════ -->
+  <div class="edl-step" data-step="7">
+    <div class="step-header">
+      <div class="step-tag">Étape 7 / 7</div>
+      <h2 class="step-title">Récapitulatif & <em>validation</em></h2>
+      <p class="step-sub">Vérifiez le résumé de l'état des lieux avant de valider définitivement le document.</p>
+    </div>
+
+    <div class="recap-grid">
+      <div class="recap-card">
+        <div class="recap-card-title">Mission</div>
+        <div class="recap-line"><span>Référence</span><span id="recRef">BC-2025-0847</span></div>
+        <div class="recap-line"><span>Type EDL</span><span id="recType" style="color:var(--blue)">Départ</span></div>
+        <div class="recap-line"><span>Date & heure</span><span id="recDate">—</span></div>
+        <div class="recap-line"><span>Convoyeur</span><span id="recConv">M. Bathily</span></div>
+        <div class="recap-line"><span>Trajet</span><span id="recTrajet">Paris → Lyon</span></div>
+      </div>
+      <div class="recap-card">
+        <div class="recap-card-title">Véhicule</div>
+        <div class="recap-line"><span>Plaque</span><span id="recPlaque">IJ-789-KL</span></div>
+        <div class="recap-line"><span>Véhicule</span><span id="recVehicule">BMW Série 3 — 2023</span></div>
+        <div class="recap-line"><span>Couleur</span><span id="recCouleur">Gris Mineralgrau</span></div>
+        <div class="recap-line"><span>Kilométrage</span><span id="recKm">—</span></div>
+        <div class="recap-line"><span>Carburant</span><span id="recFuel">65%</span></div>
+      </div>
+      <div class="recap-card">
+        <div class="recap-card-title">Photos & Dommages</div>
+        <div class="recap-line"><span>Photos extérieur</span><span id="recPhotoExt"><span class="recap-status rs-warn">0 / 5</span></span></div>
+        <div class="recap-line"><span>Photos intérieur</span><span id="recPhotoInt"><span class="recap-status rs-warn">0 / 5</span></span></div>
+        <div class="recap-line"><span>Dommages signalés</span><span id="recDommages"><span class="recap-status rs-ok">0</span></span></div>
+      </div>
+      <div class="recap-card">
+        <div class="recap-card-title">Signatures</div>
+        <div class="recap-line"><span>Convoyeur</span><span id="recSigConv"><span class="recap-status rs-err">En attente</span></span></div>
+        <div class="recap-line"><span>Client</span><span id="recSigCli"><span class="recap-status rs-err">En attente</span></span></div>
+        <div class="recap-line"><span>Horodatage</span><span id="recHorodatage">—</span></div>
+        <div class="recap-line"><span>Statut global</span><span id="recStatut"><span class="recap-status rs-err">Incomplet</span></span></div>
+      </div>
+    </div>
+
+    <!-- ENVOI EMAIL -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-paper-plane"></i> Envoi automatique du document</div>
+      <p style="font-size:13px;color:var(--slate);margin-bottom:16px;line-height:1.65">Le document d'état des lieux signé sera automatiquement envoyé par email aux destinataires suivants :</p>
+      <div class="f-row">
+        <div class="f-grp"><label>Email client</label><input type="email" id="emailCli" value="jean.dupont@email.fr"></div>
+        <div class="f-grp"><label>Email convoyeur</label><input type="email" id="emailConv" value="m.bathily@convoyeur.fr"></div>
+      </div>
+      <div class="f-grp"><label>Email Bathily Convoyage (archivage)</label><input type="email" value="contact@bathily-convoyage.fr" readonly></div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-final" id="successFinal">
+      <div class="sf-ico"><i class="fas fa-check-circle"></i></div>
+      <h3 class="sf-h">État des lieux <em>validé !</em></h3>
+      <div class="sf-ref">Référence du document</div>
+      <div class="sf-ref-val" id="edlRef">EDL-2025-0847-DEP</div>
+      <p style="font-size:13px;color:var(--slate);max-width:500px;margin:0 auto 28px;line-height:1.75">Le document signé a été archivé et envoyé par email au client, au convoyeur et à Bathily Convoyage. Un exemplaire PDF est disponible au téléchargement.</p>
+      <div class="sf-actions">
+        <button class="btn-red" onclick="printEdl()"><i class="fas fa-download"></i> Télécharger PDF</button>
+        <a href="dashboard-convoyeur.html" class="btn-outline"><i class="fas fa-home"></i> Retour au dashboard</a>
+        <button class="btn-outline" onclick="newEdl()"><i class="fas fa-plus"></i> Nouvel état des lieux</button>
+      </div>
+    </div>
+
+    <div class="step-nav" id="finalNav">
+      <button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button>
+      <button class="btn-nav btn-next" style="background:var(--green)" onclick="validateEdl()"><i class="fas fa-check"></i> Valider & Envoyer l'état des lieux</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL DOMMAGE -->
+<div class="modal-overlay" id="modalDommage">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modalDommage')"><i class="fas fa-times"></i></button>
+    <h3 class="modal-h">Signaler un <em>dommage</em></h3>
+    <p class="modal-sub">Décrivez précisément la nature et la localisation du dommage</p>
+    <div class="f-grp"><label>Zone concernée *</label>
+      <select id="dZone">
+        <option value="">Sélectionner la zone</option>
+        <option>Pare-choc avant</option><option>Pare-choc arrière</option>
+        <option>Capot</option><option>Toit</option>
+        <option>Aile avant gauche</option><option>Aile avant droite</option>
+        <option>Aile arrière gauche</option><option>Aile arrière droite</option>
+        <option>Flanc gauche</option><option>Flanc droit</option>
+        <option>Porte AV gauche</option><option>Porte AV droite</option>
+        <option>Porte AR gauche</option><option>Porte AR droite</option>
+        <option>Coffre / hayon</option><option>Pare-brise</option>
+        <option>Vitre latérale gauche</option><option>Vitre latérale droite</option>
+        <option>Rétroviseur gauche</option><option>Rétroviseur droit</option>
+        <option>Phare gauche</option><option>Phare droit</option>
+        <option>Jante avant gauche</option><option>Jante avant droite</option>
+        <option>Jante arrière gauche</option><option>Jante arrière droite</option>
+        <option>Intérieur — Tableau de bord</option><option>Intérieur — Siège</option>
+        <option>Intérieur — Moquette</option><option>Autre</option>
+      </select>
+    </div>
+    <div class="f-grp"><label>Nature du dommage *</label>
+      <select id="dType">
+        <option value="">Sélectionner</option>
+        <option>Rayure superficielle</option><option>Rayure profonde (jusqu'au métal)</option>
+        <option>Éraflure</option><option>Bosse / Enfoncement</option>
+        <option>Fissure</option><option>Bris / Cassure</option>
+        <option>Tache / Souillure</option><option>Décoloration</option>
+        <option>Rouille</option><option>Autre</option>
+      </select>
+    </div>
+    <div class="f-grp"><label>Description détaillée *</label>
+      <textarea id="dDesc" placeholder="Longueur approximative, profondeur, couleur, particularités…" rows="3"></textarea>
+    </div>
+    <div class="f-grp"><label>Responsabilité</label>
+      <select id="dResponsabilite">
+        <option>Dommage préexistant (constaté à la prise en charge)</option>
+        <option>Dommage survenu pendant la mission</option>
+        <option>Origine indéterminée</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-red" onclick="addDommage()"><i class="fas fa-plus"></i> Ajouter le dommage</button>
+      <button class="btn-outline" onclick="closeModal('modalDommage')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════
+// STATE
+// ══════════════════════════════
+const STATE={
+  step:1,
+  edlType:'depart',
+  photoExt:0,photoInt:0,
+  dommages:[],
+  sigConvDone:false,sigCliDone:false,
+  fuelValue:65,
+};
+
+// ══════════════════════════════
+// INIT
+// ══════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  // Date now
+  const now=new Date();
+  document.getElementById('mDate').value=now.toISOString().slice(0,16);
+  document.getElementById('sigConvDate').value='';
+  document.getElementById('sigCliDate').value='';
+  buildZonesGrid();
+  initSignatures();
+  updRecap();
+});
+
+// ══════════════════════════════
+// EDL TYPE
+// ══════════════════════════════
+function setEdlType(type){
+  STATE.edlType=type;
+  document.getElementById('badgeDepart').className='type-badge '+(type==='depart'?'badge-depart':'');
+  document.getElementById('badgeDepart').style.cssText=type==='depart'?'cursor:pointer':'cursor:pointer;background:rgba(240,237,237,.04);border:1px solid var(--border2);color:var(--slate)';
+  document.getElementById('badgeArrivee').className='type-badge '+(type==='arrivee'?'badge-arrivee':'');
+  document.getElementById('badgeArrivee').style.cssText=type==='arrivee'?'cursor:pointer':'cursor:pointer;background:rgba(240,237,237,.04);border:1px solid var(--border2);color:var(--slate)';
+}
+
+// ══════════════════════════════
+// PROGRESS
+// ══════════════════════════════
+function goStep(n){
+  document.querySelectorAll('.edl-step').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`[data-step="${n}"]`).classList.add('active');
+  for(let i=1;i<=7;i++){
+    const pn=document.getElementById('pn'+i);
+    const pl=document.getElementById('pl'+i);
+    pn.classList.remove('active','done');
+    pl.classList.remove('active');
+    if(i<n){pn.classList.add('done');}
+    else if(i===n){pn.classList.add('active');pl.classList.add('active');}
+    if(i<7){const line=document.getElementById('pline'+i);if(line)line.classList.toggle('done',i<n);}
+  }
+  STATE.step=n;
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(n===7)updRecap();
+}
+function nextStep(){if(STATE.step<7)goStep(STATE.step+1);}
+function prevStep(){if(STATE.step>1)goStep(STATE.step-1);}
+
+// ══════════════════════════════
+// FUEL
+// ══════════════════════════════
+function updFuel(v){
+  STATE.fuelValue=v;
+  document.getElementById('fuelVal').innerHTML=v+'<em>%</em>';
+}
+
+// ══════════════════════════════
+// PLAQUE FORMAT
+// ══════════════════════════════
+function fmtPlaque(inp){
+  let v=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2);
+  if(v.length>6)v=v.slice(0,6)+'-'+v.slice(6);
+  inp.value=v;
+}
+
+function updateRef(){
+  const ref=document.getElementById('mRef').value;
+  document.getElementById('topRef').textContent=ref+' · BMW Série 3 · IJ-789-KL';
+}
+
+// ══════════════════════════════
+// PHOTOS
+// ══════════════════════════════
+function takePhoto(el,label){
+  el.classList.toggle('taken');
+  const isExt=el.closest('#photoExtGrid')!=null;
+  const isInt=el.closest('#photoIntGrid')!=null;
+  const delta=el.classList.contains('taken')?1:-1;
+  if(isExt){
+    STATE.photoExt+=delta;
+    document.getElementById('photoExtCount').textContent=STATE.photoExt;
+    document.getElementById('photoExtBar').style.width=(STATE.photoExt/5*100)+'%';
+  }
+  if(isInt){
+    STATE.photoInt+=delta;
+    document.getElementById('photoIntCount').textContent=STATE.photoInt;
+    document.getElementById('photoIntBar').style.width=(STATE.photoInt/5*100)+'%';
+  }
+}
+
+// ══════════════════════════════
+// ZONES GRID
+// ══════════════════════════════
+const ZONES=[
+  {name:'Pare-choc AV',ico:'fas fa-car'},
+  {name:'Pare-choc AR',ico:'fas fa-car'},
+  {name:'Capot',ico:'fas fa-car-side'},
+  {name:'Toit',ico:'fas fa-car-side'},
+  {name:'Aile AV G',ico:'fas fa-wrench'},
+  {name:'Aile AV D',ico:'fas fa-wrench'},
+  {name:'Aile AR G',ico:'fas fa-wrench'},
+  {name:'Aile AR D',ico:'fas fa-wrench'},
+  {name:'Porte AV G',ico:'fas fa-door-open'},
+  {name:'Porte AV D',ico:'fas fa-door-open'},
+  {name:'Porte AR G',ico:'fas fa-door-open'},
+  {name:'Porte AR D',ico:'fas fa-door-open'},
+  {name:'Pare-brise',ico:'fas fa-window-restore'},
+  {name:'Vitre AR',ico:'fas fa-window-restore'},
+  {name:'Coffre',ico:'fas fa-box'},
+  {name:'Plancher / Dessous',ico:'fas fa-arrows-alt-v'},
+  {name:'Sièges',ico:'fas fa-chair'},
+  {name:'Tableau de bord',ico:'fas fa-tachometer-alt'},
+  {name:'Moquette / Sol',ico:'fas fa-layer-group'},
+  {name:'Jantes / Pneus',ico:'fas fa-circle'},
+];
+
+function buildZonesGrid(){
+  const grid=document.getElementById('zonesGrid');
+  grid.innerHTML='';
+  ZONES.forEach(z=>{
+    const div=document.createElement('div');
+    div.className='zone-card';
+    div.dataset.zone=z.name;
+    div.innerHTML=`<i class="${z.ico} zone-ico"></i><div class="zone-name">${z.name}</div>
+      <select class="zone-selector" onchange="updateZoneState(this,'${z.name}')">
+        <option value="">— Sélectionner —</option>
+        <option value="bon">✓ Bon état</option>
+        <option value="raye">~ Rayure / Éraflure</option>
+        <option value="enfonce">▼ Enfoncement / Bosse</option>
+        <option value="casse">✗ Cassé / Brisé</option>
+      </select>`;
+    grid.appendChild(div);
+  });
+}
+
+function updateZoneState(sel,zone){
+  const card=sel.closest('.zone-card');
+  card.className='zone-card'+(sel.value?' etat-'+sel.value:'');
+}
+
+// ══════════════════════════════
+// SCHÉMA — MARQUER DOMMAGE
+// ══════════════════════════════
+function markDamage(el,zone){
+  el.classList.toggle('has-damage');
+  if(el.classList.contains('has-damage')){
+    document.getElementById('dZone').value=zone;
+    openModal('modalDommage');
+  }
+}
+
+// ══════════════════════════════
+// DOMMAGES
+// ══════════════════════════════
+function addDommage(){
+  const zone=document.getElementById('dZone').value;
+  const type=document.getElementById('dType').value;
+  const desc=document.getElementById('dDesc').value;
+  const resp=document.getElementById('dResponsabilite').value;
+  if(!zone||!type||!desc){alert('Veuillez remplir tous les champs obligatoires.');return;}
+  STATE.dommages.push({zone,type,desc,resp});
+  refreshDommageList();
+  document.getElementById('dZone').value='';
+  document.getElementById('dType').value='';
+  document.getElementById('dDesc').value='';
+  closeModal('modalDommage');
+}
+
+function refreshDommageList(){
+  const list=document.getElementById('dommageList');
+  const noDom=document.getElementById('noDommage');
+  if(STATE.dommages.length===0){noDom.style.display='block';return;}
+  noDom.style.display='none';
+  list.innerHTML='';
+  STATE.dommages.forEach((d,i)=>{
+    const div=document.createElement('div');
+    div.className='dommage-item';
+    div.innerHTML=`<i class="fas fa-exclamation-triangle dommage-item-ico"></i>
+      <div class="dommage-item-info">
+        <div class="dommage-zone">${d.zone} — ${d.type}</div>
+        <div class="dommage-desc">${d.desc} · <em style="color:var(--orange);font-size:10px">${d.resp}</em></div>
+      </div>
+      <button class="dommage-del" onclick="removeDommage(${i})"><i class="fas fa-times"></i></button>`;
+    list.appendChild(div);
+  });
+}
+
+function removeDommage(i){STATE.dommages.splice(i,1);refreshDommageList();}
+
+// ══════════════════════════════
+// CONFORMITÉ TOGGLE
+// ══════════════════════════════
+function confToggle(btn,state){
+  const parent=btn.closest('.conf-toggle');
+  parent.querySelectorAll('.conf-btn').forEach(b=>{b.classList.remove('ok','nok','na')});
+  btn.classList.add(state);
+}
+
+// ══════════════════════════════
+// SIGNATURES
+// ══════════════════════════════
+function initSignatures(){
+  ['sigConv','sigCli'].forEach(id=>{
+    const canvas=document.getElementById(id);
+    const ctx=canvas.getContext('2d');
+    // Resize canvas
+    const resize=()=>{canvas.width=canvas.parentElement.clientWidth;canvas.height=160;ctx.strokeStyle='#f0eded';ctx.lineWidth=2;ctx.lineCap='round';};
+    resize();window.addEventListener('resize',resize);
+    let drawing=false,lastX=0,lastY=0;
+    const getPos=(e)=>{const r=canvas.getBoundingClientRect();const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;return[x*(canvas.width/r.width),y*(canvas.height/r.height)];};
+    canvas.addEventListener('mousedown',e=>{drawing=true;[lastX,lastY]=getPos(e);ctx.beginPath();ctx.moveTo(lastX,lastY);});
+    canvas.addEventListener('mousemove',e=>{if(!drawing)return;const[x,y]=getPos(e);ctx.lineTo(x,y);ctx.stroke();lastX=x;lastY=y;});
+    canvas.addEventListener('mouseup',()=>drawing=false);
+    canvas.addEventListener('mouseleave',()=>drawing=false);
+    canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;[lastX,lastY]=getPos(e);ctx.beginPath();ctx.moveTo(lastX,lastY);},{passive:false});
+    canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const[x,y]=getPos(e);ctx.lineTo(x,y);ctx.stroke();lastX=x;lastY=y;},{passive:false});
+    canvas.addEventListener('touchend',()=>drawing=false);
+  });
+}
+
+function clearSig(id){const c=document.getElementById(id);c.getContext('2d').clearRect(0,0,c.width,c.height);}
+
+function saveSig(canvasId,doneId,dateId){
+  const c=document.getElementById(canvasId);
+  const data=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
+  const hasContent=Array.from(data).some((v,i)=>i%4!==3&&v>0);
+  if(!hasContent){alert('Veuillez signer dans le cadre avant de valider.');return;}
+  const now=new Date().toLocaleString('fr-FR');
+  document.getElementById(dateId).value=now;
+  document.getElementById(doneId).classList.add('show');
+  if(canvasId==='sigConv')STATE.sigConvDone=true;
+  if(canvasId==='sigCli')STATE.sigCliDone=true;
+}
+
+// ══════════════════════════════
+// RECAP
+// ══════════════════════════════
+function updRecap(){
+  document.getElementById('recRef').textContent=document.getElementById('mRef')?.value||'—';
+  document.getElementById('recType').textContent=STATE.edlType==='depart'?'Départ':'Arrivée';
+  document.getElementById('recType').style.color=STATE.edlType==='depart'?'var(--blue)':'var(--green)';
+  document.getElementById('recConv').textContent=document.getElementById('mConvoyeur')?.value||'—';
+  document.getElementById('recPlaque').textContent=document.getElementById('vPlaque')?.value||'—';
+  document.getElementById('recVehicule').textContent=(document.getElementById('vMarque')?.value||'')+(document.getElementById('vModele')?.value?' '+document.getElementById('vModele').value:'')+(document.getElementById('vAnnee')?.value?' — '+document.getElementById('vAnnee').value:'');
+  document.getElementById('recCouleur').textContent=document.getElementById('vCouleur')?.value||'—';
+  document.getElementById('recKm').textContent=document.getElementById('vKm')?.value?document.getElementById('vKm').value+' km':'—';
+  document.getElementById('recFuel').textContent=STATE.fuelValue+'%';
+  document.getElementById('recDommages').innerHTML=`<span class="recap-status ${STATE.dommages.length>0?'rs-warn':'rs-ok'}">${STATE.dommages.length} dommage${STATE.dommages.length>1?'s':''}</span>`;
+  const pe=STATE.photoExt;const pi=STATE.photoInt;
+  document.getElementById('recPhotoExt').innerHTML=`<span class="recap-status ${pe>=5?'rs-ok':'rs-warn'}">${pe} / 5</span>`;
+  document.getElementById('recPhotoInt').innerHTML=`<span class="recap-status ${pi>=5?'rs-ok':'rs-warn'}">${pi} / 5</span>`;
+  document.getElementById('recSigConv').innerHTML=`<span class="recap-status ${STATE.sigConvDone?'rs-ok':'rs-err'}">${STATE.sigConvDone?'Signée':'En attente'}</span>`;
+  document.getElementById('recSigCli').innerHTML=`<span class="recap-status ${STATE.sigCliDone?'rs-ok':'rs-err'}">${STATE.sigCliDone?'Signée':'En attente'}</span>`;
+  const allOk=STATE.sigConvDone&&STATE.sigCliDone&&pe>=5&&pi>=5;
+  document.getElementById('recStatut').innerHTML=`<span class="recap-status ${allOk?'rs-ok':'rs-warn'}">${allOk?'Complet':'En cours'}</span>`;
+  document.getElementById('recHorodatage').textContent=new Date().toLocaleString('fr-FR');
+  document.getElementById('recDate').textContent=document.getElementById('mDate')?.value?new Date(document.getElementById('mDate').value).toLocaleString('fr-FR'):'—';
+}
+
+// ══════════════════════════════
+// VALIDATION FINALE
+// ══════════════════════════════
+function validateEdl(){
+  if(!STATE.sigConvDone||!STATE.sigCliDone){
+    alert('Les deux signatures sont requises pour valider l\'état des lieux.');return;
+  }
+  const ref='EDL-2025-'+(document.getElementById('mRef').value||'0847')+'-'+(STATE.edlType==='depart'?'DEP':'ARR');
+  document.getElementById('edlRef').textContent=ref;
+  document.getElementById('successFinal').classList.add('show');
+  document.getElementById('finalNav').style.display='none';
+  window.scrollTo({top:document.getElementById('successFinal').offsetTop-80,behavior:'smooth'});
+}
+
+// ══════════════════════════════
+// MODAL
+// ══════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+
+// ══════════════════════════════
+// UTILS
+// ══════════════════════════════
+function saveDraft(){
+  const btn=event.target;
+  btn.innerHTML='<i class="fas fa-check"></i> Sauvegardé';btn.style.background='var(--green)';btn.style.border='none';btn.style.color='var(--fog)';
+  setTimeout(()=>{btn.innerHTML='<i class="fas fa-save"></i> Sauvegarder';btn.style.background='';btn.style.border='';btn.style.color='';},2000);
+}
+function printEdl(){window.print();}
+function newEdl(){window.location.reload();}
+function updateSchemaType(){}
+</script>
+
+<!-- PRINT STYLES -->
+<style>
+@media print {
+  .topbar,.progress-bar,.step-nav,.btn-add-dommage,.topbar-btn,.modal-overlay{display:none!important}
+  .edl-step{display:block!important}
+  body{background:white;color:black}
+  .card{border:1px solid #ccc;break-inside:avoid}
+  canvas{border:1px solid #ccc}
+  .success-final{display:block!important}
+}
+</style>
+</body>
+</html>

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace Convoyeur — Bathily Convoyage</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --red:#c0392b;--red-dark:#a93226;--red-glow:rgba(192,57,43,.1);
+  --black:#0a0808;--ink:#1e1e1e;--ink2:#161616;--fog:#f0eded;--slate:#888;
+  --green:#27ae60;--orange:#e67e22;--blue:#2980b9;--purple:#8e44ad;
+  --border:rgba(192,57,43,.15);--border2:rgba(240,237,237,.08);
+  --fd:'Cormorant Garamond',Georgia,serif;--fs:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--fog);font-family:var(--fb);font-weight:300;min-height:100vh;display:flex;flex-direction:column}
+
+/* TOPBAR */
+.topbar{background:var(--ink2);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-logo{font-family:var(--fd);font-size:20px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;color:var(--fog)}
+.topbar-logo span{color:var(--red)}
+.topbar-center{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--slate)}
+.topbar-right{display:flex;align-items:center;gap:18px}
+.topbar-notif{position:relative;cursor:pointer;color:var(--slate);font-size:16px;transition:color .2s}
+.topbar-notif:hover{color:var(--fog)}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--red);border-radius:50%;font-family:var(--fs);font-size:7px;font-weight:700;color:var(--fog);display:flex;align-items:center;justify-content:center}
+.topbar-user{display:flex;align-items:center;gap:10px;cursor:pointer}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:var(--red-glow);border:1px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:10px;font-weight:700;color:var(--red)}
+.user-name{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(39,174,96,.6)}
+.topbar-logout{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);text-decoration:none;transition:color .2s;cursor:pointer;background:none;border:none}
+.topbar-logout:hover{color:var(--red)}
+
+/* LAYOUT */
+.dash-layout{display:flex;flex:1}
+
+/* SIDEBAR */
+.dash-nav{width:220px;background:var(--ink2);border-right:1px solid var(--border2);padding:32px 0;flex-shrink:0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
+.nav-section{margin-bottom:32px}
+.nav-section-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--slate);padding:0 24px;margin-bottom:10px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 24px;font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,237,237,.45);cursor:pointer;transition:all .2s;border-left:2px solid transparent;text-decoration:none}
+.nav-item:hover{color:var(--fog);background:rgba(240,237,237,.03)}
+.nav-item.active{color:var(--fog);border-left-color:var(--red);background:rgba(192,57,43,.06)}
+.nav-item i{font-size:13px;width:16px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red);color:var(--fog);font-size:8px;font-weight:700;padding:2px 6px;border-radius:10px}
+.nav-badge-purple{background:var(--purple)}
+
+/* MAIN */
+.dash-main{flex:1;padding:40px 48px;overflow-y:auto}
+.dash-header{margin-bottom:36px}
+.dash-hello{font-family:var(--fd);font-size:clamp(28px,3vw,44px);font-weight:300;margin-bottom:6px}
+.dash-hello em{font-style:italic;color:var(--red)}
+.dash-date{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate)}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:36px}
+.stat-card{background:var(--ink);border:1px solid var(--border2);padding:26px 22px;position:relative;overflow:hidden;transition:border-color .3s}
+.stat-card:hover{border-color:rgba(192,57,43,.25)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .35s}
+.stat-card:hover::before{transform:scaleX(1)}
+.stat-ico{font-size:18px;color:var(--red);margin-bottom:14px}
+.stat-val{font-family:var(--fd);font-size:42px;font-weight:300;line-height:1;margin-bottom:4px}
+.stat-val em{font-style:normal;color:var(--red)}
+.stat-lbl{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
+.stat-trend{position:absolute;top:20px;right:18px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;padding:2px 7px;border-radius:2px}
+.trend-up{background:rgba(39,174,96,.12);color:var(--green)}
+.trend-neutral{background:rgba(136,136,136,.12);color:var(--slate)}
+
+/* TAB CONTENT */
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fu .25s ease}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* MISSION CARD CONVOYEUR */
+.sec-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.sec-h{font-family:var(--fd);font-size:26px;font-weight:300}
+.sec-h em{font-style:italic;color:var(--red)}
+.missions-list{display:flex;flex-direction:column;gap:2px;margin-bottom:36px}
+.mission-card{background:var(--ink);border:1px solid var(--border2);padding:24px 28px;transition:border-color .3s}
+.mission-card:hover{border-color:rgba(192,57,43,.22)}
+.mc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.mc-ref{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:5px}
+.mc-route{font-family:var(--fd);font-size:22px;font-weight:300;margin-bottom:6px}
+.mc-route em{font-style:italic;color:var(--red)}
+.mc-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mc-tag{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:2px}
+.tag-auto{background:rgba(41,128,185,.12);border:1px solid rgba(41,128,185,.2);color:var(--blue)}
+.tag-moto{background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.2);color:var(--red)}
+.tag-route{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.2);color:var(--green)}
+.tag-plateau{background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.2);color:var(--orange)}
+.mc-date{font-size:12px;font-weight:300;color:var(--slate)}
+.mc-right{text-align:right;flex-shrink:0}
+.mc-montant{font-family:var(--fd);font-size:28px;font-weight:300;color:var(--fog);margin-bottom:4px}
+.mc-pack{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)}
+.mc-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid var(--border2);gap:12px;flex-wrap:wrap}
+.mc-client{display:flex;align-items:center;gap:10px}
+.mc-client-ava{width:28px;height:28px;border-radius:50%;background:var(--red-glow);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:8px;font-weight:700;color:var(--red)}
+.mc-client-info{font-size:12px;font-weight:300;color:var(--slate)}
+.mc-actions{display:flex;gap:8px}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:8px 14px;border-radius:2px;border:none;cursor:pointer;transition:all .2s;text-decoration:none}
+.btn-sm-red{background:var(--red);color:var(--fog)}
+.btn-sm-red:hover{background:var(--red-dark)}
+.btn-sm-ghost{background:transparent;color:var(--slate);border:1px solid var(--border2)}
+.btn-sm-ghost:hover{border-color:var(--fog);color:var(--fog)}
+.btn-sm-green{background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.25);color:var(--green)}
+.btn-sm-green:hover{background:rgba(39,174,96,.2)}
+.sec-action{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--fog);background:var(--red);padding:10px 20px;border-radius:2px;border:none;cursor:pointer;text-decoration:none;transition:background .2s}
+.sec-action:hover{background:var(--red-dark)}
+.sec-action-ghost{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);background:transparent;padding:10px 20px;border-radius:2px;border:1px solid var(--border2);cursor:pointer;text-decoration:none;transition:all .2s}
+.sec-action-ghost:hover{border-color:var(--fog);color:var(--fog)}
+
+/* STATUS */
+.status-pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;border-radius:2px}
+.sp-cours{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);color:var(--green)}
+.sp-planifie{background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.25);color:var(--orange)}
+.sp-termine{background:rgba(136,136,136,.1);border:1px solid rgba(136,136,136,.2);color:var(--slate)}
+.sp-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* PLANNING */
+.planning-day{margin-bottom:28px}
+.planning-date{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.planning-item{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--border2)}
+.pi-time{font-family:var(--fd);font-size:18px;font-weight:300;color:var(--slate);min-width:52px}
+.pi-bar{width:2px;height:40px;background:var(--red);flex-shrink:0}
+.pi-info{flex:1}
+.pi-title{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.pi-sub{font-size:12px;font-weight:300;color:var(--slate)}
+
+/* ÉTAT DES LIEUX */
+.edl-section{background:var(--ink);border:1px solid var(--border2);padding:32px;margin-bottom:36px}
+.edl-h{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:20px}
+.edl-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}
+.photo-slot{aspect-ratio:1;border:1px dashed var(--border2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .3s;background:rgba(240,237,237,.02);position:relative;overflow:hidden}
+.photo-slot:hover{border-color:rgba(192,57,43,.4);background:var(--red-glow)}
+.photo-slot.filled{border-style:solid;border-color:rgba(39,174,96,.3)}
+.photo-slot i{font-size:18px;color:var(--slate)}
+.photo-slot.filled i{color:var(--green)}
+.photo-slot span{font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);text-align:center}
+.photo-slot.filled span{color:var(--green)}
+.edl-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.f-grp{margin-bottom:0}
+.f-grp label{display:block;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);margin-bottom:7px}
+.f-grp input,.f-grp select,.f-grp textarea{width:100%;background:rgba(240,237,237,.03);border:1px solid var(--border2);color:var(--fog);padding:11px 13px;font-family:var(--fb);font-size:13px;font-weight:300;outline:none;transition:border-color .2s;border-radius:2px;-webkit-appearance:none}
+.f-grp input:focus,.f-grp select:focus,.f-grp textarea:focus{border-color:var(--red)}
+.f-grp select option{background:var(--ink)}
+.f-grp textarea{resize:vertical;min-height:80px}
+
+/* SIGNATURE PAD */
+.sig-wrap{border:1px solid var(--border2);border-radius:2px;overflow:hidden;margin-bottom:14px}
+.sig-label{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);padding:10px 14px;border-bottom:1px solid var(--border2);background:rgba(240,237,237,.02)}
+#sigCanvas{display:block;width:100%;height:150px;background:rgba(240,237,237,.02);cursor:crosshair}
+.sig-actions{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--border2)}
+
+/* RÉSEAU SOCIAL */
+.social-layout{display:grid;grid-template-columns:1fr 320px;gap:24px}
+.social-feed{}
+.social-composer{background:var(--ink);border:1px solid var(--border2);padding:24px;margin-bottom:20px}
+.composer-top{display:flex;gap:14px;margin-bottom:14px}
+.composer-ava{width:38px;height:38px;border-radius:50%;background:var(--red-glow);border:1px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:11px;font-weight:700;color:var(--red);flex-shrink:0}
+.composer-input{width:100%;background:rgba(240,237,237,.04);border:1px solid var(--border2);color:var(--fog);padding:12px 14px;font-family:var(--fb);font-size:13px;font-weight:300;outline:none;transition:border-color .2s;border-radius:2px;resize:none;height:80px}
+.composer-input:focus{border-color:var(--red)}
+.composer-bottom{display:flex;align-items:center;justify-content:space-between}
+.composer-opts{display:flex;gap:12px}
+.composer-opt{font-size:14px;color:var(--slate);cursor:pointer;transition:color .2s}
+.composer-opt:hover{color:var(--red)}
+.post-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--fog);background:var(--red);padding:9px 20px;border-radius:2px;border:none;cursor:pointer;transition:background .2s}
+.post-btn:hover{background:var(--red-dark)}
+
+/* POSTS */
+.post-card{background:var(--ink);border:1px solid var(--border2);padding:24px;margin-bottom:2px;transition:border-color .3s}
+.post-card:hover{border-color:rgba(192,57,43,.2)}
+.post-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.post-ava{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:10px;font-weight:700;flex-shrink:0}
+.post-name{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.post-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.post-role{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border-radius:2px;background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.2);color:var(--red)}
+.post-time{font-size:11px;color:var(--slate)}
+.post-body{font-size:13px;font-weight:300;line-height:1.75;color:rgba(240,237,237,.75);margin-bottom:16px}
+.post-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.post-tag{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:rgba(41,128,185,.08);border:1px solid rgba(41,128,185,.15);color:var(--blue);cursor:pointer}
+.post-tag:hover{background:rgba(41,128,185,.15)}
+.post-image{width:100%;height:180px;object-fit:cover;border-radius:2px;margin-bottom:14px;filter:brightness(.8);background:var(--ink2)}
+.post-actions{display:flex;align-items:center;gap:16px;padding-top:14px;border-top:1px solid var(--border2)}
+.post-action{display:flex;align-items:center;gap:6px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);cursor:pointer;transition:color .2s;background:none;border:none}
+.post-action:hover{color:var(--fog)}
+.post-action.liked{color:var(--red)}
+.post-action i{font-size:13px}
+
+/* SIDEBAR SOCIAL */
+.social-sidebar{}
+.ss-card{background:var(--ink);border:1px solid var(--border2);padding:24px;margin-bottom:16px}
+.ss-title{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:16px}
+.ss-stat-row{display:flex;justify-content:space-between;margin-bottom:20px}
+.ss-stat{text-align:center}
+.ss-stat-val{font-family:var(--fd);font-size:28px;font-weight:300;color:var(--fog);line-height:1}
+.ss-stat-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)}
+.top-convoyeur{display:flex;flex-direction:column;gap:10px}
+.tc-item{display:flex;align-items:center;gap:10px}
+.tc-rank{font-family:var(--fd);font-size:16px;font-weight:300;color:var(--slate);min-width:20px}
+.tc-ava{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:9px;font-weight:700;flex-shrink:0}
+.tc-info{flex:1}
+.tc-name{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.tc-missions{font-size:11px;color:var(--slate)}
+.tc-star{color:var(--orange);font-size:10px}
+.zone-tags{display:flex;flex-wrap:wrap;gap:6px}
+.zone-tag{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:2px;background:var(--red-glow);border:1px solid rgba(192,57,43,.25);color:var(--red);cursor:pointer}
+.zone-tag:hover{background:rgba(192,57,43,.15)}
+
+/* GAINS */
+.gains-section{margin-bottom:36px}
+.gains-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:20px}
+.gain-card{background:var(--ink);border:1px solid var(--border2);padding:24px 20px;transition:border-color .3s}
+.gain-card:hover{border-color:rgba(192,57,43,.22)}
+.gain-period{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);margin-bottom:8px}
+.gain-val{font-family:var(--fd);font-size:36px;font-weight:300;color:var(--fog);margin-bottom:4px}
+.gain-val em{color:var(--green);font-style:normal}
+.gain-nb{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--slate)}
+
+/* HISTORIQUE TABLE */
+.data-table{width:100%;border-collapse:collapse}
+.data-table thead tr{border-bottom:1px solid rgba(192,57,43,.3)}
+.data-table th{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);padding:12px 14px;text-align:left}
+.data-table tbody tr{border-bottom:1px solid var(--border2);transition:background .2s}
+.data-table tbody tr:hover{background:rgba(192,57,43,.025)}
+.data-table td{padding:12px 14px;font-size:12px;font-weight:300;color:rgba(240,237,237,.65)}
+.data-table td:first-child{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--fog)}
+.td-price{font-family:var(--fd);font-size:18px;font-weight:300;color:var(--green)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,8,8,.85);z-index:900;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--ink);border:1px solid var(--border);padding:44px;max-width:560px;width:90%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:18px;right:18px;font-size:18px;color:var(--slate);cursor:pointer;background:none;border:none;transition:color .2s}
+.modal-close:hover{color:var(--fog)}
+.modal-h{font-family:var(--fd);font-size:30px;font-weight:300;margin-bottom:5px}
+.modal-h em{font-style:italic;color:var(--red)}
+.modal-sub{font-size:13px;color:var(--slate);margin-bottom:24px}
+.modal-btns{display:flex;gap:10px;margin-top:20px}
+.btn-red{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--fog);background:var(--red);padding:13px 22px;border:none;cursor:pointer;border-radius:2px;transition:background .2s}
+.btn-red:hover{background:var(--red-dark)}
+.btn-outline{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);background:transparent;padding:13px 22px;border:1px solid var(--border2);cursor:pointer;border-radius:2px;transition:all .2s}
+.btn-outline:hover{border-color:var(--fog);color:var(--fog)}
+
+@media(max-width:1100px){.social-layout{grid-template-columns:1fr}.social-sidebar{display:grid;grid-template-columns:1fr 1fr;gap:16px}}
+@media(max-width:900px){.dash-nav{display:none}.dash-main{padding:24px}.stats-row{grid-template-columns:1fr 1fr}.gains-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.stats-row{grid-template-columns:1fr}.gains-grid{grid-template-columns:1fr}.topbar-center{display:none}.edl-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="topbar-logo">Bathily<span>.</span></a>
+  <span class="topbar-center">Espace Convoyeur</span>
+  <div class="topbar-right">
+    <div class="topbar-notif"><i class="fas fa-bell"></i><div class="notif-badge">3</div></div>
+    <div class="topbar-user">
+      <div class="user-avatar">MB</div>
+      <span class="user-name">M. Bathily</span>
+      <div class="status-dot" title="Disponible"></div>
+    </div>
+    <button class="topbar-logout" onclick="window.location.href='login.html'"><i class="fas fa-sign-out-alt"></i></button>
+  </div>
+</div>
+
+<div class="dash-layout">
+
+  <!-- SIDEBAR -->
+  <nav class="dash-nav">
+    <div class="nav-section">
+      <div class="nav-section-lbl">Mission</div>
+      <div class="nav-item active" onclick="showTab('accueil',this)"><i class="fas fa-home"></i> Tableau de bord</div>
+      <div class="nav-item" onclick="showTab('missions',this)"><i class="fas fa-route"></i> Mes missions <span class="nav-badge">2</span></div>
+      <div class="nav-item" onclick="showTab('planning',this)"><i class="fas fa-calendar-day"></i> Planning</div>
+      <div class="nav-item" onclick="showTab('edl',this)"><i class="fas fa-camera"></i> État des lieux</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-lbl">Communauté</div>
+      <div class="nav-item" onclick="showTab('reseau',this)"><i class="fas fa-users"></i> Réseau convoyeurs <span class="nav-badge nav-badge-purple">12</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-lbl">Compte</div>
+      <div class="nav-item" onclick="showTab('gains',this)"><i class="fas fa-euro-sign"></i> Mes gains</div>
+      <div class="nav-item" onclick="showTab('profil',this)"><i class="fas fa-user"></i> Mon profil</div>
+      <div class="nav-item" onclick="showTab('support',this)"><i class="fas fa-headset"></i> Support urgence</div>
+    </div>
+  </nav>
+
+  <main class="dash-main">
+
+    <!-- ═══ ACCUEIL ═══ -->
+    <div class="tab-content active" id="tab-accueil">
+      <div class="dash-header">
+        <h1 class="dash-hello">Bonjour, <em>Moussa</em></h1>
+        <div class="dash-date" id="dashDate"></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-route"></i></div><div class="stat-val">2</div><div class="stat-lbl">Missions actives</div><div class="stat-trend trend-up">En cours</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-check-circle"></i></div><div class="stat-val">47</div><div class="stat-lbl">Missions terminées</div><div class="stat-trend trend-neutral">Total</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-euro-sign"></i></div><div class="stat-val">3<em>,</em>200</div><div class="stat-lbl">Gains ce mois</div><div class="stat-trend trend-up">+12%</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-star"></i></div><div class="stat-val">4<em>.</em>9</div><div class="stat-lbl">Note clients</div><div class="stat-trend trend-up">★★★★★</div></div>
+      </div>
+
+      <!-- Mission en cours -->
+      <div class="sec-title"><h2 class="sec-h">Mission <em>en cours</em></h2></div>
+      <div class="missions-list">
+        <div class="mission-card">
+          <div class="mc-top">
+            <div>
+              <div class="mc-ref">BC-2025-0847 <span class="status-pill sp-cours" style="margin-left:8px"><span class="sp-dot"></span> En transit</span></div>
+              <div class="mc-route">Paris <em>→</em> Lyon</div>
+              <div class="mc-meta">
+                <span class="mc-tag tag-auto">BMW Série 3</span>
+                <span class="mc-tag tag-route">Route · 470 km</span>
+                <span class="mc-date"><i class="fas fa-calendar" style="margin-right:4px"></i>Aujourd'hui · Départ 09:00</span>
+              </div>
+            </div>
+            <div class="mc-right"><div class="mc-montant">340€</div><div class="mc-pack">Pack Sérénité</div></div>
+          </div>
+          <div class="mc-bottom">
+            <div class="mc-client"><div class="mc-client-ava">JD</div><div class="mc-client-info">Jean Dupont · +33 6 12 34 56 78</div></div>
+            <div class="mc-actions">
+              <button class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> GPS</button>
+              <button class="btn-sm btn-sm-ghost" onclick="openModal('modalEdl')"><i class="fas fa-camera"></i> EDL</button>
+              <button class="btn-sm btn-sm-green" onclick="openModal('modalTerminer')"><i class="fas fa-check"></i> Terminer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Planning du jour -->
+      <div class="sec-title"><h2 class="sec-h">Planning <em>du jour</em></h2></div>
+      <div class="planning-day">
+        <div class="planning-date">Mardi 12 mai 2025</div>
+        <div class="planning-item"><div class="pi-time">09:00</div><div class="pi-bar"></div><div class="pi-info"><div class="pi-title">Prise en charge · Jean Dupont</div><div class="pi-sub">BMW Série 3 · Paris 8ème → Lyon Part-Dieu</div></div><span class="status-pill sp-cours"><span class="sp-dot"></span> En cours</span></div>
+        <div class="planning-item"><div class="pi-time">15:30</div><div class="pi-bar" style="background:var(--orange)"></div><div class="pi-info"><div class="pi-title">Livraison estimée · Jean Dupont</div><div class="pi-sub">BMW Série 3 · Lyon Part-Dieu</div></div><span class="status-pill sp-planifie"><span class="sp-dot"></span> À venir</span></div>
+        <div class="planning-item"><div class="pi-time">17:00</div><div class="pi-bar" style="background:var(--slate)"></div><div class="pi-info"><div class="pi-title">Briefing mission #BC-2025-0851</div><div class="pi-sub">Bordeaux → Nice · Renault Clio · 15 mai</div></div><span class="status-pill sp-planifie" style="background:rgba(136,136,136,.1);border-color:rgba(136,136,136,.2);color:var(--slate)"><span class="sp-dot"></span> Prépa</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ MISSIONS ═══ -->
+    <div class="tab-content" id="tab-missions">
+      <div class="dash-header"><h1 class="dash-hello">Mes <em>missions</em></h1></div>
+      <div class="sec-title"><h2 class="sec-h">Missions <em>assignées</em></h2></div>
+      <div class="missions-list">
+        <div class="mission-card">
+          <div class="mc-top">
+            <div><div class="mc-ref">BC-2025-0847 <span class="status-pill sp-cours" style="margin-left:8px"><span class="sp-dot"></span> En transit</span></div><div class="mc-route">Paris <em>→</em> Lyon</div><div class="mc-meta"><span class="mc-tag tag-auto">BMW Série 3</span><span class="mc-tag tag-route">Route · 470 km</span><span class="mc-date">12 mai 2025 · 09:00</span></div></div>
+            <div class="mc-right"><div class="mc-montant">340€</div><div class="mc-pack">Pack Sérénité</div></div>
+          </div>
+          <div class="mc-bottom"><div class="mc-client"><div class="mc-client-ava">JD</div><div class="mc-client-info">Jean Dupont · IJ-789-KL</div></div><div class="mc-actions"><button class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> GPS</button><button class="btn-sm btn-sm-ghost" onclick="openModal('modalEdl')"><i class="fas fa-camera"></i> EDL</button><button class="btn-sm btn-sm-green" onclick="openModal('modalTerminer')"><i class="fas fa-check"></i> Terminer</button></div></div>
+        </div>
+        <div class="mission-card">
+          <div class="mc-top">
+            <div><div class="mc-ref">BC-2025-0851 <span class="status-pill sp-planifie" style="margin-left:8px"><span class="sp-dot"></span> Planifiée</span></div><div class="mc-route">Bordeaux <em>→</em> Nice</div><div class="mc-meta"><span class="mc-tag tag-auto">Renault Clio</span><span class="mc-tag tag-plateau">Plateau · 680 km</span><span class="mc-date">15 mai 2025 · 08:00</span></div></div>
+            <div class="mc-right"><div class="mc-montant">880€</div><div class="mc-pack">Pack Excellence</div></div>
+          </div>
+          <div class="mc-bottom"><div class="mc-client"><div class="mc-client-ava">AL</div><div class="mc-client-info">Alice Leblanc · AB-123-CD</div></div><div class="mc-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-file"></i> Détails</button><button class="btn-sm btn-sm-ghost" onclick="openModal('modalEdl')"><i class="fas fa-camera"></i> Préparer EDL</button></div></div>
+        </div>
+      </div>
+
+      <!-- Historique -->
+      <div class="sec-title"><h2 class="sec-h">Historique <em>récent</em></h2></div>
+      <table class="data-table">
+        <thead><tr><th>Référence</th><th>Trajet</th><th>Véhicule</th><th>Date</th><th>Gain</th></tr></thead>
+        <tbody>
+          <tr><td>BC-2025-0821</td><td>Lyon → Marseille</td><td>Kawasaki Z900 · Plateau</td><td>28 avr. 2025</td><td class="td-price">550€</td></tr>
+          <tr><td>BC-2025-0803</td><td>Paris → Bordeaux</td><td>Tesla Model 3 · Route</td><td>10 avr. 2025</td><td class="td-price">620€</td></tr>
+          <tr><td>BC-2025-0774</td><td>Marseille → Paris</td><td>BMW Série 3 · Route</td><td>15 mar. 2025</td><td class="td-price">480€</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══ PLANNING ═══ -->
+    <div class="tab-content" id="tab-planning">
+      <div class="dash-header"><h1 class="dash-hello">Mon <em>planning</em></h1></div>
+      <div class="planning-day">
+        <div class="planning-date">Lundi 12 mai 2025 — Aujourd'hui</div>
+        <div class="planning-item"><div class="pi-time">09:00</div><div class="pi-bar"></div><div class="pi-info"><div class="pi-title">Prise en charge BMW Série 3</div><div class="pi-sub">Paris 8ème · Jean Dupont · BC-2025-0847</div></div><span class="status-pill sp-cours"><span class="sp-dot"></span> En cours</span></div>
+        <div class="planning-item"><div class="pi-time">15:30</div><div class="pi-bar" style="background:var(--orange)"></div><div class="pi-info"><div class="pi-title">Livraison estimée Lyon</div><div class="pi-sub">Lyon Part-Dieu · Jean Dupont</div></div><span class="status-pill sp-planifie"><span class="sp-dot"></span> À venir</span></div>
+      </div>
+      <div class="planning-day">
+        <div class="planning-date">Jeudi 15 mai 2025</div>
+        <div class="planning-item"><div class="pi-time">08:00</div><div class="pi-bar" style="background:var(--orange)"></div><div class="pi-info"><div class="pi-title">Prise en charge Renault Clio</div><div class="pi-sub">Bordeaux Centre · Alice Leblanc · BC-2025-0851</div></div><span class="status-pill sp-planifie"><span class="sp-dot"></span> Planifiée</span></div>
+        <div class="planning-item"><div class="pi-time">16:00</div><div class="pi-bar" style="background:var(--orange)"></div><div class="pi-info"><div class="pi-title">Livraison estimée Nice</div><div class="pi-sub">Nice Côte d'Azur · Alice Leblanc</div></div><span class="status-pill sp-planifie"><span class="sp-dot"></span> À venir</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ ÉTAT DES LIEUX ═══ -->
+    <div class="tab-content" id="tab-edl">
+      <div class="dash-header"><h1 class="dash-hello">État des <em>lieux</em></h1></div>
+
+      <!-- Départ -->
+      <div class="edl-section">
+        <div class="edl-h"><i class="fas fa-camera" style="margin-right:8px"></i>Photos de départ — BC-2025-0847 · BMW Série 3</div>
+        <p style="font-size:12px;color:var(--slate);margin-bottom:16px">10 photos requises : extérieur (avant, arrière, côtés, dessus) + intérieur (tableau de bord, sièges, coffre)</p>
+        <div class="edl-grid">
+          <div class="photo-slot filled" onclick="photoClick(this)"><i class="fas fa-check-circle"></i><span>Avant</span></div>
+          <div class="photo-slot filled" onclick="photoClick(this)"><i class="fas fa-check-circle"></i><span>Arrière</span></div>
+          <div class="photo-slot filled" onclick="photoClick(this)"><i class="fas fa-check-circle"></i><span>Côté G</span></div>
+          <div class="photo-slot" onclick="photoClick(this)"><i class="fas fa-camera"></i><span>Côté D</span></div>
+          <div class="photo-slot" onclick="photoClick(this)"><i class="fas fa-camera"></i><span>Dessus</span></div>
+          <div class="photo-slot" onclick="photoClick(this)"><i class="fas fa-camera"></i><span>Tableau de bord</span></div>
+          <div class="photo-slot" onclick="photoClick(this)"><i class="fas fa-camera"></i><span>Siège AV G</span></div>
+          <div class="photo-slot" onclick="photoClick(this)"><i class="fas fa-camera"></i><span>Siège AV D</span></div>
+          <div class="photo-slot" onclick="photoClick(this)"><i class="fas fa-camera"></i><span>Sièges AR</span></div>
+          <div class="photo-slot" onclick="photoClick(this)"><i class="fas fa-camera"></i><span>Coffre</span></div>
+        </div>
+        <div style="font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:12px">3 / 10 photos prises</div>
+        <div class="edl-row">
+          <div class="f-grp"><label>État général du véhicule</label>
+            <select><option>Excellent</option><option>Bon</option><option>Moyen</option><option>Mauvais</option></select>
+          </div>
+          <div class="f-grp"><label>Niveau carburant / charge</label>
+            <select><option>100% — Plein</option><option>75%</option><option>50%</option><option>25%</option><option>Réserve</option></select>
+          </div>
+        </div>
+        <div class="f-grp" style="margin-bottom:14px"><label>Observations et anomalies constatées</label>
+          <textarea rows="3" placeholder="Rayures, bosses, dommages existants, remarques particulières…"></textarea>
+        </div>
+
+        <!-- Signature -->
+        <div class="edl-h" style="margin-top:20px"><i class="fas fa-signature" style="margin-right:8px"></i>Signature du client</div>
+        <div class="sig-wrap">
+          <div class="sig-label">Signez ici pour valider l'état des lieux de départ</div>
+          <canvas id="sigCanvas" width="600" height="150"></canvas>
+          <div class="sig-actions">
+            <button class="btn-sm btn-sm-ghost" onclick="clearSig()"><i class="fas fa-eraser"></i> Effacer</button>
+            <button class="btn-sm btn-sm-red" onclick="saveSig()"><i class="fas fa-save"></i> Valider la signature</button>
+          </div>
+        </div>
+        <button class="btn-red"><i class="fas fa-check"></i> Valider l'état des lieux de départ</button>
+      </div>
+    </div>
+
+    <!-- ═══ RÉSEAU CONVOYEURS ═══ -->
+    <div class="tab-content" id="tab-reseau">
+      <div class="dash-header">
+        <h1 class="dash-hello">Réseau <em>convoyeurs</em></h1>
+        <div class="dash-date">Communauté Bathily · <span style="color:var(--purple)">● 38 membres actifs</span></div>
+      </div>
+
+      <div class="social-layout">
+        <!-- FEED -->
+        <div class="social-feed">
+          <!-- Composer -->
+          <div class="social-composer">
+            <div class="composer-top">
+              <div class="composer-ava">MB</div>
+              <textarea class="composer-input" placeholder="Partagez une expérience, un conseil, un bon plan sur la route…" id="postInput"></textarea>
+            </div>
+            <div class="composer-bottom">
+              <div class="composer-opts">
+                <span class="composer-opt" title="Photo"><i class="fas fa-camera"></i></span>
+                <span class="composer-opt" title="Localisation"><i class="fas fa-map-marker-alt"></i></span>
+                <span class="composer-opt" title="Mission"><i class="fas fa-route"></i></span>
+              </div>
+              <button class="post-btn" onclick="addPost()"><i class="fas fa-paper-plane"></i> Publier</button>
+            </div>
+          </div>
+
+          <!-- Posts feed -->
+          <div id="postsFeed">
+
+            <div class="post-card">
+              <div class="post-header">
+                <div class="post-ava" style="background:rgba(41,128,185,.15);border:1px solid rgba(41,128,185,.3);color:var(--blue)">KD</div>
+                <div>
+                  <div class="post-name">Karim Diallo</div>
+                  <div class="post-meta">
+                    <span class="post-role">Convoyeur Senior</span>
+                    <span class="post-time">Il y a 2h · Lyon</span>
+                  </div>
+                </div>
+              </div>
+              <div class="post-body">Astuce du jour : pour les longs trajets en été, vérifiez toujours la pression des pneus avant le départ — surtout pour les Tesla qui chauffent plus vite en mode auto-pilote. J'ai évité un incident hier sur l'A7. 🚗⚡</div>
+              <div class="post-tags">
+                <span class="post-tag">#conseil</span>
+                <span class="post-tag">#sécurité</span>
+                <span class="post-tag">#EV</span>
+              </div>
+              <div class="post-actions">
+                <button class="post-action liked" onclick="toggleLike(this)"><i class="fas fa-heart"></i> 14</button>
+                <button class="post-action"><i class="fas fa-comment"></i> 3 commentaires</button>
+                <button class="post-action"><i class="fas fa-share"></i> Partager</button>
+              </div>
+            </div>
+
+            <div class="post-card">
+              <div class="post-header">
+                <div class="post-ava" style="background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.25);color:var(--green)">SF</div>
+                <div>
+                  <div class="post-name">Sophie Fontaine</div>
+                  <div class="post-meta">
+                    <span class="post-role">Convoyeur · Moto</span>
+                    <span class="post-time">Il y a 5h · Bordeaux</span>
+                  </div>
+                </div>
+              </div>
+              <div class="post-body">Mission terminée ! Paris → Bordeaux avec une R1250GS. Trajet impeccable, client ravi, 5 étoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout litige. Merci Bathily pour la logistique au top. 🏍️</div>
+              <div class="post-tags">
+                <span class="post-tag">#moto</span>
+                <span class="post-tag">#mission</span>
+                <span class="post-tag">#5étoiles</span>
+              </div>
+              <div class="post-actions">
+                <button class="post-action" onclick="toggleLike(this)"><i class="fas fa-heart"></i> 22</button>
+                <button class="post-action"><i class="fas fa-comment"></i> 7 commentaires</button>
+                <button class="post-action"><i class="fas fa-share"></i> Partager</button>
+              </div>
+            </div>
+
+            <div class="post-card">
+              <div class="post-header">
+                <div class="post-ava" style="background:rgba(142,68,173,.12);border:1px solid rgba(142,68,173,.25);color:var(--purple)">AT</div>
+                <div>
+                  <div class="post-name">Antoine Tardieu</div>
+                  <div class="post-meta">
+                    <span class="post-role">Convoyeur · SUV</span>
+                    <span class="post-time">Hier · Marseille</span>
+                  </div>
+                </div>
+              </div>
+              <div class="post-body">Question à la communauté : quelqu'un a-t-il une bonne adresse pour se restaurer sur l'A9 entre Montpellier et Marseille ? J'ai une mission demain matin et je cherche un spot propre pour la pause déjeuner.</div>
+              <div class="post-tags">
+                <span class="post-tag">#routeA9</span>
+                <span class="post-tag">#conseil</span>
+              </div>
+              <div class="post-actions">
+                <button class="post-action" onclick="toggleLike(this)"><i class="fas fa-heart"></i> 6</button>
+                <button class="post-action"><i class="fas fa-comment"></i> 11 commentaires</button>
+                <button class="post-action"><i class="fas fa-share"></i> Partager</button>
+              </div>
+            </div>
+
+            <div class="post-card">
+              <div class="post-header">
+                <div class="post-ava" style="background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.25);color:var(--orange)">LM</div>
+                <div>
+                  <div class="post-name">Léa Martin</div>
+                  <div class="post-meta">
+                    <span class="post-role">Convoyeur Junior</span>
+                    <span class="post-time">Il y a 2 jours · Paris</span>
+                  </div>
+                </div>
+              </div>
+              <div class="post-body">Ma première mission solo terminée ! Paris → Strasbourg avec une Audi A4. J'étais stressée au départ mais le protocole EDL et le suivi GPS m'ont beaucoup aidée. Merci à Karim et Sophie pour leurs conseils 🙏</div>
+              <div class="post-tags">
+                <span class="post-tag">#premièremission</span>
+                <span class="post-tag">#merci</span>
+              </div>
+              <div class="post-actions">
+                <button class="post-action" onclick="toggleLike(this)"><i class="fas fa-heart"></i> 31</button>
+                <button class="post-action"><i class="fas fa-comment"></i> 9 commentaires</button>
+                <button class="post-action"><i class="fas fa-share"></i> Partager</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- SIDEBAR SOCIALE -->
+        <div class="social-sidebar">
+          <div class="ss-card">
+            <div class="ss-title">Mon profil réseau</div>
+            <div class="ss-stat-row">
+              <div class="ss-stat"><div class="ss-stat-val">47</div><div class="ss-stat-lbl">Missions</div></div>
+              <div class="ss-stat"><div class="ss-stat-val">38</div><div class="ss-stat-lbl">Abonnés</div></div>
+              <div class="ss-stat"><div class="ss-stat-val">4.9</div><div class="ss-stat-lbl">Note</div></div>
+            </div>
+            <div class="zone-tags">
+              <span class="zone-tag">Île-de-France</span>
+              <span class="zone-tag">Rhône-Alpes</span>
+              <span class="zone-tag">PACA</span>
+              <span class="zone-tag">Nationale</span>
+            </div>
+          </div>
+
+          <div class="ss-card">
+            <div class="ss-title">Top convoyeurs du mois</div>
+            <div class="top-convoyeur">
+              <div class="tc-item"><div class="tc-rank">01</div><div class="tc-ava" style="background:rgba(230,126,34,.15);color:var(--orange)">KD</div><div class="tc-info"><div class="tc-name">Karim Diallo</div><div class="tc-missions">18 missions · <span class="tc-star">★</span> 5.0</div></div></div>
+              <div class="tc-item"><div class="tc-rank">02</div><div class="tc-ava" style="background:rgba(39,174,96,.12);color:var(--green)">SF</div><div class="tc-info"><div class="tc-name">Sophie Fontaine</div><div class="tc-missions">15 missions · <span class="tc-star">★</span> 4.9</div></div></div>
+              <div class="tc-item"><div class="tc-rank">03</div><div class="tc-ava" style="background:var(--red-glow);color:var(--red)">MB</div><div class="tc-info"><div class="tc-name">M. Bathily</div><div class="tc-missions">12 missions · <span class="tc-star">★</span> 4.9</div></div></div>
+              <div class="tc-item"><div class="tc-rank">04</div><div class="tc-ava" style="background:rgba(142,68,173,.12);color:var(--purple)">AT</div><div class="tc-info"><div class="tc-name">Antoine Tardieu</div><div class="tc-missions">11 missions · <span class="tc-star">★</span> 4.8</div></div></div>
+              <div class="tc-item"><div class="tc-rank">05</div><div class="tc-ava" style="background:rgba(230,126,34,.1);color:var(--orange)">LM</div><div class="tc-info"><div class="tc-name">Léa Martin</div><div class="tc-missions">9 missions · <span class="tc-star">★</span> 4.7</div></div></div>
+            </div>
+          </div>
+
+          <div class="ss-card">
+            <div class="ss-title">Hashtags populaires</div>
+            <div class="zone-tags">
+              <span class="zone-tag" style="background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.2);color:var(--blue)">#conseil</span>
+              <span class="zone-tag" style="background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.2);color:var(--blue)">#sécurité</span>
+              <span class="zone-tag" style="background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.2);color:var(--blue)">#EV</span>
+              <span class="zone-tag" style="background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.2);color:var(--blue)">#moto</span>
+              <span class="zone-tag" style="background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.2);color:var(--blue)">#route</span>
+              <span class="zone-tag" style="background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.2);color:var(--blue)">#5étoiles</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ GAINS ═══ -->
+    <div class="tab-content" id="tab-gains">
+      <div class="dash-header"><h1 class="dash-hello">Mes <em>gains</em></h1></div>
+      <div class="gains-grid">
+        <div class="gain-card"><div class="gain-period">Ce mois (mai 2025)</div><div class="gain-val">3<em> 200€</em></div><div class="gain-nb">12 missions · Moy. 267€</div></div>
+        <div class="gain-card"><div class="gain-period">Mois dernier (avr. 2025)</div><div class="gain-val">2<em> 860€</em></div><div class="gain-nb">11 missions · Moy. 260€</div></div>
+        <div class="gain-card"><div class="gain-period">Total 2025</div><div class="gain-val">14<em> 200€</em></div><div class="gain-nb">47 missions · Moy. 302€</div></div>
+      </div>
+      <div class="sec-title"><h2 class="sec-h">Détail des <em>paiements</em></h2></div>
+      <table class="data-table">
+        <thead><tr><th>Référence</th><th>Trajet</th><th>Date</th><th>Gain net</th></tr></thead>
+        <tbody>
+          <tr><td>BC-2025-0847</td><td>Paris → Lyon · BMW S3</td><td>12 mai 2025</td><td class="td-price">340€</td></tr>
+          <tr><td>BC-2025-0821</td><td>Lyon → Marseille · Kawasaki</td><td>28 avr. 2025</td><td class="td-price">550€</td></tr>
+          <tr><td>BC-2025-0803</td><td>Paris → Bordeaux · Tesla M3</td><td>10 avr. 2025</td><td class="td-price">620€</td></tr>
+          <tr><td>BC-2025-0774</td><td>Marseille → Paris · BMW S3</td><td>15 mar. 2025</td><td class="td-price">480€</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══ PROFIL ═══ -->
+    <div class="tab-content" id="tab-profil">
+      <div class="dash-header"><h1 class="dash-hello">Mon <em>profil</em></h1></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:640px">
+        <div class="f-grp"><label>Prénom</label><input type="text" value="Moussa"></div>
+        <div class="f-grp"><label>Nom</label><input type="text" value="Bathily"></div>
+        <div class="f-grp"><label>Email</label><input type="email" value="m.bathily@convoyeur.fr"></div>
+        <div class="f-grp"><label>Téléphone</label><input type="tel" value="+33 6 98 76 54 32"></div>
+        <div class="f-grp"><label>Zone principale</label><input type="text" value="Île-de-France · Rhône-Alpes"></div>
+        <div class="f-grp"><label>Disponibilité</label>
+          <select><option>Disponible</option><option>En mission</option><option>Indisponible</option></select>
+        </div>
+      </div>
+      <button class="btn-red" style="margin-top:16px"><i class="fas fa-save"></i> Enregistrer</button>
+    </div>
+
+    <!-- ═══ SUPPORT ═══ -->
+    <div class="tab-content" id="tab-support">
+      <div class="dash-header"><h1 class="dash-hello">Support <em>urgence</em></h1></div>
+      <div style="background:var(--red-glow);border:1px solid rgba(192,57,43,.3);padding:20px 24px;border-radius:2px;margin-bottom:32px;display:flex;align-items:center;gap:16px">
+        <i class="fas fa-phone" style="font-size:24px;color:var(--red)"></i>
+        <div><div style="font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px">Ligne d'urgence convoyeur</div><div style="font-family:var(--fd);font-size:22px;font-weight:300">Disponible 24h/24 · 7j/7</div></div>
+      </div>
+      <div class="sec-title"><h2 class="sec-h">Signaler un <em>incident</em></h2></div>
+      <div style="max-width:540px">
+        <div class="f-grp"><label>Mission concernée</label><input type="text" placeholder="BC-2025-XXXX"></div>
+        <div class="f-grp"><label>Type d'incident</label>
+          <select><option>Problème technique véhicule</option><option>Problème d'itinéraire</option><option>Incident avec le client</option><option>Accident</option><option>Panne</option><option>Autre</option></select>
+        </div>
+        <div class="f-grp"><label>Niveau d'urgence</label>
+          <select><option>Normal</option><option>Urgent</option><option>Critique — Intervention immédiate</option></select>
+        </div>
+        <div class="f-grp"><label>Description de l'incident</label><textarea rows="4" placeholder="Décrivez la situation précisément…"></textarea></div>
+        <button class="btn-red"><i class="fas fa-paper-plane"></i> Envoyer le signalement</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL EDL RAPIDE -->
+<div class="modal-overlay" id="modalEdl">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modalEdl')"><i class="fas fa-times"></i></button>
+    <h3 class="modal-h">État des <em>lieux</em></h3>
+    <p class="modal-sub">Accès rapide à l'onglet état des lieux complet</p>
+    <div class="modal-btns">
+      <button class="btn-red" onclick="closeModal('modalEdl');showTab('edl',null)"><i class="fas fa-camera"></i> Ouvrir l'EDL complet</button>
+      <button class="btn-outline" onclick="closeModal('modalEdl')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TERMINER MISSION -->
+<div class="modal-overlay" id="modalTerminer">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modalTerminer')"><i class="fas fa-times"></i></button>
+    <h3 class="modal-h">Terminer la <em>mission</em></h3>
+    <p class="modal-sub">BC-2025-0847 · Paris → Lyon · BMW Série 3</p>
+    <div class="f-grp"><label>État de livraison</label>
+      <select><option>Livrée avec succès</option><option>Livrée avec réserves</option><option>Incident signalé</option></select>
+    </div>
+    <div class="f-grp"><label>Commentaire de fin de mission</label>
+      <textarea rows="3" placeholder="Déroulement, observations particulières…"></textarea>
+    </div>
+    <div style="background:var(--red-glow);border:1px solid rgba(192,57,43,.3);padding:14px;border-radius:2px;margin-bottom:16px;font-size:12px;color:rgba(240,237,237,.6)">
+      <i class="fas fa-info-circle" style="color:var(--red);margin-right:6px"></i>
+      En validant, vous confirmez que l'état des lieux de livraison (10 photos) a été réalisé et signé par le client.
+    </div>
+    <div class="modal-btns">
+      <button class="btn-red" onclick="closeModal('modalTerminer')"><i class="fas fa-check"></i> Valider la livraison</button>
+      <button class="btn-outline" onclick="closeModal('modalTerminer')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// DATE
+document.getElementById('dashDate').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+// TABS
+function showTab(id,el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+}
+
+// MODAL
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+
+// PHOTO SLOT
+function photoClick(el){el.classList.toggle('filled');el.querySelector('i').className=el.classList.contains('filled')?'fas fa-check-circle':'fas fa-camera';}
+
+// SIGNATURE PAD
+const canvas=document.getElementById('sigCanvas');
+const ctx=canvas.getContext('2d');
+let drawing=false;
+ctx.strokeStyle='#f0eded';ctx.lineWidth=2;ctx.lineCap='round';
+canvas.addEventListener('mousedown',e=>{drawing=true;ctx.beginPath();ctx.moveTo(e.offsetX,e.offsetY)});
+canvas.addEventListener('mousemove',e=>{if(!drawing)return;ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke()});
+canvas.addEventListener('mouseup',()=>drawing=false);
+canvas.addEventListener('mouseleave',()=>drawing=false);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const t=e.touches[0];const r=canvas.getBoundingClientRect();ctx.beginPath();ctx.moveTo(t.clientX-r.left,t.clientY-r.top)},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const t=e.touches[0];const r=canvas.getBoundingClientRect();ctx.lineTo(t.clientX-r.left,t.clientY-r.top);ctx.stroke()},{passive:false});
+canvas.addEventListener('touchend',()=>drawing=false);
+function clearSig(){ctx.clearRect(0,0,canvas.width,canvas.height)}
+function saveSig(){alert('Signature enregistrée ✓');}
+
+// LIKE
+function toggleLike(btn){
+  btn.classList.toggle('liked');
+  const parts=btn.innerHTML.split(' ');
+  const n=parseInt(parts[1]);
+  btn.innerHTML=`<i class="fas fa-heart"></i> ${btn.classList.contains('liked')?n+1:n-1}`;
+}
+
+// POST
+function addPost(){
+  const txt=document.getElementById('postInput').value.trim();
+  if(!txt)return;
+  const post=document.createElement('div');
+  post.className='post-card';
+  post.innerHTML=`
+    <div class="post-header">
+      <div class="post-ava" style="background:var(--red-glow);border:1px solid var(--red);color:var(--red)">MB</div>
+      <div><div class="post-name">M. Bathily</div><div class="post-meta"><span class="post-role">Convoyeur Senior</span><span class="post-time">À l'instant · Île-de-France</span></div></div>
+    </div>
+    <div class="post-body">${txt}</div>
+    <div class="post-actions">
+      <button class="post-action" onclick="toggleLike(this)"><i class="fas fa-heart"></i> 0</button>
+      <button class="post-action"><i class="fas fa-comment"></i> 0 commentaires</button>
+      <button class="post-action"><i class="fas fa-share"></i> Partager</button>
+    </div>`;
+  document.getElementById('postsFeed').prepend(post);
+  document.getElementById('postInput').value='';
+}
+</script>
+</body>
+</html>

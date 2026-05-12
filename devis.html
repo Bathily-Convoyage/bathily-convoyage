@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Devis — Bathily Convoyage | Smart Quote</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --red:#c0392b;--red-dark:#a93226;--red-glow:rgba(192,57,43,.1);
+  --black:#0a0808;--ink:#1e1e1e;--fog:#f0eded;--slate:#888;--green:#27ae60;
+  --border:rgba(192,57,43,.15);--border2:rgba(240,237,237,.08);
+  --fd:'Cormorant Garamond',Georgia,serif;--fs:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--fog);font-family:var(--fb);font-weight:300;overflow-x:hidden}
+
+.cur{position:fixed;width:8px;height:8px;background:var(--red);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+.cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(192,57,43,.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+
+/* HEADER */
+header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 64px;display:flex;align-items:center;justify-content:space-between;height:78px;transition:all .4s}
+header.scrolled{background:rgba(10,8,8,.96);border-bottom:1px solid var(--border);height:64px;backdrop-filter:blur(14px)}
+.logo{font-family:var(--fd);font-size:22px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;color:var(--fog)}
+.logo span{color:var(--red)}
+nav{display:flex;align-items:center;gap:34px}
+nav a{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;color:rgba(240,237,237,.55);transition:color .2s;position:relative}
+nav a::after{content:'';position:absolute;bottom:-3px;left:0;right:0;height:1px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+nav a:hover{color:var(--fog)}
+nav a:hover::after,nav a.active::after{transform:scaleX(1)}
+nav a.active{color:var(--fog)}
+.nav-cta{background:var(--red)!important;color:var(--fog)!important;padding:10px 22px;border-radius:2px;transition:background .2s!important}
+.nav-cta::after{display:none!important}
+.nav-cta:hover{background:var(--red-dark)!important}
+.hbg{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px}
+.hbg span{display:block;width:24px;height:1px;background:var(--fog)}
+.mob-nav{display:none;position:fixed;inset:0;z-index:999;background:var(--black);flex-direction:column;align-items:center;justify-content:center;gap:30px}
+.mob-nav.open{display:flex}
+.mob-nav a{font-family:var(--fd);font-size:40px;font-weight:300;text-decoration:none;color:var(--fog);transition:color .2s}
+.mob-nav a:hover{color:var(--red)}
+.mob-close{position:absolute;top:28px;right:24px;font-size:22px;color:var(--slate);cursor:pointer}
+
+/* HERO */
+.hero{position:relative;height:52vh;min-height:400px;display:flex;align-items:flex-end;overflow:hidden}
+.hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 40%}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(10,8,8,.93) 0%,rgba(10,8,8,.65) 60%,rgba(10,8,8,.3) 100%),linear-gradient(to top,rgba(10,8,8,.85) 0%,transparent 50%)}
+.hero-content{position:relative;z-index:2;padding:0 64px 70px}
+.hero-label{display:inline-flex;align-items:center;gap:14px;font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--red);margin-bottom:18px}
+.hero-label::before{content:'';display:block;width:40px;height:1px;background:var(--red)}
+.hero h1{font-family:var(--fd);font-size:clamp(48px,7vw,88px);font-weight:300;line-height:.95}
+.hero h1 em{font-style:italic;color:var(--red)}
+.hero-sub{font-size:14px;font-weight:300;color:rgba(240,237,237,.52);line-height:1.75;max-width:460px;margin-top:18px}
+
+/* BREADCRUMB */
+.breadcrumb{padding:20px 64px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px}
+.breadcrumb a,.breadcrumb span{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;color:var(--slate);transition:color .2s}
+.breadcrumb a:hover{color:var(--fog)}
+.breadcrumb .sep{color:var(--border2)}
+.breadcrumb .cur-p{color:var(--red)}
+
+/* GARANTIES RAPIDES */
+.fast-garanties{background:var(--ink);border-bottom:1px solid var(--border);padding:28px 64px}
+.fg-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px}
+.fg-item{display:flex;align-items:center;gap:12px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(240,237,237,.5)}
+.fg-item i{color:var(--red);font-size:14px}
+
+/* CONFIGURATEUR PRINCIPAL */
+.devis-section{padding:80px 64px 120px}
+.config-wrapper{display:grid;grid-template-columns:1fr 320px;gap:2px;border:1px solid var(--border)}
+
+/* FORM SIDE */
+.config-form{background:var(--black);padding:56px}
+
+/* Steps bar */
+.steps-bar{display:flex;align-items:flex-start;margin-bottom:52px}
+.s-item{display:flex;align-items:flex-start;flex:1}
+.s-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.s-num{width:30px;height:30px;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:9px;font-weight:700;color:var(--slate);transition:all .3s;flex-shrink:0}
+.s-num.active{border-color:var(--red);color:var(--red);background:var(--red-glow)}
+.s-num.done{border-color:var(--red);background:var(--red);color:var(--fog)}
+.s-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);text-align:center}
+.s-line{flex:1;height:1px;background:var(--border2);margin:15px 4px 0;transition:background .4s}
+.s-line.done{background:var(--red)}
+
+/* Steps */
+.cfg-step{display:none}
+.cfg-step.active{display:block;animation:fu .3s ease}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.step-h{font-family:var(--fd);font-size:32px;font-weight:300;margin-bottom:6px}
+.step-p{font-size:13px;color:var(--slate);margin-bottom:30px;line-height:1.6}
+
+/* Vehicle */
+.v-sel{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:8px}
+.v-card{border:1px solid var(--border2);padding:36px 24px;cursor:pointer;transition:all .25s;text-align:center;border-radius:6px;position:relative}
+.v-card:hover{border-color:rgba(192,57,43,.4)}
+.v-card.sel{border-color:var(--red);background:var(--red-glow)}
+.v-card i{font-size:36px;color:var(--red);margin-bottom:14px;display:block}
+.v-card-name{font-family:var(--fs);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:4px}
+.v-card-sub{font-size:11px;color:var(--slate)}
+
+/* Forms */
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.f-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.f-grp{margin-bottom:20px}
+.f-grp label{display:block;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);margin-bottom:8px}
+.f-grp input,.f-grp select,.f-grp textarea{width:100%;background:rgba(240,237,237,.03);border:1px solid var(--border2);color:var(--fog);padding:13px 15px;font-family:var(--fb);font-size:14px;font-weight:300;outline:none;transition:border-color .2s;border-radius:2px;-webkit-appearance:none}
+.f-grp input:focus,.f-grp select:focus,.f-grp textarea:focus{border-color:var(--red)}
+.f-grp input[readonly]{color:var(--red);cursor:default}
+.f-grp select option{background:var(--ink)}
+.f-grp textarea{resize:vertical;min-height:90px}
+.f-grp input.error{border-color:#e74c3c}
+.field-err{font-family:var(--fs);font-size:9px;font-weight:700;color:#e74c3c;margin-top:5px;letter-spacing:.1em;display:none}
+.field-err.show{display:block}
+
+/* SIV */
+.siv-box{display:none;border:1px solid rgba(192,57,43,.3);background:rgba(192,57,43,.06);padding:16px 18px;margin-bottom:18px;border-radius:2px}
+.siv-box.show{display:block}
+.siv-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--red);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.siv-specs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+.siv-spec{border-left:2px solid var(--red);padding-left:10px}
+.siv-spec-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:3px}
+.siv-spec-val{font-family:var(--fd);font-size:18px;font-weight:300;color:var(--fog)}
+
+/* No plaque */
+.np-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);border-bottom:1px solid var(--border2);padding-bottom:2px;cursor:pointer;margin-top:-4px;margin-bottom:18px;background:none;border-top:none;border-left:none;border-right:none;transition:color .2s}
+.np-btn:hover{color:var(--fog)}
+.np-form{display:none;border:1px solid var(--border2);padding:20px;border-radius:6px;background:rgba(240,237,237,.02);margin-bottom:16px}
+.np-form.show{display:block}
+.np-note{font-size:12px;color:var(--slate);margin-bottom:14px;line-height:1.65;padding:10px 14px;border-left:2px solid var(--red);background:rgba(192,57,43,.04)}
+
+/* Route */
+.route-row{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;gap:12px;margin-bottom:20px}
+.route-arrow{text-align:center;color:var(--red);font-size:16px}
+
+/* Transport modes */
+.t-modes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:8px}
+.t-mode{border:1px solid var(--border2);padding:28px 22px;cursor:pointer;transition:all .25s;border-radius:6px}
+.t-mode:hover{border-color:rgba(192,57,43,.4)}
+.t-mode.sel{border-color:var(--red);background:var(--red-glow)}
+.t-mode-ico{font-size:26px;color:var(--red);margin-bottom:14px}
+.t-mode h4{font-family:var(--fs);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.t-mode-price{font-family:var(--fd);font-size:22px;color:var(--red);margin-bottom:8px}
+.t-mode-sub{font-size:11px;color:var(--slate);margin-bottom:14px}
+.t-mode-feats{list-style:none}
+.t-mode-feats li{font-size:12px;font-weight:300;color:rgba(240,237,237,.55);padding:4px 0;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:8px}
+.t-mode-feats li::before{content:'—';color:var(--red);font-size:9px}
+
+/* Category */
+.cat-sel{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px}
+.cat-card{border:1px solid var(--border2);padding:18px 14px;text-align:center;cursor:pointer;transition:all .25s;border-radius:6px}
+.cat-card:hover{border-color:rgba(192,57,43,.4)}
+.cat-card.sel{border-color:var(--red);background:var(--red-glow)}
+.cat-card i{font-size:22px;color:var(--red);margin-bottom:9px;display:block}
+.cat-card span{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:block}
+.cat-card small{font-size:9px;color:var(--red);margin-top:3px;display:block}
+
+/* Datetime */
+.dt-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:8px}
+
+/* Packs */
+.pck-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.pck-card{border:1px solid var(--border2);padding:22px 18px;cursor:pointer;transition:all .25s;position:relative;border-radius:6px}
+.pck-card:hover{border-color:rgba(192,57,43,.4)}
+.pck-card.sel{border-color:var(--red);background:var(--red-glow)}
+.pck-badge{position:absolute;top:-1px;right:12px;background:var(--red);color:var(--fog);font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;border-radius:0 0 2px 2px}
+.pck-name{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px}
+.pck-price{font-family:var(--fd);font-size:20px;color:var(--red);margin-bottom:10px}
+.pck-card ul{list-style:none}
+.pck-card ul li{font-size:10px;font-weight:300;color:rgba(240,237,237,.55);padding:3px 0;border-bottom:1px solid rgba(240,237,237,.04);display:flex;align-items:center;gap:7px}
+.pck-card ul li::before{content:'—';color:var(--red);font-size:8px}
+
+/* Options */
+.opt-title{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);margin-bottom:10px}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.opt-item{display:flex;align-items:flex-start;gap:11px;border:1px solid var(--border2);padding:14px 13px;cursor:pointer;transition:border-color .2s;border-radius:6px}
+.opt-item:hover{border-color:rgba(192,57,43,.35)}
+.opt-item.chk{border-color:var(--red);background:var(--red-glow)}
+.opt-check{width:14px;height:14px;flex-shrink:0;border:1px solid var(--border2);border-radius:2px;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px}
+.opt-item.chk .opt-check{background:var(--red);border-color:var(--red)}
+.opt-item.chk .opt-check::after{content:'✓';font-size:8px;color:var(--fog)}
+.opt-lbl{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;flex:1;line-height:1.4}
+.opt-lbl small{display:block;font-size:9px;font-weight:400;letter-spacing:0;color:var(--slate);text-transform:none;margin-top:2px}
+.opt-price{font-size:10px;color:var(--red);flex-shrink:0}
+
+/* Coordonnées */
+.coords-note{font-size:13px;font-weight:300;line-height:1.7;color:rgba(240,237,237,.5);margin-bottom:28px;padding:14px 18px;border-left:2px solid var(--red);background:rgba(192,57,43,.04)}
+.checkbox-row{display:flex;align-items:flex-start;gap:12px;margin-top:8px;cursor:pointer}
+.cb-box{width:15px;height:15px;flex-shrink:0;border:1px solid var(--border2);border-radius:2px;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:2px}
+.checkbox-row.chk .cb-box{background:var(--red);border-color:var(--red)}
+.checkbox-row.chk .cb-box::after{content:'✓';font-size:8px;color:var(--fog)}
+.cb-label{font-size:13px;font-weight:300;color:rgba(240,237,237,.55);line-height:1.5}
+.cb-label a{color:var(--red);text-decoration:none}
+
+/* Step nav */
+.sn{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:28px;border-top:1px solid var(--border2)}
+.btn-nav{display:inline-flex;align-items:center;gap:9px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:13px 26px;border:none;cursor:pointer;transition:all .2s;border-radius:2px}
+.btn-prev{background:transparent;color:var(--slate);border:1px solid var(--border2)}
+.btn-prev:hover{border-color:var(--fog);color:var(--fog)}
+.btn-prev:disabled{opacity:.2;cursor:default}
+.btn-next{background:var(--red);color:var(--fog)}
+.btn-next:hover{background:var(--red-dark)}
+
+/* SIDEBAR */
+.price-sidebar{background:var(--ink);padding:44px 32px;display:flex;flex-direction:column;border-left:1px solid var(--border);position:sticky;top:80px;max-height:calc(100vh - 100px);overflow-y:auto}
+.ps-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--slate);margin-bottom:5px}
+.ps-num{font-family:var(--fd);font-size:62px;font-weight:300;color:var(--fog);line-height:1;margin-bottom:3px}
+.ps-num em{color:var(--red);font-style:normal}
+.ps-ht{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--slate);margin-bottom:22px}
+.ps-lines{margin-bottom:20px}
+.ps-line{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2);font-size:11px}
+.ps-line:first-child{border-top:1px solid var(--border2)}
+.ps-line span:first-child{color:rgba(240,237,237,.45);font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.ps-total{border-top:1px solid rgba(192,57,43,.35)!important;margin-top:6px}
+.ps-total span{color:var(--red)!important;font-weight:500}
+.ps-recap{border:1px solid var(--border2);padding:16px;border-radius:2px;margin-bottom:20px}
+.ps-recap-title{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:12px}
+.ps-recap-item{display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border2);color:rgba(240,237,237,.55)}
+.ps-recap-item:last-child{border-bottom:none}
+.ps-recap-item span:last-child{color:var(--fog);font-weight:400}
+.btn-validate{width:100%;background:var(--red);color:var(--fog);border:none;cursor:pointer;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s;border-radius:2px}
+.btn-validate:hover{background:var(--red-dark)}
+.btn-validate:disabled{background:rgba(240,237,237,.08);color:var(--slate);cursor:default}
+.ps-incl{margin-top:18px}
+.ps-incl-title{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);margin-bottom:10px}
+.ps-incl ul{list-style:none}
+.ps-incl ul li{font-size:11px;font-weight:300;color:rgba(240,237,237,.4);padding:4px 0;display:flex;align-items:center;gap:8px}
+.ps-incl ul li i{color:var(--red);font-size:9px}
+.ps-note{font-size:10px;color:rgba(240,237,237,.25);margin-top:14px;line-height:1.6;font-style:italic}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,8,8,.85);z-index:9000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.modal-overlay.open{display:flex;animation:mfade .3s ease}
+@keyframes mfade{from{opacity:0}to{opacity:1}}
+.modal-box{background:var(--ink);border:1px solid var(--border);padding:60px 56px;max-width:580px;width:90%;position:relative;animation:mslide .3s ease}
+@keyframes mslide{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-ico{font-size:48px;color:var(--red);margin-bottom:24px;display:block}
+.modal-h{font-family:var(--fd);font-size:42px;font-weight:300;margin-bottom:8px}
+.modal-h em{font-style:italic;color:var(--red)}
+.modal-sub{font-size:14px;font-weight:300;color:rgba(240,237,237,.55);line-height:1.75;margin-bottom:32px}
+.modal-ref{border:1px solid var(--border);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;border-radius:2px}
+.modal-ref-lbl{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--slate)}
+.modal-ref-val{font-family:var(--fd);font-size:28px;font-weight:300;color:var(--red)}
+.modal-next{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:14px}
+.modal-steps{display:flex;flex-direction:column;gap:8px;margin-bottom:32px}
+.modal-step{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:300;color:rgba(240,237,237,.6)}
+.modal-step i{color:var(--red);font-size:12px;width:16px}
+.modal-btns{display:flex;gap:14px;flex-wrap:wrap}
+.btn-primary{display:inline-flex;align-items:center;gap:10px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;color:var(--fog);background:var(--red);padding:14px 28px;border-radius:2px;transition:background .25s;border:none;cursor:pointer}
+.btn-primary:hover{background:var(--red-dark)}
+.btn-secondary{display:inline-flex;align-items:center;gap:10px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;color:var(--slate);background:transparent;padding:14px 28px;border-radius:2px;border:1px solid var(--border2);transition:all .25s;cursor:pointer}
+.btn-secondary:hover{border-color:var(--fog);color:var(--fog)}
+
+/* FOOTER */
+footer{background:var(--ink);border-top:1px solid var(--border);padding:78px 64px 38px}
+.ft-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:52px;padding-bottom:52px;border-bottom:1px solid var(--border2);margin-bottom:32px}
+.ft-logo{font-family:var(--fd);font-size:26px;font-weight:300;letter-spacing:.08em;margin-bottom:4px}
+.ft-logo span{color:var(--red)}
+.ft-tagline{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--slate);margin-bottom:20px}
+.ft-p{font-size:13px;font-weight:300;line-height:1.75;color:rgba(240,237,237,.38);max-width:280px}
+.ft-col h5{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--red);margin-bottom:16px}
+.ft-col ul{list-style:none}
+.ft-col ul li{margin-bottom:9px}
+.ft-col ul li a{font-size:13px;font-weight:300;color:rgba(240,237,237,.38);text-decoration:none;transition:color .2s}
+.ft-col ul li a:hover{color:var(--fog)}
+.ft-ci{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.ft-ci i{color:var(--red);font-size:11px;margin-top:2px}
+.ft-ci span{font-size:13px;font-weight:300;color:rgba(240,237,237,.38);line-height:1.5}
+.ft-bot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.ft-copy{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(240,237,237,.2)}
+.ft-legal{display:flex;gap:20px}
+.ft-legal a{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(240,237,237,.2);text-decoration:none;transition:color .2s}
+.ft-legal a:hover{color:var(--slate)}
+
+@media(max-width:1024px){header{padding:0 32px}.hero-content,.devis-section,.fast-garanties{padding-left:32px;padding-right:32px}footer{padding:60px 32px 32px}.config-wrapper{grid-template-columns:1fr 280px}}
+@media(max-width:768px){nav{display:none}.hbg{display:flex}header{padding:0 24px}.hero-content{padding:0 24px 60px}.breadcrumb,.fast-garanties{padding:16px 24px}.devis-section{padding:50px 24px 80px}.config-wrapper{grid-template-columns:1fr}.price-sidebar{order:-1;position:static;max-height:none}.f-row,.f-row3,.route-row,.dt-grid,.t-modes,.pck-grid,.opt-grid,.v-sel{grid-template-columns:1fr}.route-arrow{display:none}.cat-sel{grid-template-columns:repeat(3,1fr)}.siv-specs{grid-template-columns:1fr 1fr}.modal-box{padding:40px 28px}.modal-btns{flex-direction:column}.ft-top{grid-template-columns:1fr 1fr;gap:32px}}
+</style>
+</head>
+<body>
+
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="cring"></div>
+
+<div class="mob-nav" id="mobNav">
+  <span class="mob-close" onclick="document.getElementById('mobNav').classList.remove('open')"><i class="fas fa-times"></i></span>
+  <a href="index.html">Accueil</a><a href="services.html">Services</a><a href="tarifs.html">Tarifs</a>
+  <a href="devis.html">Devis</a><a href="contact.html">Contact</a>
+  <a href="login.html" style="color:var(--red)">Connexion</a>
+</div>
+
+<header id="hdr">
+  <a href="index.html" class="logo">Bathily<span>.</span></a>
+  <nav>
+    <a href="index.html">Accueil</a><a href="services.html">Services</a>
+    <a href="tarifs.html">Tarifs</a><a href="devis.html" class="active">Devis</a>
+    <a href="contact.html">Contact</a><a href="login.html">Connexion</a>
+    <a href="devis.html" class="nav-cta">Smart Quote</a>
+  </nav>
+  <div class="hbg" onclick="document.getElementById('mobNav').classList.add('open')">
+    <span></span><span></span><span></span>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <img class="hero-img" src="https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="Smart Quote Bathily" loading="eager">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-label">Configurateur Smart Quote</div>
+    <h1>Votre<br><em>devis</em></h1>
+    <p class="hero-sub">Devis personnalisé en moins de 60 secondes. Prix HT transparents, confirmation sous 2h, double RC Pro incluse.</p>
+  </div>
+</section>
+
+<div class="breadcrumb">
+  <a href="index.html">Accueil</a><span class="sep">/</span>
+  <span class="cur-p">Devis</span>
+</div>
+
+<!-- GARANTIES RAPIDES -->
+<div class="fast-garanties">
+  <div class="fg-row">
+    <div class="fg-item"><i class="fas fa-clock"></i> Devis en 60 secondes</div>
+    <div class="fg-item"><i class="fas fa-shield-alt"></i> Double RC Pro incluse</div>
+    <div class="fg-item"><i class="fas fa-camera"></i> 20 photos état des lieux</div>
+    <div class="fg-item"><i class="fas fa-check-circle"></i> Confirmation sous 2h</div>
+    <div class="fg-item"><i class="fas fa-eye"></i> Aucun frais caché</div>
+  </div>
+</div>
+
+<!-- CONFIGURATEUR -->
+<section class="devis-section">
+  <div class="config-wrapper">
+    <div class="config-form">
+
+      <!-- Steps bar -->
+      <div class="steps-bar">
+        <div class="s-item"><div class="s-col"><div class="s-num active" id="d1">01</div><div class="s-lbl">Véhicule</div></div><div class="s-line" id="l1"></div></div>
+        <div class="s-item"><div class="s-col"><div class="s-num" id="d2">02</div><div class="s-lbl">SIV</div></div><div class="s-line" id="l2"></div></div>
+        <div class="s-item"><div class="s-col"><div class="s-num" id="d3">03</div><div class="s-lbl">Trajet</div></div><div class="s-line" id="l3"></div></div>
+        <div class="s-item"><div class="s-col"><div class="s-num" id="d4">04</div><div class="s-lbl">Transport</div></div><div class="s-line" id="l4"></div></div>
+        <div class="s-item"><div class="s-col"><div class="s-num" id="d5">05</div><div class="s-lbl">Packs</div></div><div class="s-line" id="l5"></div></div>
+        <div class="s-item"><div class="s-col"><div class="s-num" id="d6">06</div><div class="s-lbl">Contact</div></div></div>
+      </div>
+
+      <!-- ÉTAPE 1 : TYPE -->
+      <div class="cfg-step active" data-step="1">
+        <h3 class="step-h">Type de véhicule</h3>
+        <p class="step-p">Sélectionnez le type de véhicule à convoyer</p>
+        <div class="v-sel">
+          <div class="v-card" onclick="selVeh(this,'auto')">
+            <i class="fas fa-car"></i>
+            <span class="v-card-name">Automobile</span>
+            <span class="v-card-sub">Berline, SUV, Utilitaire</span>
+          </div>
+          <div class="v-card" onclick="selVeh(this,'moto')">
+            <i class="fas fa-motorcycle"></i>
+            <span class="v-card-name">Moto</span>
+            <span class="v-card-sub">Routière, Custom, Side-car</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 2 : SIV -->
+      <div class="cfg-step" data-step="2">
+        <h3 class="step-h">Identification SIV</h3>
+        <p class="step-p">Renseignez la plaque pour identifier votre véhicule automatiquement dans notre base SIV</p>
+        <div class="f-grp">
+          <label>Plaque d'immatriculation</label>
+          <input type="text" id="plaque" placeholder="AB-123-CD" oninput="fmtPlaque(this)" maxlength="9">
+        </div>
+        <div class="siv-box" id="sivBox">
+          <div class="siv-lbl"><i class="fas fa-check-circle"></i> Véhicule identifié dans la base SIV</div>
+          <div id="sivName" style="font-family:var(--fd);font-size:22px;font-weight:300;margin-bottom:12px"></div>
+          <div class="siv-specs">
+            <div class="siv-spec"><div class="siv-spec-lbl">Année</div><div class="siv-spec-val" id="sivYear">—</div></div>
+            <div class="siv-spec"><div class="siv-spec-lbl">Énergie</div><div class="siv-spec-val" id="sivEnergy">—</div></div>
+            <div class="siv-spec"><div class="siv-spec-lbl">Puissance</div><div class="siv-spec-val" id="sivPower">—</div></div>
+          </div>
+        </div>
+        <button class="np-btn" id="npBtn" onclick="toggleNP()">
+          <i class="fas fa-lock-open"></i> Je ne souhaite pas communiquer ma plaque
+        </button>
+        <div class="np-form" id="npForm">
+          <div class="np-note">Ces informations sont nécessaires pour organiser votre transport de manière optimale et vous assurer une couverture RC Pro adaptée. Vos données restent confidentielles.</div>
+          <div class="f-row">
+            <div class="f-grp"><label>Marque</label><input type="text" id="np-marque" placeholder="Ex : BMW"></div>
+            <div class="f-grp"><label>Modèle</label><input type="text" id="np-modele" placeholder="Ex : Série 5"></div>
+          </div>
+          <div class="f-row">
+            <div class="f-grp"><label>Année</label><input type="number" id="np-annee" placeholder="2022" min="1990" max="2025"></div>
+            <div class="f-grp"><label>Carburant</label>
+              <select id="np-carbu">
+                <option value="">Sélectionner</option>
+                <option>Essence</option><option>Diesel</option><option>Hybride</option><option>Électrique</option><option>GPL</option>
+              </select>
+            </div>
+          </div>
+          <div class="f-grp"><label>Valeur estimée du véhicule</label>
+            <select id="np-valeur">
+              <option value="">Sélectionner</option>
+              <option>Moins de 10 000 €</option><option>10 000 – 30 000 €</option>
+              <option>30 000 – 60 000 €</option><option>60 000 – 100 000 €</option><option>Plus de 100 000 €</option>
+            </select>
+          </div>
+        </div>
+        <div class="f-grp">
+          <label>Date souhaitée de prise en charge</label>
+          <input type="date" id="mDate">
+        </div>
+      </div>
+
+      <!-- ÉTAPE 3 : TRAJET -->
+      <div class="cfg-step" data-step="3">
+        <h3 class="step-h">Itinéraire & Distance</h3>
+        <p class="step-p">Définissez le trajet de la prise en charge à la livraison</p>
+        <div class="route-row">
+          <div class="f-grp" style="margin-bottom:0">
+            <label><i class="fas fa-map-marker-alt" style="color:var(--red)"></i> Ville de départ</label>
+            <input type="text" id="depart" placeholder="Paris" list="vlist" oninput="calcDist()">
+          </div>
+          <div class="route-arrow"><i class="fas fa-arrow-right"></i></div>
+          <div class="f-grp" style="margin-bottom:0">
+            <label><i class="fas fa-flag-checkered" style="color:var(--red)"></i> Ville d'arrivée</label>
+            <input type="text" id="arrivee" placeholder="Lyon" list="vlist" oninput="calcDist()">
+          </div>
+        </div>
+        <datalist id="vlist">
+          <option value="Paris"><option value="Lyon"><option value="Marseille"><option value="Bordeaux">
+          <option value="Toulouse"><option value="Nantes"><option value="Strasbourg"><option value="Lille">
+          <option value="Nice"><option value="Montpellier"><option value="Rennes"><option value="Grenoble">
+          <option value="Rouen"><option value="Dijon"><option value="Angers"><option value="Le Mans">
+          <option value="Brest"><option value="Tours"><option value="Amiens"><option value="Limoges">
+          <option value="Metz"><option value="Reims"><option value="Clermont-Ferrand"><option value="Nancy">
+          <option value="Caen"><option value="Orléans"><option value="Mulhouse"><option value="Perpignan">
+          <option value="Toulon"><option value="Aix-en-Provence"><option value="Annecy"><option value="Nîmes">
+        </datalist>
+        <div class="f-grp" style="margin-top:18px">
+          <label><i class="fas fa-route" style="color:var(--red)"></i> Distance calculée</label>
+          <input type="text" id="distAff" value="— km" readonly>
+        </div>
+        <div class="f-grp">
+          <label>Adresse complète de départ</label>
+          <input type="text" id="addrDep" placeholder="Numéro, rue, ville, code postal">
+        </div>
+        <div class="f-grp">
+          <label>Adresse complète d'arrivée</label>
+          <input type="text" id="addrArr" placeholder="Numéro, rue, ville, code postal">
+        </div>
+      </div>
+
+      <!-- ÉTAPE 4 : TRANSPORT -->
+      <div class="cfg-step" data-step="4">
+        <h3 class="step-h">Mode de transport</h3>
+        <p class="step-p">Choisissez la solution de transport adaptée à votre véhicule et à votre trajet</p>
+        <div class="t-modes">
+          <div class="t-mode sel" onclick="selMode(this,'route')">
+            <div class="t-mode-ico"><i class="fas fa-road"></i></div>
+            <h4>Par la route</h4>
+            <div class="t-mode-price">1€ / km</div>
+            <div class="t-mode-sub">Minimum 120€ HT · Convoyeur certifié</div>
+            <ul class="t-mode-feats">
+              <li>Convoyeur professionnel SIV</li>
+              <li>Suivi GPS temps réel</li>
+              <li>Flexibilité horaire</li>
+              <li>Idéal toutes distances</li>
+            </ul>
+          </div>
+          <div class="t-mode" onclick="selMode(this,'plateau')">
+            <div class="t-mode-ico"><i class="fas fa-truck"></i></div>
+            <h4>Par plateau</h4>
+            <div class="t-mode-price">Forfait zone</div>
+            <div class="t-mode-sub">350€ à 1 100€ HT selon distance</div>
+            <ul class="t-mode-feats">
+              <li>Protection totale du véhicule</li>
+              <li>Idéal motos & véhicules spéciaux</li>
+              <li>Transport de nuit possible</li>
+              <li>Aucun kilométrage ajouté</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 5 : PACKS -->
+      <div class="cfg-step" data-step="5">
+        <h3 class="step-h">Catégorie & Packs</h3>
+        <p class="step-p">Personnalisez votre solution de convoyage selon vos exigences</p>
+
+        <!-- Catégorie (auto seulement) -->
+        <div id="catBlock">
+          <div class="f-grp" style="margin-bottom:10px"><label>Catégorie du véhicule</label></div>
+          <div class="cat-sel">
+            <div class="cat-card sel" onclick="selCat(this,'berline',0)"><i class="fas fa-car-side"></i><span>Berline</span><small>Standard</small></div>
+            <div class="cat-card" onclick="selCat(this,'suv',15)"><i class="fas fa-truck-pickup"></i><span>SUV</span><small>+15%</small></div>
+            <div class="cat-card" onclick="selCat(this,'utilitaire',20)"><i class="fas fa-truck-moving"></i><span>Utilitaire</span><small>+20%</small></div>
+          </div>
+        </div>
+        <div id="motoBadge" style="display:none;margin-bottom:20px;padding:12px 16px;border:1px solid rgba(192,57,43,.3);background:var(--red-glow);border-radius:6px">
+          <span style="font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--red)"><i class="fas fa-motorcycle"></i> &nbsp;Moto — tarification spécifique appliquée (0,85€/km)</span>
+        </div>
+
+        <!-- Calendrier -->
+        <div class="f-grp" style="margin-top:4px;margin-bottom:10px"><label>Calendrier de la mission</label></div>
+        <div class="dt-grid">
+          <div class="f-grp" style="margin-bottom:0"><label>Heure de prise en charge</label>
+            <select id="heureDep" onchange="updSidebar()">
+              <option>07:00</option><option>08:00</option><option selected>09:00</option>
+              <option>10:00</option><option>11:00</option><option>12:00</option>
+              <option>13:00</option><option>14:00</option><option>15:00</option>
+              <option>16:00</option><option>17:00</option><option>18:00</option>
+            </select>
+          </div>
+          <div class="f-grp" style="margin-bottom:0"><label>Heure de livraison</label>
+            <select id="heureLiv" onchange="updSidebar()">
+              <option>10:00</option><option>11:00</option><option>12:00</option>
+              <option selected>14:00</option><option>15:00</option><option>16:00</option>
+              <option>17:00</option><option>18:00</option><option>19:00</option><option>20:00</option>
+            </select>
+          </div>
+          <div class="f-grp" style="margin-bottom:0"><label>Flexibilité</label>
+            <select id="flexib" onchange="updSidebar()">
+              <option>Fixe (heure précise)</option>
+              <option>± 1 heure</option>
+              <option>Demi-journée</option>
+              <option>Journée complète</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Packs -->
+        <div class="f-grp" style="margin-top:20px;margin-bottom:10px"><label>Pack de service</label></div>
+        <div class="pck-grid">
+          <div class="pck-card sel" onclick="selPack(this,'starter',0)">
+            <div class="pck-name">Starter</div>
+            <div class="pck-price">Inclus</div>
+            <ul>
+              <li>Logistique standard</li>
+              <li>Double RC Pro</li>
+              <li>Expertise SIV</li>
+              <li>20 photos état des lieux</li>
+              <li>Suivi GPS basique</li>
+            </ul>
+          </div>
+          <div class="pck-card" onclick="selPack(this,'serenite',49)">
+            <div class="pck-name">Sérénité</div>
+            <div class="pck-price">+49€</div>
+            <ul>
+              <li>Tout Starter</li>
+              <li>Nettoyage HP</li>
+              <li>Mise à niveau carburant</li>
+              <li>Check-list digitale email</li>
+            </ul>
+          </div>
+          <div class="pck-card" onclick="selPack(this,'excellence',129)">
+            <div class="pck-badge">Premium</div>
+            <div class="pck-name">Excellence</div>
+            <div class="pck-price">+129€</div>
+            <ul>
+              <li>Tout Sérénité</li>
+              <li>Prépa esthétique</li>
+              <li>Full Energy 100%</li>
+              <li>Cadeau premium</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div class="opt-title">Options supplémentaires</div>
+        <div class="opt-grid">
+          <div class="opt-item" onclick="togOpt(this,'urgence',0)">
+            <div class="opt-check"></div>
+            <div class="opt-lbl">Urgence 24h<small>Prise en charge prioritaire 7j/7</small></div>
+            <span class="opt-price">+30%</span>
+          </div>
+          <div class="opt-item" onclick="togOpt(this,'gardiennage',100)">
+            <div class="opt-check"></div>
+            <div class="opt-lbl">Gardiennage<small>Hébergement sécurisé / nuit</small></div>
+            <span class="opt-price">+100€</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 6 : COORDONNÉES -->
+      <div class="cfg-step" data-step="6">
+        <h3 class="step-h">Vos coordonnées</h3>
+        <p class="step-p">Dernière étape — renseignez vos informations pour recevoir votre devis confirmé sous 2h</p>
+        <div class="coords-note">
+          Vos coordonnées nous permettent de vous envoyer le devis définitif et d'assigner un interlocuteur dédié à votre mission. Données confidentielles, non partagées avec des tiers.
+        </div>
+        <div class="f-row">
+          <div class="f-grp">
+            <label>Prénom *</label>
+            <input type="text" id="cli-prenom" placeholder="Jean">
+            <div class="field-err" id="err-prenom">Champ requis</div>
+          </div>
+          <div class="f-grp">
+            <label>Nom *</label>
+            <input type="text" id="cli-nom" placeholder="Dupont">
+            <div class="field-err" id="err-nom">Champ requis</div>
+          </div>
+        </div>
+        <div class="f-row">
+          <div class="f-grp">
+            <label>Email *</label>
+            <input type="email" id="cli-email" placeholder="jean.dupont@email.fr">
+            <div class="field-err" id="err-email">Email invalide</div>
+          </div>
+          <div class="f-grp">
+            <label>Téléphone *</label>
+            <input type="tel" id="cli-tel" placeholder="+33 6 12 34 56 78">
+            <div class="field-err" id="err-tel">Champ requis</div>
+          </div>
+        </div>
+        <div class="f-grp">
+          <label>Société (optionnel)</label>
+          <input type="text" id="cli-societe" placeholder="Nom de votre entreprise">
+        </div>
+        <div class="f-grp">
+          <label>Informations complémentaires</label>
+          <textarea id="cli-notes" placeholder="Précisions sur la mission, contraintes d'accès, instructions particulières…"></textarea>
+        </div>
+        <div class="f-grp">
+          <label>Comment nous avez-vous connus ?</label>
+          <select id="cli-source">
+            <option value="">Sélectionner</option>
+            <option>Google / Recherche web</option>
+            <option>Bouche à oreille</option>
+            <option>Réseaux sociaux</option>
+            <option>Professionnel partenaire</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="checkbox-row" id="cbPrivacy" onclick="this.classList.toggle('chk');updBtn()">
+          <div class="cb-box"></div>
+          <div class="cb-label">J'accepte la <a href="#">politique de confidentialité</a> et consens au traitement de mes données pour le traitement de mon devis. *</div>
+        </div>
+        <div class="field-err" id="err-privacy" style="margin-top:6px">Veuillez accepter la politique de confidentialité</div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="sn">
+        <button class="btn-nav btn-prev" id="bPrev" onclick="prevS()" disabled><i class="fas fa-arrow-left"></i> Précédent</button>
+        <button class="btn-nav btn-next" id="bNext" onclick="nextS()">Suivant <i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="price-sidebar">
+      <div class="ps-lbl">Estimation HT</div>
+      <div class="ps-num" id="psNum">0<em>€</em></div>
+      <div class="ps-ht">Prix indicatif · Confirmation sous 2h</div>
+      <div class="ps-lines">
+        <div class="ps-line"><span>Trajet</span><span id="psTrajet">—</span></div>
+        <div class="ps-line"><span>Catégorie</span><span id="psCat">—</span></div>
+        <div class="ps-line"><span>Pack</span><span id="psPack">Starter</span></div>
+        <div class="ps-line"><span>Options</span><span id="psOpts">—</span></div>
+        <div class="ps-line ps-total"><span>Total HT</span><span id="psTotal">0 €</span></div>
+      </div>
+
+      <div class="ps-recap" id="psRecap" style="display:none">
+        <div class="ps-recap-title">Récapitulatif mission</div>
+        <div class="ps-recap-item"><span>Type</span><span id="recType">—</span></div>
+        <div class="ps-recap-item"><span>Distance</span><span id="recDist">—</span></div>
+        <div class="ps-recap-item"><span>Transport</span><span id="recMode">—</span></div>
+        <div class="ps-recap-item"><span>Date</span><span id="recDate">—</span></div>
+        <div class="ps-recap-item"><span>Pack</span><span id="recPack">Starter</span></div>
+      </div>
+
+      <button class="btn-validate" id="bVal" disabled onclick="submitDevis()">
+        <i class="fas fa-check"></i> Valider mon devis
+      </button>
+
+      <div class="ps-incl">
+        <div class="ps-incl-title">Inclus dans tous les packs</div>
+        <ul>
+          <li><i class="fas fa-check"></i> Double assurance RC Pro</li>
+          <li><i class="fas fa-check"></i> Expertise & identification SIV</li>
+          <li><i class="fas fa-check"></i> État des lieux 20 photos</li>
+          <li><i class="fas fa-check"></i> Suivi GPS temps réel</li>
+          <li><i class="fas fa-check"></i> Interlocuteur dédié</li>
+        </ul>
+      </div>
+      <p class="ps-note">Prix indicatif. Devis définitif confirmé par email sous 2h ouvrées.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MODAL CONFIRMATION -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <span class="modal-ico"><i class="fas fa-check-circle"></i></span>
+    <h3 class="modal-h">Devis<br><em>envoyé !</em></h3>
+    <p class="modal-sub">Merci pour votre confiance. Un conseiller Bathily Convoyage va vous contacter sous 2h ouvrées pour finaliser les détails de votre mission.</p>
+    <div class="modal-ref">
+      <div>
+        <div class="modal-ref-lbl">Référence de votre devis</div>
+        <div class="modal-ref-val" id="devisRef">BC-2025-XXXX</div>
+      </div>
+      <i class="fas fa-clipboard" style="color:var(--slate);font-size:20px;cursor:pointer" onclick="copyRef()" title="Copier"></i>
+    </div>
+    <div class="modal-next">Prochaines étapes</div>
+    <div class="modal-steps">
+      <div class="modal-step"><i class="fas fa-envelope"></i> Confirmation envoyée à votre adresse email</div>
+      <div class="modal-step"><i class="fas fa-phone"></i> Appel de notre équipe sous 2h ouvrées</div>
+      <div class="modal-step"><i class="fas fa-file-contract"></i> Devis définitif et bon de mission transmis</div>
+      <div class="modal-step"><i class="fas fa-truck"></i> Mission organisée et convoyeur assigné</div>
+    </div>
+    <div class="modal-btns">
+      <a href="index.html" class="btn-primary"><i class="fas fa-home"></i> Retour à l'accueil</a>
+      <button class="btn-secondary" onclick="closeModal()"><i class="fas fa-plus"></i> Nouveau devis</button>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="ft-top">
+    <div>
+      <div class="ft-logo">Bathily<span>.</span></div>
+      <div class="ft-tagline">Votre route, notre engagement</div>
+      <p class="ft-p">La solution digitale de convoyage automobile & moto avec suivi en temps réel en France.</p>
+    </div>
+    <div class="ft-col"><h5>Navigation</h5><ul>
+      <li><a href="index.html">Accueil</a></li><li><a href="services.html">Services</a></li>
+      <li><a href="tarifs.html">Tarifs</a></li><li><a href="devis.html">Devis</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul></div>
+    <div class="ft-col"><h5>Espaces</h5><ul>
+      <li><a href="login.html?type=client">Espace Client</a></li>
+      <li><a href="login.html?type=convoyeur">Espace Convoyeur</a></li>
+      <li><a href="login.html?type=admin">Espace Admin</a></li>
+    </ul></div>
+    <div class="ft-col"><h5>Contact</h5>
+      <div class="ft-ci"><i class="fas fa-envelope"></i><span>contact@bathily-convoyage.fr</span></div>
+      <div class="ft-ci"><i class="fas fa-map-marker-alt"></i><span>France entière</span></div>
+    </div>
+  </div>
+  <div class="ft-bot">
+    <p class="ft-copy">© 2025 Bathily Convoyage — Tous droits réservés</p>
+    <div class="ft-legal"><a href="#">Mentions légales</a><a href="#">CGV</a><a href="#">Confidentialité</a></div>
+  </div>
+</footer>
+
+<script>
+// CURSOR
+const cur=document.getElementById('cur'),cring=document.getElementById('cring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function loop(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(loop)})();
+window.addEventListener('scroll',()=>document.getElementById('hdr').classList.toggle('scrolled',scrollY>50));
+
+// DATE MIN
+document.getElementById('mDate').min=new Date().toISOString().split('T')[0];
+
+// STATE
+const S={step:1,veh:null,immat:'',noPlaque:false,dep:'',arr:'',dist:0,addrDep:'',addrArr:'',mode:'route',cat:'berline',catS:0,pack:'starter',packP:0,opts:{urgence:false,gardiennage:false},optP:0,date:'',privacy:false};
+
+// SIV DB enrichie
+const sivDB={
+  'AB-123-CD':{name:'Renault Clio V',year:'2022',energy:'Essence',power:'130 CV'},
+  'EF-456-GH':{name:'Peugeot 308',year:'2021',energy:'Diesel',power:'130 CV'},
+  'IJ-789-KL':{name:'BMW Série 3',year:'2023',energy:'Hybride',power:'190 CV'},
+  'MN-012-OP':{name:'Tesla Model 3',year:'2023',energy:'Électrique',power:'283 CV'},
+  'QR-345-ST':{name:'Mercedes GLC',year:'2022',energy:'Diesel',power:'170 CV'},
+  'UV-678-WX':{name:'Audi A4',year:'2021',energy:'Essence',power:'150 CV'},
+  'YZ-901-AB':{name:'Volkswagen Golf',year:'2022',energy:'Diesel',power:'115 CV'},
+  'CD-234-EF':{name:'Honda CB500F',year:'2020',energy:'Essence',power:'48 CV'},
+  'GH-567-IJ':{name:'Porsche 911 Carrera',year:'2023',energy:'Essence',power:'385 CV'},
+  'KL-890-MN':{name:'Kawasaki Z900',year:'2022',energy:'Essence',power:'125 CV'},
+  'OP-123-QR':{name:'BMW i4 M50',year:'2023',energy:'Électrique',power:'544 CV'},
+};
+
+function selVeh(el,t){
+  document.querySelectorAll('.v-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel'); S.veh=t;
+  if(t==='moto'){S.cat='moto';S.catS=0;}else{S.cat='berline';S.catS=0;}
+  updPrice();
+}
+
+function fmtPlaque(inp){
+  let v=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2);
+  if(v.length>6)v=v.slice(0,6)+'-'+v.slice(6);
+  inp.value=v; S.immat=v;
+  const d=sivDB[v];
+  const box=document.getElementById('sivBox');
+  if(d){
+    box.classList.add('show');
+    document.getElementById('sivName').textContent=d.name;
+    document.getElementById('sivYear').textContent=d.year;
+    document.getElementById('sivEnergy').textContent=d.energy;
+    document.getElementById('sivPower').textContent=d.power;
+  } else { box.classList.remove('show'); }
+}
+
+function toggleNP(){
+  S.noPlaque=!S.noPlaque;
+  document.getElementById('npForm').classList.toggle('show',S.noPlaque);
+  document.getElementById('plaque').disabled=S.noPlaque;
+  if(S.noPlaque){document.getElementById('plaque').value='';document.getElementById('sivBox').classList.remove('show');}
+  document.getElementById('npBtn').innerHTML=S.noPlaque?'<i class="fas fa-lock"></i> Saisir ma plaque':'<i class="fas fa-lock-open"></i> Je ne souhaite pas communiquer ma plaque';
+}
+
+const COORDS={Paris:[48.85,2.35],Lyon:[45.75,4.83],Marseille:[43.3,5.37],Bordeaux:[44.84,-0.58],Toulouse:[43.6,1.44],Nantes:[47.22,-1.55],Strasbourg:[48.57,7.75],Lille:[50.63,3.07],Nice:[43.71,7.26],Montpellier:[43.61,3.87],Rennes:[48.11,-1.68],Grenoble:[45.19,5.72],Rouen:[49.44,1.09],Dijon:[47.32,5.04],Angers:[47.47,-0.55],'Le Mans':[47.99,0.2],Brest:[48.39,-4.49],Tours:[47.39,0.69],Amiens:[49.89,2.3],Limoges:[45.83,1.26],Metz:[49.12,6.17],Reims:[49.26,4.03],'Clermont-Ferrand':[45.78,3.09],Nancy:[48.69,6.18],Caen:[49.18,-0.36],Orléans:[47.9,1.9],Mulhouse:[47.74,7.34],Perpignan:[42.69,2.89],Toulon:[43.12,5.93],'Aix-en-Provence':[43.53,5.44],Annecy:[45.9,6.12],Nîmes:[43.83,4.36]};
+function hav(a,b){const R=6371,dL=(b[0]-a[0])*Math.PI/180,dl=(b[1]-a[1])*Math.PI/180,x=Math.sin(dL/2)**2+Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dl/2)**2;return Math.round(R*2*Math.asin(Math.sqrt(x))*1.22)}
+
+function calcDist(){
+  const d=document.getElementById('depart').value,a=document.getElementById('arrivee').value;
+  S.dep=d;S.arr=a;
+  if(COORDS[d]&&COORDS[a]){S.dist=hav(COORDS[d],COORDS[a]);document.getElementById('distAff').value=S.dist+' km';}
+  else{S.dist=0;document.getElementById('distAff').value='— km';}
+  updPrice();
+}
+
+function selMode(el,m){document.querySelectorAll('.t-mode').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');S.mode=m;updPrice();}
+function selCat(el,c,s){document.querySelectorAll('.cat-card').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');S.cat=c;S.catS=s;updPrice();}
+function selPack(el,p,pr){document.querySelectorAll('.pck-card').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');S.pack=p;S.packP=pr;updPrice();}
+function togOpt(el,o,p){el.classList.toggle('chk');S.opts[o]=!S.opts[o];updPrice();}
+
+function plateauForfait(km){if(km<=100)return 350;if(km<=300)return 550;if(km<=500)return 750;return 1100;}
+
+function updPrice(){
+  const isMoto=S.veh==='moto';
+  let base=0;
+  if(S.dist>0){
+    if(S.mode==='route'){const r=isMoto?0.85:1.0;base=Math.max(S.dist*r,isMoto?100:120);}
+    else{base=plateauForfait(S.dist);}
+  }
+  let sub=isMoto?base:base*(1+S.catS/100);
+  sub+=S.packP;
+  let optP=0;
+  if(S.opts.gardiennage)optP+=100;
+  if(S.opts.urgence)sub*=1.30;
+  S.optP=optP;
+  const total=Math.round(sub+optP);
+  document.getElementById('psNum').innerHTML=total+'<em>€</em>';
+  document.getElementById('psTotal').textContent=total+' €';
+  document.getElementById('psTrajet').textContent=S.dist?S.dist+'km · '+Math.round(base)+'€':'—';
+  const cl={berline:'Berline',suv:'SUV +15%',utilitaire:'Utilitaire +20%'};
+  document.getElementById('psCat').textContent=isMoto?'Moto':(cl[S.cat]||'—');
+  const pl={starter:'Starter',serenite:'Sérénité +49€',excellence:'Excellence +129€'};
+  document.getElementById('psPack').textContent=pl[S.pack]||'—';
+  const opArr=[];
+  if(S.opts.urgence)opArr.push('Urgence +30%');
+  if(S.opts.gardiennage)opArr.push('Gardiennage +100€');
+  document.getElementById('psOpts').textContent=opArr.length?opArr.join(', '):'—';
+  updBtn();
+}
+
+function updSidebar(){
+  const d=document.getElementById('mDate').value;
+  S.date=d;
+  document.getElementById('recType').textContent=S.veh==='moto'?'Moto':'Automobile';
+  document.getElementById('recDist').textContent=S.dist?S.dist+' km':'—';
+  document.getElementById('recMode').textContent=S.mode==='route'?'Par la route':'Par plateau';
+  document.getElementById('recDate').textContent=d||'—';
+  const pl={starter:'Starter',serenite:'Sérénité',excellence:'Excellence'};
+  document.getElementById('recPack').textContent=pl[S.pack]||'—';
+}
+
+function updBtn(){
+  const total=parseInt(document.getElementById('psTotal').textContent)||0;
+  document.getElementById('bVal').disabled=(total===0||S.step<6||!S.privacy);
+}
+
+// STEPS
+function goStep(n){
+  document.querySelectorAll('.cfg-step').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.cfg-step[data-step="${n}"]`).classList.add('active');
+  for(let i=1;i<=6;i++){
+    const d=document.getElementById('d'+i);
+    d.classList.remove('active','done');
+    if(i<n)d.classList.add('done');
+    else if(i===n)d.classList.add('active');
+    if(i<6){const l=document.getElementById('l'+i);if(l)l.classList.toggle('done',i<n);}
+  }
+  if(n===5){
+    const isMoto=S.veh==='moto';
+    document.getElementById('catBlock').style.display=isMoto?'none':'block';
+    document.getElementById('motoBadge').style.display=isMoto?'block':'none';
+  }
+  if(n>=3){document.getElementById('psRecap').style.display='block';updSidebar();}
+  document.getElementById('bPrev').disabled=n===1;
+  const bn=document.getElementById('bNext');
+  if(n===6){bn.style.display='none';}
+  else{bn.style.display='';bn.innerHTML=n===5?'Finaliser <i class="fas fa-arrow-right"></i>':'Suivant <i class="fas fa-arrow-right"></i>';}
+  S.step=n;updPrice();
+  document.querySelector('.config-wrapper').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function nextS(){
+  if(S.step===1&&!S.veh){alert('Veuillez sélectionner un type de véhicule.');return;}
+  if(S.step===2&&!S.immat&&!S.noPlaque){
+    const ok=document.getElementById('npForm').classList.contains('show')&&document.getElementById('np-marque').value;
+    if(!ok){alert('Veuillez renseigner la plaque ou compléter le formulaire alternatif.');return;}
+  }
+  if(S.step===3&&S.dist===0){alert('Veuillez saisir deux villes reconnues.');return;}
+  if(S.step<6)goStep(S.step+1);
+}
+function prevS(){if(S.step>1)goStep(S.step-1);}
+
+// VALIDATION STEP 6
+document.getElementById('cbPrivacy').addEventListener('click',function(){
+  S.privacy=this.classList.contains('chk');
+  updBtn();
+});
+
+function validateStep6(){
+  let ok=true;
+  const fields=[
+    {id:'cli-prenom',err:'err-prenom',check:v=>v.length>1},
+    {id:'cli-nom',err:'err-nom',check:v=>v.length>1},
+    {id:'cli-email',err:'err-email',check:v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)},
+    {id:'cli-tel',err:'err-tel',check:v=>v.length>8},
+  ];
+  fields.forEach(f=>{
+    const inp=document.getElementById(f.id);
+    const err=document.getElementById(f.err);
+    const valid=f.check(inp.value.trim());
+    inp.classList.toggle('error',!valid);
+    err.classList.toggle('show',!valid);
+    if(!valid)ok=false;
+  });
+  const privErr=document.getElementById('err-privacy');
+  if(!S.privacy){privErr.classList.add('show');ok=false;}
+  else{privErr.classList.remove('show');}
+  return ok;
+}
+
+function submitDevis(){
+  if(!validateStep6())return;
+  // Génère référence
+  const ref='BC-2025-'+Math.floor(1000+Math.random()*9000);
+  document.getElementById('devisRef').textContent=ref;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  goStep(1);
+  document.querySelectorAll('.v-card,.t-mode,.cat-card,.pck-card,.opt-item').forEach(el=>el.classList.remove('sel','chk'));
+  document.getElementById('sivBox').classList.remove('show');
+  Object.assign(S,{veh:null,immat:'',dist:0,mode:'route',cat:'berline',catS:0,pack:'starter',packP:0,opts:{urgence:false,gardiennage:false},optP:0,privacy:false});
+  document.querySelectorAll('.v-card')[0].classList.remove('sel');
+  document.querySelector('.t-mode').classList.add('sel');
+  document.querySelector('.cat-card').classList.add('sel');
+  document.querySelector('.pck-card').classList.add('sel');
+  updPrice();
+}
+
+function copyRef(){
+  navigator.clipboard.writeText(document.getElementById('devisRef').textContent);
+  alert('Référence copiée !');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0808">
+<title>GPS Mission — Bathily Convoyage</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getDatabase, ref, set, onValue, serverTimestamp }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+  // ════════════════════════════════════════
+  // 🔧 CONFIGURATION FIREBASE
+  // Remplace ces valeurs par celles de ta console Firebase
+  // https://console.firebase.google.com → Ton projet → Paramètres → Config web
+  // ════════════════════════════════════════
+  const firebaseConfig = {
+    apiKey:            "REMPLACE_PAR_TON_API_KEY",
+    authDomain:        "REMPLACE_PAR_TON_AUTH_DOMAIN",
+    databaseURL:       "REMPLACE_PAR_TON_DATABASE_URL",
+    projectId:         "REMPLACE_PAR_TON_PROJECT_ID",
+    storageBucket:     "REMPLACE_PAR_TON_STORAGE_BUCKET",
+    messagingSenderId: "REMPLACE_PAR_TON_MESSAGING_SENDER_ID",
+    appId:             "REMPLACE_PAR_TON_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  // Rendre db accessible globalement
+  window._db  = db;
+  window._ref = ref;
+  window._set = set;
+  window._serverTimestamp = serverTimestamp;
+  window._firebaseReady = true;
+
+  // Déclencher l'init une fois Firebase prêt
+  document.addEventListener('DOMContentLoaded', () => {
+    if(window._initGPS) window._initGPS();
+  });
+</script>
+
+<style>
+:root{
+  --red:#c0392b;--red-dark:#a93226;--red-glow:rgba(192,57,43,.12);
+  --black:#0a0808;--ink:#1a1a1a;--fog:#f0eded;--slate:#888;
+  --green:#27ae60;--orange:#e67e22;--blue:#2980b9;
+  --border2:rgba(240,237,237,.08);
+  --fs:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--black);color:var(--fog);font-family:var(--fb);font-weight:300;overflow-x:hidden}
+
+/* TOPBAR */
+.topbar{background:var(--ink);border-bottom:1px solid var(--border2);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.tb-logo{font-family:var(--fs);font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fog)}
+.tb-logo span{color:var(--red)}
+.tb-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:5px 10px;border-radius:2px}
+.badge-offline{background:rgba(136,136,136,.1);border:1px solid rgba(136,136,136,.2);color:var(--slate)}
+.badge-online{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:var(--green)}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* MAIN */
+.main{padding:20px;display:flex;flex-direction:column;gap:14px;max-width:480px;margin:0 auto}
+
+/* MISSION CARD */
+.mission-card{background:var(--ink);border:1px solid var(--border2);border-radius:4px;padding:20px}
+.mc-ref{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:6px}
+.mc-route{font-size:18px;font-weight:300;margin-bottom:4px;color:var(--fog)}
+.mc-route em{font-style:italic;color:var(--red)}
+.mc-meta{font-size:12px;color:var(--slate)}
+
+/* BOUTON GPS PRINCIPAL */
+.gps-btn-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.gps-main-btn{
+  width:140px;height:140px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  transition:all .3s;position:relative;overflow:hidden;
+}
+.gps-main-btn.idle{background:rgba(192,57,43,.1);border:2px solid rgba(192,57,43,.3);color:var(--red)}
+.gps-main-btn.active{background:var(--red);border:2px solid var(--red);color:var(--fog)}
+.gps-main-btn.active::before{
+  content:'';position:absolute;inset:-4px;border-radius:50%;
+  border:2px solid rgba(192,57,43,.4);
+  animation:ripple 2s linear infinite;
+}
+.gps-main-btn.active::after{
+  content:'';position:absolute;inset:-12px;border-radius:50%;
+  border:1px solid rgba(192,57,43,.2);
+  animation:ripple 2s .5s linear infinite;
+}
+@keyframes ripple{
+  0%{transform:scale(1);opacity:1}
+  100%{transform:scale(1.4);opacity:0}
+}
+.gps-main-btn i{font-size:36px}
+.gps-btn-sub{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)}
+
+/* STATS GPS */
+.gps-stats{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.gps-stat{background:var(--ink);border:1px solid var(--border2);border-radius:2px;padding:16px 14px}
+.gs-lbl{font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);margin-bottom:5px}
+.gs-val{font-size:20px;font-weight:300;color:var(--fog);line-height:1}
+.gs-val em{color:var(--red);font-style:normal;font-size:12px}
+.gs-sub{font-size:10px;color:var(--slate);margin-top:2px}
+
+/* LOG */
+.log-card{background:var(--ink);border:1px solid var(--border2);border-radius:4px;padding:16px}
+.log-title{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--slate);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.log-clear{font-size:8px;color:var(--slate);cursor:pointer;background:none;border:none;font-family:var(--fs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;transition:color .2s}
+.log-clear:hover{color:var(--red)}
+.log-list{display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto}
+.log-item{display:flex;align-items:flex-start;gap:8px;font-size:11px;color:rgba(240,237,237,.6);padding:6px 8px;border-radius:2px;background:rgba(240,237,237,.02)}
+.log-time{font-family:var(--fs);font-size:7px;font-weight:700;letter-spacing:.08em;color:var(--slate);flex-shrink:0;margin-top:1px}
+.log-ico{flex-shrink:0;margin-top:1px;font-size:10px}
+.log-ico.ok{color:var(--green)}.log-ico.err{color:var(--red)}.log-ico.info{color:var(--blue)}.log-ico.warn{color:var(--orange)}
+
+/* INFOS POSITION */
+.pos-card{background:var(--ink);border:1px solid var(--border2);border-radius:4px;padding:16px}
+.pos-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border2);font-size:12px}
+.pos-row:last-child{border-bottom:none}
+.pos-lbl{font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)}
+.pos-val{color:var(--fog);font-weight:300;font-size:12px}
+.pos-val.accent{color:var(--red)}
+
+/* CONTROLES */
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ctrl-btn{display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:14px;border-radius:2px;border:none;cursor:pointer;transition:all .2s}
+.ctrl-red{background:var(--red);color:var(--fog)}
+.ctrl-red:hover{background:var(--red-dark)}
+.ctrl-ghost{background:transparent;color:var(--slate);border:1px solid var(--border2)}
+.ctrl-ghost:hover{border-color:var(--fog);color:var(--fog)}
+.ctrl-green{background:var(--green);color:var(--fog)}
+.ctrl-green:hover{background:#1e8449}
+
+/* INTERVALLE */
+.interval-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--ink);border:1px solid var(--border2);border-radius:4px}
+.interval-lbl{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--slate)}
+.interval-btns{display:flex;gap:6px}
+.int-btn{width:36px;height:30px;border-radius:2px;border:1px solid var(--border2);background:none;color:var(--slate);font-family:var(--fs);font-size:9px;font-weight:700;cursor:pointer;transition:all .2s}
+.int-btn.active{border-color:var(--red);background:var(--red-glow);color:var(--red)}
+.int-btn:hover{border-color:var(--fog);color:var(--fog)}
+
+/* ALERTE CONFIG */
+.config-alert{background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.25);border-radius:4px;padding:16px;display:flex;align-items:flex-start;gap:12px}
+.config-alert i{color:var(--orange);font-size:14px;flex-shrink:0;margin-top:1px}
+.config-alert p{font-size:12px;color:rgba(240,237,237,.7);line-height:1.6}
+.config-alert strong{color:var(--orange);font-weight:500}
+.config-alert a{color:var(--red);text-decoration:none}
+
+/* PERMISSION OVERLAY */
+.perm-overlay{position:fixed;inset:0;background:var(--black);z-index:200;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:32px;text-align:center}
+.perm-overlay.hidden{display:none}
+.perm-ico{font-size:56px;color:var(--red);margin-bottom:8px}
+.perm-title{font-family:var(--fs);font-size:16px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fog)}
+.perm-sub{font-size:13px;color:var(--slate);line-height:1.7;max-width:300px}
+.perm-btn{display:inline-flex;align-items:center;gap:10px;font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--fog);background:var(--red);padding:15px 32px;border:none;cursor:pointer;border-radius:2px;transition:background .2s;margin-top:8px}
+.perm-btn:hover{background:var(--red-dark)}
+
+/* MISSION TERMINÉE */
+.done-banner{display:none;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.25);border-radius:4px;padding:16px;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.done-banner.show{display:flex}
+.done-banner i{font-size:28px;color:var(--green)}
+.done-banner p{font-size:13px;font-weight:300;color:rgba(240,237,237,.7)}
+
+@media(min-width:481px){.main{padding:28px}}
+</style>
+</head>
+<body>
+
+<!-- PERMISSION OVERLAY -->
+<div class="perm-overlay" id="permOverlay">
+  <div class="perm-ico"><i class="fas fa-location-arrow"></i></div>
+  <div class="perm-title">Autorisation GPS requise</div>
+  <p class="perm-sub">Pour partager votre position en temps réel avec le client et le dispatch Bathily, vous devez autoriser l'accès à votre géolocalisation.</p>
+  <button class="perm-btn" onclick="requestPermission()"><i class="fas fa-check"></i> Autoriser la géolocalisation</button>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-logo">Bathily<span>.</span> GPS</div>
+  <div class="tb-badge badge-offline" id="statusBadge"><div class="badge-dot"></div> Hors ligne</div>
+</div>
+
+<div class="main">
+
+  <!-- CONFIG FIREBASE MANQUANTE -->
+  <div class="config-alert" id="configAlert">
+    <i class="fas fa-exclamation-triangle"></i>
+    <p><strong>Configuration Firebase requise.</strong> Ouvre ce fichier dans un éditeur et remplace les valeurs <code>REMPLACE_PAR_...</code> par les clés de ton projet Firebase.<br>
+    <a href="https://console.firebase.google.com" target="_blank">→ console.firebase.google.com</a></p>
+  </div>
+
+  <!-- MISSION -->
+  <div class="mission-card" id="missionCard">
+    <div class="mc-ref" id="mRef">Mission · BC-2025-0847</div>
+    <div class="mc-route" id="mRoute">Paris <em>→</em> Lyon</div>
+    <div class="mc-meta" id="mMeta">BMW Série 3 · IJ-789-KL · M. Bathily</div>
+  </div>
+
+  <!-- BOUTON GPS PRINCIPAL -->
+  <div class="gps-btn-wrap">
+    <button class="gps-main-btn idle" id="gpsBtn" onclick="toggleGPS()">
+      <i class="fas fa-location-arrow" id="gpsBtnIco"></i>
+      <span id="gpsBtnLabel">Démarrer</span>
+    </button>
+    <div class="gps-btn-sub" id="gpsBtnSub">Appuyer pour partager votre position</div>
+  </div>
+
+  <!-- INTERVALLE -->
+  <div class="interval-row">
+    <span class="interval-lbl">Envoi toutes les</span>
+    <div class="interval-btns">
+      <button class="int-btn" onclick="setInterval2(5,this)">5s</button>
+      <button class="int-btn active" id="intDefault" onclick="setInterval2(10,this)">10s</button>
+      <button class="int-btn" onclick="setInterval2(30,this)">30s</button>
+      <button class="int-btn" onclick="setInterval2(60,this)">1min</button>
+    </div>
+  </div>
+
+  <!-- STATS GPS -->
+  <div class="gps-stats">
+    <div class="gps-stat">
+      <div class="gs-lbl">Positions envoyées</div>
+      <div class="gs-val" id="statCount">0</div>
+      <div class="gs-sub">Cette session</div>
+    </div>
+    <div class="gps-stat">
+      <div class="gs-lbl">Dernière mise à jour</div>
+      <div class="gs-val" id="statLast" style="font-size:14px">—</div>
+      <div class="gs-sub" id="statAgo">En attente</div>
+    </div>
+    <div class="gps-stat">
+      <div class="gs-lbl">Précision GPS</div>
+      <div class="gs-val" id="statAcc">—<em> m</em></div>
+      <div class="gs-sub" id="statAccLbl">—</div>
+    </div>
+    <div class="gps-stat">
+      <div class="gs-lbl">Vitesse</div>
+      <div class="gs-val" id="statSpeed">—<em> km/h</em></div>
+      <div class="gs-sub" id="statSpeedSub">—</div>
+    </div>
+  </div>
+
+  <!-- POSITION ACTUELLE -->
+  <div class="pos-card" id="posCard">
+    <div class="pos-row"><span class="pos-lbl">Latitude</span><span class="pos-val accent" id="posLat">—</span></div>
+    <div class="pos-row"><span class="pos-lbl">Longitude</span><span class="pos-val accent" id="posLng">—</span></div>
+    <div class="pos-row"><span class="pos-lbl">Altitude</span><span class="pos-val" id="posAlt">—</span></div>
+    <div class="pos-row"><span class="pos-lbl">Cap</span><span class="pos-val" id="posHead">—</span></div>
+    <div class="pos-row"><span class="pos-lbl">Données envoyées vers</span><span class="pos-val" id="posFirebase" style="font-size:10px;color:var(--slate)">missions/BC-2025-0847/gps</span></div>
+  </div>
+
+  <!-- CONTROLES -->
+  <div class="controls">
+    <button class="ctrl-btn ctrl-ghost" onclick="openModal()"><i class="fas fa-edit"></i> Changer mission</button>
+    <button class="ctrl-btn ctrl-ghost" onclick="window.location.href='bon-de-mission.html'"><i class="fas fa-file"></i> Bon mission</button>
+    <button class="ctrl-btn ctrl-green" id="arriveBtn" onclick="signalArrivee()" style="grid-column:span 2;display:none"><i class="fas fa-flag-checkered"></i> Signaler l'arrivée</button>
+  </div>
+
+  <!-- MISSION TERMINÉE -->
+  <div class="done-banner" id="doneBanner">
+    <i class="fas fa-check-circle"></i>
+    <p><strong>Arrivée signalée !</strong> Le client et le dispatch ont été notifiés. GPS arrêté automatiquement.</p>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-card">
+    <div class="log-title">
+      Journal GPS
+      <button class="log-clear" onclick="clearLog()">Effacer</button>
+    </div>
+    <div class="log-list" id="logList">
+      <div class="log-item"><span class="log-time">--:--</span><i class="fas fa-info-circle log-ico info"></i><span>En attente de démarrage…</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL MISSION -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(10,8,8,.9);z-index:300;align-items:center;justify-content:center;padding:24px">
+  <div style="background:var(--ink);border:1px solid var(--border2);border-radius:4px;padding:28px;width:100%;max-width:400px">
+    <div style="font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin-bottom:16px">Saisir la mission</div>
+    <div style="margin-bottom:12px">
+      <label style="font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);display:block;margin-bottom:6px">Référence mission</label>
+      <input type="text" id="inputRef" value="BC-2025-0847" style="width:100%;background:rgba(240,237,237,.04);border:1px solid var(--border2);color:var(--fog);padding:11px 13px;font-family:var(--fb);font-size:13px;border-radius:2px;outline:none">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-family:var(--fs);font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);display:block;margin-bottom:6px">Trajet</label>
+      <input type="text" id="inputRoute" value="Paris → Lyon" style="width:100%;background:rgba(240,237,237,.04);border:1px solid var(--border2);color:var(--fog);padding:11px 13px;font-family:var(--fb);font-size:13px;border-radius:2px;outline:none">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button onclick="saveMission()" style="flex:1;background:var(--red);color:var(--fog);border:none;padding:13px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-radius:2px;cursor:pointer">Confirmer</button>
+      <button onclick="closeModal()" style="flex:1;background:transparent;color:var(--slate);border:1px solid var(--border2);padding:13px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-radius:2px;cursor:pointer">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// ÉTAT GLOBAL
+// ════════════════════════════════════════
+const STATE = {
+  active: false,
+  missionRef: 'BC-2025-0847',
+  missionRoute: 'Paris → Lyon',
+  intervalSec: 10,
+  watchId: null,
+  intervalId: null,
+  count: 0,
+  lastPos: null,
+  lastSent: null,
+  firebaseOk: false,
+};
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+window._initGPS = function() {
+  // Vérifier si Firebase est configuré
+  const isConfigured = !document.querySelector('script[type="module"]').textContent.includes('REMPLACE_PAR_TON_API_KEY');
+  // On vérifie via la databaseURL
+  STATE.firebaseOk = true; // sera overridé si erreur
+  document.getElementById('configAlert').style.display = 'none';
+
+  // Vérifier permission GPS
+  if('permissions' in navigator) {
+    navigator.permissions.query({name:'geolocation'}).then(r => {
+      if(r.state === 'granted') {
+        document.getElementById('permOverlay').classList.add('hidden');
+      }
+    });
+  }
+
+  log('info','Système GPS Bathily initialisé');
+  log('info','Firebase connecté — prêt à envoyer');
+
+  // Ticker "il y a Xs"
+  setInterval(updateAgo, 1000);
+};
+
+// ════════════════════════════════════════
+// PERMISSION
+// ════════════════════════════════════════
+function requestPermission() {
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      document.getElementById('permOverlay').classList.add('hidden');
+      log('ok','Accès GPS autorisé');
+      updatePosDisplay(pos);
+    },
+    err => {
+      log('err','Permission refusée : '+err.message);
+      document.getElementById('permOverlay').querySelector('.perm-sub').textContent =
+        'Permission refusée. Allez dans les paramètres de votre navigateur pour autoriser la géolocalisation.';
+    },
+    {enableHighAccuracy: true, timeout: 10000}
+  );
+}
+
+// ════════════════════════════════════════
+// TOGGLE GPS
+// ════════════════════════════════════════
+function toggleGPS() {
+  if(!STATE.active) startGPS();
+  else stopGPS();
+}
+
+function startGPS() {
+  if(!navigator.geolocation) {
+    log('err','Géolocalisation non supportée par ce navigateur');
+    return;
+  }
+  STATE.active = true;
+  updateUI();
+  log('ok','Démarrage du partage GPS…');
+
+  // Obtenir position immédiate
+  navigator.geolocation.getCurrentPosition(
+    pos => { STATE.lastPos = pos; sendPosition(pos); updatePosDisplay(pos); },
+    err => handleGeoError(err),
+    {enableHighAccuracy: true, timeout: 15000, maximumAge: 0}
+  );
+
+  // Envoi régulier
+  STATE.intervalId = setInterval(() => {
+    navigator.geolocation.getCurrentPosition(
+      pos => { STATE.lastPos = pos; sendPosition(pos); updatePosDisplay(pos); },
+      err => handleGeoError(err),
+      {enableHighAccuracy: true, timeout: 10000, maximumAge: STATE.intervalSec * 500}
+    );
+  }, STATE.intervalSec * 1000);
+
+  // Watch continu pour la vitesse
+  STATE.watchId = navigator.geolocation.watchPosition(
+    pos => updatePosDisplay(pos),
+    err => {},
+    {enableHighAccuracy: true, maximumAge: 2000}
+  );
+
+  // Afficher bouton arrivée après 30s
+  setTimeout(() => {
+    if(STATE.active) document.getElementById('arriveBtn').style.display='flex';
+  }, 30000);
+}
+
+function stopGPS() {
+  STATE.active = false;
+  if(STATE.intervalId) clearInterval(STATE.intervalId);
+  if(STATE.watchId) navigator.geolocation.clearWatch(STATE.watchId);
+  updateUI();
+  log('info','Partage GPS arrêté');
+
+  // Mettre statut offline dans Firebase
+  if(window._db && window._ref && window._set) {
+    const statusRef = window._ref(window._db, `missions/${STATE.missionRef}/gps/status`);
+    window._set(statusRef, 'offline').catch(() => {});
+  }
+}
+
+// ════════════════════════════════════════
+// ENVOI POSITION → FIREBASE
+// ════════════════════════════════════════
+function sendPosition(pos) {
+  const data = {
+    lat:       pos.coords.latitude,
+    lng:       pos.coords.longitude,
+    accuracy:  Math.round(pos.coords.accuracy),
+    altitude:  pos.coords.altitude ? Math.round(pos.coords.altitude) : null,
+    speed:     pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0, // m/s → km/h
+    heading:   pos.coords.heading ? Math.round(pos.coords.heading) : null,
+    timestamp: pos.timestamp,
+    iso:       new Date(pos.timestamp).toISOString(),
+    mission:   STATE.missionRef,
+    status:    'in_transit',
+  };
+
+  // Envoi vers Firebase
+  if(window._db && window._ref && window._set) {
+    const posRef = window._ref(window._db, `missions/${STATE.missionRef}/gps/current`);
+    window._set(posRef, data)
+      .then(() => {
+        STATE.count++;
+        STATE.lastSent = new Date();
+        document.getElementById('statCount').textContent = STATE.count;
+        document.getElementById('statLast').textContent = formatTime(STATE.lastSent);
+        updateBadge(true);
+        log('ok', `Position envoyée — ${data.lat.toFixed(5)}, ${data.lng.toFixed(5)} · Précision ${data.accuracy}m`);
+      })
+      .catch(err => {
+        updateBadge(false);
+        log('err', 'Erreur Firebase : ' + err.message);
+      });
+
+    // Aussi sauvegarder dans l'historique
+    const histRef = window._ref(window._db, `missions/${STATE.missionRef}/gps/history/${pos.timestamp}`);
+    window._set(histRef, data).catch(() => {});
+  } else {
+    // Mode démo sans Firebase
+    STATE.count++;
+    STATE.lastSent = new Date();
+    document.getElementById('statCount').textContent = STATE.count;
+    document.getElementById('statLast').textContent = formatTime(STATE.lastSent);
+    updateBadge(true);
+    log('info', `[DÉMO] Position — ${data.lat.toFixed(5)}, ${data.lng.toFixed(5)}`);
+  }
+}
+
+// ════════════════════════════════════════
+// UPDATE DISPLAY
+// ════════════════════════════════════════
+function updatePosDisplay(pos) {
+  const c = pos.coords;
+  document.getElementById('posLat').textContent   = c.latitude.toFixed(6) + '°';
+  document.getElementById('posLng').textContent   = c.longitude.toFixed(6) + '°';
+  document.getElementById('posAlt').textContent   = c.altitude ? Math.round(c.altitude) + ' m' : '—';
+  document.getElementById('posHead').textContent  = c.heading ? Math.round(c.heading) + '°' : '—';
+  // Précision
+  const acc = Math.round(c.accuracy);
+  document.getElementById('statAcc').innerHTML    = acc + '<em> m</em>';
+  document.getElementById('statAccLbl').textContent = acc < 10 ? '🟢 Excellente' : acc < 30 ? '🟡 Bonne' : acc < 100 ? '🟠 Correcte' : '🔴 Faible';
+  // Vitesse
+  const spd = c.speed ? Math.round(c.speed * 3.6) : 0;
+  document.getElementById('statSpeed').innerHTML  = spd + '<em> km/h</em>';
+  document.getElementById('statSpeedSub').textContent = spd === 0 ? 'À l\'arrêt' : spd < 50 ? 'En ville' : spd < 110 ? 'Route' : 'Autoroute';
+}
+
+function updateUI() {
+  const btn  = document.getElementById('gpsBtn');
+  const ico  = document.getElementById('gpsBtnIco');
+  const lbl  = document.getElementById('gpsBtnLabel');
+  const sub  = document.getElementById('gpsBtnSub');
+  if(STATE.active) {
+    btn.className = 'gps-main-btn active';
+    ico.className = 'fas fa-broadcast-tower';
+    lbl.textContent = 'En direct';
+    sub.textContent = 'Position partagée avec le client';
+  } else {
+    btn.className = 'gps-main-btn idle';
+    ico.className = 'fas fa-location-arrow';
+    lbl.textContent = 'Démarrer';
+    sub.textContent = 'Appuyer pour partager votre position';
+    updateBadge(false);
+  }
+}
+
+function updateBadge(online) {
+  const badge = document.getElementById('statusBadge');
+  badge.className = 'tb-badge ' + (online ? 'badge-online' : 'badge-offline');
+  badge.innerHTML = `<div class="badge-dot"></div> ${online ? 'En direct' : 'Hors ligne'}`;
+}
+
+function updateAgo() {
+  if(!STATE.lastSent) return;
+  const sec = Math.round((Date.now() - STATE.lastSent) / 1000);
+  document.getElementById('statAgo').textContent = sec < 60 ? `Il y a ${sec}s` : `Il y a ${Math.round(sec/60)}min`;
+}
+
+// ════════════════════════════════════════
+// SIGNALER ARRIVÉE
+// ════════════════════════════════════════
+function signalArrivee() {
+  if(!STATE.lastPos) { alert('Aucune position GPS disponible.'); return; }
+  if(!confirm('Confirmer l\'arrivée à destination ?\n\nLe client et le dispatch seront notifiés.')) return;
+
+  if(window._db && window._ref && window._set) {
+    const ref = window._ref(window._db, `missions/${STATE.missionRef}/gps/current`);
+    window._set(ref, {
+      ...STATE.lastPos.coords,
+      status: 'arrived',
+      arrivedAt: new Date().toISOString(),
+      mission: STATE.missionRef,
+    }).catch(() => {});
+  }
+
+  stopGPS();
+  document.getElementById('arriveBtn').style.display = 'none';
+  document.getElementById('doneBanner').classList.add('show');
+  log('ok', '🏁 Arrivée signalée — mission terminée');
+}
+
+// ════════════════════════════════════════
+// ERREURS
+// ════════════════════════════════════════
+function handleGeoError(err) {
+  const msgs = {1:'Permission refusée',2:'Position indisponible',3:'Délai dépassé'};
+  log('err', 'GPS : ' + (msgs[err.code] || err.message));
+  updateBadge(false);
+}
+
+// ════════════════════════════════════════
+// INTERVALLE
+// ════════════════════════════════════════
+function setInterval2(sec, btn) {
+  STATE.intervalSec = sec;
+  document.querySelectorAll('.int-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if(STATE.active) {
+    clearInterval(STATE.intervalId);
+    STATE.intervalId = setInterval(() => {
+      navigator.geolocation.getCurrentPosition(
+        pos => { STATE.lastPos = pos; sendPosition(pos); updatePosDisplay(pos); },
+        err => handleGeoError(err),
+        {enableHighAccuracy: true, timeout: 10000}
+      );
+    }, sec * 1000);
+  }
+  log('info', `Intervalle réglé à ${sec}s`);
+}
+
+// ════════════════════════════════════════
+// LOG
+// ════════════════════════════════════════
+function log(type, msg) {
+  const list = document.getElementById('logList');
+  const now  = formatTime(new Date());
+  const icons = {ok:'fa-check-circle ok',err:'fa-times-circle err',info:'fa-info-circle info',warn:'fa-exclamation-circle warn'};
+  const item = document.createElement('div');
+  item.className = 'log-item';
+  item.innerHTML = `<span class="log-time">${now}</span><i class="fas ${icons[type]||icons.info} log-ico"></i><span>${msg}</span>`;
+  list.insertBefore(item, list.firstChild);
+  while(list.children.length > 30) list.removeChild(list.lastChild);
+}
+
+function clearLog() {
+  document.getElementById('logList').innerHTML = '';
+}
+
+// ════════════════════════════════════════
+// MODAL MISSION
+// ════════════════════════════════════════
+function openModal() {
+  document.getElementById('modal').style.display = 'flex';
+  document.getElementById('inputRef').value   = STATE.missionRef;
+  document.getElementById('inputRoute').value = STATE.missionRoute;
+}
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+function saveMission() {
+  STATE.missionRef   = document.getElementById('inputRef').value.trim() || STATE.missionRef;
+  STATE.missionRoute = document.getElementById('inputRoute').value.trim() || STATE.missionRoute;
+  document.getElementById('mRef').textContent   = 'Mission · ' + STATE.missionRef;
+  document.getElementById('mRoute').innerHTML   = STATE.missionRoute.replace('→','<em>→</em>');
+  document.getElementById('posFirebase').textContent = `missions/${STATE.missionRef}/gps`;
+  log('info', `Mission mise à jour : ${STATE.missionRef}`);
+  closeModal();
+}
+
+// ════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════
+function formatTime(d) {
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ':' + d.getSeconds().toString().padStart(2,'0');
+}
+
+// Garder l'écran allumé (WakeLock API)
+async function keepAwake() {
+  if('wakeLock' in navigator) {
+    try { await navigator.wakeLock.request('screen'); log('info','Écran maintenu allumé'); }
+    catch(e) {}
+  }
+}
+document.addEventListener('click', keepAwake, {once:true});
+</script>
+</body>
+</html>
