@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#FDFBF7">
+<meta name="description" content="Interface GPS pour convoyeurs Bathily — partagez votre position en temps réel avec le client et le dispatch.">
+<title>GPS Mission — Bathily Convoyage</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getDatabase, ref, set, onValue, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyAbPM7pM4umkuG1k_MAUYxddHQMNP9UebM",
+    authDomain:        "bathily-convoyage-c211b.firebaseapp.com",
+    databaseURL:       "https://bathily-convoyage-c211b-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:         "bathily-convoyage-c211b",
+    storageBucket:     "bathily-convoyage-c211b.firebasestorage.app",
+    messagingSenderId: "115133170172",
+    appId:             "1:115133170172:web:5fcdc2b835f6df157b3279"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  window._db = db;
+  window._ref = ref;
+  window._set = set;
+  window._onValue = onValue;
+  window._serverTimestamp = serverTimestamp;
+  window._firebaseReady = true;
+
+  document.dispatchEvent(new CustomEvent('firebase-ready'));
+</script>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: #FDFBF7;
+  color: #2D2A24;
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+:root {
+  --bordeaux: #7A2E1A;
+  --bordeaux-dark: #5C2212;
+  --bordeaux-light: #F3E8E4;
+  --cream: #FDFBF7;
+  --beige: #F9F6F0;
+  --gray-dark: #2D2A24;
+  --gray-mid: #6B625A;
+  --border-light: #E8E1D9;
+  --success: #4A7C6B;
+  --warning: #E0A343;
+}
+/* Curseur personnalisé seulement sur souris */
+@media (hover: hover) {
+  .cur{position:fixed;width:8px;height:8px;background:var(--bordeaux);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+  .cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(122,46,26,.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+}
+@media (hover: none) {
+  .cur, .cur-ring { display: none; }
+}
+/* Topbar */
+.topbar {
+  background: white;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.tb-logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--gray-dark);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+.tb-logo span { color: var(--bordeaux); }
+.tb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 40px;
+}
+.badge-offline {
+  background: rgba(107,98,90,0.1);
+  border: 1px solid rgba(107,98,90,0.2);
+  color: var(--gray-mid);
+}
+.badge-online {
+  background: rgba(74,124,107,0.1);
+  border: 1px solid rgba(74,124,107,0.25);
+  color: var(--success);
+}
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+/* Main */
+.main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+/* Mission card */
+.mission-card {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 24px;
+  padding: 20px;
+}
+.mc-ref {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--bordeaux);
+  margin-bottom: 8px;
+}
+.mc-route {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.mc-route em { color: var(--bordeaux); font-style: normal; }
+.mc-meta {
+  font-size: 0.7rem;
+  color: var(--gray-mid);
+}
+/* Bouton GPS principal */
+.gps-btn-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.gps-main-btn {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.gps-main-btn.idle {
+  background: var(--bordeaux-light);
+  border: 2px solid var(--bordeaux);
+  color: var(--bordeaux);
+}
+.gps-main-btn.active {
+  background: var(--bordeaux);
+  border: 2px solid var(--bordeaux);
+  color: white;
+}
+.gps-main-btn.active::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(122,46,26,0.4);
+  animation: ripple 2s linear infinite;
+}
+.gps-main-btn.active::after {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  border: 1px solid rgba(122,46,26,0.2);
+  animation: ripple 2s 0.5s linear infinite;
+}
+@keyframes ripple {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+.gps-main-btn i { font-size: 2rem; }
+.gps-btn-sub {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+}
+/* Interval row */
+.interval-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 60px;
+  padding: 8px 16px;
+}
+.interval-lbl {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+}
+.interval-btns {
+  display: flex;
+  gap: 6px;
+}
+.int-btn {
+  width: 40px;
+  padding: 6px 0;
+  border-radius: 40px;
+  border: 1px solid var(--border-light);
+  background: white;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--gray-mid);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.int-btn.active {
+  background: var(--bordeaux);
+  border-color: var(--bordeaux);
+  color: white;
+}
+.int-btn:hover {
+  border-color: var(--bordeaux);
+  color: var(--bordeaux);
+}
+/* Stats grid */
+.gps-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.gps-stat {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 16px;
+}
+.gs-lbl {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+  margin-bottom: 4px;
+}
+.gs-val {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.gs-val em { font-size: 0.8rem; color: var(--bordeaux); }
+.gs-sub {
+  font-size: 0.6rem;
+  color: var(--gray-mid);
+  margin-top: 4px;
+}
+/* Position card */
+.pos-card {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 16px;
+}
+.pos-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+.pos-row:last-child { border-bottom: none; }
+.pos-lbl {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+}
+.pos-val {
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+.pos-val.accent { color: var(--bordeaux); }
+/* Controls */
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.ctrl-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 40px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ctrl-ghost {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--gray-mid);
+}
+.ctrl-ghost:hover {
+  border-color: var(--bordeaux);
+  color: var(--bordeaux);
+}
+.ctrl-green {
+  background: var(--success);
+  color: white;
+}
+.ctrl-green:hover {
+  background: #3a5f4f;
+  transform: translateY(-1px);
+}
+/* Done banner */
+.done-banner {
+  display: none;
+  background: rgba(74,124,107,0.08);
+  border: 1px solid rgba(74,124,107,0.25);
+  border-radius: 20px;
+  padding: 16px;
+  text-align: center;
+  gap: 8px;
+  flex-direction: column;
+}
+.done-banner.show { display: flex; }
+.done-banner i { font-size: 1.5rem; color: var(--success); }
+.done-banner p { font-size: 0.75rem; color: var(--gray-mid); }
+/* Log card */
+.log-card {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 16px;
+}
+.log-title {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+}
+.log-clear {
+  background: none;
+  border: none;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+  cursor: pointer;
+}
+.log-clear:hover { color: var(--bordeaux); }
+.log-list {
+  max-height: 160px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.log-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.7rem;
+  background: var(--beige);
+  padding: 8px;
+  border-radius: 12px;
+}
+.log-time {
+  font-family: monospace;
+  font-size: 0.6rem;
+  color: var(--gray-mid);
+  flex-shrink: 0;
+}
+.log-ico { flex-shrink: 0; margin-top: 1px; }
+.log-ico.ok { color: var(--success); }
+.log-ico.err { color: var(--bordeaux); }
+.log-ico.info { color: #2980b9; }
+.log-ico.warn { color: var(--warning); }
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: white;
+  border-radius: 28px;
+  max-width: 480px;
+  width: 90%;
+  padding: 24px;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.modal-h {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.modal-h em { color: var(--bordeaux); font-style: normal; }
+.modal-sub {
+  font-size: 0.75rem;
+  color: var(--gray-mid);
+  margin-bottom: 16px;
+}
+.f-grp {
+  margin-bottom: 14px;
+}
+.f-grp label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.f-grp input, .f-grp textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  background: #F9FAFB;
+}
+.f-grp input:focus, .f-grp textarea:focus {
+  outline: none;
+  border-color: var(--bordeaux);
+}
+.modal-btns {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+.btn-red {
+  background: var(--bordeaux);
+  color: white;
+  border: none;
+  border-radius: 40px;
+  padding: 10px 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.btn-red:hover { background: var(--bordeaux-dark); }
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 40px;
+  padding: 10px 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+  cursor: pointer;
+}
+.btn-outline:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
+/* Permission overlay */
+.perm-overlay {
+  position: fixed;
+  inset: 0;
+  background: white;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  gap: 20px;
+  padding: 32px;
+}
+.perm-overlay.hidden { display: none; }
+.perm-ico { font-size: 3rem; color: var(--bordeaux); }
+.perm-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.perm-sub { font-size: 0.8rem; color: var(--gray-mid); max-width: 280px; }
+.perm-btn {
+  background: var(--bordeaux);
+  color: white;
+  border: none;
+  border-radius: 40px;
+  padding: 12px 24px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+/* Responsive */
+@media (max-width: 600px) {
+  .main { padding: 16px; }
+  .gps-stats { grid-template-columns: 1fr; }
+  .controls { grid-template-columns: 1fr; }
+  .interval-row { flex-direction: column; gap: 8px; align-items: stretch; }
+  .interval-btns { justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="cring"></div>
+
+<!-- PERMISSION OVERLAY -->
+<div class="perm-overlay" id="permOverlay">
+  <div class="perm-ico"><i class="fas fa-location-arrow"></i></div>
+  <div class="perm-title">Autorisation GPS requise</div>
+  <p class="perm-sub" id="permMsg">Pour partager votre position en temps réel avec le client et le dispatch Bathily, vous devez autoriser l'accès à votre géolocalisation.</p>
+  <button class="perm-btn" onclick="requestPermission()"><i class="fas fa-check"></i> Autoriser la géolocalisation</button>
+</div>
+
+<div class="topbar">
+  <div class="tb-logo">Bathily<span>.</span> GPS</div>
+  <div class="tb-badge badge-offline" id="statusBadge"><div class="badge-dot"></div> Hors ligne</div>
+</div>
+
+<div class="main">
+  <div class="mission-card">
+    <div class="mc-ref" id="mRef">Mission · BC-2025-0847</div>
+    <div class="mc-route" id="mRoute">Paris <em>→</em> Lyon</div>
+    <div class="mc-meta" id="mMeta">BMW Série 3 · IJ-789-KL · M. Bathily</div>
+  </div>
+
+  <div class="gps-btn-wrap">
+    <button class="gps-main-btn idle" id="gpsBtn" onclick="toggleGPS()">
+      <i class="fas fa-location-arrow" id="gpsBtnIco"></i>
+      <span id="gpsBtnLabel">Démarrer</span>
+    </button>
+    <div class="gps-btn-sub" id="gpsBtnSub">Appuyer pour partager votre position</div>
+  </div>
+
+  <div class="interval-row">
+    <span class="interval-lbl">Envoi toutes les</span>
+    <div class="interval-btns">
+      <button class="int-btn" onclick="setInterval2(5,this)">5s</button>
+      <button class="int-btn active" id="intDefault" onclick="setInterval2(10,this)">10s</button>
+      <button class="int-btn" onclick="setInterval2(30,this)">30s</button>
+      <button class="int-btn" onclick="setInterval2(60,this)">1min</button>
+    </div>
+  </div>
+
+  <div class="gps-stats">
+    <div class="gps-stat"><div class="gs-lbl">Positions envoyées</div><div class="gs-val" id="statCount">0</div><div class="gs-sub">Cette session</div></div>
+    <div class="gps-stat"><div class="gs-lbl">Dernière mise à jour</div><div class="gs-val" id="statLast" style="font-size:0.9rem">—</div><div class="gs-sub" id="statAgo">En attente</div></div>
+    <div class="gps-stat"><div class="gs-lbl">Précision GPS</div><div class="gs-val" id="statAcc">—<em> m</em></div><div class="gs-sub" id="statAccLbl">—</div></div>
+    <div class="gps-stat"><div class="gs-lbl">Vitesse</div><div class="gs-val" id="statSpeed">—<em> km/h</em></div><div class="gs-sub" id="statSpeedSub">—</div></div>
+  </div>
+
+  <div class="pos-card">
+    <div class="pos-row"><span class="pos-lbl">Latitude</span><span class="pos-val accent" id="posLat">—</span></div>
+    <div class="pos-row"><span class="pos-lbl">Longitude</span><span class="pos-val accent" id="posLng">—</span></div>
+    <div class="pos-row"><span class="pos-lbl">Altitude</span><span class="pos-val" id="posAlt">—</span></div>
+    <div class="pos-row"><span class="pos-lbl">Cap</span><span class="pos-val" id="posHead">—</span></div>
+    <div class="pos-row"><span class="pos-lbl">Données envoyées vers</span><span class="pos-val" id="posFirebase" style="font-size:0.7rem; color:var(--gray-mid)">missions/BC-2025-0847/gps</span></div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn ctrl-ghost" onclick="openModal()"><i class="fas fa-edit"></i> Changer mission</button>
+    <button class="ctrl-btn ctrl-ghost" onclick="window.location.href='bon-de-mission.html'"><i class="fas fa-file"></i> Bon mission</button>
+    <button class="ctrl-btn ctrl-green" id="arriveBtn" onclick="signalArrivee()" style="display:none"><i class="fas fa-flag-checkered"></i> Signaler l'arrivée</button>
+  </div>
+
+  <div class="done-banner" id="doneBanner">
+    <i class="fas fa-check-circle"></i>
+    <p><strong>Arrivée signalée !</strong> Le client et le dispatch ont été notifiés. GPS arrêté automatiquement.</p>
+  </div>
+
+  <div class="log-card">
+    <div class="log-title">Journal GPS <button class="log-clear" onclick="clearLog()">Effacer</button></div>
+    <div class="log-list" id="logList">
+      <div class="log-item"><span class="log-time">--:--</span><i class="fas fa-info-circle log-ico info"></i><span>En attente de démarrage…</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MISSION -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <h3 class="modal-h">Saisir la <em>mission</em></h3>
+    <div class="f-grp"><label>Référence mission</label><input type="text" id="inputRef" value="BC-2025-0847"></div>
+    <div class="f-grp"><label>Trajet</label><input type="text" id="inputRoute" value="Paris → Lyon"></div>
+    <div class="modal-btns">
+      <button class="btn-red" onclick="saveMission()">Confirmer</button>
+      <button class="btn-outline" onclick="closeModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== CURSOR ==========
+if(window.matchMedia('(hover: hover)').matches) {
+  const cur=document.getElementById('cur'),cring=document.getElementById('cring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+  (function loop(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(loop)})();
+}
+
+// ========== STATE ==========
+const STATE = {
+  active: false,
+  missionRef: 'BC-2025-0847',
+  missionRoute: 'Paris → Lyon',
+  intervalSec: 10,
+  watchId: null,
+  intervalId: null,
+  count: 0,
+  lastPos: null,
+  lastSent: null,
+  firebaseOk: false,
+};
+
+// ========== INIT ==========
+document.addEventListener('firebase-ready', () => {
+  STATE.firebaseOk = true;
+  log('info', 'Firebase connecté — prêt à envoyer');
+});
+setTimeout(() => {
+  if(!STATE.firebaseOk && typeof window._db !== 'undefined') {
+    STATE.firebaseOk = true;
+    log('info', 'Firebase connecté — prêt à envoyer');
+  } else if(!STATE.firebaseOk) {
+    log('warn', 'Firebase non configuré — mode démo uniquement');
+  }
+}, 500);
+
+document.addEventListener('DOMContentLoaded', () => {
+  if('permissions' in navigator) {
+    navigator.permissions.query({name:'geolocation'}).then(r => {
+      if(r.state === 'granted') document.getElementById('permOverlay').classList.add('hidden');
+    }).catch(() => {});
+  }
+  log('info', 'Système GPS Bathily initialisé');
+  setInterval(updateAgo, 1000);
+});
+
+// ========== PERMISSION ==========
+function requestPermission() {
+  if(!navigator.geolocation) {
+    document.getElementById('permMsg').textContent = 'La géolocalisation n\'est pas supportée.';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      document.getElementById('permOverlay').classList.add('hidden');
+      log('ok', 'Accès GPS autorisé');
+      updatePosDisplay(pos);
+    },
+    err => {
+      log('err', 'Permission refusée : ' + err.message);
+      document.getElementById('permMsg').textContent = 'Permission refusée. Allez dans les paramètres de votre navigateur pour autoriser la géolocalisation.';
+    },
+    {enableHighAccuracy: true, timeout: 10000}
+  );
+}
+
+// ========== TOGGLE GPS ==========
+function toggleGPS() {
+  if(!STATE.active) startGPS();
+  else stopGPS();
+}
+
+function startGPS() {
+  if(!navigator.geolocation) {
+    log('err', 'Géolocalisation non supportée');
+    return;
+  }
+  STATE.active = true;
+  updateUI();
+  log('ok', 'Démarrage du partage GPS…');
+  navigator.geolocation.getCurrentPosition(
+    pos => { STATE.lastPos = pos; sendPosition(pos); updatePosDisplay(pos); },
+    err => handleGeoError(err),
+    {enableHighAccuracy: true, timeout: 15000, maximumAge: 0}
+  );
+  STATE.intervalId = setInterval(() => {
+    navigator.geolocation.getCurrentPosition(
+      pos => { STATE.lastPos = pos; sendPosition(pos); updatePosDisplay(pos); },
+      err => handleGeoError(err),
+      {enableHighAccuracy: true, timeout: 10000, maximumAge: STATE.intervalSec * 500}
+    );
+  }, STATE.intervalSec * 1000);
+  STATE.watchId = navigator.geolocation.watchPosition(
+    pos => updatePosDisplay(pos),
+    err => {},
+    {enableHighAccuracy: true, maximumAge: 2000}
+  );
+  setTimeout(() => {
+    if(STATE.active) document.getElementById('arriveBtn').style.display = 'flex';
+  }, 30000);
+}
+
+function stopGPS() {
+  STATE.active = false;
+  if(STATE.intervalId) clearInterval(STATE.intervalId);
+  if(STATE.watchId) navigator.geolocation.clearWatch(STATE.watchId);
+  updateUI();
+  log('info', 'Partage GPS arrêté');
+  if(STATE.firebaseOk && window._db && window._ref && window._set) {
+    const statusRef = window._ref(window._db, `missions/${STATE.missionRef}/gps/status`);
+    window._set(statusRef, 'offline').catch(() => {});
+  }
+}
+
+// ========== ENVOI POSITION ==========
+function sendPosition(pos) {
+  const data = {
+    lat: pos.coords.latitude,
+    lng: pos.coords.longitude,
+    accuracy: Math.round(pos.coords.accuracy),
+    altitude: pos.coords.altitude ? Math.round(pos.coords.altitude) : null,
+    speed: pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0,
+    heading: pos.coords.heading ? Math.round(pos.coords.heading) : null,
+    timestamp: pos.timestamp,
+    iso: new Date(pos.timestamp).toISOString(),
+    mission: STATE.missionRef,
+    status: 'in_transit',
+  };
+  STATE.count++;
+  STATE.lastSent = new Date();
+  document.getElementById('statCount').textContent = STATE.count;
+  document.getElementById('statLast').textContent = formatTime(STATE.lastSent);
+  updateBadge(true);
+  if(STATE.firebaseOk && window._db && window._ref && window._set) {
+    const posRef = window._ref(window._db, `missions/${STATE.missionRef}/gps/current`);
+    window._set(posRef, data)
+      .then(() => log('ok', `Position envoyée — ${data.lat.toFixed(5)}, ${data.lng.toFixed(5)} · Précision ${data.accuracy}m`))
+      .catch(err => { updateBadge(false); log('err', 'Erreur Firebase : ' + err.message); });
+    const histRef = window._ref(window._db, `missions/${STATE.missionRef}/gps/history/${pos.timestamp}`);
+    window._set(histRef, data).catch(() => {});
+  } else {
+    log('info', `[DÉMO] Position — ${data.lat.toFixed(5)}, ${data.lng.toFixed(5)} · Précision ${data.accuracy}m`);
+  }
+}
+
+// ========== UPDATE DISPLAY ==========
+function updatePosDisplay(pos) {
+  if(!pos) return;
+  const c = pos.coords;
+  document.getElementById('posLat').textContent = c.latitude.toFixed(6) + '°';
+  document.getElementById('posLng').textContent = c.longitude.toFixed(6) + '°';
+  document.getElementById('posAlt').textContent = c.altitude ? Math.round(c.altitude) + ' m' : '—';
+  document.getElementById('posHead').textContent = c.heading ? Math.round(c.heading) + '°' : '—';
+  const acc = Math.round(c.accuracy);
+  document.getElementById('statAcc').innerHTML = acc + '<em> m</em>';
+  document.getElementById('statAccLbl').textContent = acc < 10 ? '🟢 Excellente' : acc < 30 ? '🟡 Bonne' : acc < 100 ? '🟠 Correcte' : '🔴 Faible';
+  const spd = c.speed ? Math.round(c.speed * 3.6) : 0;
+  document.getElementById('statSpeed').innerHTML = spd + '<em> km/h</em>';
+  document.getElementById('statSpeedSub').textContent = spd === 0 ? 'À l\'arrêt' : spd < 50 ? 'En ville' : spd < 110 ? 'Route' : 'Autoroute';
+}
+
+function updateUI() {
+  const btn = document.getElementById('gpsBtn');
+  const ico = document.getElementById('gpsBtnIco');
+  const lbl = document.getElementById('gpsBtnLabel');
+  const sub = document.getElementById('gpsBtnSub');
+  if(STATE.active) {
+    btn.className = 'gps-main-btn active';
+    ico.className = 'fas fa-broadcast-tower';
+    lbl.textContent = 'En direct';
+    sub.textContent = 'Position partagée avec le client';
+  } else {
+    btn.className = 'gps-main-btn idle';
+    ico.className = 'fas fa-location-arrow';
+    lbl.textContent = 'Démarrer';
+    sub.textContent = 'Appuyer pour partager votre position';
+    updateBadge(false);
+  }
+}
+
+function updateBadge(online) {
+  const badge = document.getElementById('statusBadge');
+  badge.className = 'tb-badge ' + (online ? 'badge-online' : 'badge-offline');
+  badge.innerHTML = `<div class="badge-dot"></div> ${online ? 'En direct' : 'Hors ligne'}`;
+}
+
+function updateAgo() {
+  if(!STATE.lastSent) return;
+  const sec = Math.round((Date.now() - STATE.lastSent) / 1000);
+  document.getElementById('statAgo').textContent = sec < 60 ? `Il y a ${sec}s` : `Il y a ${Math.round(sec/60)}min`;
+}
+
+// ========== SIGNALER ARRIVÉE ==========
+function signalArrivee() {
+  if(!STATE.lastPos) { alert('Aucune position GPS disponible.'); return; }
+  if(!confirm('Confirmer l\'arrivée à destination ?\n\nLe client et le dispatch seront notifiés.')) return;
+  if(STATE.firebaseOk && window._db && window._ref && window._set) {
+    const currentRef = window._ref(window._db, `missions/${STATE.missionRef}/gps/current`);
+    window._set(currentRef, {
+      lat: STATE.lastPos.coords.latitude,
+      lng: STATE.lastPos.coords.longitude,
+      status: 'arrived',
+      arrivedAt: new Date().toISOString(),
+      mission: STATE.missionRef,
+    }).catch(() => {});
+  }
+  stopGPS();
+  document.getElementById('arriveBtn').style.display = 'none';
+  document.getElementById('doneBanner').classList.add('show');
+  log('ok', '🏁 Arrivée signalée — mission terminée');
+}
+
+function handleGeoError(err) {
+  const msgs = {1:'Permission refusée',2:'Position indisponible',3:'Délai dépassé'};
+  log('err', 'GPS : ' + (msgs[err.code] || err.message));
+  updateBadge(false);
+}
+
+// ========== INTERVALLE ==========
+function setInterval2(sec, btn) {
+  STATE.intervalSec = sec;
+  document.querySelectorAll('.int-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if(STATE.active) {
+    clearInterval(STATE.intervalId);
+    STATE.intervalId = setInterval(() => {
+      navigator.geolocation.getCurrentPosition(
+        pos => { STATE.lastPos = pos; sendPosition(pos); updatePosDisplay(pos); },
+        err => handleGeoError(err),
+        {enableHighAccuracy: true, timeout: 10000}
+      );
+    }, sec * 1000);
+  }
+  log('info', `Intervalle réglé à ${sec}s`);
+}
+
+// ========== LOG ==========
+function log(type, msg) {
+  const list = document.getElementById('logList');
+  const now = formatTime(new Date());
+  const icons = {ok:'fa-check-circle ok', err:'fa-times-circle err', info:'fa-info-circle info', warn:'fa-exclamation-circle warn'};
+  const item = document.createElement('div');
+  item.className = 'log-item';
+  item.innerHTML = `<span class="log-time">${now}</span><i class="fas ${icons[type]||icons.info} log-ico"></i><span>${escapeHtml(msg)}</span>`;
+  list.insertBefore(item, list.firstChild);
+  while(list.children.length > 30) list.removeChild(list.lastChild);
+}
+function clearLog() { document.getElementById('logList').innerHTML = '<div class="log-item"><span class="log-time">--:--</span><i class="fas fa-info-circle log-ico info"></i><span>Journal vidé</span></div>'; }
+function escapeHtml(str) { return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+
+// ========== MODAL MISSION ==========
+function openModal() { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function saveMission() {
+  STATE.missionRef = document.getElementById('inputRef').value.trim() || STATE.missionRef;
+  STATE.missionRoute = document.getElementById('inputRoute').value.trim() || STATE.missionRoute;
+  document.getElementById('mRef').textContent = 'Mission · ' + STATE.missionRef;
+  document.getElementById('mRoute').innerHTML = STATE.missionRoute.replace('→', '<em>→</em>');
+  document.getElementById('posFirebase').textContent = `missions/${STATE.missionRef}/gps`;
+  log('info', `Mission mise à jour : ${STATE.missionRef}`);
+  closeModal();
+}
+
+// ========== UTILS ==========
+function formatTime(d) {
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ':' + d.getSeconds().toString().padStart(2,'0');
+}
+let wakeLock = null;
+async function keepAwake() {
+  if('wakeLock' in navigator && !wakeLock) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+      log('info', 'Écran maintenu allumé');
+    } catch(e) {}
+  }
+}
+document.addEventListener('click', keepAwake);
+document.getElementById('gpsBtn').addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGPS(); } });
+document.querySelectorAll('.int-btn').forEach(btn => {
+  btn.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setInterval2(parseInt(btn.textContent), btn); } });
+});
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e) { if(e.target === this) this.classList.remove('open'); }));
+</script>
+</body>
+</html>

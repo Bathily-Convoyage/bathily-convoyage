@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Bathily Convoyage</title>
+<meta name="description" content="Une question, un devis, une urgence ? Contactez Bathily Convoyage. Réponse sous 24h ouvrées, ligne urgence 24/7.">
+<meta property="og:title" content="Contact — Bathily Convoyage">
+<meta property="og:description" content="Contactez notre équipe pour toute demande de convoyage auto ou moto en France. Devis rapide, support réactif.">
+<meta property="og:image" content="https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✉️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: #FDFBF7;
+  color: #2D2A24;
+  line-height: 1.5;
+  scroll-behavior: smooth;
+}
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+:root {
+  --bordeaux: #7A2E1A;
+  --bordeaux-dark: #5C2212;
+  --bordeaux-light: #F3E8E4;
+  --cream: #FDFBF7;
+  --beige: #F9F6F0;
+  --gray-dark: #2D2A24;
+  --gray-mid: #6B625A;
+  --border-light: #E8E1D9;
+  --success: #4A7C6B;
+  --warning: #E0A343;
+}
+/* Curseur personnalisé seulement sur souris */
+@media (hover: hover) {
+  .cur{position:fixed;width:8px;height:8px;background:var(--bordeaux);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+  .cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(122,46,26,.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+}
+@media (hover: none) {
+  .cur, .cur-ring { display: none; }
+}
+/* Header */
+header {
+  position: sticky;
+  top: 0;
+  background: rgba(253,251,247,0.96);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-light);
+  z-index: 100;
+}
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 72px;
+}
+.logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--gray-dark);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+.logo span { color: var(--bordeaux); }
+.nav-links {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+.nav-links a {
+  text-decoration: none;
+  color: var(--gray-mid);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.nav-links a:hover, .nav-links a.active { color: var(--bordeaux); }
+.btn-outline {
+  border: 1px solid var(--bordeaux);
+  background: transparent;
+  padding: 8px 20px;
+  border-radius: 40px;
+  color: var(--bordeaux);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-outline:hover {
+  background: var(--bordeaux);
+  color: white;
+}
+.menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-dark); }
+/* Hero */
+.hero {
+  background: transparent;
+  padding: 60px 0 40px;
+}
+.hero-content {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.hero-badge {
+  background: #FEF3C7;
+  color: #D97706;
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 40px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+.hero h1 span { color: var(--bordeaux); }
+.hero p {
+  font-size: 1.125rem;
+  color: var(--gray-mid);
+  margin-bottom: 24px;
+}
+/* Breadcrumb */
+.breadcrumb {
+  margin: 20px 0;
+  font-size: 0.75rem;
+  color: var(--gray-mid);
+}
+.breadcrumb a { text-decoration: none; color: var(--gray-mid); }
+.breadcrumb a:hover { color: var(--bordeaux); }
+.breadcrumb .sep { margin: 0 8px; }
+/* Urgence banner */
+.urgence-banner {
+  background: var(--bordeaux);
+  padding: 16px 32px;
+  border-radius: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 40px 0;
+}
+.ub-left { display: flex; align-items: center; gap: 16px; }
+.ub-ico { font-size: 1.5rem; color: rgba(255,255,255,0.9); }
+.ub-title { font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: white; margin-bottom: 4px; }
+.ub-sub { font-size: 0.875rem; color: rgba(255,255,255,0.85); }
+.ub-right { font-weight: 700; font-size: 1.2rem; color: white; white-space: nowrap; }
+/* Contact main */
+.contact-main {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+  margin: 40px 0 80px;
+}
+.contact-form-wrap {
+  background: white;
+  border-radius: 28px;
+  padding: 40px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+}
+.form-intro { margin-bottom: 32px; }
+.form-intro-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.form-intro-title em { color: var(--bordeaux); font-style: normal; }
+.form-intro-sub { color: var(--gray-mid); font-size: 0.9rem; }
+/* Sujet tabs */
+.sujet-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.sujet-tab {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 40px;
+  padding: 8px 20px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--gray-mid);
+}
+.sujet-tab:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
+.sujet-tab.active {
+  background: var(--bordeaux);
+  border-color: var(--bordeaux);
+  color: white;
+}
+/* Forms */
+.f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.f-grp { margin-bottom: 20px; }
+.f-grp label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-mid);
+  margin-bottom: 6px;
+}
+.f-grp input, .f-grp select, .f-grp textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  background: #F9FAFB;
+  transition: all 0.2s;
+}
+.f-grp input:focus, .f-grp select:focus, .f-grp textarea:focus {
+  outline: none;
+  border-color: var(--bordeaux);
+  box-shadow: 0 0 0 2px rgba(122,46,26,0.1);
+}
+.f-grp input.err, .f-grp select.err, .f-grp textarea.err { border-color: #DC2626; }
+.field-err {
+  color: #DC2626;
+  font-size: 0.7rem;
+  margin-top: 4px;
+  display: none;
+}
+.field-err.show { display: block; }
+/* Checkbox */
+.cb-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+.cb-box {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  background: white;
+  transition: all 0.2s;
+}
+.cb-row.chk .cb-box {
+  background: var(--bordeaux);
+  border-color: var(--bordeaux);
+}
+.cb-row.chk .cb-box::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  display: flex;
+  justify-content: center;
+  line-height: 1;
+}
+.cb-lbl { font-size: 0.875rem; color: var(--gray-mid); }
+.cb-lbl a { color: var(--bordeaux); text-decoration: none; }
+/* Send button */
+.btn-send {
+  background: var(--bordeaux);
+  color: white;
+  border: none;
+  border-radius: 40px;
+  padding: 14px 28px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+.btn-send:hover {
+  background: var(--bordeaux-dark);
+  transform: translateY(-2px);
+}
+/* Success panel */
+.success-panel {
+  display: none;
+  text-align: center;
+  padding: 40px;
+  background: #F9FAFB;
+  border-radius: 24px;
+  margin-top: 24px;
+}
+.success-panel.show { display: block; }
+.success-ico { font-size: 3rem; color: var(--success); margin-bottom: 16px; }
+.success-h {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+.success-h em { color: var(--success); font-style: normal; }
+.success-ref-val {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--bordeaux);
+  margin: 8px 0;
+}
+/* Contact info sidebar */
+.contact-info-wrap {
+  background: white;
+  border-radius: 28px;
+  padding: 32px;
+  border: 1px solid var(--border-light);
+  height: fit-content;
+}
+.info-block { margin-bottom: 28px; border-bottom: 1px solid var(--border-light); padding-bottom: 20px; }
+.info-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.info-ico { font-size: 1.2rem; color: var(--bordeaux); margin-bottom: 12px; }
+.info-title {
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gray-mid);
+  margin-bottom: 6px;
+}
+.info-val {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.info-note { font-size: 0.75rem; color: var(--gray-mid); }
+.urgence-block {
+  background: var(--bordeaux-light);
+  border-radius: 20px;
+  padding: 20px;
+  margin-top: 24px;
+}
+.urgence-tag {
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--bordeaux);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.urgence-tag::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--bordeaux);
+  border-radius: 50%;
+}
+.urgence-num {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+/* Channels */
+.channels {
+  background: var(--beige);
+  padding: 60px 0;
+  margin-top: 40px;
+}
+.channels-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-top: 40px;
+}
+.channel-card {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  border: 1px solid var(--border-light);
+  transition: all 0.3s;
+  text-decoration: none;
+  display: block;
+}
+.channel-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--bordeaux-light);
+  box-shadow: 0 12px 24px -12px rgba(0,0,0,0.1);
+}
+.ch-ico { font-size: 2rem; color: var(--bordeaux); margin-bottom: 16px; }
+.ch-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  color: var(--gray-dark);
+}
+.ch-desc {
+  font-size: 0.875rem;
+  color: var(--gray-mid);
+  margin-bottom: 16px;
+}
+.ch-link {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--bordeaux);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: gap 0.2s;
+}
+.channel-card:hover .ch-link { gap: 10px; }
+/* FAQ */
+.faq-section { padding: 60px 0; }
+.faq-list { margin-top: 40px; display: flex; flex-direction: column; gap: 12px; }
+.faq-item {
+  background: white;
+  border-radius: 24px;
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  transition: all 0.2s;
+}
+.faq-item:hover { border-color: var(--bordeaux-light); }
+.faq-q {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  cursor: pointer;
+  gap: 16px;
+}
+.faq-q-text {
+  font-weight: 600;
+  font-size: 1rem;
+}
+.faq-q-ico {
+  font-size: 1rem;
+  color: var(--bordeaux);
+  transition: transform 0.3s;
+}
+.faq-item.open .faq-q-ico { transform: rotate(45deg); }
+.faq-a {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s;
+}
+.faq-item.open .faq-a {
+  max-height: 300px;
+  padding: 0 28px 20px;
+}
+.faq-a p {
+  font-size: 0.875rem;
+  color: var(--gray-mid);
+  line-height: 1.6;
+  border-left: 2px solid var(--bordeaux);
+  padding-left: 16px;
+}
+/* CTA final */
+.cta-final {
+  background: var(--bordeaux);
+  border-radius: 48px;
+  padding: 64px;
+  text-align: center;
+  color: white;
+  margin: 40px 0;
+}
+.cta-final h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 2rem;
+  margin-bottom: 16px;
+}
+.cta-final .btn-dark {
+  background: white;
+  color: var(--bordeaux);
+  border-radius: 40px;
+  padding: 12px 28px;
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.cta-final .btn-dark:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+.cta-final .btn-ghost2 {
+  background: transparent;
+  border: 1px solid white;
+  color: white;
+  border-radius: 40px;
+  padding: 12px 28px;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.cta-final .btn-ghost2:hover { background: rgba(255,255,255,0.1); }
+/* Footer */
+footer {
+  background: var(--beige);
+  border-top: 1px solid var(--border-light);
+  padding: 48px 0;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+}
+.footer-logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+.footer-logo span { color: var(--bordeaux); }
+.footer-about p { color: var(--gray-mid); font-size: 0.875rem; }
+.footer-links h4 { font-weight: 600; margin-bottom: 16px; font-size: 0.875rem; }
+.footer-links a {
+  display: block;
+  color: var(--gray-mid);
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+}
+.footer-links a:hover { color: var(--bordeaux); }
+.footer-bottom {
+  text-align: center;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-light);
+  color: var(--gray-mid);
+  font-size: 0.75rem;
+}
+/* Reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Responsive */
+@media (max-width: 900px) {
+  .contact-main { grid-template-columns: 1fr; }
+  .channels-grid { grid-template-columns: 1fr 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .menu-toggle { display: block; }
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 72px;
+    left: 0;
+    right: 0;
+    background: white;
+    flex-direction: column;
+    padding: 24px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .nav-links.show { display: flex; }
+  .urgence-banner { border-radius: 28px; }
+  .cta-final .btn-ghost2 { margin-left: 0; margin-top: 12px; }
+}
+@media (max-width: 600px) {
+  .channels-grid { grid-template-columns: 1fr; }
+  .f-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="cring"></div>
+
+<header>
+  <div class="container header-inner">
+    <a href="index.html" class="logo">Bathily<span>.</span></a>
+    <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</div>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="index.html#services">Services</a>
+      <a href="devis.html">Devis</a>
+      <a href="contact.html" class="active">Contact</a>
+      <a href="dashboard-client.html" class="btn-outline">Espace client</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="hero reveal">
+      <div class="hero-content">
+        <div class="hero-badge">📞 Service client dédié</div>
+        <h1>Nous <span>contacter</span></h1>
+        <p>Une question, un devis, une urgence — notre équipe vous répond sous 2h ouvrées, 7j/7 pour les urgences.</p>
+      </div>
+    </div>
+
+    <div class="breadcrumb">
+      <a href="index.html">Accueil</a><span class="sep">/</span><span>Contact</span>
+    </div>
+
+    <!-- Urgence banner -->
+    <div class="urgence-banner reveal">
+      <div class="ub-left">
+        <div class="ub-ico"><i class="fas fa-bolt"></i></div>
+        <div class="ub-text">
+          <div class="ub-title">Urgence 24h/24 · 7j/7</div>
+          <div class="ub-sub">Pour toute intervention immédiate, contactez directement notre ligne d'urgence</div>
+        </div>
+      </div>
+      <div class="ub-right">Ligne urgence disponible</div>
+    </div>
+
+    <div class="contact-main">
+      <!-- Formulaire -->
+      <div class="contact-form-wrap reveal">
+        <div class="form-intro">
+          <h2 class="form-intro-title">Envoyez-nous<br>un <em>message</em></h2>
+          <p class="form-intro-sub">Remplissez ce formulaire — nous vous répondons sous 24h ouvrées. Pour les urgences, utilisez notre ligne directe.</p>
+        </div>
+
+        <div class="sujet-tabs" role="tablist">
+          <button class="sujet-tab active" onclick="setSubject(this,'devis')" role="tab">Demande de devis</button>
+          <button class="sujet-tab" onclick="setSubject(this,'information')" role="tab">Information</button>
+          <button class="sujet-tab" onclick="setSubject(this,'urgence')" role="tab">Urgence</button>
+          <button class="sujet-tab" onclick="setSubject(this,'partenariat')" role="tab">Partenariat</button>
+          <button class="sujet-tab" onclick="setSubject(this,'reclamation')" role="tab">Réclamation</button>
+          <button class="sujet-tab" onclick="setSubject(this,'autre')" role="tab">Autre</button>
+        </div>
+
+        <form id="contactForm" onsubmit="submitForm(event)">
+          <input type="hidden" id="hiddenSubject" value="devis">
+
+          <div class="f-row">
+            <div class="f-grp">
+              <label>Prénom *</label>
+              <input type="text" id="fPrenom" placeholder="Jean">
+              <div class="field-err" id="errPrenom">Champ requis</div>
+            </div>
+            <div class="f-grp">
+              <label>Nom *</label>
+              <input type="text" id="fNom" placeholder="Dupont">
+              <div class="field-err" id="errNom">Champ requis</div>
+            </div>
+          </div>
+          <div class="f-row">
+            <div class="f-grp">
+              <label>Email *</label>
+              <input type="email" id="fEmail" placeholder="jean.dupont@email.fr">
+              <div class="field-err" id="errEmail">Email invalide</div>
+            </div>
+            <div class="f-grp">
+              <label>Téléphone</label>
+              <input type="tel" id="fTel" placeholder="+33 6 12 34 56 78">
+            </div>
+          </div>
+
+          <div class="f-grp">
+            <label>Type de véhicule concerné</label>
+            <select id="fVehicule">
+              <option value="">Non concerné / À préciser dans le message</option>
+              <option>Automobile — Berline</option>
+              <option>Automobile — SUV</option>
+              <option>Automobile — Utilitaire</option>
+              <option>Moto</option>
+              <option>Véhicule électrique / Hybride</option>
+              <option>Autre</option>
+            </select>
+          </div>
+
+          <div class="f-grp">
+            <label>Message *</label>
+            <textarea id="fMessage" rows="4" placeholder="Décrivez votre demande en détail — trajet souhaité, type de véhicule, dates envisagées, contraintes particulières…"></textarea>
+            <div class="field-err" id="errMessage">Veuillez rédiger votre message</div>
+          </div>
+
+          <div class="cb-row" id="cbNewsletter" onclick="toggleCheckbox(this)" role="checkbox" aria-checked="false" tabindex="0">
+            <div class="cb-box"></div>
+            <span class="cb-lbl">J'accepte de recevoir les actualités et offres de Bathily Convoyage</span>
+          </div>
+          <div class="cb-row" id="cbPrivacy" onclick="toggleCheckbox(this)" role="checkbox" aria-checked="false" tabindex="0">
+            <div class="cb-box"></div>
+            <span class="cb-lbl">J'accepte la <a href="#">politique de confidentialité</a> et le traitement de mes données pour traiter ma demande *</span>
+          </div>
+          <div class="field-err" id="errPrivacy" style="margin-bottom:12px">Veuillez accepter la politique de confidentialité</div>
+
+          <button type="submit" class="btn-send">
+            <i class="fas fa-paper-plane"></i> Envoyer le message
+          </button>
+        </form>
+
+        <div class="success-panel" id="successPanel">
+          <div class="success-ico"><i class="fas fa-check-circle"></i></div>
+          <h3 class="success-h">Message <em>envoyé !</em></h3>
+          <div class="success-ref-val" id="contactRef">BC-MSG-XXXX</div>
+          <p class="success-sub">Merci pour votre message. Notre équipe vous répondra sous 24h ouvrées. Pour toute urgence, n'hésitez pas à utiliser notre ligne directe.</p>
+        </div>
+      </div>
+
+      <!-- Infos contact -->
+      <div class="contact-info-wrap reveal">
+        <div class="info-block">
+          <div class="info-ico"><i class="fas fa-envelope"></i></div>
+          <div class="info-title">Email</div>
+          <div class="info-val">contact@bathily-convoyage.fr</div>
+          <div class="info-note">Réponse garantie sous 24h ouvrées</div>
+        </div>
+        <div class="info-block">
+          <div class="info-ico"><i class="fas fa-clock"></i></div>
+          <div class="info-title">Horaires</div>
+          <div class="info-val">Lun – Ven : 9h00 – 18h00<br>Samedi : 9h00 – 12h00</div>
+          <div class="info-note">Fermé dimanche · Urgences 24h/24</div>
+        </div>
+        <div class="info-block">
+          <div class="info-ico"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="info-title">Zone d'intervention</div>
+          <div class="info-val">France entière</div>
+          <div class="info-note">Déplacement partout en métropole</div>
+        </div>
+        <div class="info-block">
+          <div class="info-ico"><i class="fas fa-reply"></i></div>
+          <div class="info-title">Engagement de réponse</div>
+          <div class="info-val">Devis confirmé sous 2h<br>Message répondu sous 24h</div>
+        </div>
+        <div class="urgence-block">
+          <div class="urgence-tag">Ligne urgence</div>
+          <div class="urgence-num">Disponible 24h/24</div>
+          <div class="info-note">7j/7 · Pour toute intervention immédiate</div>
+        </div>
+        <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border-light)">
+          <div style="font-weight:600; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--gray-mid); margin-bottom:12px">Nous suivre</div>
+          <div style="display:flex; gap:12px">
+            <a href="#" aria-label="Instagram" style="width:38px;height:38px;border:1px solid var(--border-light);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gray-mid);transition:all 0.2s"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="LinkedIn" style="width:38px;height:38px;border:1px solid var(--border-light);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gray-mid);transition:all 0.2s"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" aria-label="TikTok" style="width:38px;height:38px;border:1px solid var(--border-light);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gray-mid);transition:all 0.2s"><i class="fab fa-tiktok"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Channels -->
+    <div class="channels">
+      <div class="container">
+        <div class="section-title reveal" style="text-align:center; font-size:1.8rem;">Choisissez votre <span style="color:var(--bordeaux)">canal</span></div>
+        <div class="channels-grid">
+          <a href="mailto:contact@bathily-convoyage.fr" class="channel-card reveal">
+            <div class="ch-ico"><i class="fas fa-envelope"></i></div>
+            <div class="ch-title">Email</div>
+            <div class="ch-desc">Pour toutes vos demandes standards. Réponse sous 24h ouvrées garantie.</div>
+            <div class="ch-link">Nous écrire <i class="fas fa-arrow-right"></i></div>
+          </a>
+          <a href="devis.html" class="channel-card reveal">
+            <div class="ch-ico"><i class="fas fa-calculator"></i></div>
+            <div class="ch-title">Smart Quote</div>
+            <div class="ch-desc">Obtenez une estimation de tarif en moins de 60 secondes. Confirmation sous 2h.</div>
+            <div class="ch-link">Faire un devis <i class="fas fa-arrow-right"></i></div>
+          </a>
+          <a href="dashboard-client.html" class="channel-card reveal">
+            <div class="ch-ico"><i class="fas fa-user"></i></div>
+            <div class="ch-title">Espace Client</div>
+            <div class="ch-desc">Suivez vos missions, consultez vos factures et contactez notre support dédié.</div>
+            <div class="ch-link">Se connecter <i class="fas fa-arrow-right"></i></div>
+          </a>
+          <div class="channel-card reveal" style="border-color:var(--bordeaux-light); background:var(--bordeaux-light)">
+            <div class="ch-ico"><i class="fas fa-bolt"></i></div>
+            <div class="ch-title">Urgence 24h/24</div>
+            <div class="ch-desc">Intervention immédiate nécessaire ? Notre équipe est disponible à toute heure.</div>
+            <div class="ch-link" style="color:var(--bordeaux)">Ligne urgence <i class="fas fa-arrow-right"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <section class="faq-section">
+      <div class="container">
+        <div class="section-title reveal" style="text-align:center; font-size:1.8rem;">Ce que vous <span style="color:var(--bordeaux)">demandez</span></div>
+        <div class="faq-list">
+          <div class="faq-item reveal">
+            <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
+              <span class="faq-q-text">Quand vais-je recevoir une réponse à mon message ?</span>
+              <i class="fas fa-plus faq-q-ico"></i>
+            </div>
+            <div class="faq-a"><p>Nous nous engageons à répondre à tous les messages sous 24h ouvrées. Pour les devis, la confirmation est envoyée sous 2h avec un interlocuteur dédié. Pour les urgences, notre ligne est disponible 24h/24.</p></div>
+          </div>
+          <div class="faq-item reveal">
+            <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
+              <span class="faq-q-text">Puis-je obtenir un devis directement par téléphone ?</span>
+              <i class="fas fa-plus faq-q-ico"></i>
+            </div>
+            <div class="faq-a"><p>Oui — nos conseillers sont disponibles du lundi au vendredi de 9h à 18h pour établir un devis personnalisé par téléphone. Pour les demandes complexes, c'est souvent la solution la plus rapide. Vous pouvez aussi utiliser notre configurateur Smart Quote en ligne.</p></div>
+          </div>
+          <div class="faq-item reveal">
+            <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
+              <span class="faq-q-text">Comment suivre l'avancement de ma demande ?</span>
+              <i class="fas fa-plus faq-q-ico"></i>
+            </div>
+            <div class="faq-a"><p>Chaque demande de contact reçoit automatiquement un numéro de référence unique (ex : BC-MSG-XXXX). Vous recevrez également une copie de votre message par email. En tant que client enregistré, votre espace personnel centralise toutes vos échanges.</p></div>
+          </div>
+          <div class="faq-item reveal">
+            <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
+              <span class="faq-q-text">La ligne d'urgence est-elle vraiment disponible 24h/24 ?</span>
+              <i class="fas fa-plus faq-q-ico"></i>
+            </div>
+            <div class="faq-a"><p>Oui, notre ligne d'urgence est opérationnelle 24h/24 et 7j/7 pour les situations nécessitant une intervention immédiate : incident en cours de mission, panne, problème avec un client ou un convoyeur. Pour les demandes non urgentes, préférez l'email ou le formulaire.</p></div>
+          </div>
+          <div class="faq-item reveal">
+            <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
+              <span class="faq-q-text">Je souhaite devenir convoyeur — qui contacter ?</span>
+              <i class="fas fa-plus faq-q-ico"></i>
+            </div>
+            <div class="faq-a"><p>Utilisez ce formulaire en sélectionnant le sujet "Partenariat" et précisez dans le message que vous souhaitez rejoindre notre réseau de convoyeurs. Notre responsable recrutement vous contactera sous 48h pour présenter le processus d'intégration et de certification.</p></div>
+          </div>
+          <div class="faq-item reveal">
+            <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
+              <span class="faq-q-text">Intervenez-vous sur toute la France ?</span>
+              <i class="fas fa-plus faq-q-ico"></i>
+            </div>
+            <div class="faq-a"><p>Oui — notre réseau de convoyeurs certifiés couvre l'ensemble du territoire métropolitain. Pour les DOM-TOM ou les missions transfrontalières (Belgique, Luxembourg, Suisse, Monaco), contactez-nous directement pour étudier la faisabilité.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA final -->
+    <div class="cta-final reveal">
+      <h2>Prêt à démarrer<br>votre mission ?</h2>
+      <div>
+        <a href="devis.html" class="btn-dark"><i class="fas fa-calculator"></i> Obtenir un devis</a>
+        <a href="dashboard-client.html" class="btn-ghost2">Accéder à mon espace</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-about">
+        <div class="footer-logo">Bathily<span>.</span></div>
+        <p>La solution digitale de convoyage automobile & moto avec suivi en temps réel en France.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Navigation</h4>
+        <a href="index.html">Accueil</a>
+        <a href="index.html#services">Services</a>
+        <a href="devis.html">Devis</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <div class="footer-links">
+        <h4>Espaces</h4>
+        <a href="dashboard-client.html">Espace client</a>
+        <a href="dashboard-convoyeur.html">Espace convoyeur</a>
+        <a href="dashboard-admin.html">Espace admin</a>
+      </div>
+      <div class="footer-links">
+        <h4>Contact</h4>
+        <a href="mailto:contact@bathily-convoyage.fr">contact@bathily-convoyage.fr</a>
+        <span>France entière</span>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2025 Bathily Convoyage — Tous droits réservés</div>
+  </div>
+</footer>
+
+<script>
+// ========== CURSOR ==========
+if(window.matchMedia('(hover: hover)').matches) {
+  const cur=document.getElementById('cur'),cring=document.getElementById('cring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+  (function loop(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(loop)})();
+}
+
+// ========== REVEAL ON SCROLL ==========
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ========== SUJETS TABS ==========
+function setSubject(btn, val) {
+  document.querySelectorAll('.sujet-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('hiddenSubject').value = val;
+  const placeholders = {
+    devis: 'Décrivez votre besoin de convoyage — trajet souhaité, type de véhicule, dates envisagées…',
+    information: 'Quelle information recherchez-vous ? Nous ferons notre possible pour vous répondre rapidement.',
+    urgence: 'Décrivez précisément la situation d\'urgence — lieu, véhicule concerné, nature de l\'incident…',
+    partenariat: 'Présentez votre projet de partenariat ou votre demande presse en quelques lignes.',
+    reclamation: 'Décrivez la situation avec la référence de mission concernée si possible.',
+    autre: 'Décrivez votre demande en détail.',
+  };
+  document.getElementById('fMessage').placeholder = placeholders[val] || placeholders.autre;
+}
+document.querySelectorAll('.sujet-tab').forEach(tab => {
+  tab.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const val = tab.getAttribute('onclick').match(/'([^']+)'/)[1];
+      setSubject(tab, val);
+    }
+  });
+});
+
+// ========== FAQ ==========
+function toggleFaq(el) {
+  const item = el.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleFaq(q);
+    }
+  });
+});
+
+// ========== CHECKBOX ==========
+function toggleCheckbox(container) {
+  container.classList.toggle('chk');
+  const isChecked = container.classList.contains('chk');
+  container.setAttribute('aria-checked', isChecked);
+}
+document.querySelectorAll('.cb-row').forEach(cb => {
+  cb.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleCheckbox(cb);
+    }
+  });
+});
+
+// ========== FORM SUBMIT ==========
+function submitForm(e) {
+  e.preventDefault();
+  let ok = true;
+  const fields = [
+    {id:'fPrenom', err:'errPrenom', check:v=>v.trim().length>1},
+    {id:'fNom', err:'errNom', check:v=>v.trim().length>1},
+    {id:'fEmail', err:'errEmail', check:v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)},
+    {id:'fMessage', err:'errMessage', check:v=>v.trim().length>10}
+  ];
+  fields.forEach(f => {
+    const inp = document.getElementById(f.id);
+    const valid = f.check(inp.value.trim());
+    inp.classList.toggle('err', !valid);
+    document.getElementById(f.err).classList.toggle('show', !valid);
+    if (!valid) ok = false;
+  });
+  const priv = document.getElementById('cbPrivacy');
+  const privErr = document.getElementById('errPrivacy');
+  if (!priv.classList.contains('chk')) {
+    privErr.classList.add('show');
+    ok = false;
+  } else {
+    privErr.classList.remove('show');
+  }
+  if (!ok) return;
+
+  const sujet = document.getElementById('hiddenSubject').value;
+  const prenom = document.getElementById('fPrenom').value.trim();
+  const nom = document.getElementById('fNom').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
+  const tel = document.getElementById('fTel').value.trim();
+  const vehicule = document.getElementById('fVehicule').value;
+  const message = document.getElementById('fMessage').value.trim();
+  const newsletter = document.getElementById('cbNewsletter').classList.contains('chk');
+  const ref = 'BC-MSG-' + Math.floor(1000 + Math.random() * 9000);
+  let messages = JSON.parse(localStorage.getItem('bathily_contact_messages') || '[]');
+  messages.push({ ref, sujet, prenom, nom, email, tel, vehicule, message, newsletter, timestamp: new Date().toISOString() });
+  localStorage.setItem('bathily_contact_messages', JSON.stringify(messages));
+
+  document.getElementById('contactRef').textContent = ref;
+  document.getElementById('contactForm').style.display = 'none';
+  document.querySelectorAll('.sujet-tabs, .form-intro').forEach(el => el.style.display = 'none');
+  document.getElementById('successPanel').classList.add('show');
+  document.getElementById('contactForm').reset();
+  document.getElementById('cbNewsletter').classList.remove('chk');
+  document.getElementById('cbPrivacy').classList.remove('chk');
+  document.getElementById('cbNewsletter').setAttribute('aria-checked', 'false');
+  document.getElementById('cbPrivacy').setAttribute('aria-checked', 'false');
+}
+
+// Header scroll effect
+window.addEventListener('scroll', () => {
+  const header = document.getElementById('hdr');
+  if (header) header.classList.toggle('scrolled', scrollY > 50);
+});
+
+// Menu mobile
+document.querySelectorAll('.nav-links a').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelector('.nav-links').classList.remove('show');
+  });
+});
+</script>
+</body>
+</html>

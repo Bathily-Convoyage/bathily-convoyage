@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Suivi de mission — Bathily Convoyage</title>
+<meta name="description" content="Suivez votre mission de convoyage en temps réel : position GPS, progression, ETA, photos et notifications.">
+<meta property="og:title" content="Suivi de mission — Bathily Convoyage">
+<meta property="og:description" content="Page de suivi en direct de votre mission de convoyage. Carte interactive, progression et notifications.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: #FDFBF7;
+  color: #2D2A24;
+  line-height: 1.5;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+:root {
+  --bordeaux: #7A2E1A;
+  --bordeaux-dark: #5C2212;
+  --bordeaux-light: #F3E8E4;
+  --cream: #FDFBF7;
+  --beige: #F9F6F0;
+  --gray-dark: #2D2A24;
+  --gray-mid: #6B625A;
+  --border-light: #E8E1D9;
+  --success: #4A7C6B;
+  --warning: #E0A343;
+}
+/* Curseur personnalisé seulement sur souris */
+@media (hover: hover) {
+  .cur{position:fixed;width:8px;height:8px;background:var(--bordeaux);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+  .cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(122,46,26,.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+}
+@media (hover: none) {
+  .cur, .cur-ring { display: none; }
+}
+/* Topbar */
+.topbar {
+  background: white;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.topbar-logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--gray-dark);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+.topbar-logo span { color: var(--bordeaux); }
+.topbar-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.topbar-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gray-mid);
+}
+.topbar-ref {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--bordeaux);
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: rgba(74,124,107,0.1);
+  border: 1px solid rgba(74,124,107,0.3);
+  color: var(--success);
+  padding: 4px 10px;
+  border-radius: 40px;
+}
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.tb-btn {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 40px;
+  padding: 6px 12px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--gray-mid);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tb-btn:hover {
+  border-color: var(--bordeaux);
+  color: var(--bordeaux);
+}
+/* Layout */
+.tracking-layout {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  min-height: calc(100vh - 60px);
+}
+/* Panneau gauche */
+.info-panel {
+  background: white;
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: calc(100vh - 60px);
+  position: sticky;
+  top: 60px;
+}
+.status-hero {
+  padding: 24px;
+  border-bottom: 1px solid var(--border-light);
+}
+.sh-mission-ref {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--bordeaux);
+  margin-bottom: 8px;
+}
+.sh-status {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.sh-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 40px;
+}
+.status-transit { background: rgba(74,124,107,0.1); color: var(--success); }
+.status-termine { background: rgba(107,98,90,0.1); color: var(--gray-mid); }
+.sh-vehicle {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.sh-vehicle em { color: var(--bordeaux); font-style: normal; }
+.sh-plate {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  background: var(--bordeaux-light);
+  padding: 2px 8px;
+  border-radius: 40px;
+  display: inline-block;
+  color: var(--bordeaux);
+  margin-bottom: 16px;
+}
+.route-progress { margin-bottom: 16px; }
+.rp-cities {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.rp-city {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.rp-city.done { color: var(--bordeaux); }
+.rp-city.active { color: var(--success); }
+.rp-bar-wrap {
+  position: relative;
+  height: 4px;
+  background: var(--border-light);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.rp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--bordeaux), var(--success));
+  border-radius: 4px;
+  width: 0%;
+  transition: width 1s ease;
+  position: relative;
+}
+.rp-car {
+  position: absolute;
+  top: -12px;
+  right: -10px;
+  font-size: 1.2rem;
+  color: var(--bordeaux);
+  filter: drop-shadow(0 0 4px var(--bordeaux));
+}
+.rp-pct {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+/* Quick stats */
+.quick-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border-light);
+  margin: 0 0 0 0;
+}
+.qs-item {
+  background: white;
+  padding: 16px;
+}
+.qs-lbl {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+  margin-bottom: 4px;
+}
+.qs-val {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+.qs-val em { font-size: 0.8rem; font-weight: 400; color: var(--bordeaux); }
+/* ETA */
+.eta-card {
+  background: var(--bordeaux-light);
+  margin: 16px;
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+.eta-lbl {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+}
+.eta-time {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+.eta-countdown {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--success);
+}
+/* Convoyeur */
+.conv-section {
+  padding: 16px;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+.cs-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  color: var(--gray-mid);
+}
+.conv-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.conv-ava {
+  width: 44px;
+  height: 44px;
+  background: var(--bordeaux-light);
+  border: 1px solid var(--bordeaux);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--bordeaux);
+  position: relative;
+}
+.conv-online {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: var(--success);
+  border-radius: 50%;
+  border: 2px solid white;
+}
+.conv-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.conv-meta {
+  font-size: 0.7rem;
+  color: var(--gray-mid);
+}
+.conv-rating {
+  font-size: 0.7rem;
+  color: var(--warning);
+}
+/* Étapes */
+.steps-section {
+  padding: 16px;
+  flex: 1;
+}
+.steps-title {
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.steps-list {
+  position: relative;
+  padding-left: 16px;
+}
+.steps-list::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--border-light);
+}
+.step-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  position: relative;
+}
+.step-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  z-index: 1;
+}
+.step-dot.done {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+.step-dot.active {
+  background: var(--bordeaux-light);
+  border-color: var(--bordeaux);
+  color: var(--bordeaux);
+  animation: pulseBorder 1.5s infinite;
+}
+@keyframes pulseBorder {
+  0% { box-shadow: 0 0 0 0 rgba(122,46,26,0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(122,46,26,0); }
+  100% { box-shadow: 0 0 0 0 rgba(122,46,26,0); }
+}
+.step-content {
+  flex: 1;
+}
+.step-label {
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+}
+.step-label.done { color: var(--gray-mid); }
+.step-label.active { color: var(--bordeaux); }
+.step-time {
+  font-size: 0.7rem;
+  color: var(--gray-mid);
+}
+/* Notifications */
+.notif-section {
+  padding: 16px;
+  border-top: 1px solid var(--border-light);
+}
+.notif-title {
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.notif-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.7rem;
+  padding: 8px;
+  background: var(--beige);
+  border-radius: 16px;
+}
+.notif-item.new {
+  background: var(--bordeaux-light);
+}
+.notif-ico { font-size: 0.8rem; margin-top: 2px; }
+.notif-text { flex: 1; color: var(--gray-dark); }
+.notif-time { font-size: 0.6rem; color: var(--gray-mid); white-space: nowrap; }
+/* Actions */
+.actions-section {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border: 1px solid var(--border-light);
+  border-radius: 40px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.action-btn:hover {
+  border-color: var(--bordeaux);
+  background: var(--bordeaux-light);
+}
+.action-btn i { color: var(--bordeaux); width: 20px; }
+.action-btn-title { font-weight: 700; font-size: 0.8rem; }
+.action-btn-sub { font-size: 0.65rem; color: var(--gray-mid); }
+/* Carte */
+.map-panel {
+  position: relative;
+  background: var(--beige);
+}
+.map-container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+#realMap {
+  height: 100%;
+  width: 100%;
+  min-height: 500px;
+}
+.map-controls {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 20;
+}
+.map-ctrl-btn {
+  width: 36px;
+  height: 36px;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+.map-ctrl-btn:hover {
+  border-color: var(--bordeaux);
+  color: var(--bordeaux);
+}
+.current-pos {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: white;
+  border-radius: 16px;
+  padding: 8px 16px;
+  border: 1px solid var(--border-light);
+  z-index: 20;
+  font-size: 0.7rem;
+}
+.cp-title {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.map-bottom-bar {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: white;
+  border-radius: 40px;
+  padding: 8px 20px;
+  display: flex;
+  gap: 24px;
+  border: 1px solid var(--border-light);
+  z-index: 20;
+  font-size: 0.7rem;
+}
+.mbb-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mbb-ico { color: var(--bordeaux); }
+.refresh-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: white;
+  border-radius: 28px;
+  max-width: 480px;
+  width: 90%;
+  padding: 24px;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.modal-h {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.modal-h em { color: var(--bordeaux); font-style: normal; }
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
+.photo-thumb {
+  aspect-ratio: 1;
+  background: var(--beige);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.photo-thumb i { font-size: 1.2rem; color: var(--gray-mid); }
+.photo-thumb span { font-size: 0.6rem; margin-top: 4px; }
+/* Reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Responsive */
+@media (max-width: 900px) {
+  .tracking-layout { grid-template-columns: 1fr; }
+  .info-panel { max-height: none; position: relative; top: 0; }
+  .map-container { min-height: 400px; }
+}
+@media (max-width: 600px) {
+  .topbar-mid { display: none; }
+  .map-bottom-bar { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="cring"></div>
+
+<div class="topbar">
+  <a href="index.html" class="topbar-logo">Bathily<span>.</span></a>
+  <div class="topbar-mid">
+    <div class="topbar-title">Suivi de mission en temps réel</div>
+    <div class="topbar-ref" id="topRef">BC-2025-0847 · BMW Série 3 · Paris → Lyon</div>
+  </div>
+  <div class="topbar-right">
+    <div class="live-badge"><div class="live-dot"></div> EN DIRECT</div>
+    <button class="tb-btn" onclick="openModal('modalShare')"><i class="fas fa-share-alt"></i> Partager</button>
+  </div>
+</div>
+
+<div class="tracking-layout">
+  <!-- PANNEAU INFO GAUCHE -->
+  <div class="info-panel">
+    <div class="status-hero reveal">
+      <div class="sh-mission-ref">Mission · BC-2025-0847</div>
+      <div class="sh-status">
+        <div class="sh-status-badge status-transit"><i class="fas fa-circle" style="font-size:0.5rem"></i> En transit</div>
+      </div>
+      <div class="sh-vehicle">BMW <em>Série 3</em></div>
+      <div class="sh-plate">IJ-789-KL</div>
+      <div class="route-progress">
+        <div class="rp-cities">
+          <div><div class="rp-city done">Paris</div><div style="font-size:0.6rem">Départ 09:00</div></div>
+          <div style="text-align:right"><div class="rp-city active">Lyon</div><div style="font-size:0.6rem">Arrivée ~15:30</div></div>
+        </div>
+        <div class="rp-bar-wrap">
+          <div class="rp-bar-fill" id="progressBar" style="width:65%">
+            <div class="rp-car" id="carMarker"><i class="fas fa-car"></i></div>
+          </div>
+        </div>
+        <div class="rp-pct">
+          <span id="kmDone">305 km parcourus</span>
+          <strong id="pctDone">65% — 165 km restants</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="eta-card reveal">
+      <div><div class="eta-lbl">Arrivée estimée</div><div class="eta-time" id="etaTime">15:28</div><div class="eta-sub">Lyon Part-Dieu</div></div>
+      <div class="eta-right"><div class="eta-lbl">Temps restant</div><div class="eta-countdown" id="countdown">2h 14min</div><div class="eta-sub">Mise à jour récente</div></div>
+    </div>
+
+    <div class="quick-stats reveal">
+      <div class="qs-item"><div class="qs-lbl">Vitesse moyenne</div><div class="qs-val" id="speedVal">98<em> km/h</em></div></div>
+      <div class="qs-item"><div class="qs-lbl">Distance restante</div><div class="qs-val" id="distRest">165<em> km</em></div></div>
+      <div class="qs-item"><div class="qs-lbl">Dernière position</div><div class="qs-val" id="lastPos">Beaune</div></div>
+      <div class="qs-item"><div class="qs-lbl">Carburant / Charge</div><div class="qs-val" id="fuelLevel">48<em>%</em></div></div>
+    </div>
+
+    <div class="conv-section reveal">
+      <div class="cs-title">Convoyeur assigné</div>
+      <div class="conv-card">
+        <div class="conv-ava">MB<div class="conv-online"></div></div>
+        <div><div class="conv-name">M. Bathily</div><div class="conv-meta">Convoyeur Senior · Certifié SIV</div><div class="conv-rating">★★★★★ 4.9 / 5</div></div>
+      </div>
+    </div>
+
+    <div class="steps-section reveal">
+      <div class="steps-title">Étapes de la mission</div>
+      <div class="steps-list" id="stepsList">
+        <!-- steps dynamiques ou statiques -->
+        <div class="step-item"><div class="step-dot done"><i class="fas fa-check"></i></div><div class="step-content"><div class="step-label done">Prise en charge</div><div class="step-time">09:14 · Paris 1er</div></div></div>
+        <div class="step-item"><div class="step-dot done"><i class="fas fa-check"></i></div><div class="step-content"><div class="step-label done">EDL départ signé</div><div class="step-time">09:32 · 20 photos</div></div></div>
+        <div class="step-item"><div class="step-dot done"><i class="fas fa-check"></i></div><div class="step-content"><div class="step-label done">Départ effectué</div><div class="step-time">09:38 · GPS activé</div></div></div>
+        <div class="step-item"><div class="step-dot done"><i class="fas fa-check"></i></div><div class="step-content"><div class="step-label done">Pause — Auxerre</div><div class="step-time">11:22 · 15min</div></div></div>
+        <div class="step-item"><div class="step-dot active"><i class="fas fa-truck"></i></div><div class="step-content"><div class="step-label active">En transit — Beaune</div><div class="step-time" id="currentStepTime">A6 · 165 km restants</div></div></div>
+        <div class="step-item"><div class="step-dot"></div><div class="step-content"><div class="step-label">Nettoyage (Sérénité)</div><div class="step-time">Prévu ~14:30</div></div></div>
+        <div class="step-item"><div class="step-dot"></div><div class="step-content"><div class="step-label">Livraison</div><div class="step-time">Estimée 15:28</div></div></div>
+      </div>
+    </div>
+
+    <div class="notif-section reveal">
+      <div class="notif-title">Dernières notifications</div>
+      <div class="notif-list" id="notifList" aria-live="polite">
+        <div class="notif-item new"><i class="fas fa-map-marker-alt notif-ico" style="color:var(--bordeaux)"></i><div class="notif-text"><strong>Position mise à jour</strong> — A6 km 301, Beaune</div><div class="notif-time">13:14</div></div>
+        <div class="notif-item"><i class="fas fa-pause-circle notif-ico" style="color:var(--success)"></i><div class="notif-text"><strong>Pause effectuée</strong> — Aire d'Auxerre, 15min</div><div class="notif-time">11:22</div></div>
+      </div>
+    </div>
+
+    <div class="actions-section reveal">
+      <button class="action-btn" onclick="openModal('modalContact')"><i class="fas fa-phone-alt"></i><div><div class="action-btn-title">Contacter le convoyeur</div><div class="action-btn-sub">Via dispatch · réponse immédiate</div></div></button>
+      <button class="action-btn" onclick="openModal('modalPhotos')"><i class="fas fa-images"></i><div><div class="action-btn-title">Photos EDL départ</div><div class="action-btn-sub">20 photos · signé 09:32</div></div></button>
+      <button class="action-btn" onclick="openModal('modalSignalement')"><i class="fas fa-exclamation-triangle"></i><div><div class="action-btn-title">Signaler un problème</div><div class="action-btn-sub">Support urgence 24h/24</div></div></button>
+      <button class="action-btn" onclick="openModal('modalShare')"><i class="fas fa-share-alt"></i><div><div class="action-btn-title">Partager le suivi</div><div class="action-btn-sub">Envoyer le lien</div></div></button>
+    </div>
+  </div>
+
+  <!-- PANNEAU CARTE -->
+  <div class="map-panel">
+    <div class="map-container">
+      <div id="realMap" style="height: 100%; min-height: 600px;"></div>
+      <div class="map-controls">
+        <div class="map-ctrl-btn" onclick="centerOnCar()" title="Centrer sur le véhicule"><i class="fas fa-crosshairs"></i></div>
+        <div class="map-ctrl-btn" onclick="toggleFullscreen()" title="Plein écran"><i class="fas fa-expand"></i></div>
+      </div>
+      <div class="current-pos">
+        <div class="cp-title"><i class="fas fa-location-dot"></i> Position actuelle</div>
+        <div id="currentLoc">A6 · Hauteur de Beaune</div>
+        <div id="currentCoords">47°01'N · 4°50'E</div>
+        <div>Mis à jour il y a <span id="lastUpdate">32</span>s</div>
+      </div>
+      <div class="map-bottom-bar">
+        <div class="mbb-item"><i class="fas fa-tachometer-alt mbb-ico"></i><span id="speedBar">112 km/h</span></div>
+        <div class="mbb-item"><i class="fas fa-route mbb-ico"></i><span id="distRestBar">165 km</span></div>
+        <div class="mbb-item"><i class="fas fa-gas-pump mbb-ico"></i><span id="fuelBar">48%</span></div>
+        <button class="refresh-btn" onclick="refreshData()"><i class="fas fa-sync-alt"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalContact"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalContact')"><i class="fas fa-times"></i></button><h3 class="modal-h">Contacter le <em>dispatch</em></h3><p class="modal-sub">Pour joindre le convoyeur, passez par notre dispatch.</p><div class="f-grp"><label>Votre message</label><textarea rows="3"></textarea></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalContact')">Envoyer</button><button class="btn-outline" onclick="closeModal('modalContact')">Annuler</button></div></div></div>
+<div class="modal-overlay" id="modalPhotos"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalPhotos')"><i class="fas fa-times"></i></button><h3 class="modal-h">Photos <em>état des lieux départ</em></h3><div class="photos-grid"><div class="photo-thumb"><i class="fas fa-car"></i><span>Avant</span></div><div class="photo-thumb"><i class="fas fa-car"></i><span>Arrière</span></div><div class="photo-thumb"><i class="fas fa-car-side"></i><span>Côté G</span></div><div class="photo-thumb"><i class="fas fa-car-side"></i><span>Côté D</span></div><div class="photo-thumb"><i class="fas fa-car"></i><span>Toit</span></div><div class="photo-thumb"><i class="fas fa-tachometer-alt"></i><span>Tableau bord</span></div><div class="photo-thumb"><i class="fas fa-chair"></i><span>Siège AVG</span></div><div class="photo-thumb"><i class="fas fa-chair"></i><span>Siège AVD</span></div><div class="photo-thumb"><i class="fas fa-chair"></i><span>Sièges AR</span></div><div class="photo-thumb"><i class="fas fa-box"></i><span>Coffre</span></div></div><div class="modal-btns"><button class="btn-outline" onclick="closeModal('modalPhotos')">Fermer</button></div></div></div>
+<div class="modal-overlay" id="modalSignalement"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalSignalement')"><i class="fas fa-times"></i></button><h3 class="modal-h">Signaler un <em>problème</em></h3><div class="f-grp"><label>Type</label><select><option>Retard</option><option>Contact impossible</option><option>Urgence</option></select></div><div class="f-grp"><label>Description</label><textarea rows="3"></textarea></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalSignalement')">Signaler</button><button class="btn-outline" onclick="closeModal('modalSignalement')">Annuler</button></div></div></div>
+<div class="modal-overlay" id="modalShare"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalShare')"><i class="fas fa-times"></i></button><h3 class="modal-h">Partager le <em>suivi</em></h3><div><div id="shareLink">bathily-convoyage.fr/tracking/BC-2025-0847</div><button onclick="copyLink()">Copier le lien</button></div><div class="modal-btns"><button class="btn-outline" onclick="closeModal('modalShare')">Fermer</button></div></div></div>
+
+<script>
+// ========== CURSOR ==========
+if(window.matchMedia('(hover: hover)').matches) {
+  const cur=document.getElementById('cur'),cring=document.getElementById('cring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+  (function loop(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(loop)})();
+}
+
+// ========== INIT CARTE LEAFLET ==========
+let map = L.map('realMap').setView([46.5, 2.5], 7);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(map);
+
+let routeLine = null;
+let carMarker = null;
+let startMarker = L.marker([48.8566, 2.3522]).addTo(map).bindPopup('Paris (départ)');
+let endMarker = L.marker([45.7640, 4.8357]).addTo(map).bindPopup('Lyon (arrivée)');
+
+// Tracé de l'itinéraire (simplifié, mais peut être amélioré avec API Directions)
+const routePoints = [[48.8566,2.3522], [48.8566,2.3522], [46.5,2.5], [45.7640,4.8357]]; // à améliorer
+routeLine = L.polyline(routePoints, { color: '#7A2E1A', weight: 4, opacity: 0.7 }).addTo(map);
+carMarker = L.marker([48.8566, 2.3522], { icon: L.divIcon({ className: 'custom-car-marker', html: '<i class="fas fa-car" style="color:#7A2E1A; font-size:24px;"></i>', iconSize: [24,24] }) }).addTo(map).bindPopup('Véhicule');
+
+// ========== SIMULATION / FIREBASE ==========
+let progress = 65;
+let lastUpdateSec = 32;
+let etaMinutes = 134;
+let locIndex = 0;
+let locations = [
+  {pct:65, loc:'A6 · Hauteur de Beaune', coords:[47.016,4.833], km:305, speed:112, fuel:48},
+  {pct:70, loc:'A6 · Avant Mâcon', coords:[46.42,4.85], km:329, speed:115, fuel:46},
+  {pct:77, loc:'A6 · Villefranche-sur-Saône', coords:[45.99,4.72], km:362, speed:112, fuel:43},
+  {pct:88, loc:'A46 · Périphérique Lyon', coords:[45.75,4.85], km:414, speed:78, fuel:38},
+  {pct:100, loc:'Lyon 3ème · Livraison', coords:[45.75,4.92], km:470, speed:0, fuel:35}
+];
+let notifIndex = 0;
+let notifMessages = [
+  {ico:'fas fa-map-marker-alt', color:'var(--bordeaux)', text:'Position mise à jour — A6 km 315, sortie Beaune', time:'13:18'},
+  {ico:'fas fa-gas-pump', color:'var(--warning)', text:'Carburant à 45%, autonomie suffisante', time:'13:22'},
+  {ico:'fas fa-map-marker-alt', color:'var(--bordeaux)', text:'Position mise à jour — A6 km 329, avant Mâcon', time:'13:31'},
+];
+
+function updateUIfromLocation(loc) {
+  document.getElementById('progressBar').style.width = loc.pct + '%';
+  document.getElementById('pctDone').innerText = loc.pct + '% — ' + (470 - loc.km) + ' km restants';
+  document.getElementById('kmDone').innerText = loc.km + ' km parcourus';
+  document.getElementById('speedVal').innerHTML = loc.speed + '<em> km/h</em>';
+  document.getElementById('speedBar').innerText = loc.speed + ' km/h';
+  document.getElementById('distRest').innerHTML = (470 - loc.km) + '<em> km</em>';
+  document.getElementById('distRestBar').innerText = (470 - loc.km) + ' km';
+  document.getElementById('fuelLevel').innerHTML = loc.fuel + '<em>%</em>';
+  document.getElementById('fuelBar').innerText = loc.fuel + '%';
+  document.getElementById('currentLoc').innerText = loc.loc;
+  document.getElementById('currentCoords').innerText = loc.coords[0].toFixed(4) + '°N, ' + loc.coords[1].toFixed(4) + '°E';
+  let remaining = 470 - loc.km;
+  let etaMin = Math.max(0, Math.round(remaining / (loc.speed || 80) * 60));
+  let eta = new Date(Date.now() + etaMin*60000);
+  document.getElementById('etaTime').innerText = eta.getHours().toString().padStart(2,'0') + ':' + eta.getMinutes().toString().padStart(2,'0');
+  let h = Math.floor(etaMin/60), m = etaMin%60;
+  document.getElementById('countdown').innerText = (h>0?h+'h ':'')+m+'min';
+  document.getElementById('currentStepTime').innerText = new Date().toLocaleTimeString().slice(0,5) + ' · ' + loc.loc;
+  // mettre à jour marqueur sur carte
+  if (carMarker) carMarker.setLatLng(loc.coords);
+  if (routeLine) {
+    // simplifié : on pourrait recalculer l'itinéraire, mais on garde la ligne fixe
+  }
+}
+
+function addNotif(n) {
+  const list = document.getElementById('notifList');
+  const div = document.createElement('div');
+  div.className = 'notif-item new';
+  div.innerHTML = `<i class="${n.ico} notif-ico" style="color:${n.color}"></i><div class="notif-text">${n.text}</div><div class="notif-time">${n.time}</div>`;
+  list.prepend(div);
+  setTimeout(() => div.classList.remove('new'), 3000);
+  if (list.children.length > 6) list.removeChild(list.lastChild);
+}
+
+function simulateProgress() {
+  if (locIndex >= locations.length -1) {
+    showMissionDone();
+    return;
+  }
+  locIndex++;
+  updateUIfromLocation(locations[locIndex]);
+  if (notifIndex < notifMessages.length) {
+    addNotif(notifMessages[notifIndex]);
+    notifIndex++;
+  }
+  lastUpdateSec = 0;
+}
+
+setInterval(() => { lastUpdateSec++; document.getElementById('lastUpdate').innerText = lastUpdateSec; }, 1000);
+setTimeout(simulateProgress, 8000);
+setTimeout(simulateProgress, 16000);
+setTimeout(simulateProgress, 24000);
+setTimeout(simulateProgress, 32000);
+setTimeout(() => showMissionDone(), 48000);
+
+function showMissionDone() {
+  document.getElementById('progressBar').style.width = '100%';
+  document.getElementById('doneOverlay')?.classList?.add('show');
+  const badge = document.querySelector('.sh-status-badge');
+  if (badge) { badge.className = 'sh-status-badge status-termine'; badge.innerHTML = '<i class="fas fa-check-circle"></i> Mission terminée'; }
+  addNotif({ico:'fas fa-check-circle', color:'var(--success)', text:'Mission livrée à Lyon !', time:new Date().toLocaleTimeString().slice(0,5)});
+}
+
+// ========== CONTROLES ==========
+function centerOnCar() {
+  if (carMarker) map.setView(carMarker.getLatLng(), 12);
+}
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+function refreshData() {
+  lastUpdateSec = 0;
+  document.getElementById('lastUpdate').innerText = '0';
+}
+function copyLink() {
+  navigator.clipboard.writeText('https://bathily-convoyage.fr/tracking/BC-2025-0847');
+  alert('Lien copié !');
+}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+
+// ========== REVEAL ON SCROLL ==========
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ========== FIREBASE (optionnel) ==========
+try {
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js").then(({ initializeApp }) => {
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(({ getDatabase, ref, onValue }) => {
+      const firebaseConfig = {
+        apiKey: "AIzaSyAbPM7pM4umkuG1k_MAUYxddHQMNP9UebM",
+        authDomain: "bathily-convoyage-c211b.firebaseapp.com",
+        databaseURL: "https://bathily-convoyage-c211b-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "bathily-convoyage-c211b",
+        storageBucket: "bathily-convoyage-c211b.firebasestorage.app",
+        messagingSenderId: "115133170172",
+        appId: "1:115133170172:web:5fcdc2b835f6df157b3279"
+      };
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const tripRef = ref(db, 'trips/BC-2025-0847/gps/current');
+      onValue(tripRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.lat && data.lng) {
+          // Mise à jour réelle
+          if (carMarker) carMarker.setLatLng([data.lat, data.lng]);
+          if (data.speed) document.getElementById('speedVal').innerHTML = Math.round(data.speed) + '<em> km/h</em>';
+          // autres mises à jour...
+        }
+      });
+    });
+  }).catch(e => console.warn("Firebase non dispo", e));
+} catch(e) {}
+</script>
+</body>
+</html>

@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Panel Admin — Bathily Convoyage</title>
+<meta name="description" content="Administration complète de Bathily Convoyage : gestion des missions, clients, convoyeurs, tarifs, rémunérations et facturation.">
+<meta property="og:title" content="Panel Admin — Bathily Convoyage">
+<meta property="og:description" content="Interface d'administration pour gérer les convoyages, les utilisateurs et les paramètres financiers.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: #FDFBF7;
+  color: #2D2A24;
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+:root {
+  --bordeaux: #7A2E1A;
+  --bordeaux-dark: #5C2212;
+  --bordeaux-light: #F3E8E4;
+  --cream: #FDFBF7;
+  --beige: #F9F6F0;
+  --gray-dark: #2D2A24;
+  --gray-mid: #6B625A;
+  --border-light: #E8E1D9;
+  --success: #4A7C6B;
+  --warning: #E0A343;
+}
+/* Curseur personnalisé seulement sur souris */
+@media (hover: hover) {
+  .cur{position:fixed;width:8px;height:8px;background:var(--bordeaux);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+  .cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(122,46,26,.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+}
+@media (hover: none) {
+  .cur, .cur-ring { display: none; }
+}
+/* Topbar */
+.topbar {
+  background: white;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0 28px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.topbar-logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--gray-dark);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+.topbar-logo span { color: var(--bordeaux); }
+.topbar-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--bordeaux-light);
+  border: 1px solid var(--bordeaux);
+  color: var(--bordeaux);
+  padding: 3px 10px;
+  border-radius: 40px;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.topbar-notif {
+  position: relative;
+  cursor: pointer;
+  color: var(--gray-mid);
+  font-size: 1.1rem;
+  transition: color 0.2s;
+}
+.topbar-notif:hover { color: var(--bordeaux); }
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  background: var(--bordeaux);
+  border-radius: 20px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  background: var(--bordeaux-light);
+  border: 1px solid var(--bordeaux);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: var(--bordeaux);
+}
+.user-name {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.topbar-logout {
+  background: none;
+  border: none;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+  cursor: pointer;
+  transition: color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.topbar-logout:hover { color: var(--bordeaux); }
+/* Layout */
+.dash-layout {
+  display: flex;
+  flex: 1;
+}
+/* Sidebar */
+.dash-nav {
+  width: 240px;
+  background: white;
+  border-right: 1px solid var(--border-light);
+  padding: 24px 0;
+  flex-shrink: 0;
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+.nav-section {
+  margin-bottom: 28px;
+}
+.nav-section-lbl {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+  padding: 0 20px;
+  margin-bottom: 10px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-mid);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+  text-decoration: none;
+}
+.nav-item:hover {
+  color: var(--bordeaux);
+  background: var(--bordeaux-light);
+}
+.nav-item.active {
+  color: var(--bordeaux);
+  border-left-color: var(--bordeaux);
+  background: var(--bordeaux-light);
+}
+.nav-item i {
+  font-size: 0.8rem;
+  width: 18px;
+}
+.nav-badge {
+  margin-left: auto;
+  background: var(--bordeaux);
+  color: white;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 20px;
+}
+/* Main */
+.dash-main {
+  flex: 1;
+  padding: 28px 36px;
+  overflow-y: auto;
+}
+.dash-header {
+  margin-bottom: 28px;
+}
+.dash-hello {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.dash-hello em { color: var(--bordeaux); font-style: normal; }
+.dash-date {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gray-mid);
+}
+/* Stats row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: white;
+  border-radius: 20px;
+  padding: 18px;
+  border: 1px solid var(--border-light);
+  transition: all 0.3s;
+  position: relative;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--bordeaux-light);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+}
+.stat-ico {
+  font-size: 1.2rem;
+  color: var(--bordeaux);
+  margin-bottom: 10px;
+}
+.stat-val {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-val em { color: var(--bordeaux); font-style: normal; font-size: 0.9rem; }
+.stat-lbl {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+}
+.stat-trend {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 20px;
+}
+.trend-up { background: rgba(74,124,107,0.1); color: var(--success); }
+.trend-neutral { background: rgba(107,98,90,0.1); color: var(--gray-mid); }
+/* Section title */
+.sec-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.sec-h {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.sec-h em { color: var(--bordeaux); font-style: normal; }
+.sec-actions { display: flex; gap: 8px; }
+/* Buttons */
+.btn-red {
+  background: var(--bordeaux);
+  color: white;
+  border: none;
+  border-radius: 40px;
+  padding: 8px 16px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-red:hover {
+  background: var(--bordeaux-dark);
+  transform: translateY(-1px);
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 40px;
+  padding: 8px 16px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-outline:hover {
+  border-color: var(--bordeaux);
+  color: var(--bordeaux);
+}
+.btn-green {
+  background: var(--success);
+  color: white;
+  border: none;
+  border-radius: 40px;
+  padding: 8px 16px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-sm {
+  padding: 4px 10px;
+  border-radius: 40px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-sm-red { background: var(--bordeaux); color: white; }
+.btn-sm-red:hover { background: var(--bordeaux-dark); }
+.btn-sm-ghost { background: transparent; border: 1px solid var(--border-light); color: var(--gray-mid); }
+.btn-sm-ghost:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
+.btn-sm-green { background: rgba(74,124,107,0.1); border: 1px solid rgba(74,124,107,0.2); color: var(--success); }
+.btn-sm-orange { background: rgba(224,163,67,0.1); border: 1px solid rgba(224,163,67,0.2); color: var(--warning); }
+/* Tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 28px;
+}
+.data-table th {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--bordeaux);
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-light);
+}
+.data-table td {
+  padding: 10px 12px;
+  font-size: 0.7rem;
+  color: var(--gray-mid);
+  border-bottom: 1px solid var(--border-light);
+}
+.data-table td:first-child {
+  font-weight: 700;
+  color: var(--gray-dark);
+}
+.td-price { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; color: var(--success); }
+.td-price-red { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; color: var(--bordeaux); }
+.td-actions { display: flex; gap: 6px; }
+/* Status pills */
+.sp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 40px;
+}
+.sp-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.sp-ok { background: rgba(74,124,107,0.1); border: 1px solid rgba(74,124,107,0.2); color: var(--success); }
+.sp-att { background: rgba(224,163,67,0.1); border: 1px solid rgba(224,163,67,0.2); color: var(--warning); }
+.sp-cours { background: rgba(41,128,185,0.1); border: 1px solid rgba(41,128,185,0.2); color: #2980b9; }
+.sp-err { background: rgba(122,46,26,0.1); border: 1px solid rgba(122,46,26,0.2); color: var(--bordeaux); }
+/* Search bar */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #F9FAFB;
+  border: 1px solid var(--border-light);
+  border-radius: 40px;
+  padding: 8px 16px;
+  margin-bottom: 20px;
+}
+.search-bar i { color: var(--gray-mid); font-size: 0.8rem; }
+.search-bar input {
+  background: none;
+  border: none;
+  flex: 1;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  outline: none;
+}
+/* Config cards */
+.config-card {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.config-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.config-card-title {
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+.config-card-tag {
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: var(--bordeaux-light);
+  border: 1px solid var(--bordeaux);
+  color: var(--bordeaux);
+  padding: 2px 8px;
+  border-radius: 40px;
+}
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.config-item {
+  border-left: 2px solid var(--border-light);
+  padding-left: 14px;
+}
+.config-item label {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+  margin-bottom: 6px;
+}
+.editable-num {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.num-input {
+  width: 100px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  background: #F9FAFB;
+}
+.num-unit {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--gray-mid);
+}
+.save-inline {
+  background: var(--bordeaux);
+  color: white;
+  border: none;
+  border-radius: 40px;
+  padding: 4px 10px;
+  font-size: 0.6rem;
+  cursor: pointer;
+}
+/* Forms */
+.f-grp { margin-bottom: 14px; }
+.f-grp label {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gray-mid);
+  margin-bottom: 4px;
+}
+.f-grp input, .f-grp select, .f-grp textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  background: #F9FAFB;
+}
+.f-grp input:focus, .f-grp select:focus, .f-grp textarea:focus {
+  outline: none;
+  border-color: var(--bordeaux);
+}
+.f-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.f-row > * { flex: 1; }
+/* Mini cards */
+.mini-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.mini-card {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mini-ico { font-size: 1.2rem; color: var(--bordeaux); }
+.mini-val {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.mini-lbl { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--gray-mid); }
+/* Chart area */
+.chart-area {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 20px;
+  height: 240px;
+  position: relative;
+  margin-bottom: 28px;
+}
+.chart-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--bordeaux);
+  margin-bottom: 16px;
+}
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 160px;
+}
+.chart-bar {
+  flex: 1;
+  background: var(--bordeaux);
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  transition: opacity 0.2s;
+}
+.chart-bar:hover { opacity: 0.8; }
+.chart-bar-lbl {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--gray-mid);
+}
+.chart-bar-val {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--bordeaux);
+}
+/* Toggle */
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.toggle {
+  width: 40px;
+  height: 22px;
+  background: var(--border-light);
+  border-radius: 40px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle.on { background: var(--success); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle.on::after { transform: translateX(18px); }
+.toggle-lbl { font-size: 0.7rem; color: var(--gray-mid); }
+/* Alert */
+.alert {
+  padding: 12px 16px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.7rem;
+  margin-bottom: 16px;
+}
+.alert-info { background: rgba(41,128,185,0.08); border: 1px solid rgba(41,128,185,0.2); color: #2980b9; }
+.alert-warn { background: rgba(224,163,67,0.08); border: 1px solid rgba(224,163,67,0.2); color: var(--warning); }
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: white;
+  border-radius: 28px;
+  max-width: 540px;
+  width: 90%;
+  padding: 28px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--gray-mid);
+}
+.modal-h {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.modal-h em { color: var(--bordeaux); font-style: normal; }
+.modal-sub { font-size: 0.75rem; color: var(--gray-mid); margin-bottom: 20px; }
+.modal-btns {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+/* Avatar */
+.ava {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+/* Responsive */
+@media (max-width: 1100px) {
+  .stats-row { grid-template-columns: repeat(3,1fr); }
+  .config-grid { grid-template-columns: 1fr 1fr; }
+  .mini-cards { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 900px) {
+  .dash-nav { display: none; }
+  .dash-main { padding: 20px; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .stats-row { grid-template-columns: 1fr; }
+  .mini-cards { grid-template-columns: 1fr; }
+  .config-grid { grid-template-columns: 1fr; }
+  .topbar-user span { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="cring"></div>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="index.html" class="topbar-logo">Bathily<span>.</span></a>
+    <span class="topbar-tag">Admin</span>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-notif" role="button" tabindex="0"><i class="fas fa-bell"></i><div class="notif-badge">5</div></div>
+    <div class="topbar-user" role="button" tabindex="0">
+      <div class="user-avatar">BC</div>
+      <span class="user-name">Super Admin</span>
+    </div>
+    <button class="topbar-logout" type="button" onclick="window.location.href='index.html'"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+  </div>
+</div>
+
+<div class="dash-layout">
+  <nav class="dash-nav">
+    <div class="nav-section">
+      <div class="nav-section-lbl">Vue globale</div>
+      <div class="nav-item active" onclick="showTab('dashboard',this)"><i class="fas fa-chart-line"></i> Dashboard</div>
+      <div class="nav-item" onclick="showTab('missions',this)"><i class="fas fa-route"></i> Missions <span class="nav-badge">12</span></div>
+      <div class="nav-item" onclick="showTab('devis',this)"><i class="fas fa-calculator"></i> Devis <span class="nav-badge">4</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-lbl">Utilisateurs</div>
+      <div class="nav-item" onclick="showTab('clients',this)"><i class="fas fa-users"></i> Clients</div>
+      <div class="nav-item" onclick="showTab('convoyeurs',this)"><i class="fas fa-truck"></i> Convoyeurs</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-lbl">Paramètres</div>
+      <div class="nav-item" onclick="showTab('tarifs-config',this)"><i class="fas fa-euro-sign"></i> Tarifs & Prix</div>
+      <div class="nav-item" onclick="showTab('remuneration',this)"><i class="fas fa-hand-holding-usd"></i> Rémunérations</div>
+      <div class="nav-item" onclick="showTab('packs-config',this)"><i class="fas fa-box"></i> Packs & Options</div>
+      <div class="nav-item" onclick="showTab('systeme',this)"><i class="fas fa-cog"></i> Système</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-lbl">Finances</div>
+      <div class="nav-item" onclick="showTab('facturation',this)"><i class="fas fa-file-invoice"></i> Facturation</div>
+      <div class="nav-item" onclick="showTab('analytics',this)"><i class="fas fa-chart-bar"></i> Analytics</div>
+    </div>
+  </nav>
+
+  <main class="dash-main">
+    <!-- Dashboard -->
+    <div class="tab-content active" id="tab-dashboard">
+      <div class="dash-header">
+        <h1 class="dash-hello">Panel <em>Administration</em></h1>
+        <div class="dash-date" id="dashDate"></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-users"></i></div><div class="stat-val">247</div><div class="stat-lbl">Clients actifs</div><div class="stat-trend trend-up">+8%</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-truck"></i></div><div class="stat-val">34</div><div class="stat-lbl">Convoyeurs</div><div class="stat-trend trend-up">+2</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-route"></i></div><div class="stat-val">89</div><div class="stat-lbl">Missions / mois</div><div class="stat-trend trend-up">+12%</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-euro-sign"></i></div><div class="stat-val">42<em>k</em></div><div class="stat-lbl">CA ce mois (€)</div><div class="stat-trend trend-up">+18%</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-star"></i></div><div class="stat-val">4<em>.9</em></div><div class="stat-lbl">Note moyenne</div><div class="stat-trend trend-up">↑</div></div>
+      </div>
+      <div class="sec-title"><h2 class="sec-h">Chiffre d'affaires <em>2025</em></h2></div>
+      <div class="chart-area">
+        <div class="chart-title">CA mensuel 2025 (€ HT)</div>
+        <div class="chart-bars" id="caChart"></div>
+      </div>
+      <div class="mini-cards">
+        <div class="mini-card"><div class="mini-ico"><i class="fas fa-clock"></i></div><div><div class="mini-val">4</div><div class="mini-lbl">Devis en attente</div></div></div>
+        <div class="mini-card"><div class="mini-ico"><i class="fas fa-exclamation-triangle"></i></div><div><div class="mini-val">1</div><div class="mini-lbl">Incident signalé</div></div></div>
+        <div class="mini-card"><div class="mini-ico"><i class="fas fa-file-invoice"></i></div><div><div class="mini-val">7</div><div class="mini-lbl">Factures en attente</div></div></div>
+        <div class="mini-card"><div class="mini-ico"><i class="fas fa-user-plus"></i></div><div><div class="mini-val">3</div><div class="mini-lbl">Nouveaux clients</div></div></div>
+      </div>
+      <div class="sec-title"><h2 class="sec-h">Missions <em>récentes</em></h2><div class="sec-actions"><button class="btn-red" onclick="showTab('missions',null)"><i class="fas fa-eye"></i> Voir tout</button></div></div>
+      <table class="data-table">
+        <thead><tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Convoyeur</th><th>Pack</th><th>Montant</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td>BC-2025-0847</td><td>Jean Dupont</td><td>Paris → Lyon</td><td>M. Bathily</td><td>Sérénité</td><td class="td-price">340€</td><td><span class="sp sp-cours"><span class="sp-dot"></span>En cours</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></td></tr>
+          <tr><td>BC-2025-0851</td><td>Alice Leblanc</td><td>Bordeaux → Nice</td><td>K. Diallo</td><td>Excellence</td><td class="td-price">880€</td><td><span class="sp sp-att"><span class="sp-dot"></span>Planifiée</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></td></tr>
+          <tr><td>BC-2025-0821</td><td>Marc Renard</td><td>Lyon → Marseille</td><td>S. Fontaine</td><td>Starter</td><td class="td-price">550€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Terminée</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Missions -->
+    <div class="tab-content" id="tab-missions">
+      <div class="dash-header"><h1 class="dash-hello">Gestion <em>missions</em></h1></div>
+      <div class="sec-title"><h2 class="sec-h">Toutes les <em>missions</em></h2><div class="sec-actions"><button class="btn-red" onclick="openModal('modalMission')"><i class="fas fa-plus"></i> Créer une mission</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div></div>
+      <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Rechercher par référence, client, convoyeur…"></div>
+      <table class="data-table">
+        <thead><tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Distance</th><th>Convoyeur</th><th>Mode</th><th>Pack</th><th>Montant HT</th><th>Rém. convoyeur</th><th>Marge</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td>BC-2025-0847</td><td>Jean Dupont</td><td>Paris → Lyon</td><td>470 km</td><td>M. Bathily</td><td>Route</td><td>Sérénité</td><td class="td-price">340€</td><td class="td-price-red">220€</td><td class="td-price">120€</td><td><span class="sp sp-cours"><span class="sp-dot"></span>En cours</span></td><td>12/05/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-red"><i class="fas fa-times"></i></button></td></tr>
+          <tr><td>BC-2025-0851</td><td>Alice Leblanc</td><td>Bordeaux → Nice</td><td>680 km</td><td>K. Diallo</td><td>Plateau</td><td>Excellence</td><td class="td-price">880€</td><td class="td-price-red">480€</td><td class="td-price">400€</td><td><span class="sp sp-att"><span class="sp-dot"></span>Planifiée</span></td><td>15/05/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-red"><i class="fas fa-times"></i></button></td></tr>
+          <tr><td>BC-2025-0821</td><td>Marc Renard</td><td>Lyon → Marseille</td><td>320 km</td><td>S. Fontaine</td><td>Plateau</td><td>Starter</td><td class="td-price">550€</td><td class="td-price-red">310€</td><td class="td-price">240€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Terminée</span></td><td>28/04/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr>
+          <tr><td>BC-2025-0803</td><td>Jean Dupont</td><td>Paris → Bordeaux</td><td>580 km</td><td>M. Bathily</td><td>Route</td><td>Sérénité</td><td class="td-price">620€</td><td class="td-price-red">350€</td><td class="td-price">270€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Terminée</span></td><td>10/04/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Devis -->
+    <div class="tab-content" id="tab-devis">
+      <div class="dash-header"><h1 class="dash-hello">Devis <em>en attente</em></h1></div>
+      <div class="alert alert-warn"><i class="fas fa-clock"></i> 4 devis en attente de confirmation — réponse requise sous 2h</div>
+      <table class="data-table">
+        <thead><tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Type</th><th>Pack</th><th>Montant estimé</th><th>Reçu le</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td>DEV-2025-0112</td><td>Paul Martin</td><td>Paris → Strasbourg</td><td>Auto · Route</td><td>Excellence</td><td class="td-price">490€</td><td>Il y a 1h</td><td class="td-actions"><button class="btn-sm btn-sm-green"><i class="fas fa-check"></i> Valider</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i> Modifier</button><button class="btn-sm btn-sm-orange"><i class="fas fa-times"></i> Refuser</button></td></tr>
+          <tr><td>DEV-2025-0111</td><td>Claire Morin</td><td>Lyon → Paris</td><td>Moto · Plateau</td><td>Starter</td><td class="td-price">550€</td><td>Il y a 3h</td><td class="td-actions"><button class="btn-sm btn-sm-green"><i class="fas fa-check"></i> Valider</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i> Modifier</button><button class="btn-sm btn-sm-orange"><i class="fas fa-times"></i> Refuser</button></td></tr>
+          <tr><td>DEV-2025-0110</td><td>Thomas Petit</td><td>Marseille → Bordeaux</td><td>Auto · Route</td><td>Sérénité</td><td class="td-price">720€</td><td>Il y a 5h</td><td class="td-actions"><button class="btn-sm btn-sm-green"><i class="fas fa-check"></i> Valider</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i> Modifier</button><button class="btn-sm btn-sm-orange"><i class="fas fa-times"></i> Refuser</button></td></tr>
+          <tr><td>DEV-2025-0109</td><td>Sophie Blanc</td><td>Nantes → Nice</td><td>Auto · Plateau</td><td>Excellence</td><td class="td-price">1 100€</td><td>Il y a 8h</td><td class="td-actions"><button class="btn-sm btn-sm-green"><i class="fas fa-check"></i> Valider</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i> Modifier</button><button class="btn-sm btn-sm-orange"><i class="fas fa-times"></i> Refuser</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Clients -->
+    <div class="tab-content" id="tab-clients">
+      <div class="dash-header"><h1 class="dash-hello">Base <em>clients</em></h1></div>
+      <div class="sec-title"><h2 class="sec-h">247 clients <em>enregistrés</em></h2><div class="sec-actions"><button class="btn-red" onclick="openModal('modalClient')"><i class="fas fa-plus"></i> Ajouter</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div></div>
+      <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Rechercher un client…"></div>
+      <table class="data-table">
+        <thead><tr><th>Client</th><th>Email</th><th>Téléphone</th><th>Missions</th><th>CA total</th><th>Dernière mission</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">JD</div>Jean Dupont</div></td><td>jean.dupont@email.fr</td><td>+33 6 12 34 56 78</td><td>14</td><td class="td-price">3 840€</td><td>12/05/25</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Actif</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:rgba(41,128,185,0.12);color:#2980b9">AL</div>Alice Leblanc</div></td><td>a.leblanc@pro.fr</td><td>+33 6 98 76 54 32</td><td>7</td><td class="td-price">2 100€</td><td>15/05/25</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Actif</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:rgba(74,124,107,0.1);color:var(--success)">MR</div>Marc Renard</div></td><td>m.renard@gmail.com</td><td>+33 7 11 22 33 44</td><td>3</td><td class="td-price">1 380€</td><td>28/04/25</td><td><span class="sp sp-att"><span class="sp-dot"></span>Inactif</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Convoyeurs -->
+    <div class="tab-content" id="tab-convoyeurs">
+      <div class="dash-header"><h1 class="dash-hello">Gestion <em>convoyeurs</em></h1></div>
+      <div class="sec-title"><h2 class="sec-h">34 convoyeurs <em>certifiés</em></h2><div class="sec-actions"><button class="btn-red" onclick="openModal('modalConvoyeur')"><i class="fas fa-plus"></i> Ajouter</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div></div>
+      <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Rechercher un convoyeur…"></div>
+      <table class="data-table">
+        <thead><tr><th>Convoyeur</th><th>Zone</th><th>Missions</th><th>Note</th><th>Taux km auto</th><th>Taux km moto</th><th>Bonus perf.</th><th>Gains mois</th><th>Dispo</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">MB</div>M. Bathily</div></td><td>IDF · Rhône-Alpes</td><td>47</td><td>⭐ 4.9</td><td><input class="num-input" type="number" value="0.47" step="0.01" style="width:80px;font-size:0.8rem" onchange="saveConvoyeurRate(this,'auto','MB')"> €/km</td><td><input class="num-input" type="number" value="0.40" step="0.01" style="width:80px;font-size:0.8rem" onchange="saveConvoyeurRate(this,'moto','MB')"> €/km</td><td><input class="num-input" type="number" value="5" step="1" style="width:70px;font-size:0.8rem"> %</td><td class="td-price">3 200€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Disponible</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="openModal('modalEditConvoyeur')"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-chart-bar"></i></button></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:rgba(41,128,185,0.12);color:#2980b9">KD</div>K. Diallo</div></td><td>Rhône-Alpes · PACA</td><td>62</td><td>⭐ 5.0</td><td><input class="num-input" type="number" value="0.50" step="0.01" style="width:80px;font-size:0.8rem"> €/km</td><td><input class="num-input" type="number" value="0.43" step="0.01" style="width:80px;font-size:0.8rem"> €/km</td><td><input class="num-input" type="number" value="8" step="1" style="width:70px;font-size:0.8rem"> %</td><td class="td-price">3 800€</td><td><span class="sp sp-cours"><span class="sp-dot"></span>En mission</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="openModal('modalEditConvoyeur')"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-chart-bar"></i></button></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:rgba(74,124,107,0.1);color:var(--success)">SF</div>S. Fontaine</div></td><td>Nationale · Moto</td><td>38</td><td>⭐ 4.9</td><td><input class="num-input" type="number" value="0.45" step="0.01" style="width:80px;font-size:0.8rem"> €/km</td><td><input class="num-input" type="number" value="0.42" step="0.01" style="width:80px;font-size:0.8rem"> €/km</td><td><input class="num-input" type="number" value="5" step="1" style="width:70px;font-size:0.8rem"> %</td><td class="td-price">2 900€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Disponible</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="openModal('modalEditConvoyeur')"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-chart-bar"></i></button></td></tr>
+        </tbody>
+      </table>
+      <div class="alert alert-info"><i class="fas fa-info-circle"></i> Les taux de rémunération modifiés s'appliquent aux prochaines missions assignées. Cliquez sur <strong>Sauvegarder tout</strong> pour valider.</div>
+      <button class="btn-red" onclick="saveAll()"><i class="fas fa-save"></i> Sauvegarder toutes les rémunérations</button>
+    </div>
+
+    <!-- Tarifs & Prix -->
+    <div class="tab-content" id="tab-tarifs-config">
+      <div class="dash-header"><h1 class="dash-hello">Tarifs & <em>Prix</em></h1></div>
+      <div class="alert alert-warn"><i class="fas fa-exclamation-triangle"></i> Toute modification s'applique immédiatement aux nouveaux devis. Les devis en cours ne sont pas affectés.</div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title"><i class="fas fa-road"></i> Convoyage routier</span><span class="config-card-tag">Tarif client</span></div><div class="config-grid"><div class="config-item"><label>Tarif automobile (€/km)</label><div class="editable-num"><input class="num-input" type="number" value="1.00" step="0.05" id="tarifAutoKm"><span class="num-unit">€/km</span><button class="save-inline" onclick="saveConfig('tarifAutoKm')">Enreg.</button></div></div><div class="config-item"><label>Tarif moto (€/km)</label><div class="editable-num"><input class="num-input" type="number" value="0.85" step="0.05" id="tarifMotoKm"><span class="num-unit">€/km</span><button class="save-inline" onclick="saveConfig('tarifMotoKm')">Enreg.</button></div></div><div class="config-item"><label>Minimum auto</label><div class="editable-num"><input class="num-input" type="number" value="120" step="5" id="minAuto"><span class="num-unit">€ HT</span><button class="save-inline" onclick="saveConfig('minAuto')">Enreg.</button></div></div><div class="config-item"><label>Minimum moto</label><div class="editable-num"><input class="num-input" type="number" value="100" step="5" id="minMoto"><span class="num-unit">€ HT</span><button class="save-inline" onclick="saveConfig('minMoto')">Enreg.</button></div></div><div class="config-item"><label>Majoration SUV</label><div class="editable-num"><input class="num-input" type="number" value="15" step="1" id="majSuv"><span class="num-unit">%</span><button class="save-inline" onclick="saveConfig('majSuv')">Enreg.</button></div></div><div class="config-item"><label>Majoration Utilitaire</label><div class="editable-num"><input class="num-input" type="number" value="20" step="1" id="majUtil"><span class="num-unit">%</span><button class="save-inline" onclick="saveConfig('majUtil')">Enreg.</button></div></div></div></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title"><i class="fas fa-truck"></i> Transport plateau — Forfaits</span><span class="config-card-tag">Tarif client</span></div><div class="config-grid"><div class="config-item"><label>0 – 100 km</label><div class="editable-num"><input class="num-input" type="number" value="350" step="10" id="p1"><span class="num-unit">€ HT</span><button class="save-inline" onclick="saveConfig('p1')">Enreg.</button></div></div><div class="config-item"><label>100 – 300 km</label><div class="editable-num"><input class="num-input" type="number" value="550" step="10" id="p2"><span class="num-unit">€ HT</span><button class="save-inline" onclick="saveConfig('p2')">Enreg.</button></div></div><div class="config-item"><label>300 – 500 km</label><div class="editable-num"><input class="num-input" type="number" value="750" step="10" id="p3"><span class="num-unit">€ HT</span><button class="save-inline" onclick="saveConfig('p3')">Enreg.</button></div></div><div class="config-item"><label>500 km +</label><div class="editable-num"><input class="num-input" type="number" value="1100" step="10" id="p4"><span class="num-unit">€ HT</span><button class="save-inline" onclick="saveConfig('p4')">Enreg.</button></div></div><div class="config-item"><label>Majoration Custom</label><div class="editable-num"><input class="num-input" type="number" value="10" step="1" id="majCustom"><span class="num-unit">%</span><button class="save-inline" onclick="saveConfig('majCustom')">Enreg.</button></div></div></div></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title"><i class="fas fa-sliders-h"></i> Options & Suppléments</span><span class="config-card-tag">Tarif client</span></div><div class="config-grid"><div class="config-item"><label>Option Urgence</label><div class="editable-num"><input class="num-input" type="number" value="30" step="1" id="optUrgence"><span class="num-unit">%</span><button class="save-inline" onclick="saveConfig('optUrgence')">Enreg.</button></div></div><div class="config-item"><label>Gardiennage / nuit</label><div class="editable-num"><input class="num-input" type="number" value="100" step="5" id="optGardiennage"><span class="num-unit">€/nuit</span><button class="save-inline" onclick="saveConfig('optGardiennage')">Enreg.</button></div></div></div></div>
+    </div>
+
+    <!-- Rémunérations convoyeurs -->
+    <div class="tab-content" id="tab-remuneration">
+      <div class="dash-header"><h1 class="dash-hello">Rémunérations <em>convoyeurs</em></h1></div>
+      <div class="alert alert-info"><i class="fas fa-info-circle"></i> Ces paramètres définissent la structure de rémunération par défaut.</div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Taux de base convoyeurs</span><span class="config-card-tag">Rémunération</span></div><div class="config-grid"><div class="config-item"><label>Taux auto standard (€/km)</label><div class="editable-num"><input class="num-input" type="number" value="0.47" step="0.01" id="remAutoStd"><span class="num-unit">€/km</span><button class="save-inline" onclick="saveConfig('remAutoStd')">Enreg.</button></div></div><div class="config-item"><label>Taux moto standard (€/km)</label><div class="editable-num"><input class="num-input" type="number" value="0.40" step="0.01" id="remMotoStd"><span class="num-unit">€/km</span><button class="save-inline" onclick="saveConfig('remMotoStd')">Enreg.</button></div></div><div class="config-item"><label>Taux senior auto (€/km)</label><div class="editable-num"><input class="num-input" type="number" value="0.52" step="0.01" id="remAutoSen"><span class="num-unit">€/km</span><button class="save-inline" onclick="saveConfig('remAutoSen')">Enreg.</button></div></div><div class="config-item"><label>Taux senior moto (€/km)</label><div class="editable-num"><input class="num-input" type="number" value="0.45" step="0.01" id="remMotoSen"><span class="num-unit">€/km</span><button class="save-inline" onclick="saveConfig('remMotoSen')">Enreg.</button></div></div><div class="config-item"><label>Minimum garanti / mission</label><div class="editable-num"><input class="num-input" type="number" value="60" step="5" id="remMin"><span class="num-unit">€</span><button class="save-inline" onclick="saveConfig('remMin')">Enreg.</button></div></div><div class="config-item"><label>Complément plateau / mission</label><div class="editable-num"><input class="num-input" type="number" value="40" step="5" id="remPlateau"><span class="num-unit">€ fixe</span><button class="save-inline" onclick="saveConfig('remPlateau')">Enreg.</button></div></div></div></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Primes & Bonus</span><span class="config-card-tag">Incentives</span></div><div class="config-grid"><div class="config-item"><label>Bonus note 5★</label><div class="editable-num"><input class="num-input" type="number" value="10" step="1" id="bonus5"><span class="num-unit">€/mission</span><button class="save-inline" onclick="saveConfig('bonus5')">Enreg.</button></div></div><div class="config-item"><label>Bonus urgence (convoyeur)</label><div class="editable-num"><input class="num-input" type="number" value="15" step="1" id="bonusUrgence"><span class="num-unit">% suppl.</span><button class="save-inline" onclick="saveConfig('bonusUrgence')">Enreg.</button></div></div><div class="config-item"><label>Prime 10 missions / mois</label><div class="editable-num"><input class="num-input" type="number" value="50" step="5" id="prime10"><span class="num-unit">€/mois</span><button class="save-inline" onclick="saveConfig('prime10')">Enreg.</button></div></div><div class="config-item"><label>Prime 20 missions / mois</label><div class="editable-num"><input class="num-input" type="number" value="120" step="5" id="prime20"><span class="num-unit">€/mois</span><button class="save-inline" onclick="saveConfig('prime20')">Enreg.</button></div></div><div class="config-item"><label>Indemnité carburant</label><div class="editable-num"><input class="num-input" type="number" value="0.08" step="0.01" id="indCarb"><span class="num-unit">€/km retour</span><button class="save-inline" onclick="saveConfig('indCarb')">Enreg.</button></div></div><div class="config-item"><label>Indemnité repas / jour</label><div class="editable-num"><input class="num-input" type="number" value="15" step="1" id="indRepas"><span class="num-unit">€/jour</span><button class="save-inline" onclick="saveConfig('indRepas')">Enreg.</button></div></div></div></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Simulateur de rémunération</span><span class="config-card-tag">Outil</span></div><div class="f-row" style="gap:16px;"><div class="f-grp"><label>Distance (km)</label><input type="number" id="simKm" value="470" oninput="simRem()" style="width:100%"></div><div class="f-grp"><label>Type véhicule</label><select id="simType" onchange="simRem()"><option value="auto">Automobile</option><option value="moto">Moto</option></select></div><div class="f-grp"><label>Niveau convoyeur</label><select id="simNiveau" onchange="simRem()"><option value="std">Standard</option><option value="sen">Senior</option></select></div></div><div style="background:var(--bordeaux-light); border-radius:20px; padding:20px; display:flex; gap:32px; flex-wrap:wrap; margin-top:16px;"><div><div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid);">Rémunération convoyeur</div><div style="font-size:1.8rem; font-weight:700; color:var(--bordeaux)" id="simResultRem">220€</div></div><div><div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid);">Tarif client estimé</div><div style="font-size:1.8rem; font-weight:700; color:var(--bordeaux)" id="simResultTarif">470€</div></div><div><div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid);">Marge brute</div><div style="font-size:1.8rem; font-weight:700; color:var(--success)" id="simResultMarge">250€</div></div></div></div>
+    </div>
+
+    <!-- Packs & Options -->
+    <div class="tab-content" id="tab-packs-config">
+      <div class="dash-header"><h1 class="dash-hello">Packs & <em>Options</em></h1></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Pack Starter</span><span class="config-card-tag">Inclus</span></div><div class="f-grp"><label>Nom du pack</label><input type="text" value="Starter"></div><div class="f-grp"><label>Prestations incluses (une par ligne)</label><textarea rows="4">Logistique de convoyage standard&#10;Double assurance RC Pro&#10;Identification SIV&#10;État des lieux numérisé (20 photos)&#10;Suivi GPS basique</textarea></div><button class="btn-red"><i class="fas fa-save"></i> Sauvegarder</button></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Pack Sérénité</span><span class="config-card-tag">+49€ HT</span></div><div class="f-row"><div class="f-grp"><label>Nom</label><input type="text" value="Sérénité"></div><div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" value="49" step="1" style="font-size:1rem; width:100px"> €</div></div><div class="f-grp"><label>Prestations incluses</label><textarea rows="3">Nettoyage extérieur haute pression&#10;Mise à niveau carburant / charge&#10;Check-list digitale par email</textarea></div><button class="btn-red"><i class="fas fa-save"></i> Sauvegarder</button></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Pack Excellence</span><span class="config-card-tag">+129€ HT</span></div><div class="f-row"><div class="f-grp"><label>Nom</label><input type="text" value="Excellence"></div><div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" value="129" step="1" style="font-size:1rem; width:100px"> €</div></div><div class="f-grp"><label>Prestations incluses</label><textarea rows="3">Préparation esthétique complète&#10;Full Energy — 100% charge / plein&#10;Cadeau premium personnalisé</textarea></div><button class="btn-red"><i class="fas fa-save"></i> Sauvegarder</button></div>
+    </div>
+
+    <!-- Facturation -->
+    <div class="tab-content" id="tab-facturation">
+      <div class="dash-header"><h1 class="dash-hello">Gestion <em>facturation</em></h1></div>
+      <div class="mini-cards"><div class="mini-card"><div class="mini-ico"><i class="fas fa-euro-sign"></i></div><div><div class="mini-val">42k</div><div class="mini-lbl">CA ce mois</div></div></div><div class="mini-card"><div class="mini-ico"><i class="fas fa-check-circle"></i></div><div><div class="mini-val">76</div><div class="mini-lbl">Factures payées</div></div></div><div class="mini-card"><div class="mini-ico"><i class="fas fa-clock"></i></div><div><div class="mini-val">7</div><div class="mini-lbl">En attente</div></div></div><div class="mini-card"><div class="mini-ico"><i class="fas fa-exclamation-circle"></i></div><div><div class="mini-val">2</div><div class="mini-lbl">En retard</div></div></div></div>
+      <div class="sec-title"><h2 class="sec-h">Factures <em>récentes</em></h2><div class="sec-actions"><button class="btn-red"><i class="fas fa-plus"></i> Créer</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div></div>
+      <table class="data-table"><thead><tr><th>N° Facture</th><th>Client</th><th>Mission</th><th>Montant HT</th><th>TVA (20%)</th><th>Montant TTC</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody><tr><td>FAC-2025-0847</td><td>Jean Dupont</td><td>BC-2025-0847</td><td>340€</td><td>68€</td><td class="td-price">408€</td><td><span class="sp sp-att"><span class="sp-dot"></span>En attente</span></td><td>12/05/25</td><td class="td-actions"><button class="btn-sm btn-sm-green"><i class="fas fa-check"></i> Marquer payée</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr><tr><td>FAC-2025-0821</td><td>Marc Renard</td><td>BC-2025-0821</td><td>550€</td><td>110€</td><td class="td-price">660€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Payée</span></td><td>28/04/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr><tr><td>FAC-2025-0803</td><td>Jean Dupont</td><td>BC-2025-0803</td><td>620€</td><td>124€</td><td class="td-price">744€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Payée</span></td><td>10/04/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr></tbody></table>
+    </div>
+
+    <!-- Analytics -->
+    <div class="tab-content" id="tab-analytics">
+      <div class="dash-header"><h1 class="dash-hello">Analytics <em>& KPIs</em></h1></div>
+      <div class="stats-row"><div class="stat-card"><div class="stat-ico"><i class="fas fa-chart-line"></i></div><div class="stat-val">89</div><div class="stat-lbl">Missions / mois</div><div class="stat-trend trend-up">+12%</div></div><div class="stat-card"><div class="stat-ico"><i class="fas fa-percentage"></i></div><div class="stat-val">34<em>%</em></div><div class="stat-lbl">Marge brute moy.</div><div class="stat-trend trend-up">+2pt</div></div><div class="stat-card"><div class="stat-ico"><i class="fas fa-star"></i></div><div class="stat-val">4<em>.9</em></div><div class="stat-lbl">Note cliente moy.</div><div class="stat-trend trend-up">↑</div></div><div class="stat-card"><div class="stat-ico"><i class="fas fa-clock"></i></div><div class="stat-val">98<em>%</em></div><div class="stat-lbl">Taux livraison OK</div><div class="stat-trend trend-up">↑</div></div><div class="stat-card"><div class="stat-ico"><i class="fas fa-redo"></i></div><div class="stat-val">62<em>%</em></div><div class="stat-lbl">Taux fidélisation</div><div class="stat-trend trend-up">+5pt</div></div></div>
+      <div class="sec-title"><h2 class="sec-h">CA mensuel <em>2025</em></h2></div>
+      <div class="chart-area"><div class="chart-title">Chiffre d'affaires mensuel (€ HT)</div><div class="chart-bars" id="analyticsChart"></div></div>
+      <div class="sep"></div>
+      <div class="sec-title"><h2 class="sec-h">Répartition <em>par service</em></h2></div>
+      <div class="config-grid" style="margin-top:16px"><div class="config-card" style="text-align:center"><div style="font-size:2.5rem; font-weight:700; color:var(--bordeaux)">64<span style="font-size:1.2rem; color:var(--bordeaux)">%</span></div><div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Convoyage routier</div></div><div class="config-card" style="text-align:center"><div style="font-size:2.5rem; font-weight:700; color:var(--warning)">28<span style="font-size:1.2rem; color:var(--warning)">%</span></div><div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Transport plateau</div></div><div class="config-card" style="text-align:center"><div style="font-size:2.5rem; font-weight:700; color:var(--success)">8<span style="font-size:1.2rem; color:var(--success)">%</span></div><div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Moto spécialisé</div></div></div>
+    </div>
+
+    <!-- Système -->
+    <div class="tab-content" id="tab-systeme">
+      <div class="dash-header"><h1 class="dash-hello">Paramètres <em>système</em></h1></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Informations entreprise</span></div><div class="f-row"><div class="f-grp"><label>Raison sociale</label><input type="text" value="Bathily Convoyage"></div><div class="f-grp"><label>SIRET</label><input type="text" value="XXX XXX XXX XXXXX"></div></div><div class="f-row"><div class="f-grp"><label>Email contact</label><input type="email" value="contact@bathily-convoyage.fr"></div><div class="f-grp"><label>Téléphone urgence</label><input type="tel" value="+33 X XX XX XX XX"></div></div><div class="f-grp"><label>TVA applicable</label><div class="editable-num"><input class="num-input" type="number" value="20" step="1" style="font-size:1.2rem; width:100px"><span class="num-unit">%</span><button class="save-inline">Enreg.</button></div></div><button class="btn-red" style="margin-top:12px"><i class="fas fa-save"></i> Sauvegarder</button></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Fonctionnalités actives</span></div><div class="toggle-wrap"><div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span class="toggle-lbl">Configurateur Smart Quote en ligne</span></div><div class="toggle-wrap"><div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span class="toggle-lbl">Réseau social convoyeurs</span></div><div class="toggle-wrap"><div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span class="toggle-lbl">Espace client en ligne</span></div><div class="toggle-wrap"><div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span class="toggle-lbl">Notifications email automatiques</span></div><div class="toggle-wrap"><div class="toggle" onclick="this.classList.toggle('on')" role="switch" aria-checked="false"></div><span class="toggle-lbl">Mode maintenance (site hors ligne)</span></div><div class="toggle-wrap"><div class="toggle" onclick="this.classList.toggle('on')" role="switch" aria-checked="false"></div><span class="toggle-lbl">Paiement en ligne (Stripe)</span></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalMission"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalMission')"><i class="fas fa-times"></i></button><h3 class="modal-h">Créer une <em>mission</em></h3><p class="modal-sub">Saisie manuelle d'une nouvelle mission</p><div class="f-row"><div class="f-grp"><label>Client</label><input type="text" placeholder="Nom ou email client"></div><div class="f-grp"><label>Convoyeur</label><select><option>M. Bathily</option><option>K. Diallo</option><option>S. Fontaine</option></select></div></div><div class="f-row"><div class="f-grp"><label>Ville de départ</label><input type="text" placeholder="Paris"></div><div class="f-grp"><label>Ville d'arrivée</label><input type="text" placeholder="Lyon"></div></div><div class="f-row"><div class="f-grp"><label>Type véhicule</label><select><option>Automobile</option><option>Moto</option></select></div><div class="f-grp"><label>Mode transport</label><select><option>Route</option><option>Plateau</option></select></div></div><div class="f-row"><div class="f-grp"><label>Pack</label><select><option>Starter</option><option>Sérénité</option><option>Excellence</option></select></div><div class="f-grp"><label>Date souhaitée</label><input type="date"></div></div><div class="f-grp"><label>Montant HT (€)</label><input type="number" placeholder="340"></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalMission')"><i class="fas fa-plus"></i> Créer la mission</button><button class="btn-outline" onclick="closeModal('modalMission')">Annuler</button></div></div></div>
+
+<div class="modal-overlay" id="modalClient"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalClient')"><i class="fas fa-times"></i></button><h3 class="modal-h">Nouveau <em>client</em></h3><div class="f-row"><div class="f-grp"><label>Prénom</label><input type="text"></div><div class="f-grp"><label>Nom</label><input type="text"></div></div><div class="f-row"><div class="f-grp"><label>Email</label><input type="email"></div><div class="f-grp"><label>Téléphone</label><input type="tel"></div></div><div class="f-grp"><label>Société (optionnel)</label><input type="text"></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalClient')"><i class="fas fa-save"></i> Enregistrer</button><button class="btn-outline" onclick="closeModal('modalClient')">Annuler</button></div></div></div>
+
+<div class="modal-overlay" id="modalConvoyeur"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalConvoyeur')"><i class="fas fa-times"></i></button><h3 class="modal-h">Nouveau <em>convoyeur</em></h3><div class="f-row"><div class="f-grp"><label>Prénom</label><input type="text"></div><div class="f-grp"><label>Nom</label><input type="text"></div></div><div class="f-row"><div class="f-grp"><label>Email</label><input type="email"></div><div class="f-grp"><label>Téléphone</label><input type="tel"></div></div><div class="f-row"><div class="f-grp"><label>Taux auto (€/km)</label><input type="number" value="0.47" step="0.01"></div><div class="f-grp"><label>Taux moto (€/km)</label><input type="number" value="0.40" step="0.01"></div></div><div class="f-grp"><label>Zone d'intervention</label><input type="text" placeholder="IDF, Rhône-Alpes…"></div><div class="f-grp"><label>Niveau</label><select><option>Standard</option><option>Senior</option></select></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalConvoyeur')"><i class="fas fa-save"></i> Enregistrer</button><button class="btn-outline" onclick="closeModal('modalConvoyeur')">Annuler</button></div></div></div>
+
+<div class="modal-overlay" id="modalEditConvoyeur"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalEditConvoyeur')"><i class="fas fa-times"></i></button><h3 class="modal-h">Modifier <em>convoyeur</em></h3><p class="modal-sub">M. Bathily — Île-de-France · Rhône-Alpes</p><div class="f-row"><div class="f-grp"><label>Taux auto (€/km)</label><input type="number" value="0.47" step="0.01"></div><div class="f-grp"><label>Taux moto (€/km)</label><input type="number" value="0.40" step="0.01"></div></div><div class="f-row"><div class="f-grp"><label>Bonus performance</label><input type="number" value="5" step="1"> %</div><div class="f-grp"><label>Niveau</label><select><option selected>Standard</option><option>Senior</option></select></div></div><div class="f-grp"><label>Zone d'intervention</label><input type="text" value="IDF · Rhône-Alpes · PACA"></div><div class="f-grp"><label>Note interne</label><textarea rows="2" placeholder="Commentaire admin…"></textarea></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalEditConvoyeur')"><i class="fas fa-save"></i> Sauvegarder</button><button class="btn-outline" onclick="closeModal('modalEditConvoyeur')">Annuler</button></div></div></div>
+
+<script>
+// ========== CURSOR ==========
+if(window.matchMedia('(hover: hover)').matches) {
+  const cur=document.getElementById('cur'),cring=document.getElementById('cring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+  (function loop(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(loop)})();
+}
+
+// ========== DATE ==========
+document.getElementById('dashDate').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+// ========== TABS ==========
+function showTab(id, el) {
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if(item.getAttribute('onclick')) eval(item.getAttribute('onclick'));
+    }
+  });
+});
+
+// ========== MODAL ==========
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+
+// ========== TOGGLES KEYBOARD ==========
+document.querySelectorAll('.toggle').forEach(toggle => {
+  toggle.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggle.classList.toggle('on');
+      toggle.setAttribute('aria-checked', toggle.classList.contains('on'));
+    }
+  });
+  toggle.setAttribute('role', 'switch');
+  toggle.setAttribute('aria-checked', toggle.classList.contains('on'));
+});
+
+// ========== CHARTS ==========
+function buildChart(containerId, data){
+  const container=document.getElementById(containerId);
+  if(!container) return;
+  const max=Math.max(...data.map(d=>d.val));
+  container.innerHTML='';
+  data.forEach(d=>{
+    const bar=document.createElement('div');
+    bar.className='chart-bar';
+    const h=Math.round((d.val/max)*140);
+    bar.style.height=h+'px';
+    bar.style.background=d.current?'var(--bordeaux)':'rgba(122,46,26,0.3)';
+    bar.innerHTML=`<div class="chart-bar-val">${d.val>=1000?(d.val/1000).toFixed(0)+'k':d.val+'€'}</div><div class="chart-bar-lbl">${d.lbl}</div>`;
+    container.appendChild(bar);
+  });
+}
+const caData=[
+  {lbl:'Jan',val:28000,current:false},{lbl:'Fév',val:31000,current:false},
+  {lbl:'Mar',val:36000,current:false},{lbl:'Avr',val:39000,current:false},
+  {lbl:'Mai',val:42000,current:true},{lbl:'Jun',val:0,current:false},
+  {lbl:'Jul',val:0,current:false},{lbl:'Aoû',val:0,current:false},
+  {lbl:'Sep',val:0,current:false},{lbl:'Oct',val:0,current:false},
+  {lbl:'Nov',val:0,current:false},{lbl:'Déc',val:0,current:false},
+];
+buildChart('caChart',caData.filter(d=>d.val>0));
+buildChart('analyticsChart',caData.filter(d=>d.val>0));
+
+// ========== SAVE CONFIG ==========
+function saveConfig(id){
+  const val=document.getElementById(id)?.value;
+  if(val!==undefined){
+    const btn=document.querySelector(`[onclick="saveConfig('${id}')"]`);
+    if(btn){btn.style.background='var(--success)';setTimeout(()=>btn.style.background='',1500);}
+    console.log(`Config saved: ${id} = ${val}`);
+  }
+}
+
+// ========== SAVE ALL ==========
+function saveAll(){
+  document.querySelectorAll('#tab-convoyeurs .num-input').forEach(inp=>console.log('Saving',inp.value));
+  const btn=event.target;
+  btn.style.background='var(--success)';btn.innerHTML='<i class="fas fa-check"></i> Sauvegardé !';
+  setTimeout(()=>{btn.style.background='';btn.innerHTML='<i class="fas fa-save"></i> Sauvegarder toutes les rémunérations';},2000);
+}
+
+// ========== SAVE CONVOYEUR RATE ==========
+function saveConvoyeurRate(inp,type,id){
+  console.log(`Rate updated: ${id} ${type} = ${inp.value}€/km`);
+}
+
+// ========== SIMULATEUR ==========
+function simRem(){
+  const km=parseFloat(document.getElementById('simKm').value)||0;
+  const type=document.getElementById('simType').value;
+  const niveau=document.getElementById('simNiveau').value;
+  const rates={auto:{std:0.47,sen:0.52},moto:{std:0.40,sen:0.45}};
+  const clientRates={auto:1.0,moto:0.85};
+  const rem=Math.max(Math.round(km*rates[type][niveau]),60);
+  const tarif=Math.max(Math.round(km*clientRates[type]),type==='auto'?120:100);
+  const marge=tarif-rem;
+  document.getElementById('simResultRem').textContent=rem+'€';
+  document.getElementById('simResultTarif').textContent=tarif+'€';
+  document.getElementById('simResultMarge').textContent=marge+'€';
+}
+simRem();
+
+// ========== NOTIFS & USER ==========
+const notif = document.querySelector('.topbar-notif');
+if(notif) notif.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alert('Notifications (démo)'); } });
+const userBtn = document.querySelector('.topbar-user');
+if(userBtn) userBtn.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alert('Mon compte (démo)'); } });
+</script>
+</body>
+</html>

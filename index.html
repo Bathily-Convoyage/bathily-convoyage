@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Bathily Convoyage | Convoyage automobile et moto partout en France</title>
+<meta name="description" content="Convoyage automobile et moto partout en France. Devis en 60s, suivi GPS temps réel, double assurance RC Pro. Expérience client inégalée.">
+<meta property="og:title" content="Bathily Convoyage — Convoyage auto & moto premium">
+<meta property="og:description" content="Devis instantané, suivi GPS, photos état des lieux. +500 missions réalisées.">
+<meta property="og:image" content="https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: #FDFBF7;
+  color: #2D2A24;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+:root {
+  --bordeaux: #7A2E1A;
+  --bordeaux-dark: #5C2212;
+  --bordeaux-light: #F3E8E4;
+  --cream: #FDFBF7;
+  --beige: #F9F6F0;
+  --gray-dark: #2D2A24;
+  --gray-mid: #6B625A;
+  --border-light: #E8E1D9;
+  --success: #4A7C6B;
+  --warning: #E0A343;
+}
+/* Header */
+header {
+  position: sticky;
+  top: 0;
+  background: rgba(253,251,247,0.96);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-light);
+  z-index: 100;
+}
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 72px;
+}
+.logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--gray-dark);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+.logo span { color: var(--bordeaux); }
+.nav-links {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+.nav-links a {
+  text-decoration: none;
+  color: var(--gray-mid);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.nav-links a:hover, .nav-links a.active { color: var(--bordeaux); }
+.btn-outline {
+  border: 1px solid var(--bordeaux);
+  background: transparent;
+  padding: 8px 20px;
+  border-radius: 40px;
+  color: var(--bordeaux);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-outline:hover {
+  background: var(--bordeaux);
+  color: white;
+}
+.menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-dark); }
+/* Hero */
+.hero {
+  padding: 80px 0 60px;
+  background: linear-gradient(135deg, var(--cream) 0%, var(--beige) 100%);
+}
+.hero-grid {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+.hero-content { flex: 1; }
+.hero-badge {
+  display: inline-block;
+  background: var(--bordeaux-light);
+  color: var(--bordeaux);
+  padding: 6px 14px;
+  border-radius: 40px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+.hero h1 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 3.2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 20px;
+  color: var(--gray-dark);
+}
+.hero h1 span { color: var(--bordeaux); }
+.hero p {
+  font-size: 1.125rem;
+  color: var(--gray-mid);
+  margin-bottom: 32px;
+  max-width: 500px;
+}
+.hero-stats {
+  display: flex;
+  gap: 32px;
+  margin-top: 40px;
+}
+.stat h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--bordeaux);
+}
+.stat p {
+  font-size: 0.875rem;
+  color: var(--gray-mid);
+}
+.hero-image {
+  flex: 1;
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
+}
+.hero-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.8s ease;
+}
+.hero-image:hover img { transform: scale(1.03); }
+/* Buttons */
+.btn-primary {
+  background: var(--bordeaux);
+  color: white;
+  padding: 14px 32px;
+  border-radius: 40px;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.25s ease;
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background: var(--bordeaux-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(122,46,26,0.2);
+}
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--gray-dark);
+  padding: 14px 32px;
+  border-radius: 40px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.btn-secondary:hover {
+  border-color: var(--bordeaux);
+  color: var(--bordeaux);
+}
+/* Sections */
+section { padding: 80px 0; }
+.section-title {
+  text-align: center;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.section-sub {
+  text-align: center;
+  color: var(--gray-mid);
+  max-width: 700px;
+  margin: 0 auto 48px;
+  font-size: 1.1rem;
+}
+/* Cartes avec images de fond (services + why) */
+.grid-6 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-bottom: 32px;
+}
+.service-card, .why-card {
+  border-radius: 28px;
+  padding: 32px;
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+  background-size: cover;
+  background-position: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.service-card::before, .why-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(145deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.75) 100%);
+  z-index: 0;
+  transition: opacity 0.3s;
+}
+.service-card > *, .why-card > * {
+  position: relative;
+  z-index: 1;
+}
+.service-card:hover, .why-card:hover {
+  transform: translateY(-8px);
+}
+.service-card .service-icon, .why-card .why-icon {
+  color: white;
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+}
+.service-card h3, .why-card h3 {
+  color: white;
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+}
+.service-card p, .why-card p {
+  color: rgba(255,255,255,0.85);
+  line-height: 1.6;
+}
+/* Images spécifiques */
+.card-1 { background-image: url('https://images.pexels.com/photos/120049/pexels-photo-120049.jpeg?auto=compress&cs=tinysrgb&w=800'); }
+.card-2 { background-image: url('https://images.pexels.com/photos/120327/pexels-photo-120327.jpeg?auto=compress&cs=tinysrgb&w=800'); }
+.card-3 { background-image: url('https://images.pexels.com/photos/1300550/pexels-photo-1300550.jpeg?auto=compress&cs=tinysrgb&w=800'); }
+.card-4 { background-image: url('https://images.pexels.com/photos/290275/pexels-photo-290275.jpeg?auto=compress&cs=tinysrgb&w=800'); }
+.card-5 { background-image: url('https://images.pexels.com/photos/109876/pexels-photo-109876.jpeg?auto=compress&cs=tinysrgb&w=800'); }
+.card-6 { background-image: url('https://images.pexels.com/photos/925664/pexels-photo-925664.jpeg?auto=compress&cs=tinysrgb&w=800'); }
+
+/* Process steps */
+.process-steps {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 40px;
+}
+.step {
+  flex: 1;
+  text-align: center;
+  background: white;
+  border-radius: 24px;
+  padding: 28px 20px;
+  border: 1px solid var(--border-light);
+  transition: all 0.3s;
+}
+.step:hover { transform: translateY(-5px); border-color: var(--bordeaux-light); }
+.step-num {
+  width: 48px;
+  height: 48px;
+  background: var(--bordeaux-light);
+  color: var(--bordeaux);
+  border-radius: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  margin: 0 auto 16px;
+}
+.step h4 { margin-bottom: 8px; }
+.step p { font-size: 0.875rem; color: var(--gray-mid); }
+
+/* Testimonials carousel */
+.testimonial-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 32px;
+  padding-bottom: 16px;
+  scrollbar-width: thin;
+}
+.testimonial-card {
+  flex: 0 0 calc(33.333% - 22px);
+  scroll-snap-align: start;
+  background: white;
+  border-radius: 28px;
+  padding: 32px;
+  border: 1px solid var(--border-light);
+}
+@media (max-width: 900px) { .testimonial-card { flex: 0 0 calc(50% - 16px); } }
+@media (max-width: 600px) { .testimonial-card { flex: 0 0 100%; } }
+.testimonial-text {
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--gray-dark);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.testimonial-avatar {
+  width: 48px;
+  height: 48px;
+  background: var(--bordeaux-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--bordeaux);
+}
+.testimonial-info strong { display: block; font-size: 0.9rem; }
+.testimonial-info span { font-size: 0.75rem; color: var(--gray-mid); }
+.carousel-nav {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+.carousel-dot {
+  width: 40px;
+  height: 4px;
+  background: var(--border-light);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.carousel-dot.active { background: var(--bordeaux); }
+
+/* Quick quote */
+.quick-quote {
+  background: white;
+  border-radius: 60px;
+  padding: 12px;
+  display: inline-flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  margin-top: 24px;
+  position: relative;
+}
+
+.search-wrapper {
+  position: relative;
+  flex: 1 1 200px;
+  min-width: 180px;
+}
+
+.quick-quote input, .quick-quote select {
+  width: 100%;
+  padding: 12px 20px;
+  border: 1px solid var(--border-light);
+  border-radius: 40px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  background: var(--cream);
+  color: var(--gray-dark);
+}
+
+.suggest-box {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 300;
+  display: none;
+}
+
+.suggest-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.15s ease;
+  color: var(--gray-dark);
+}
+
+.suggest-item:last-child {
+  border-bottom: none;
+}
+
+.suggest-item:hover {
+  background: var(--bordeaux-light);
+  color: var(--bordeaux);
+  padding-left: 20px;
+}
+
+.quick-quote button {
+  background: var(--bordeaux);
+  border: none;
+  border-radius: 40px;
+  padding: 12px 28px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.quick-quote button:hover { 
+  background: var(--bordeaux-dark); 
+  transform: translateY(-2px); 
+}
+
+/* Map preview */
+.map-preview {
+  background: var(--beige);
+  border-radius: 32px;
+  padding: 32px;
+  margin-top: 40px;
+}
+#miniMap {
+  height: 300px;
+  border-radius: 24px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+/* CTA final */
+.cta-final {
+  background: var(--bordeaux);
+  border-radius: 48px;
+  padding: 64px;
+  text-align: center;
+  color: white;
+}
+.cta-final h2 { font-size: 2rem; margin-bottom: 16px; }
+.cta-final .btn-primary {
+  background: white;
+  color: var(--bordeaux);
+  margin-top: 16px;
+}
+.cta-final .btn-primary:hover { background: #FDFBF7; transform: translateY(-2px); }
+/* Footer */
+footer {
+  background: var(--beige);
+  border-top: 1px solid var(--border-light);
+  padding: 48px 0;
+  margin-top: 60px;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+}
+.footer-logo { font-weight: 800; font-size: 1.3rem; margin-bottom: 16px; }
+.footer-logo span { color: var(--bordeaux); }
+.footer-about p { color: var(--gray-mid); font-size: 0.875rem; }
+.footer-links h4 { font-weight: 600; margin-bottom: 16px; }
+.footer-links a {
+  display: block;
+  color: var(--gray-mid);
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+}
+.footer-links a:hover { color: var(--bordeaux); }
+.footer-bottom {
+  text-align: center;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-light);
+  color: var(--gray-mid);
+  font-size: 0.75rem;
+}
+/* Reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Responsive */
+@media (max-width: 900px) {
+  .menu-toggle { display: block; }
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 72px;
+    left: 0;
+    right: 0;
+    background: var(--cream);
+    flex-direction: column;
+    padding: 24px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .nav-links.show { display: flex; }
+  .hero-grid { flex-direction: column; }
+  .grid-6 { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 2.2rem; }
+  .process-steps { flex-direction: column; }
+  .quick-quote { width: 100%; justify-content: center; }
+}
+
+.floating-devis{position:fixed;bottom:20px;right:20px;z-index:999;background:#7A2E1A;color:#fff;padding:14px 22px;border-radius:50px;text-decoration:none;font-weight:700;}
+</style>
+
+<meta name="keywords" content="convoyage automobile, convoyage voiture, transport véhicule, convoyage moto, livraison véhicule">
+<link rel="canonical" href="https://bathily-convoyage.github.io/bathily-convoyage/">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Bathily Convoyage","areaServed":"France","serviceType":"Convoyage automobile"}
+</script>
+</head>
+<body>
+
+<header>
+  <div class="container header-inner">
+    <a href="index.html" class="logo">Bathily<span>.</span></a>
+    <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</div>
+    <div class="nav-links">
+      <a href="index.html" class="active">Accueil</a>
+      <a href="#services">Services</a>
+      <a href="#howitworks">Processus</a>
+      <a href="devis.html" class="btn-outline">Devis express</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge">✨ Convoyeur certifié SIV</div>
+        <h1>Votre véhicule livré <span>comme jamais</span> auparavant</h1>
+        <p>Convoyage auto et moto partout en France. Devis en 60 secondes, suivi GPS temps réel, double assurance RC Pro.</p>
+        <div class="quick-quote">
+          <div class="search-wrapper">
+            <input type="text" id="depart" placeholder="Adresse de départ" autocomplete="off">
+            <div id="departSuggests" class="suggest-box"></div>
+          </div>
+          <div class="search-wrapper">
+            <input type="text" id="arrivee" placeholder="Adresse d'arrivée" autocomplete="off">
+            <div id="arriveeSuggests" class="suggest-box"></div>
+          </div>
+          <select id="vehType"><option>Automobile</option><option>Moto</option></select>
+          <button onclick="goToDevis()">Estimer mon devis →</button>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><h3 id="stat1">0</h3><p>Missions réalisées</p></div>
+          <div class="stat"><h3 id="stat2">0</h3><p>Livraison moyenne</p></div>
+          <div class="stat"><h3 id="stat3">0</h3><p>Note Google</p></div>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Convoyage automobile premium">
+      </div>
+    </div>
+  </section>
+
+  <!-- Services (3 cartes) -->
+  <section id="services">
+    <div class="container">
+      <div class="section-title reveal">Des services pensés pour vous</div>
+      <div class="section-sub reveal">Une expérience de convoyage fluide, transparente et digitale</div>
+      <div class="grid-6">
+        <div class="service-card card-1 reveal"><div class="service-icon"><i class="fas fa-car"></i></div><h3>Convoyage par la route</h3><p>Convoyeur certifié, suivi GPS en temps réel, livraison porte-à-porte.</p></div>
+        <div class="service-card card-2 reveal"><div class="service-icon"><i class="fas fa-truck"></i></div><h3>Transport plateau</h3><p>Protection maximale pour véhicules de collection, motos ou utilitaires.</p></div>
+        <div class="service-card card-3 reveal"><div class="service-icon"><i class="fas fa-mobile-alt"></i></div><h3>Solution 100% digitale</h3><p>Devis en 60s, suivi client, état des lieux photo 20 points.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pourquoi Bathily (3 cartes) -->
+  <section>
+    <div class="container">
+      <div class="section-title reveal">Pourquoi Bathily ?</div>
+      <div class="section-sub reveal">L'innovation au service de votre tranquillité</div>
+      <div class="grid-6">
+        <div class="why-card card-4 reveal"><div class="why-icon"><i class="fas fa-chart-line"></i></div><h3>Technologie de pointe</h3><p>Devis instantané, plateforme de suivi, notifications automatiques.</p></div>
+        <div class="why-card card-5 reveal"><div class="why-icon"><i class="fas fa-shield-alt"></i></div><h3>Confiance absolue</h3><p>Double RC Pro, certification SIV, état des lieux exhaustif.</p></div>
+        <div class="why-card card-6 reveal"><div class="why-icon"><i class="fas fa-hand-holding-heart"></i></div><h3>Proximité humaine</h3><p>Un interlocuteur dédié de la réservation à la livraison.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Processus en 5 étapes -->
+  <section id="howitworks" style="background: var(--beige);">
+    <div class="container">
+      <div class="section-title reveal">Comment ça marche ?</div>
+      <div class="section-sub reveal">Un processus simple et transparent</div>
+      <div class="process-steps">
+        <div class="step reveal"><div class="step-num">1</div><h4>Demande de devis</h4><p>60 secondes suffisent</p></div>
+        <div class="step reveal"><div class="step-num">2</div><h4>Assignation convoyeur</h4><p>Certifié SIV</p></div>
+        <div class="step reveal"><div class="step-num">3</div><h4>Prise en charge</h4><p>État des lieux photo + signature</p></div>
+        <div class="step reveal"><div class="step-num">4</div><h4>Transport & suivi GPS</h4><p>Géolocalisation temps réel</p></div>
+        <div class="step reveal"><div class="step-num">5</div><h4>Livraison & validation</h4><p>Photos + signature client</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Témoignages -->
+  <section>
+    <div class="container">
+      <div class="section-title reveal">Ils nous font confiance</div>
+      <div class="testimonial-carousel" id="testimonialCarousel">
+        <div class="testimonial-card"><div class="testimonial-text">"Excellente prestation. Suivi précis, communication fluide. Je recommande vivement Bathily."</div><div class="testimonial-author"><div class="testimonial-avatar">LM</div><div class="testimonial-info"><strong>Laurent M.</strong><span>Client particulier</span></div></div></div>
+        <div class="testimonial-card"><div class="testimonial-text">"Un gain de temps considérable. La plateforme est intuitive et les convoyeurs très pros."</div><div class="testimonial-author"><div class="testimonial-avatar">SK</div><div class="testimonial-info"><strong>Sabrina K.</strong><span>Gestionnaire de flotte</span></div></div></div>
+        <div class="testimonial-card"><div class="testimonial-text">"Ma voiture de collection livrée avec un soin exceptionnel. Merci à toute l'équipe !"</div><div class="testimonial-author"><div class="testimonial-avatar">TR</div><div class="testimonial-info"><strong>Thomas R.</strong><span>Collectionneur</span></div></div></div>
+      </div>
+      <div class="carousel-nav" id="carouselNav"></div>
+    </div>
+  </section>
+
+  <!-- Carte de suivi interactive -->
+  <section>
+    <div class="container map-preview">
+      <h3 style="text-align:center; margin-bottom:16px;">Suivez votre véhicule en temps réel</h3>
+      <p style="text-align:center; margin-bottom:24px;">Une carte interactive pour chaque mission.</p>
+      <div id="miniMap" style="height: 300px; border-radius: 24px;"></div>
+    </div>
+  </section>
+
+  <!-- CTA final -->
+  <section class="container">
+    <div class="cta-final reveal">
+      <h2>Prêt à confier votre véhicule ?</h2>
+      <p style="margin-bottom:24px;">Obtenez votre devis maintenant et rejoignez les centaines de clients satisfaits.</p>
+      <a href="devis.html" class="btn-primary" style="background:white; color:var(--bordeaux);">Commencer mon devis →</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-about"><div class="footer-logo">Bathily<span>.</span></div><p>La solution digitale de convoyage automobile & moto avec suivi en temps réel en France.</p></div>
+      <div class="footer-links"><h4>Navigation</h4><a href="index.html">Accueil</a><a href="#services">Services</a><a href="#howitworks">Processus</a><a href="devis.html">Devis</a></div>
+      <div class="footer-links"><h4>Espaces</h4><a href="dashboard-client.html">Espace client</a><a href="dashboard-convoyeur.html">Espace convoyeur</a><a href="dashboard-admin.html">Espace admin</a></div>
+      <div class="footer-links"><h4>Contact</h4><a href="mailto:contact@bathily-convoyage.fr">contact@bathily-convoyage.fr</a><span>France entière</span></div>
+    </div>
+    <div class="footer-bottom">© 2025 Bathily Convoyage — Tous droits réservés</div>
+  </div>
+</footer>
+
+<script>
+  // ----- Autocomplétion d'adresse via l'API BAN (Géoportail) -----
+  async function setupAddressAutocomplete(inputElement, boxId) {
+    const box = document.getElementById(boxId);
+    let debounceTimer;
+
+    inputElement.addEventListener('input', function(e) {
+      clearTimeout(debounceTimer);
+      const query = this.value.trim();
+      // On ne lance la recherche qu'à partir de 3 caractères
+      if (query.length < 3) {
+        box.style.display = 'none';
+        return;
+      }
+      debounceTimer = setTimeout(() => fetchSuggestions(query, box, inputElement), 300);
+    });
+
+    async function fetchSuggestions(query, box, inputElement) {
+      // Appel à l'API de géocodage de la Géoplateforme (BAN)
+      const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(query)}&limit=6`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Erreur HTTP ${response.status}`);
+        const data = await response.json();
+        if (data.features && data.features.length > 0) {
+          box.innerHTML = '';
+          data.features.forEach(feature => {
+            const fullAddress = feature.properties.label;
+            const div = document.createElement('div');
+            div.className = 'suggest-item';
+            div.textContent = fullAddress;
+            div.addEventListener('click', () => {
+              inputElement.value = fullAddress;
+              box.style.display = 'none';
+            });
+            box.appendChild(div);
+          });
+          box.style.display = 'block';
+        } else {
+          box.style.display = 'none';
+        }
+      } catch (error) {
+        console.error("Erreur lors de l'appel à l'API BAN :", error);
+        box.style.display = 'none';
+      }
+    }
+  }
+
+  // Initialiser l'autocomplétion pour les deux champs
+  const departInput = document.getElementById('depart');
+  const arriveeInput = document.getElementById('arrivee');
+  if (departInput) setupAddressAutocomplete(departInput, 'departSuggests');
+  if (arriveeInput) setupAddressAutocomplete(arriveeInput, 'arriveeSuggests');
+
+  // Fermer les suggestions en cliquant ailleurs
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-wrapper')) {
+      document.querySelectorAll('.suggest-box').forEach(box => box.style.display = 'none');
+    }
+  });
+
+  // ----- Compteurs animés -----
+  function animateCounter(el, target, suffix) {
+    let current = 0;
+    const step = Math.ceil(target / 60);
+    const timer = setInterval(() => {
+      current += step;
+      if (current >= target) {
+        el.innerText = target + suffix;
+        clearInterval(timer);
+      } else {
+        el.innerText = current + suffix;
+      }
+    }, 20);
+  }
+
+  const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCounter(document.getElementById('stat1'), 500, '+');
+        animateCounter(document.getElementById('stat2'), 24, 'h');
+        animateCounter(document.getElementById('stat3'), 49, '★');
+        statsObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.5 });
+  statsObserver.observe(document.querySelector('.hero-stats'));
+
+  // ----- Carrousel témoignages -----
+  const carousel = document.getElementById('testimonialCarousel');
+  const navContainer = document.getElementById('carouselNav');
+  const cards = Array.from(carousel.children);
+  let currentIndex = 0;
+
+  function updateCarousel() {
+    cards.forEach((_, i) => {
+      const dot = navContainer.children[i];
+      if (dot) dot.classList.toggle('active', i === currentIndex);
+    });
+    carousel.scrollTo({ left: currentIndex * carousel.clientWidth, behavior: 'smooth' });
+  }
+
+  function initCarousel() {
+    navContainer.innerHTML = '';
+    cards.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.classList.add('carousel-dot');
+      dot.addEventListener('click', () => { currentIndex = i; updateCarousel(); });
+      navContainer.appendChild(dot);
+    });
+    updateCarousel();
+    carousel.addEventListener('scroll', () => {
+      const newIndex = Math.round(carousel.scrollLeft / carousel.clientWidth);
+      if (newIndex !== currentIndex && !isNaN(newIndex)) { currentIndex = newIndex; updateCarousel(); }
+    });
+  }
+  initCarousel();
+
+  // ----- Carte Leaflet -----
+  const map = L.map('miniMap').setView([46.5, 2.5], 6);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+  L.marker([48.8566, 2.3522]).addTo(map).bindPopup('Paris').openPopup();
+  L.marker([45.7640, 4.8357]).addTo(map).bindPopup('Lyon');
+  L.polyline([[48.8566,2.3522], [45.7640,4.8357]], { color: '#7A2E1A', weight: 4, opacity: 0.8 }).addTo(map);
+
+  // ----- Redirection vers la page devis avec stockage des données -----
+  function goToDevis() {
+    const depart = document.getElementById('depart').value;
+    const arrivee = document.getElementById('arrivee').value;
+    if (!depart || !arrivee) {
+      alert('Veuillez renseigner l\'adresse de départ et l\'adresse d\'arrivée.');
+      return;
+    }
+    const type = document.getElementById('vehType').value === 'Automobile' ? 'auto' : 'moto';
+    localStorage.setItem('bathily_devis', JSON.stringify({
+      vehicule: type,
+      depart: depart,
+      arrivee: arrivee,
+      mode: 'route'
+    }));
+    window.location.href = 'devis.html';
+  }
+
+  // ----- Menu mobile : fermeture après clic -----
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', () => {
+      document.querySelector('.nav-links').classList.remove('show');
+    });
+  });
+
+  // ----- Animation au défilement (reveal) -----
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+</script>
+
+<section style="padding:40px 20px">
+<h2>Convoyage de véhicules partout en France</h2>
+<p>Bathily Convoyage intervient à Paris, Lyon, Marseille, Lille, Bordeaux, Toulouse, Nantes, Strasbourg, Nice et sur l'ensemble du territoire français.</p>
+
+<h2>Questions fréquentes</h2>
+<h3>Combien coûte un convoyage automobile ?</h3>
+<p>Le tarif dépend de la distance, du véhicule et des options demandées.</p>
+<h3>Le véhicule est-il assuré ?</h3>
+<p>Oui, les missions sont couvertes par une assurance professionnelle adaptée.</p>
+<h3>Intervenez-vous partout en France ?</h3>
+<p>Oui, nous réalisons des convoyages sur tout le territoire.</p>
+</section>
+<a href="devis.html" class="floating-devis">Demander un devis</a>
+
+</body>
+</html>
