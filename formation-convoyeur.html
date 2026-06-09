@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Devenir Convoyeur — Bathily Convoyage</title>
+<meta name="description" content="Rejoignez le réseau de convoyeurs certifiés Bathily. Formation complète, quiz de validation, et accès à une plateforme digitale premium.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bordeaux: #7A2E1A;
+  --bordeaux-dark: #5C2212;
+  --bordeaux-light: #F3E8E4;
+  --cream: #FDFBF7;
+  --beige: #F9F6F0;
+  --gray-dark: #2D2A24;
+  --gray-mid: #6B625A;
+  --border-light: #E8E1D9;
+  --success: #4A7C6B;
+  --warning: #E0A343;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: #FDFBF7;
+  color: #2D2A24;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ====== HEADER ====== */
+header {
+  position: sticky; top: 0;
+  background: rgba(253,251,247,0.96);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-light);
+  z-index: 100; padding: 0 32px; height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--gray-dark); text-decoration: none; letter-spacing: -0.02em; }
+.logo span { color: var(--bordeaux); }
+.header-back { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-mid); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
+.header-back:hover { color: var(--bordeaux); }
+
+/* ====== GLOBAL PROGRESS BAR ====== */
+.global-progress {
+  background: white; border-bottom: 1px solid var(--border-light);
+  padding: 12px 32px; display: flex; align-items: center; gap: 20px;
+}
+.gp-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-mid); white-space: nowrap; }
+.gp-bar { flex: 1; height: 6px; background: var(--border-light); border-radius: 40px; overflow: hidden; }
+.gp-fill { height: 100%; background: linear-gradient(90deg, var(--bordeaux), #c0392b); border-radius: 40px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+.gp-steps { display: flex; gap: 6px; }
+.gp-step {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--border-light);
+  font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  color: var(--gray-mid); transition: all 0.3s;
+}
+.gp-step.done { background: var(--success); color: white; }
+.gp-step.active { background: var(--bordeaux); color: white; transform: scale(1.1); }
+
+/* ====== WRAPPER ====== */
+.wrapper { max-width: 780px; margin: 0 auto; padding: 40px 24px 80px; }
+
+/* ====== CARDS ====== */
+.card {
+  background: white; border-radius: 28px; padding: 36px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.03);
+  margin-bottom: 24px;
+}
+.card-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.6rem; font-weight: 700; margin-bottom: 6px;
+}
+.card-title em { color: var(--bordeaux); font-style: normal; }
+.card-sub { font-size: 0.85rem; color: var(--gray-mid); margin-bottom: 28px; }
+
+/* ====== STEP PAGES ====== */
+.step-page { display: none; animation: fadeIn 0.4s ease; }
+.step-page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ====== HERO (step 0) ====== */
+.hero-formation {
+  background: linear-gradient(135deg, var(--bordeaux) 0%, #c0392b 100%);
+  border-radius: 28px; padding: 48px; color: white; margin-bottom: 24px; position: relative; overflow: hidden;
+}
+.hero-formation::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 240px; height: 240px; border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+}
+.hero-badge-white {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+  color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; padding: 5px 14px; border-radius: 40px;
+  display: inline-block; margin-bottom: 20px;
+}
+.hero-formation h1 { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; }
+.hero-formation h1 span { opacity: 0.75; }
+.hero-formation p { font-size: 0.95rem; opacity: 0.85; margin-bottom: 32px; max-width: 520px; }
+.hero-stats-row { display: flex; gap: 32px; flex-wrap: wrap; }
+.h-stat { text-align: center; }
+.h-stat strong { display: block; font-size: 1.6rem; font-weight: 800; }
+.h-stat small { font-size: 0.7rem; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.06em; }
+.modules-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mod-prev { background: var(--bordeaux-light); border-radius: 16px; padding: 16px 18px; display: flex; align-items: center; gap: 12px; }
+.mod-prev i { color: var(--bordeaux); font-size: 1.1rem; width: 24px; }
+.mod-prev-text strong { display: block; font-size: 0.8rem; font-weight: 700; color: var(--gray-dark); }
+.mod-prev-text small { font-size: 0.7rem; color: var(--gray-mid); }
+
+/* ====== FORM ====== */
+.f-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.f-grp { margin-bottom: 0; }
+.f-grp.full { grid-column: span 2; }
+.f-grp label { display: block; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-mid); margin-bottom: 6px; }
+.f-grp input, .f-grp select {
+  width: 100%; padding: 13px 16px;
+  border: 1.5px solid var(--border-light); border-radius: 14px;
+  font-family: 'Inter',sans-serif; font-size: 0.875rem;
+  background: #F9FAFB; transition: all 0.2s;
+}
+.f-grp input:focus, .f-grp select:focus {
+  outline: none; border-color: var(--bordeaux);
+  box-shadow: 0 0 0 3px rgba(122,46,26,0.08); background: white;
+}
+.f-grp.mb { margin-bottom: 16px; }
+.permis-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.permis-chip {
+  padding: 8px 16px; border-radius: 40px; border: 1.5px solid var(--border-light);
+  font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  user-select: none; background: white; color: var(--gray-mid);
+}
+.permis-chip.selected { border-color: var(--bordeaux); background: var(--bordeaux); color: white; }
+.required-note { font-size: 0.7rem; color: var(--gray-mid); margin-top: 6px; }
+
+/* ====== MODULE SLIDES ====== */
+.module-header {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 28px;
+  padding-bottom: 20px; border-bottom: 1px solid var(--border-light);
+}
+.module-ico {
+  width: 52px; height: 52px; border-radius: 16px;
+  background: var(--bordeaux); display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; color: white; flex-shrink: 0;
+}
+.module-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--bordeaux); margin-bottom: 4px; }
+.module-title { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 1.3rem; font-weight: 700; }
+.module-subtitle { font-size: 0.78rem; color: var(--gray-mid); }
+.lesson-block { margin-bottom: 24px; }
+.lesson-h { font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.lesson-h i { color: var(--bordeaux); }
+.lesson-p { font-size: 0.85rem; color: var(--gray-mid); line-height: 1.7; margin-bottom: 8px; }
+.info-box {
+  background: var(--bordeaux-light); border-left: 3px solid var(--bordeaux);
+  border-radius: 0 12px 12px 0; padding: 14px 18px; margin: 16px 0;
+  font-size: 0.82rem; color: var(--bordeaux-dark);
+}
+.info-box strong { display: block; margin-bottom: 4px; }
+.warning-box {
+  background: rgba(224,163,67,0.1); border-left: 3px solid var(--warning);
+  border-radius: 0 12px 12px 0; padding: 14px 18px; margin: 16px 0;
+  font-size: 0.82rem; color: #7a5a0d;
+}
+.success-box {
+  background: rgba(74,124,107,0.08); border-left: 3px solid var(--success);
+  border-radius: 0 12px 12px 0; padding: 14px 18px; margin: 16px 0;
+  font-size: 0.82rem; color: #2a5c4a;
+}
+.checklist { list-style: none; padding: 0; margin: 10px 0; }
+.checklist li { padding: 6px 0; font-size: 0.84rem; display: flex; align-items: flex-start; gap: 10px; color: var(--gray-dark); }
+.checklist li::before { content: '✓'; color: var(--success); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.checklist li.x::before { content: '✗'; color: #e74c3c; }
+.highlight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.hl-card { background: var(--beige); border-radius: 14px; padding: 14px; border: 1px solid var(--border-light); }
+.hl-card .hl-num { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--bordeaux); }
+.hl-card .hl-label { font-size: 0.72rem; color: var(--gray-mid); font-weight: 600; text-transform: uppercase; }
+
+/* ====== QUIZ ====== */
+.quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+.quiz-progress-text { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-mid); }
+.quiz-score-badge { background: var(--bordeaux-light); color: var(--bordeaux); font-weight: 700; font-size: 0.75rem; padding: 5px 12px; border-radius: 40px; }
+.q-block { margin-bottom: 28px; animation: fadeIn 0.35s ease; }
+.q-num { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--bordeaux); letter-spacing: 0.1em; margin-bottom: 8px; }
+.q-text { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; line-height: 1.4; }
+.q-options { display: flex; flex-direction: column; gap: 10px; }
+.q-opt {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px; border: 1.5px solid var(--border-light);
+  border-radius: 14px; cursor: pointer; transition: all 0.2s;
+  font-size: 0.85rem; user-select: none;
+}
+.q-opt:hover:not(.locked) { border-color: var(--bordeaux); background: var(--bordeaux-light); }
+.q-opt.selected { border-color: var(--bordeaux); background: var(--bordeaux-light); }
+.q-opt.correct { border-color: var(--success); background: rgba(74,124,107,0.08); color: var(--success); }
+.q-opt.wrong { border-color: #e74c3c; background: rgba(231,76,60,0.06); color: #c0392b; }
+.q-opt.locked { pointer-events: none; }
+.opt-letter { width: 28px; height: 28px; border-radius: 50%; background: var(--border-light); font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.q-opt.correct .opt-letter { background: var(--success); color: white; }
+.q-opt.wrong .opt-letter { background: #e74c3c; color: white; }
+.q-opt.selected:not(.correct):not(.wrong) .opt-letter { background: var(--bordeaux); color: white; }
+.q-feedback { margin-top: 12px; padding: 12px 16px; border-radius: 12px; font-size: 0.8rem; display: none; }
+.q-feedback.show { display: block; }
+.q-feedback.good { background: rgba(74,124,107,0.1); color: #2a5c4a; }
+.q-feedback.bad { background: rgba(231,76,60,0.08); color: #a93226; }
+.quiz-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-light); }
+.quiz-counter { font-size: 0.75rem; color: var(--gray-mid); font-weight: 600; }
+
+/* ====== RESULTS ====== */
+.result-circle {
+  width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px;
+  border: 6px solid var(--bordeaux-light);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative; transition: all 0.8s;
+}
+.result-circle.pass { border-color: var(--success); }
+.result-circle.fail { border-color: #e74c3c; }
+.result-score { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 2.4rem; font-weight: 800; }
+.result-of { font-size: 0.7rem; color: var(--gray-mid); font-weight: 600; }
+.result-badge { text-align: center; margin-bottom: 20px; }
+.badge-certified {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #f5e6d3, #fdf3e7);
+  border: 2px solid #c9a56b; border-radius: 40px;
+  padding: 10px 24px; font-size: 0.85rem; font-weight: 700; color: #7a5a1a;
+}
+.cooldown-box { background: rgba(231,76,60,0.06); border: 1px solid rgba(231,76,60,0.2); border-radius: 16px; padding: 20px; text-align: center; margin: 20px 0; }
+.cooldown-timer { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 2rem; font-weight: 800; color: #c0392b; }
+.result-answers { margin-top: 24px; }
+.ra-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-light); font-size: 0.82rem; }
+.ra-item:last-child { border-bottom: none; }
+.ra-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; flex-shrink: 0; }
+.ra-icon.ok { background: rgba(74,124,107,0.15); color: var(--success); }
+.ra-icon.ko { background: rgba(231,76,60,0.12); color: #c0392b; }
+
+/* ====== BUTTONS ====== */
+.btn-primary {
+  background: var(--bordeaux); color: white; border: none;
+  border-radius: 14px; padding: 14px 28px;
+  font-size: 0.875rem; font-weight: 700; cursor: pointer;
+  transition: all 0.25s; display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'Inter',sans-serif;
+}
+.btn-primary:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
+.btn-secondary {
+  background: transparent; color: var(--gray-mid); border: 1.5px solid var(--border-light);
+  border-radius: 14px; padding: 14px 28px;
+  font-size: 0.875rem; font-weight: 600; cursor: pointer;
+  transition: all 0.25s; display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'Inter',sans-serif;
+}
+.btn-secondary:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
+.btn-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 28px; }
+.btn-row.right { justify-content: flex-end; }
+.btn-full { width: 100%; justify-content: center; padding: 16px; font-size: 0.95rem; }
+
+/* ====== CONFIRMATION ====== */
+.confirm-icon { font-size: 3rem; margin-bottom: 16px; }
+.steps-timeline { display: flex; flex-direction: column; gap: 16px; margin: 24px 0; }
+.tl-item { display: flex; align-items: flex-start; gap: 14px; }
+.tl-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: white; flex-shrink: 0; }
+.tl-dot-1 { background: var(--success); }
+.tl-dot-2 { background: var(--warning); }
+.tl-dot-3 { background: var(--bordeaux); }
+.tl-content h4 { font-weight: 700; font-size: 0.9rem; margin-bottom: 3px; }
+.tl-content p { font-size: 0.78rem; color: var(--gray-mid); }
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 640px) {
+  .f-grid { grid-template-columns: 1fr; }
+  .f-grp.full { grid-column: span 1; }
+  .highlight-grid { grid-template-columns: 1fr; }
+  .modules-preview { grid-template-columns: 1fr; }
+  .hero-formation h1 { font-size: 1.6rem; }
+  .card { padding: 24px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo">Bathily-Convoyage<span>.</span></a>
+  <a href="index.html" class="header-back"><i class="fas fa-arrow-left"></i> Retour au site</a>
+</header>
+
+<!-- Barre de progression globale -->
+<div class="global-progress">
+  <span class="gp-label" id="gpLabel">Étape 1 / 7</span>
+  <div class="gp-bar"><div class="gp-fill" id="gpFill" style="width:14%"></div></div>
+  <div class="gp-steps">
+    <div class="gp-step active" id="gs1">1</div>
+    <div class="gp-step" id="gs2">2</div>
+    <div class="gp-step" id="gs3">3</div>
+    <div class="gp-step" id="gs4">4</div>
+    <div class="gp-step" id="gs5">5</div>
+    <div class="gp-step" id="gs6">6</div>
+    <div class="gp-step" id="gs7"><i class="fas fa-check" style="font-size:0.55rem"></i></div>
+  </div>
+</div>
+
+<div class="wrapper">
+
+  <!-- ======== PAGE 0 : WELCOME ======== -->
+  <div class="step-page active" id="page0">
+    <div class="hero-formation">
+      <div class="hero-badge-white">🚗 Programme Certifié Bathily</div>
+      <h1>Devenez convoyeur <span>certifié</span></h1>
+      <p>Rejoignez notre réseau de professionnels du convoyage automobile en France. Formation complète, missions régulières et rémunération attractive.</p>
+      <div class="hero-stats-row">
+        <div class="h-stat"><strong>0,47€</strong><small>/ km moyen</small></div>
+        <div class="h-stat"><strong>24-48h</strong><small>Délai validation</small></div>
+        <div class="h-stat"><strong>France</strong><small>Entière</small></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Parcours d'<em>intégration</em></div>
+      <div class="card-sub">4 modules de formation + quiz de validation. Durée estimée : 20–30 minutes.</div>
+      <div class="modules-preview">
+        <div class="mod-prev"><i class="fas fa-gavel"></i><div class="mod-prev-text"><strong>Module 1</strong><small>Cadre légal & SIV</small></div></div>
+        <div class="mod-prev"><i class="fas fa-camera"></i><div class="mod-prev-text"><strong>Module 2</strong><small>État des lieux</small></div></div>
+        <div class="mod-prev"><i class="fas fa-handshake"></i><div class="mod-prev-text"><strong>Module 3</strong><small>Procédures Bathily</small></div></div>
+        <div class="mod-prev"><i class="fas fa-shield-alt"></i><div class="mod-prev-text"><strong>Module 4</strong><small>Sécurité routière</small></div></div>
+      </div>
+      <div style="margin-top:24px; padding:16px; background:var(--beige); border-radius:14px; font-size:0.8rem; color:var(--gray-mid);">
+        <strong style="color:var(--gray-dark); display:block; margin-bottom:4px;">Prérequis obligatoires :</strong>
+        <span><i class="fas fa-check" style="color:var(--success); margin-right:6px;"></i>Permis B valide depuis <strong>minimum 3 ans</strong></span><br>
+        <span style="margin-top:4px; display:block;"><i class="fas fa-check" style="color:var(--success); margin-right:6px;"></i>Résidence en France</span><br>
+        <span style="margin-top:4px; display:block;"><i class="fas fa-check" style="color:var(--success); margin-right:6px;"></i>Score minimum au quiz : <strong>80%</strong> (10/12 bonnes réponses)</span>
+      </div>
+    </div>
+
+    <div class="btn-row right">
+      <button class="btn-primary" onclick="goPage(1)">Commencer l'inscription <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ======== PAGE 1 : FORMULAIRE ======== -->
+  <div class="step-page" id="page1">
+    <div class="card">
+      <div class="card-title">Vos <em>informations</em></div>
+      <div class="card-sub">Complétez votre profil avant d'accéder à la formation. Ces données resteront confidentielles.</div>
+
+      <div class="f-grid">
+        <div class="f-grp"><label>Prénom *</label><input type="text" id="f_prenom" placeholder="Jean" required></div>
+        <div class="f-grp"><label>Nom *</label><input type="text" id="f_nom" placeholder="Dupont" required></div>
+        <div class="f-grp"><label>Email *</label><input type="email" id="f_email" placeholder="jean.dupont@email.com" required></div>
+        <div class="f-grp"><label>Téléphone *</label><input type="tel" id="f_tel" placeholder="06 12 34 56 78" required></div>
+        <div class="f-grp"><label>Date de naissance *</label><input type="date" id="f_naissance" required></div>
+        <div class="f-grp"><label>Code postal / Ville *</label><input type="text" id="f_ville" placeholder="75001 Paris" required></div>
+        <div class="f-grp full"><label>Mot de passe *</label><input type="password" id="f_password" placeholder="Minimum 8 caractères" minlength="8" required></div>
+        <div class="f-grp full">
+          <label>Vos permis de conduire *</label>
+          <div class="permis-row">
+            <div class="permis-chip selected" data-permis="B" onclick="togglePermis(this)">🚗 Permis B</div>
+            <div class="permis-chip" data-permis="A" onclick="togglePermis(this)">🏍️ Permis A (moto)</div>
+            <div class="permis-chip" data-permis="A2" onclick="togglePermis(this)">🛵 Permis A2</div>
+            <div class="permis-chip" data-permis="C" onclick="togglePermis(this)">🚛 Permis C (poids lourd)</div>
+            <div class="permis-chip" data-permis="BE" onclick="togglePermis(this)">🚐 Permis BE (remorque)</div>
+          </div>
+          <p class="required-note">* Le permis B est obligatoire et doit être obtenu depuis au moins 3 ans.</p>
+        </div>
+        <div class="f-grp"><label>Année d'obtention Permis B *</label><input type="number" id="f_annee_permis" placeholder="2018" min="1970" max="2025" required></div>
+        <div class="f-grp"><label>Expérience convoyage</label>
+          <select id="f_experience">
+            <option value="aucune">Aucune (débutant)</option>
+            <option value="moins1an">Moins d'1 an</option>
+            <option value="1a3ans">1 à 3 ans</option>
+            <option value="plus3ans">Plus de 3 ans</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goPage(0)"><i class="fas fa-arrow-left"></i> Retour</button>
+      <button class="btn-primary" onclick="validatePage1()">Accéder à la formation <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ======== PAGE 2 : MODULE 1 ======== -->
+  <div class="step-page" id="page2">
+    <div class="card">
+      <div class="module-header">
+        <div class="module-ico"><i class="fas fa-gavel"></i></div>
+        <div>
+          <div class="module-label">Module 1 — Cadre Légal</div>
+          <div class="module-title">Le Métier de Convoyeur & la Loi</div>
+          <div class="module-subtitle">Comprendre vos droits, obligations et protections</div>
+        </div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-book-open"></i> Qu'est-ce que le convoyage automobile ?</div>
+        <p class="lesson-p">Le convoyage automobile consiste à <strong>déplacer le véhicule d'un client d'un point A à un point B</strong>, en son nom et pour son compte. Le convoyeur agit en tant que mandataire : il conduit légalement un véhicule qui ne lui appartient pas.</p>
+        <p class="lesson-p">C'est une activité de prestation de services réglementée, exercée de manière professionnelle et déclarée.</p>
+        <div class="info-box"><strong>À retenir</strong> Un convoyeur n'est pas un chauffeur VTC ni un transporteur. Il déplace le véhicule du client en tant que son représentant légal momentané.</div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-id-card"></i> Le Mandat SIV (Système d'Immatriculation des Véhicules)</div>
+        <p class="lesson-p">Le <strong>mandat SIV</strong> est le document légal qui vous autorise à conduire le véhicule d'un tiers sur la voie publique. Il est établi par le client et remis au convoyeur avant chaque mission.</p>
+        <div class="highlight-grid">
+          <div class="hl-card"><div class="hl-num">✓</div><div class="hl-label">Ce qu'il autorise</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Conduire le véhicule, présenter les documents en cas de contrôle</p></div>
+          <div class="hl-card"><div class="hl-num">✗</div><div class="hl-label">Ce qu'il n'autorise pas</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Modifier le véhicule, transporter des passagers, sous-traiter la mission</p></div>
+        </div>
+        <div class="warning-box"><strong>⚠️ Important</strong> Sans mandat SIV valide, vous conduisez illégalement un véhicule qui ne vous appartient pas. Ne démarrez jamais une mission sans ce document.</div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-shield-alt"></i> La Double Assurance RC Pro Bathily</div>
+        <p class="lesson-p">Bathily Convoyage fournit à chaque convoyeur une <strong>double couverture RC Professionnelle</strong> pendant toute la durée de la mission.</p>
+        <ul class="checklist">
+          <li>Dommages matériels causés au véhicule confié pendant le convoyage</li>
+          <li>Dommages causés à des tiers en cas d'accident dont vous êtes responsable</li>
+          <li>Couverture sur tout le territoire français</li>
+        </ul>
+        <ul class="checklist">
+          <li class="x">Le vol du véhicule (couvert par l'assurance propre du propriétaire)</li>
+          <li class="x">Les dommages mécaniques antérieurs à la mission</li>
+          <li class="x">Les infractions et amendes (à votre charge)</li>
+        </ul>
+        <div class="success-box"><strong>✓ Vous êtes protégé</strong> Grâce à la RC Pro Bathily, vous intervenez en toute sécurité juridique. Conservez toujours votre attestation d'assurance lors de chaque mission.</div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-balance-scale"></i> Vos responsabilités civile et pénale</div>
+        <p class="lesson-p">En tant que convoyeur, vous êtes <strong>civilement et pénalement responsable</strong> de votre conduite et du véhicule confié pendant toute la durée de la mission.</p>
+        <ul class="checklist">
+          <li>Respecter le Code de la route en toutes circonstances</li>
+          <li>Traiter le véhicule avec le même soin que s'il vous appartenait</li>
+          <li>Signaler immédiatement tout incident à Bathily</li>
+          <li>Ne jamais conduire sous l'emprise d'alcool ou de substances</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goPage(1)"><i class="fas fa-arrow-left"></i> Retour</button>
+      <button class="btn-primary" onclick="goPage(3)">Module suivant <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ======== PAGE 3 : MODULE 2 ======== -->
+  <div class="step-page" id="page3">
+    <div class="card">
+      <div class="module-header">
+        <div class="module-ico" style="background:#2980b9"><i class="fas fa-camera"></i></div>
+        <div>
+          <div class="module-label">Module 2 — État des Lieux</div>
+          <div class="module-title">Photographier, Documenter, Protéger</div>
+          <div class="module-subtitle">Votre meilleure protection juridique avant et après chaque mission</div>
+        </div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-exclamation-triangle"></i> Pourquoi l'état des lieux est crucial</div>
+        <p class="lesson-p">L'état des lieux est le document qui <strong>protège à la fois le client et le convoyeur</strong>. Il établit de manière incontestable l'état du véhicule au moment de la prise en charge et de la livraison.</p>
+        <div class="warning-box"><strong>⚠️ Sans état des lieux rigoureux</strong>, vous pouvez être tenu responsable de dommages préexistants que vous n'avez pas causés. C'est votre principale protection légale.</div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-camera-retro"></i> Le protocole Bathily : 20 photos obligatoires</div>
+        <p class="lesson-p">Avant chaque départ, vous devez photographier le véhicule selon le protocole Bathily standard :</p>
+        <div class="highlight-grid">
+          <div class="hl-card"><div class="hl-num">4</div><div class="hl-label">Vues générales</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Avant, arrière, côté gauche, côté droit</p></div>
+          <div class="hl-card"><div class="hl-num">4</div><div class="hl-label">Angles</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Les 4 coins du véhicule</p></div>
+          <div class="hl-card"><div class="hl-num">4</div><div class="hl-label">Intérieur</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Tableau de bord, sièges, coffre, kilométrage</p></div>
+          <div class="hl-card"><div class="hl-num">8+</div><div class="hl-label">Détails & anomalies</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Tout dommage existant, rayures, impacts, bosses</p></div>
+        </div>
+        <div class="info-box"><strong>Conseil Pro</strong> Photographiez en pleine lumière. En cas de dommage existant, approchez-vous à moins de 30 cm pour un détail net. Le kilométrage et les jauges de carburant sont obligatoires.</div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-pen-alt"></i> Comment noter les dommages existants</div>
+        <p class="lesson-p">Si vous constatez un dommage avant la mission, notez-le <strong>précisément</strong> :</p>
+        <ul class="checklist">
+          <li>Localisation exacte (ex : "aile avant gauche", "pare-choc arrière droit")</li>
+          <li>Nature du dommage (rayure légère, impact de grêle, bosse, fissure)</li>
+          <li>Dimensions approximatives si possible</li>
+          <li>Faites valider par le client avec sa signature</li>
+        </ul>
+        <div class="success-box"><strong>✓ Règle d'or</strong> En cas de doute, photographiez. Il vaut mieux avoir 30 photos que regretter l'absence de la 21ème.</div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-signature"></i> La signature contradictoire</div>
+        <p class="lesson-p">L'état des lieux doit être <strong>signé par les deux parties</strong> : le client (ou son représentant) et vous, le convoyeur.</p>
+        <ul class="checklist">
+          <li><strong>Au départ :</strong> client + convoyeur signent l'état des lieux initial</li>
+          <li><strong>À l'arrivée :</strong> destinataire + convoyeur signent l'état des lieux de sortie</li>
+          <li>Si le destinataire refuse de signer, contactez immédiatement Bathily</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goPage(2)"><i class="fas fa-arrow-left"></i> Retour</button>
+      <button class="btn-primary" onclick="goPage(4)">Module suivant <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ======== PAGE 4 : MODULE 3 ======== -->
+  <div class="step-page" id="page4">
+    <div class="card">
+      <div class="module-header">
+        <div class="module-ico" style="background:var(--success)"><i class="fas fa-handshake"></i></div>
+        <div>
+          <div class="module-label">Module 3 — Procédures Bathily</div>
+          <div class="module-title">De la Mission à la Livraison</div>
+          <div class="module-subtitle">Protocoles, communication client et utilisation de la plateforme</div>
+        </div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-list-check"></i> Déroulement complet d'une mission</div>
+        <div class="steps-timeline" style="margin-top:16px">
+          <div class="tl-item"><div class="tl-dot tl-dot-1">1</div><div class="tl-content"><h4>Acceptation et confirmation</h4><p>Vous acceptez la mission sur la plateforme. Vérifiez les détails : adresse, date, type de véhicule, distance.</p></div></div>
+          <div class="tl-item"><div class="tl-dot tl-dot-2">2</div><div class="tl-content"><h4>Prise en charge du véhicule</h4><p>Récupérez le mandat SIV, les clés et les documents. Effectuez l'état des lieux complet et activez le GPS.</p></div></div>
+          <div class="tl-item"><div class="tl-dot tl-dot-3">3</div><div class="tl-content"><h4>Transport et suivi GPS</h4><p>Le suivi GPS Bathily doit rester actif pendant TOUTE la mission. Ne l'éteignez pas.</p></div></div>
+          <div class="tl-item"><div class="tl-dot tl-dot-1">4</div><div class="tl-content"><h4>Livraison et remise</h4><p>Effectuez l'état des lieux de sortie avec le destinataire. Faites signer et remettez les clés + documents.</p></div></div>
+          <div class="tl-item"><div class="tl-dot tl-dot-2">5</div><div class="tl-content"><h4>Validation et rémunération</h4><p>Validez la mission dans l'application. La rémunération est traitée sous 48h.</p></div></div>
+        </div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-comments"></i> Communication avec le client</div>
+        <p class="lesson-p">La relation client est un élément clé de votre réputation chez Bathily.</p>
+        <ul class="checklist">
+          <li>Soyez ponctuel : prévenez avec <strong>au moins 30 min d'avance</strong> si vous avez du retard</li>
+          <li>Ton professionnel et courtois en toutes circonstances</li>
+          <li>Ne donnez jamais votre numéro personnel : utilisez la messagerie Bathily</li>
+          <li>En cas de problème, informez d'abord Bathily, puis le client</li>
+        </ul>
+        <ul class="checklist">
+          <li class="x">Pas de discussions sur vos tarifs personnels avec le client</li>
+          <li class="x">Ne faites aucune promesse de délai que vous ne pouvez garantir</li>
+        </ul>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-map-marker-alt"></i> Le GPS : obligatoire, pas optionnel</div>
+        <p class="lesson-p">Le suivi GPS en temps réel est une <strong>obligation contractuelle</strong> chez Bathily, pas une option. Il protège le client, le convoyeur et l'entreprise.</p>
+        <div class="warning-box"><strong>⚠️ GPS éteint = mission invalidée</strong> Si votre GPS est coupé pendant plus de 15 minutes sans raison valable (tunnel, zone blanche), la mission peut être contestée et votre rémunération retenue.</div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-exclamation-circle"></i> En cas d'incident</div>
+        <p class="lesson-p">Accident, panne, problème avec le client... voici la procédure en 3 étapes :</p>
+        <div style="display:grid; gap:10px; margin-top:10px;">
+          <div style="background:var(--beige); border-radius:12px; padding:14px; display:flex; gap:12px; align-items:flex-start;">
+            <span style="font-weight:800; color:var(--bordeaux); font-size:1.1rem; flex-shrink:0;">1.</span>
+            <div><strong style="display:block; margin-bottom:3px;">Sécuriser</strong><span style="font-size:0.8rem; color:var(--gray-mid);">Mettez-vous en sécurité, activez les feux de détresse, appelez le 15/17/18 si nécessaire.</span></div>
+          </div>
+          <div style="background:var(--beige); border-radius:12px; padding:14px; display:flex; gap:12px; align-items:flex-start;">
+            <span style="font-weight:800; color:var(--bordeaux); font-size:1.1rem; flex-shrink:0;">2.</span>
+            <div><strong style="display:block; margin-bottom:3px;">Contacter Bathily immédiatement</strong><span style="font-size:0.8rem; color:var(--gray-mid);">Appelez la coordination Bathily AVANT d'informer le client. Nous gérons la communication.</span></div>
+          </div>
+          <div style="background:var(--beige); border-radius:12px; padding:14px; display:flex; gap:12px; align-items:flex-start;">
+            <span style="font-weight:800; color:var(--bordeaux); font-size:1.1rem; flex-shrink:0;">3.</span>
+            <div><strong style="display:block; margin-bottom:3px;">Documenter</strong><span style="font-size:0.8rem; color:var(--gray-mid);">Photographiez, rédigez un constat si nécessaire, conservez tous les justificatifs.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goPage(3)"><i class="fas fa-arrow-left"></i> Retour</button>
+      <button class="btn-primary" onclick="goPage(5)">Dernier module <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ======== PAGE 5 : MODULE 4 ======== -->
+  <div class="step-page" id="page5">
+    <div class="card">
+      <div class="module-header">
+        <div class="module-ico" style="background:var(--warning)"><i class="fas fa-road"></i></div>
+        <div>
+          <div class="module-label">Module 4 — Sécurité & Bonnes Pratiques</div>
+          <div class="module-title">Conduire Comme un Professionnel</div>
+          <div class="module-subtitle">Sécurité routière, véhicules spéciaux, interdictions formelles</div>
+        </div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-clock"></i> Temps de conduite & pauses obligatoires</div>
+        <p class="lesson-p">La fatigue au volant est la première cause d'accident sur autoroute. En tant que professionnel, vous devez respecter :</p>
+        <div class="highlight-grid">
+          <div class="hl-card"><div class="hl-num">2h</div><div class="hl-label">Max consécutif</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Pause de 15 min obligatoire toutes les 2h</p></div>
+          <div class="hl-card"><div class="hl-num">4h30</div><div class="hl-label">Max par jour</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Durée journalière maximale recommandée</p></div>
+        </div>
+        <div class="info-box"><strong>Conseil</strong> Lors de vos pauses, éloignez-vous du véhicule en le verrouillant. Ne laissez jamais les clés à l'intérieur, même 5 minutes.</div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-check-double"></i> Contrôle pré-départ du véhicule</div>
+        <p class="lesson-p">Avant de démarrer, effectuez un tour du propriétaire systématique :</p>
+        <ul class="checklist">
+          <li>Niveau d'huile, eau, lave-glace (vérification visuelle)</li>
+          <li>État des pneus (gonflage visuel, aucune crevaison)</li>
+          <li>Fonctionnement des feux (phares, clignotants, feux stop)</li>
+          <li>Kilométrage noté dans l'état des lieux</li>
+          <li>Carburant suffisant pour atteindre la destination (ou première station)</li>
+        </ul>
+        <div class="warning-box"><strong>⚠️ Anomalie détectée ?</strong> Si vous constatez un problème mécanique grave (fumée, odeur, témoin critique), ne démarrez JAMAIS. Signalez-le à Bathily immédiatement.</div>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-gem"></i> Véhicules de valeur, luxe et collection</div>
+        <p class="lesson-p">Certaines missions concernent des véhicules de haute valeur (supérieure à 50 000€), des voitures de collection ou des motos haut de gamme. Des règles spécifiques s'appliquent :</p>
+        <ul class="checklist">
+          <li>Conduire encore plus prudemment que d'habitude</li>
+          <li>Ne pas dépasser 110 km/h sur autoroute avec un véhicule de collection</li>
+          <li>Éviter les routes endommagées ou les dos d'âne agressifs</li>
+          <li>Ne jamais laisser seul un véhicule de valeur dans un endroit non sécurisé</li>
+          <li>Photos supplémentaires obligatoires pour les véhicules > 30 000€</li>
+        </ul>
+      </div>
+
+      <div class="lesson-block">
+        <div class="lesson-h"><i class="fas fa-ban"></i> Interdictions formelles</div>
+        <p class="lesson-p">Le non-respect de ces règles entraîne la résiliation immédiate de votre compte et peut engager votre responsabilité :</p>
+        <ul class="checklist">
+          <li class="x">Transporter des passagers dans le véhicule convoyé</li>
+          <li class="x">Utiliser le véhicule à des fins personnelles (détour, courses)</li>
+          <li class="x">Conduire sous l'emprise d'alcool, médicaments ou drogues</li>
+          <li class="x">Sous-traiter ou déléguer la mission sans accord de Bathily</li>
+          <li class="x">Fumer dans le véhicule</li>
+          <li class="x">Éteindre le GPS pendant la mission</li>
+          <li class="x">Facturer directement le client</li>
+        </ul>
+        <div class="success-box"><strong>✓ Félicitations !</strong> Vous avez terminé les 4 modules de formation. Vous êtes maintenant prêt(e) pour le quiz de validation.</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goPage(4)"><i class="fas fa-arrow-left"></i> Retour</button>
+      <button class="btn-primary" onclick="startQuiz()">Commencer le quiz <i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ======== PAGE 6 : QUIZ ======== -->
+  <div class="step-page" id="page6">
+    <div class="card">
+      <div class="quiz-header">
+        <div>
+          <div class="card-title" style="font-size:1.3rem; margin-bottom:2px;">Quiz de <em>validation</em></div>
+          <div style="font-size:0.78rem; color:var(--gray-mid);">12 questions — Score minimum 80% (10/12)</div>
+        </div>
+        <div class="quiz-score-badge" id="livreScore">0 / 12</div>
+      </div>
+      <div id="quizContainer"></div>
+      <div class="quiz-nav">
+        <div class="quiz-counter" id="quizCounter">Question 1 / 12</div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn-secondary" id="btnQuizPrev" onclick="quizNav(-1)" style="display:none; padding:10px 20px;"><i class="fas fa-arrow-left"></i></button>
+          <button class="btn-primary" id="btnQuizNext" onclick="quizNav(1)" disabled style="padding:10px 20px;">Valider <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== PAGE 7 : RESULTS ======== -->
+  <div class="step-page" id="page7">
+    <div class="card" style="text-align:center;">
+      <div class="result-circle" id="resultCircle">
+        <div class="result-score" id="resultScore">0</div>
+        <div class="result-of">sur 12</div>
+      </div>
+      <div class="result-badge" id="resultBadge"></div>
+      <div id="resultMessage"></div>
+      <div id="cooldownBox"></div>
+      <div class="result-answers" id="resultAnswers"></div>
+    </div>
+    <div class="btn-row" id="resultBtns"></div>
+  </div>
+
+  <!-- ======== PAGE 8 : CONFIRMATION ======== -->
+  <div class="step-page" id="page8">
+    <div class="card" style="text-align:center;">
+      <div class="confirm-icon">🎉</div>
+      <div class="card-title" style="text-align:center;">Candidature <em>envoyée !</em></div>
+      <p style="color:var(--gray-mid); font-size:0.875rem; margin-bottom:28px;">Votre dossier est en cours d'examen par notre équipe. Vous recevrez une réponse dans les <strong>24 à 48 heures</strong>.</p>
+      <div class="steps-timeline" style="text-align:left;">
+        <div class="tl-item"><div class="tl-dot tl-dot-1"><i class="fas fa-check"></i></div><div class="tl-content"><h4>Formation complétée</h4><p>Vous avez réussi le quiz avec un score validant.</p></div></div>
+        <div class="tl-item"><div class="tl-dot tl-dot-2">2</div><div class="tl-content"><h4>Examen par Bathily</h4><p>Notre équipe examine votre profil et votre score (24-48h).</p></div></div>
+        <div class="tl-item"><div class="tl-dot tl-dot-3">3</div><div class="tl-content"><h4>Email de confirmation</h4><p>Si votre candidature est acceptée, vous recevez vos accès par email.</p></div></div>
+      </div>
+      <div style="margin-top:24px; padding:16px; background:var(--bordeaux-light); border-radius:14px; font-size:0.8rem; color:var(--bordeaux-dark);">
+        <i class="fas fa-envelope"></i> Un email de confirmation vient d'être envoyé à <strong id="confirmEmail"></strong>
+      </div>
+    </div>
+    <div class="btn-row right">
+      <a href="index.html" class="btn-primary" style="text-decoration:none;"><i class="fas fa-home"></i> Retour à l'accueil</a>
+    </div>
+  </div>
+
+</div><!-- end wrapper -->
+
+<script>
+// ====== STATE ======
+let currentPage = 0;
+let selectedPermis = ['B'];
+let quizAnswers = [];
+let currentQ = 0;
+let quizScore = 0;
+let formData = {};
+
+// ====== QUIZ DATA ======
+const QUESTIONS = [
+  {
+    q: "Le mandat SIV vous autorise à faire quoi précisément ?",
+    opts: ["Conduire le véhicule d'un client sur voie publique en son nom", "Modifier les papiers d'immatriculation du véhicule", "Vendre le véhicule au nom du propriétaire si nécessaire", "Immatriculer définitivement le véhicule à votre nom"],
+    correct: 0,
+    expl: "Le mandat SIV est le document légal qui vous autorise uniquement à conduire le véhicule d'un tiers sur voie publique, en agissant en tant que son représentant momentané."
+  },
+  {
+    q: "Combien de photos minimum doivent être prises lors de l'état des lieux Bathily ?",
+    opts: ["5 photos (4 côtés + tableau de bord)", "10 photos selon les points principaux", "20 photos selon le protocole Bathily", "Autant que vous le jugez nécessaire, sans minimum"],
+    correct: 2,
+    expl: "Le protocole Bathily impose un minimum de 20 photos : 4 vues générales, 4 angles, 4 photos intérieur et 8 photos de détails et anomalies éventuelles."
+  },
+  {
+    q: "Vous constatez une rayure sur l'aile avant gauche avant de démarrer. Que faites-vous ?",
+    opts: ["Vous ignorez, c'est une rayure mineure", "Vous notez la rayure dans l'état des lieux, la photographiez et faites valider par le client", "Vous refusez la mission immédiatement", "Vous appelez la police pour constater"],
+    correct: 1,
+    expl: "Tout dommage existant doit être documenté dans l'état des lieux et photographié avant la mission. C'est votre protection contre toute contestation ultérieure."
+  },
+  {
+    q: "La double RC Pro Bathily couvre laquelle de ces situations ?",
+    opts: ["Le vol du véhicule pendant la mission", "Les dommages mécaniques dus à l'usure", "Les dommages causés à un tiers lors d'un accident dont vous êtes responsable", "Les amendes de stationnement pendant la mission"],
+    correct: 2,
+    expl: "La RC Pro Bathily couvre les dommages causés à des tiers lors d'accidents dont vous êtes responsable. Le vol, les dommages mécaniques et les amendes ne sont pas couverts."
+  },
+  {
+    q: "Pendant la mission, votre voiture tombe en panne. Quelle est la première action à effectuer ?",
+    opts: ["Appeler un dépanneur de votre choix et faire réparer immédiatement", "Contacter immédiatement la coordination Bathily AVANT toute autre action", "Appeler directement le client pour l'informer", "Attendre que quelqu'un s'arrête pour vous aider"],
+    correct: 1,
+    expl: "En cas de panne, vous devez d'abord sécuriser votre position (feux de détresse) puis contacter Bathily immédiatement. Bathily gère ensuite la communication avec le client et organise l'assistance."
+  },
+  {
+    q: "Le suivi GPS Bathily pendant une mission est-il obligatoire ?",
+    opts: ["Recommandé mais pas obligatoire", "Uniquement pour les missions de plus de 200 km", "Obligatoire et doit rester actif pendant toute la durée de la mission", "Uniquement pour les véhicules de luxe"],
+    correct: 2,
+    expl: "Le suivi GPS est une obligation contractuelle absolue chez Bathily. Il doit rester actif du début à la fin de chaque mission, sans exception."
+  },
+  {
+    q: "À la livraison, avant de remettre les clés au destinataire, vous devez obligatoirement :",
+    opts: ["Remettre les clés rapidement, l'état des lieux de sortie n'est pas nécessaire", "Effectuer un état des lieux de sortie et faire signer le destinataire", "Envoyer un SMS de confirmation à l'administrateur Bathily", "Nettoyer le véhicule intérieur et extérieur avant remise"],
+    correct: 1,
+    expl: "Un état des lieux de sortie signé par le destinataire est obligatoire. Il certifie que le véhicule a été livré dans le même état qu'à la prise en charge."
+  },
+  {
+    q: "Lequel de ces actes est formellement interdit en tant que convoyeur Bathily ?",
+    opts: ["S'arrêter dans une station service pour faire le plein", "Appeler Bathily en cas de problème", "Transporter un ami dans le véhicule convoyé", "Faire une pause de 15 minutes toutes les 2 heures"],
+    correct: 2,
+    expl: "Transporter des passagers dans le véhicule convoyé est formellement interdit. Cela engagerait votre responsabilité civile et pénale et constitue une rupture de contrat immédiate."
+  },
+  {
+    q: "En cas d'accident de la route, dans quel ordre effectuez-vous ces actions ?",
+    opts: ["Appeler le client, puis Bathily, puis les secours", "Continuer la route si les dommages semblent mineurs", "Sécuriser la zone, appeler les secours si nécessaire, puis contacter Bathily immédiatement", "Réparer vous-même si possible et continuer sans prévenir"],
+    correct: 2,
+    expl: "La priorité est toujours la sécurité humaine. Ensuite, contactez Bathily avant d'informer le client. Bathily gère la communication et l'assistance selon les procédures établies."
+  },
+  {
+    q: "Comment votre rémunération est-elle calculée chez Bathily Convoyage ?",
+    opts: ["Forfait fixe peu importe la distance ou le véhicule", "Au kilomètre parcouru selon les barèmes Bathily", "Selon vos propres tarifs que vous négociez avec le client", "En liquide uniquement, remis à la livraison"],
+    correct: 1,
+    expl: "La rémunération est calculée au kilomètre selon les barèmes Bathily (0,40€/km moto, 0,47€/km auto en moyenne). Des majorations s'appliquent pour les véhicules sur plateau."
+  },
+  {
+    q: "Vous constatez une anomalie mécanique grave sur le véhicule avant de démarrer. Que faites-vous ?",
+    opts: ["Vous démarrez quand même, c'est le problème du propriétaire", "Vous faites réparer à vos frais pour maintenir le délai", "Vous signalez l'anomalie à Bathily AVANT de démarrer et attendez les instructions", "Vous annulez la mission sans prévenir personne"],
+    correct: 2,
+    expl: "Ne démarrez jamais avec un véhicule présentant une anomalie mécanique grave. Signalez-le immédiatement à Bathily qui prendra les décisions appropriées."
+  },
+  {
+    q: "Quelle est la durée maximale de conduite consécutive recommandée avant une pause ?",
+    opts: ["6 heures consécutives maximum, puis 1h de pause", "2 heures consécutives, puis pause de 15 minutes minimum", "Conduire jusqu'à destination sans s'arrêter pour respecter les délais", "30 minutes maximum avec pause de 5 minutes"],
+    correct: 1,
+    expl: "La règle de sécurité Bathily recommande une pause de 15 minutes minimum toutes les 2 heures de conduite, avec un maximum de 4h30 de conduite par jour."
+  }
+];
+
+// ====== SUPABASE ======
+let _sb = null;
+function getSB() {
+  if (!_sb) _sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  return _sb;
+}
+
+// ====== NAVIGATION ======
+function goPage(n) {
+  document.querySelectorAll('.step-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page' + n).classList.add('active');
+  currentPage = n;
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateProgress() {
+  const labels = ['Bienvenue', 'Inscription', 'Module 1', 'Module 2', 'Module 3', 'Module 4', 'Quiz', '✓'];
+  const stepMap = {0:1, 1:2, 2:3, 3:4, 4:5, 5:6, 6:7, 7:7, 8:8};
+  const step = stepMap[currentPage] || 1;
+  const pct = Math.round((step / 7) * 100);
+
+  document.getElementById('gpFill').style.width = pct + '%';
+  document.getElementById('gpLabel').textContent = `Étape ${step} / 7`;
+
+  for (let i = 1; i <= 7; i++) {
+    const el = document.getElementById('gs' + i);
+    if (!el) continue;
+    el.classList.remove('active', 'done');
+    if (i < step) el.classList.add('done');
+    else if (i === step) el.classList.add('active');
+  }
+}
+
+// ====== PERMIS ======
+function togglePermis(el) {
+  const permis = el.dataset.permis;
+  if (permis === 'B') return; // B is always required
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) {
+    if (!selectedPermis.includes(permis)) selectedPermis.push(permis);
+  } else {
+    selectedPermis = selectedPermis.filter(p => p !== permis);
+  }
+}
+
+// ====== VALIDATION PAGE 1 ======
+function validatePage1() {
+  const fields = ['f_prenom', 'f_nom', 'f_email', 'f_tel', 'f_naissance', 'f_ville', 'f_password', 'f_annee_permis'];
+  let valid = true;
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el.value.trim()) {
+      el.style.borderColor = '#e74c3c';
+      valid = false;
+    } else {
+      el.style.borderColor = '';
+    }
+  });
+
+  const email = document.getElementById('f_email').value.trim();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('f_email').style.borderColor = '#e74c3c';
+    valid = false;
+  }
+
+  const anneePerm = parseInt(document.getElementById('f_annee_permis').value);
+  const currentYear = new Date().getFullYear();
+  if (anneePerm && currentYear - anneePerm < 3) {
+    Swal.fire({
+      title: 'Permis insuffisant',
+      text: 'Votre permis B doit avoir été obtenu depuis au moins 3 ans pour rejoindre Bathily.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  const pwd = document.getElementById('f_password').value;
+  if (pwd.length < 8) {
+    Swal.fire({
+      title: 'Mot de passe trop court',
+      text: 'Votre mot de passe doit contenir au moins 8 caractères.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  if (!valid) {
+    Swal.fire({
+      title: 'Champs manquants',
+      text: 'Veuillez remplir tous les champs obligatoires.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  // Store form data
+  formData = {
+    prenom: document.getElementById('f_prenom').value.trim(),
+    nom: document.getElementById('f_nom').value.trim(),
+    email: document.getElementById('f_email').value.trim(),
+    telephone: document.getElementById('f_tel').value.trim(),
+    date_naissance: document.getElementById('f_naissance').value,
+    ville: document.getElementById('f_ville').value.trim(),
+    password: document.getElementById('f_password').value,
+    permis: selectedPermis.join(', '),
+    annee_permis: anneePerm,
+    experience: document.getElementById('f_experience').value
+  };
+
+  goPage(2);
+}
+
+// ====== QUIZ ======
+function startQuiz() {
+  quizAnswers = new Array(QUESTIONS.length).fill(null);
+  quizScore = 0;
+  currentQ = 0;
+  goPage(6);
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  const container = document.getElementById('quizContainer');
+  const letters = ['A', 'B', 'C', 'D'];
+
+  container.innerHTML = `
+    <div class="q-block" id="q-block-${currentQ}">
+      <div class="q-num">Question ${currentQ + 1} / ${QUESTIONS.length}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="q-options">
+        ${q.opts.map((opt, i) => `
+          <div class="q-opt" id="qopt-${i}" onclick="selectAnswer(${i})">
+            <div class="opt-letter">${letters[i]}</div>
+            <span>${opt}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="q-feedback" id="q-feedback"></div>
+    </div>
+  `;
+
+  document.getElementById('quizCounter').textContent = `Question ${currentQ + 1} / ${QUESTIONS.length}`;
+  document.getElementById('btnQuizNext').disabled = true;
+  document.getElementById('btnQuizNext').innerHTML = currentQ < QUESTIONS.length - 1 ? 'Suivant <i class="fas fa-arrow-right"></i>' : 'Voir mes résultats <i class="fas fa-trophy"></i>';
+  document.getElementById('btnQuizPrev').style.display = currentQ > 0 ? 'flex' : 'none';
+}
+
+function selectAnswer(idx) {
+  const q = QUESTIONS[currentQ];
+  const opts = document.querySelectorAll('.q-opt');
+  const feedback = document.getElementById('q-feedback');
+
+  opts.forEach(o => { o.classList.add('locked'); o.classList.remove('selected'); });
+  opts[idx].classList.add('selected');
+
+  const isCorrect = idx === q.correct;
+  opts[q.correct].classList.add('correct');
+  if (!isCorrect) opts[idx].classList.add('wrong');
+
+  quizAnswers[currentQ] = { selected: idx, correct: q.correct, isCorrect };
+  if (isCorrect) quizScore++;
+
+  feedback.className = `q-feedback show ${isCorrect ? 'good' : 'bad'}`;
+  feedback.innerHTML = `<strong>${isCorrect ? '✓ Correct !' : '✗ Incorrect.'}</strong> ${q.expl}`;
+
+  document.getElementById('livreScore').textContent = `${quizScore} / 12`;
+  document.getElementById('btnQuizNext').disabled = false;
+}
+
+function quizNav(dir) {
+  if (dir === 1) {
+    if (currentQ < QUESTIONS.length - 1) {
+      currentQ++;
+      renderQuestion();
+    } else {
+      showResults();
+    }
+  } else {
+    if (currentQ > 0) {
+      currentQ--;
+      renderQuestion();
+    }
+  }
+}
+
+// ====== RESULTS ======
+function showResults() {
+  const passed = quizScore >= 10;
+  const circle = document.getElementById('resultCircle');
+  const scoreEl = document.getElementById('resultScore');
+  const badgeEl = document.getElementById('resultBadge');
+  const msgEl = document.getElementById('resultMessage');
+  const coolEl = document.getElementById('cooldownBox');
+  const answersEl = document.getElementById('resultAnswers');
+  const btnsEl = document.getElementById('resultBtns');
+
+  goPage(7);
+
+  // Animate score
+  let count = 0;
+  const anim = setInterval(() => {
+    scoreEl.textContent = count;
+    count++;
+    if (count > quizScore) clearInterval(anim);
+  }, 120);
+
+  circle.classList.add(passed ? 'pass' : 'fail');
+
+  if (passed) {
+    badgeEl.innerHTML = `<div class="badge-certified"><i class="fas fa-medal"></i> Formation Bathily Validée — ${quizScore}/12 (${Math.round(quizScore/12*100)}%)</div>`;
+    msgEl.innerHTML = `<p style="color:var(--gray-mid); font-size:0.875rem; margin-bottom:16px;">Félicitations ! Vous avez atteint le score requis. Votre candidature va être transmise à notre équipe pour validation manuelle.</p>`;
+    coolEl.innerHTML = '';
+    btnsEl.innerHTML = `<button class="btn-primary" onclick="submitCandidature()"><i class="fas fa-paper-plane"></i> Envoyer ma candidature</button>`;
+  } else {
+    const pct = Math.round(quizScore/12*100);
+    const cooldownEnd = new Date(Date.now() + 24*60*60*1000);
+    badgeEl.innerHTML = `<div style="color:#c0392b; font-weight:700; font-size:0.9rem;"><i class="fas fa-times-circle"></i> Score insuffisant — ${quizScore}/12 (${pct}%)</div>`;
+    msgEl.innerHTML = `<p style="color:var(--gray-mid); font-size:0.875rem;">Il vous manquait ${10 - quizScore} bonne${10-quizScore>1?'s':''} réponse${10-quizScore>1?'s':''}. Relisez les modules concernés et réessayez dans 24h.</p>`;
+    coolEl.innerHTML = `<div class="cooldown-box"><div style="font-size:0.8rem; color:var(--gray-mid); margin-bottom:8px;">Prochain essai disponible dans</div><div class="cooldown-timer" id="coolTimer">24:00:00</div><div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">Le ${cooldownEnd.toLocaleDateString('fr-FR')} à ${cooldownEnd.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}</div></div>`;
+    startCooldownTimer();
+    btnsEl.innerHTML = `<button class="btn-secondary" onclick="goPage(2)"><i class="fas fa-book-open"></i> Revoir la formation</button>`;
+  }
+
+  // Show answer review
+  const letters = ['A','B','C','D'];
+  answersEl.innerHTML = `<div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid); margin-bottom:12px;">Récapitulatif de vos réponses</div>` +
+    QUESTIONS.map((q, i) => {
+      const a = quizAnswers[i];
+      if (!a) return '';
+      const ok = a.isCorrect;
+      return `<div class="ra-item">
+        <div class="ra-icon ${ok?'ok':'ko'}">${ok?'✓':'✗'}</div>
+        <div style="flex:1;"><div style="font-weight:600; font-size:0.8rem; margin-bottom:2px;">${i+1}. ${q.q.substring(0,60)}...</div><div style="font-size:0.72rem; color:${ok?'var(--success)':'#c0392b'};">${ok?'Bonne réponse':'Mauvaise réponse — ' + q.opts[q.correct]}</div></div>
+      </div>`;
+    }).join('');
+}
+
+function startCooldownTimer() {
+  let total = 24 * 60 * 60;
+  const el = document.getElementById('coolTimer');
+  if (!el) return;
+  const interval = setInterval(() => {
+    total--;
+    if (total <= 0) { clearInterval(interval); return; }
+    const h = Math.floor(total / 3600).toString().padStart(2,'0');
+    const m = Math.floor((total % 3600) / 60).toString().padStart(2,'0');
+    const s = (total % 60).toString().padStart(2,'0');
+    if (el) el.textContent = `${h}:${m}:${s}`;
+  }, 1000);
+}
+
+// ====== SUBMIT CANDIDATURE ======
+async function submitCandidature() {
+  Swal.fire({ title: 'Envoi en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+  try {
+    const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(formData.password));
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+
+    const sb = getSB();
+
+    // Check if email already exists
+    const { data: existing } = await sb.from('convoyeurs_candidats').select('id, statut, last_attempt_at').eq('email', formData.email).maybeSingle();
+
+    if (existing) {
+      if (existing.statut === 'approved') {
+        Swal.fire({ title: 'Compte existant', text: 'Un compte approuvé existe déjà avec cet email. Connectez-vous à l\'espace convoyeur.', icon: 'info', confirmButtonColor: 'var(--bordeaux)' });
+        return;
+      }
+      if (existing.statut === 'pending') {
+        Swal.fire({ title: 'Candidature déjà envoyée', text: 'Votre candidature est déjà en cours d\'examen. Patience !', icon: 'info', confirmButtonColor: 'var(--bordeaux)' });
+        return;
+      }
+    }
+
+    const { error } = await sb.from('convoyeurs_candidats').insert([{
+      prenom: formData.prenom,
+      nom: formData.nom,
+      email: formData.email,
+      telephone: formData.telephone,
+      date_naissance: formData.date_naissance,
+      ville: formData.ville,
+      mot_de_passe: hashHex,
+      type_permis: formData.permis,
+      annee_permis: formData.annee_permis,
+      experience: formData.experience,
+      score_quiz: quizScore,
+      reponses_quiz: JSON.stringify(quizAnswers),
+      quiz_attempts: 1,
+      last_attempt_at: new Date().toISOString(),
+      statut: 'pending'
+    }]);
+
+    if (error) throw new Error(error.message);
+
+    document.getElementById('confirmEmail').textContent = formData.email;
+    goPage(8);
+    Swal.close();
+
+  } catch (err) {
+    Swal.fire({ title: 'Erreur', text: err.message || 'Une erreur est survenue. Veuillez réessayer.', icon: 'error', confirmButtonColor: 'var(--bordeaux)' });
+  }
+}
+
+// ====== INIT ======
+updateProgress();
+</script>
+</body>
+</html>
