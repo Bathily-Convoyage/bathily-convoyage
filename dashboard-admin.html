@@ -11,6 +11,9 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
 * {
   margin: 0;
@@ -722,6 +725,147 @@ body {
   .config-grid { grid-template-columns: 1fr; }
   .topbar-user span { display: none; }
 }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+/* Auth overlay */
+#authOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(253,251,247,0.97);
+  backdrop-filter: blur(12px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#authOverlay.hidden { display: none; }
+.auth-box {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 28px;
+  padding: 40px 44px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+}
+.auth-logo {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--gray-dark);
+  margin-bottom: 6px;
+}
+.auth-logo span { color: var(--bordeaux); }
+.auth-sub {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gray-mid);
+  margin-bottom: 32px;
+}
+.auth-input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1.5px solid var(--border-light);
+  border-radius: 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  background: #F9FAFB;
+  outline: none;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+.auth-input:focus { border-color: var(--bordeaux); }
+.auth-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--bordeaux);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+.auth-btn:hover { background: var(--bordeaux-dark); }
+.auth-error { color: var(--bordeaux); font-size: 0.75rem; margin-top: 8px; display: none; }
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+}
+.filter-bar select, .filter-bar input {
+  padding: 6px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 40px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: #F9FAFB;
+  outline: none;
+  cursor: pointer;
+}
+.filter-bar select:focus, .filter-bar input:focus { border-color: var(--bordeaux); }
+.filter-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray-mid);
+}
+.auto-refresh-badge {
+  margin-left: auto;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.auto-refresh-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--success);
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+/* New candidature pulse badge */
+@keyframes badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+.nav-badge.pulsing { animation: badge-pulse 1s ease-in-out infinite; background: #e74c3c; }
+/* Convoyeur select profile card */
+.profile-select-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(253,251,247,0.97);
+  backdrop-filter: blur(12px);
+  z-index: 8000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-select-overlay.hidden { display: none; }
 </style>
 </head>
 <body>
@@ -729,9 +873,20 @@ body {
 <div class="cur" id="cur"></div>
 <div class="cur-ring" id="cring"></div>
 
+<!-- AUTH OVERLAY -->
+<div id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-logo">Bathily-Convoyage<span>.</span></div>
+    <div class="auth-sub">Accès administrateur sécurisé</div>
+    <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Mot de passe admin" onkeydown="if(event.key==='Enter') checkAdminPassword()">
+    <div class="auth-error" id="authError">Mot de passe incorrect. Réessayez.</div>
+    <button class="auth-btn" onclick="checkAdminPassword()"><i class="fas fa-unlock-alt"></i> Accéder au panel</button>
+  </div>
+</div>
+
 <div class="topbar">
   <div class="topbar-left">
-    <a href="index.html" class="topbar-logo">Bathily<span>.</span></a>
+    <a href="index.html" class="topbar-logo">Bathily-Convoyage<span>.</span></a>
     <span class="topbar-tag">Admin</span>
   </div>
   <div class="topbar-right">
@@ -740,7 +895,7 @@ body {
       <div class="user-avatar">BC</div>
       <span class="user-name">Super Admin</span>
     </div>
-    <button class="topbar-logout" type="button" onclick="window.location.href='index.html'"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+    <button class="topbar-logout" type="button" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
   </div>
 </div>
 
@@ -750,7 +905,7 @@ body {
       <div class="nav-section-lbl">Vue globale</div>
       <div class="nav-item active" onclick="showTab('dashboard',this)"><i class="fas fa-chart-line"></i> Dashboard</div>
       <div class="nav-item" onclick="showTab('missions',this)"><i class="fas fa-route"></i> Missions <span class="nav-badge">12</span></div>
-      <div class="nav-item" onclick="showTab('devis',this)"><i class="fas fa-calculator"></i> Devis <span class="nav-badge">4</span></div>
+      <div class="nav-item" onclick="showTab('devis',this)"><i class="fas fa-calculator"></i> Devis <span class="nav-badge" id="devisNavBadge">4</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-lbl">Utilisateurs</div>
@@ -811,14 +966,29 @@ body {
     <div class="tab-content" id="tab-missions">
       <div class="dash-header"><h1 class="dash-hello">Gestion <em>missions</em></h1></div>
       <div class="sec-title"><h2 class="sec-h">Toutes les <em>missions</em></h2><div class="sec-actions"><button class="btn-red" onclick="openModal('modalMission')"><i class="fas fa-plus"></i> Créer une mission</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div></div>
-      <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Rechercher par référence, client, convoyeur…"></div>
+      <div class="filter-bar">
+        <span class="filter-label"><i class="fas fa-filter"></i> Filtres</span>
+        <select id="filter-status" onchange="applyMissionFilters()">
+          <option value="">Tous les statuts</option>
+          <option value="available">Sur le marché</option>
+          <option value="planned">Planifiée</option>
+          <option value="in_progress">En cours</option>
+          <option value="completed">Terminée</option>
+          <option value="cancelled">Annulée</option>
+        </select>
+        <select id="filter-mode" onchange="applyMissionFilters()">
+          <option value="">Tous les modes</option>
+          <option value="route">Route</option>
+          <option value="plateau">Plateau</option>
+        </select>
+        <input type="text" id="filter-search" placeholder="Référence, client, convoyeur…" oninput="applyMissionFilters()" style="min-width:200px; border-radius:40px;">
+        <button class="btn-outline" onclick="resetMissionFilters()" style="padding:6px 14px; font-size:0.6rem;"><i class="fas fa-times"></i> Réinitialiser</button>
+        <span class="auto-refresh-badge"><span class="auto-refresh-dot"></span> Auto-refresh 30s</span>
+      </div>
       <table class="data-table">
-        <thead><tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Distance</th><th>Convoyeur</th><th>Mode</th><th>Pack</th><th>Montant HT</th><th>Rém. convoyeur</th><th>Marge</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr><td>BC-2025-0847</td><td>Jean Dupont</td><td>Paris → Lyon</td><td>470 km</td><td>M. Bathily</td><td>Route</td><td>Sérénité</td><td class="td-price">340€</td><td class="td-price-red">220€</td><td class="td-price">120€</td><td><span class="sp sp-cours"><span class="sp-dot"></span>En cours</span></td><td>12/05/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-red"><i class="fas fa-times"></i></button></td></tr>
-          <tr><td>BC-2025-0851</td><td>Alice Leblanc</td><td>Bordeaux → Nice</td><td>680 km</td><td>K. Diallo</td><td>Plateau</td><td>Excellence</td><td class="td-price">880€</td><td class="td-price-red">480€</td><td class="td-price">400€</td><td><span class="sp sp-att"><span class="sp-dot"></span>Planifiée</span></td><td>15/05/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-red"><i class="fas fa-times"></i></button></td></tr>
-          <tr><td>BC-2025-0821</td><td>Marc Renard</td><td>Lyon → Marseille</td><td>320 km</td><td>S. Fontaine</td><td>Plateau</td><td>Starter</td><td class="td-price">550€</td><td class="td-price-red">310€</td><td class="td-price">240€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Terminée</span></td><td>28/04/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr>
-          <tr><td>BC-2025-0803</td><td>Jean Dupont</td><td>Paris → Bordeaux</td><td>580 km</td><td>M. Bathily</td><td>Route</td><td>Sérénité</td><td class="td-price">620€</td><td class="td-price-red">350€</td><td class="td-price">270€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Terminée</span></td><td>10/04/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr>
+        <thead><tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Convoyeur</th><th>Mode</th><th>Pack</th><th>Montant HT</th><th>Rém. convoyeur</th><th>Marge</th><th>Paiement</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="missionsTableBody">
+          <!-- Chargé dynamiquement depuis Supabase -->
         </tbody>
       </table>
     </div>
@@ -826,10 +996,10 @@ body {
     <!-- Devis -->
     <div class="tab-content" id="tab-devis">
       <div class="dash-header"><h1 class="dash-hello">Devis <em>en attente</em></h1></div>
-      <div class="alert alert-warn"><i class="fas fa-clock"></i> 4 devis en attente de confirmation — réponse requise sous 2h</div>
+      <div class="alert alert-warn" id="devisAlertBanner"><i class="fas fa-clock"></i> 4 devis en attente de confirmation — réponse requise sous 2h</div>
       <table class="data-table">
         <thead><tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Type</th><th>Pack</th><th>Montant estimé</th><th>Reçu le</th><th>Actions</th></tr></thead>
-        <tbody>
+        <tbody id="devisTableBody">
           <tr><td>DEV-2025-0112</td><td>Paul Martin</td><td>Paris → Strasbourg</td><td>Auto · Route</td><td>Excellence</td><td class="td-price">490€</td><td>Il y a 1h</td><td class="td-actions"><button class="btn-sm btn-sm-green"><i class="fas fa-check"></i> Valider</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i> Modifier</button><button class="btn-sm btn-sm-orange"><i class="fas fa-times"></i> Refuser</button></td></tr>
           <tr><td>DEV-2025-0111</td><td>Claire Morin</td><td>Lyon → Paris</td><td>Moto · Plateau</td><td>Starter</td><td class="td-price">550€</td><td>Il y a 3h</td><td class="td-actions"><button class="btn-sm btn-sm-green"><i class="fas fa-check"></i> Valider</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i> Modifier</button><button class="btn-sm btn-sm-orange"><i class="fas fa-times"></i> Refuser</button></td></tr>
           <tr><td>DEV-2025-0110</td><td>Thomas Petit</td><td>Marseille → Bordeaux</td><td>Auto · Route</td><td>Sérénité</td><td class="td-price">720€</td><td>Il y a 5h</td><td class="td-actions"><button class="btn-sm btn-sm-green"><i class="fas fa-check"></i> Valider</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i> Modifier</button><button class="btn-sm btn-sm-orange"><i class="fas fa-times"></i> Refuser</button></td></tr>
@@ -856,18 +1026,14 @@ body {
     <!-- Convoyeurs -->
     <div class="tab-content" id="tab-convoyeurs">
       <div class="dash-header"><h1 class="dash-hello">Gestion <em>convoyeurs</em></h1></div>
-      <div class="sec-title"><h2 class="sec-h">34 convoyeurs <em>certifiés</em></h2><div class="sec-actions"><button class="btn-red" onclick="openModal('modalConvoyeur')"><i class="fas fa-plus"></i> Ajouter</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div></div>
-      <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Rechercher un convoyeur…"></div>
+      <div class="sec-title"><h2 class="sec-h" id="convoyeursCount">Convoyeurs <em>certifiés</em></h2><div class="sec-actions"><button class="btn-red" onclick="openModal('modalConvoyeur')"><i class="fas fa-plus"></i> Ajouter</button></div></div>
+      <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="conv-search-input" placeholder="Rechercher un convoyeur…" oninput="filterConvoyeursTable()"></div>
       <table class="data-table">
-        <thead><tr><th>Convoyeur</th><th>Zone</th><th>Missions</th><th>Note</th><th>Taux km auto</th><th>Taux km moto</th><th>Bonus perf.</th><th>Gains mois</th><th>Dispo</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">MB</div>M. Bathily</div></td><td>IDF · Rhône-Alpes</td><td>47</td><td>⭐ 4.9</td><td><input class="num-input" type="number" value="0.47" step="0.01" style="width:80px;font-size:0.8rem" onchange="saveConvoyeurRate(this,'auto','MB')"> €/km</td><td><input class="num-input" type="number" value="0.40" step="0.01" style="width:80px;font-size:0.8rem" onchange="saveConvoyeurRate(this,'moto','MB')"> €/km</td><td><input class="num-input" type="number" value="5" step="1" style="width:70px;font-size:0.8rem"> %</td><td class="td-price">3 200€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Disponible</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="openModal('modalEditConvoyeur')"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-chart-bar"></i></button></td></tr>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:rgba(41,128,185,0.12);color:#2980b9">KD</div>K. Diallo</div></td><td>Rhône-Alpes · PACA</td><td>62</td><td>⭐ 5.0</td><td><input class="num-input" type="number" value="0.50" step="0.01" style="width:80px;font-size:0.8rem"> €/km</td><td><input class="num-input" type="number" value="0.43" step="0.01" style="width:80px;font-size:0.8rem"> €/km</td><td><input class="num-input" type="number" value="8" step="1" style="width:70px;font-size:0.8rem"> %</td><td class="td-price">3 800€</td><td><span class="sp sp-cours"><span class="sp-dot"></span>En mission</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="openModal('modalEditConvoyeur')"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-chart-bar"></i></button></td></tr>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:rgba(74,124,107,0.1);color:var(--success)">SF</div>S. Fontaine</div></td><td>Nationale · Moto</td><td>38</td><td>⭐ 4.9</td><td><input class="num-input" type="number" value="0.45" step="0.01" style="width:80px;font-size:0.8rem"> €/km</td><td><input class="num-input" type="number" value="0.42" step="0.01" style="width:80px;font-size:0.8rem"> €/km</td><td><input class="num-input" type="number" value="5" step="1" style="width:70px;font-size:0.8rem"> %</td><td class="td-price">2 900€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Disponible</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="openModal('modalEditConvoyeur')"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-chart-bar"></i></button></td></tr>
+        <thead><tr><th>Convoyeur</th><th>Zone</th><th>Niveau</th><th>Taux km auto</th><th>Taux km moto</th><th>Disponible</th><th>Actions</th></tr></thead>
+        <tbody id="convoyeursTableBody">
+          <tr><td colspan="7" style="text-align:center; color:var(--gray-mid);"><i class="fas fa-spinner fa-spin"></i> Chargement…</td></tr>
         </tbody>
       </table>
-      <div class="alert alert-info"><i class="fas fa-info-circle"></i> Les taux de rémunération modifiés s'appliquent aux prochaines missions assignées. Cliquez sur <strong>Sauvegarder tout</strong> pour valider.</div>
-      <button class="btn-red" onclick="saveAll()"><i class="fas fa-save"></i> Sauvegarder toutes les rémunérations</button>
     </div>
 
     <!-- Tarifs & Prix -->
@@ -901,18 +1067,28 @@ body {
       <div class="dash-header"><h1 class="dash-hello">Gestion <em>facturation</em></h1></div>
       <div class="mini-cards"><div class="mini-card"><div class="mini-ico"><i class="fas fa-euro-sign"></i></div><div><div class="mini-val">42k</div><div class="mini-lbl">CA ce mois</div></div></div><div class="mini-card"><div class="mini-ico"><i class="fas fa-check-circle"></i></div><div><div class="mini-val">76</div><div class="mini-lbl">Factures payées</div></div></div><div class="mini-card"><div class="mini-ico"><i class="fas fa-clock"></i></div><div><div class="mini-val">7</div><div class="mini-lbl">En attente</div></div></div><div class="mini-card"><div class="mini-ico"><i class="fas fa-exclamation-circle"></i></div><div><div class="mini-val">2</div><div class="mini-lbl">En retard</div></div></div></div>
       <div class="sec-title"><h2 class="sec-h">Factures <em>récentes</em></h2><div class="sec-actions"><button class="btn-red"><i class="fas fa-plus"></i> Créer</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div></div>
-      <table class="data-table"><thead><tr><th>N° Facture</th><th>Client</th><th>Mission</th><th>Montant HT</th><th>TVA (20%)</th><th>Montant TTC</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody><tr><td>FAC-2025-0847</td><td>Jean Dupont</td><td>BC-2025-0847</td><td>340€</td><td>68€</td><td class="td-price">408€</td><td><span class="sp sp-att"><span class="sp-dot"></span>En attente</span></td><td>12/05/25</td><td class="td-actions"><button class="btn-sm btn-sm-green"><i class="fas fa-check"></i> Marquer payée</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr><tr><td>FAC-2025-0821</td><td>Marc Renard</td><td>BC-2025-0821</td><td>550€</td><td>110€</td><td class="td-price">660€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Payée</span></td><td>28/04/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr><tr><td>FAC-2025-0803</td><td>Jean Dupont</td><td>BC-2025-0803</td><td>620€</td><td>124€</td><td class="td-price">744€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Payée</span></td><td>10/04/25</td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr></tbody></table>
+      <table class="data-table"><thead><tr><th>N° Facture</th><th>Client</th><th>Mission</th><th>Montant HT</th><th>TVA (20%)</th><th>Montant TTC</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead><tbody id="invoicesTableBody"><tr><td colspan="9" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Chargement...</td></tr></tbody></table>
     </div>
 
     <!-- Analytics -->
     <div class="tab-content" id="tab-analytics">
       <div class="dash-header"><h1 class="dash-hello">Analytics <em>& KPIs</em></h1></div>
-      <div class="stats-row"><div class="stat-card"><div class="stat-ico"><i class="fas fa-chart-line"></i></div><div class="stat-val">89</div><div class="stat-lbl">Missions / mois</div><div class="stat-trend trend-up">+12%</div></div><div class="stat-card"><div class="stat-ico"><i class="fas fa-percentage"></i></div><div class="stat-val">34<em>%</em></div><div class="stat-lbl">Marge brute moy.</div><div class="stat-trend trend-up">+2pt</div></div><div class="stat-card"><div class="stat-ico"><i class="fas fa-star"></i></div><div class="stat-val">4<em>.9</em></div><div class="stat-lbl">Note cliente moy.</div><div class="stat-trend trend-up">↑</div></div><div class="stat-card"><div class="stat-ico"><i class="fas fa-clock"></i></div><div class="stat-val">98<em>%</em></div><div class="stat-lbl">Taux livraison OK</div><div class="stat-trend trend-up">↑</div></div><div class="stat-card"><div class="stat-ico"><i class="fas fa-redo"></i></div><div class="stat-val">62<em>%</em></div><div class="stat-lbl">Taux fidélisation</div><div class="stat-trend trend-up">+5pt</div></div></div>
-      <div class="sec-title"><h2 class="sec-h">CA mensuel <em>2025</em></h2></div>
-      <div class="chart-area"><div class="chart-title">Chiffre d'affaires mensuel (€ HT)</div><div class="chart-bars" id="analyticsChart"></div></div>
+      <div class="stats-row" id="analyticsKpiRow">
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-route"></i></div><div class="stat-val" id="kpi-missions">—</div><div class="stat-lbl">Missions totales</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-check-circle"></i></div><div class="stat-val" id="kpi-completed">—</div><div class="stat-lbl">Missions terminées</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-euro-sign"></i></div><div class="stat-val" id="kpi-ca">—</div><div class="stat-lbl">CA Total (€ HT)</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-percentage"></i></div><div class="stat-val" id="kpi-marge">—</div><div class="stat-lbl">Marge brute moy.</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-truck"></i></div><div class="stat-val" id="kpi-convoyeurs">—</div><div class="stat-lbl">Convoyeurs actifs</div></div>
+      </div>
+      <div class="sec-title"><h2 class="sec-h">CA par <em>mois</em></h2></div>
+      <div class="chart-area"><div class="chart-title" id="analyticsChartTitle">Chiffre d'affaires par mois (€ HT) — chargement…</div><div class="chart-bars" id="analyticsChart"></div></div>
       <div class="sep"></div>
-      <div class="sec-title"><h2 class="sec-h">Répartition <em>par service</em></h2></div>
-      <div class="config-grid" style="margin-top:16px"><div class="config-card" style="text-align:center"><div style="font-size:2.5rem; font-weight:700; color:var(--bordeaux)">64<span style="font-size:1.2rem; color:var(--bordeaux)">%</span></div><div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Convoyage routier</div></div><div class="config-card" style="text-align:center"><div style="font-size:2.5rem; font-weight:700; color:var(--warning)">28<span style="font-size:1.2rem; color:var(--warning)">%</span></div><div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Transport plateau</div></div><div class="config-card" style="text-align:center"><div style="font-size:2.5rem; font-weight:700; color:var(--success)">8<span style="font-size:1.2rem; color:var(--success)">%</span></div><div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Moto spécialisé</div></div></div>
+      <div class="sec-title"><h2 class="sec-h">Répartition <em>par mode</em></h2></div>
+      <div class="config-grid" style="margin-top:16px" id="analyticsDistrib">
+        <div class="config-card" style="text-align:center"><div style="font-size:2.5rem; font-weight:700; color:var(--bordeaux)" id="kpi-route">—</div><div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Convoyage routier</div></div>
+        <div class="config-card" style="text-align:center"><div style="font-size:2.5rem; font-weight:700; color:var(--warning)" id="kpi-plateau">—</div><div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Transport plateau</div></div>
+        <div class="config-card" style="text-align:center"><div style="font-size:2.5rem; font-weight:700; color:var(--success)" id="kpi-available">—</div><div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Missions sur le marché</div></div>
+      </div>
     </div>
 
     <!-- Système -->
@@ -925,11 +1101,11 @@ body {
 </div>
 
 <!-- MODALS -->
-<div class="modal-overlay" id="modalMission"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalMission')"><i class="fas fa-times"></i></button><h3 class="modal-h">Créer une <em>mission</em></h3><p class="modal-sub">Saisie manuelle d'une nouvelle mission</p><div class="f-row"><div class="f-grp"><label>Client</label><input type="text" placeholder="Nom ou email client"></div><div class="f-grp"><label>Convoyeur</label><select><option>M. Bathily</option><option>K. Diallo</option><option>S. Fontaine</option></select></div></div><div class="f-row"><div class="f-grp"><label>Ville de départ</label><input type="text" placeholder="Paris"></div><div class="f-grp"><label>Ville d'arrivée</label><input type="text" placeholder="Lyon"></div></div><div class="f-row"><div class="f-grp"><label>Type véhicule</label><select><option>Automobile</option><option>Moto</option></select></div><div class="f-grp"><label>Mode transport</label><select><option>Route</option><option>Plateau</option></select></div></div><div class="f-row"><div class="f-grp"><label>Pack</label><select><option>Starter</option><option>Sérénité</option><option>Excellence</option></select></div><div class="f-grp"><label>Date souhaitée</label><input type="date"></div></div><div class="f-grp"><label>Montant HT (€)</label><input type="number" placeholder="340"></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalMission')"><i class="fas fa-plus"></i> Créer la mission</button><button class="btn-outline" onclick="closeModal('modalMission')">Annuler</button></div></div></div>
+<div class="modal-overlay" id="modalMission"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalMission')"><i class="fas fa-times"></i></button><h3 class="modal-h">Créer une <em>mission</em></h3><p class="modal-sub">Saisie manuelle d'une nouvelle mission</p><div class="f-row"><div class="f-grp"><label>Client</label><input type="text" id="manual-client" placeholder="Nom ou email client"></div><div class="f-grp"><label>Convoyeur</label><select id="manual-convoyeur" onchange="updateManualMissionMargin()"><!-- Options générées dynamiquement --></select></div></div><div class="f-row"><div class="f-grp"><label>Ville de départ</label><input type="text" id="manual-depart" placeholder="Paris"></div><div class="f-grp"><label>Ville d'arrivée</label><input type="text" id="manual-arrivee" placeholder="Lyon"></div></div><div class="f-row"><div class="f-grp"><label>Type véhicule</label><select id="manual-vehicule" onchange="updateManualMissionMargin()"><option value="Automobile">Automobile</option><option value="Moto">Moto</option></select></div><div class="f-grp"><label>Mode transport</label><select id="manual-mode" onchange="updateManualMissionMargin()"><option value="route">Route</option><option value="plateau">Plateau</option></select></div></div><div class="f-row"><div class="f-grp"><label>Pack</label><select id="manual-pack"><option value="starter">Starter</option><option value="sérénité">Sérénité</option><option value="excellence">Excellence</option></select></div><div class="f-grp"><label>Date souhaitée</label><input type="date" id="manual-date"></div></div><div class="f-row"><div class="f-grp"><label>Montant Client HT (€)</label><input type="number" id="manual-price" placeholder="340" oninput="updateManualMissionMargin()"></div><div class="f-grp"><label>Rémunération Convoyeur (€)</label><input type="number" id="manual-remuneration" placeholder="Laisser vide pour calcul auto" oninput="updateManualMissionMargin()"></div></div><div style="margin-bottom: 15px; background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">Marge brute estimée :</span><strong id="manual-marge-val" style="font-size: 1.15rem; color: var(--success);">0€</strong></div><div class="modal-btns"><button class="btn-red" onclick="createMissionManually()"><i class="fas fa-plus"></i> Créer la mission</button><button class="btn-outline" onclick="closeModal('modalMission')">Annuler</button></div></div></div>
 
 <div class="modal-overlay" id="modalClient"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalClient')"><i class="fas fa-times"></i></button><h3 class="modal-h">Nouveau <em>client</em></h3><div class="f-row"><div class="f-grp"><label>Prénom</label><input type="text"></div><div class="f-grp"><label>Nom</label><input type="text"></div></div><div class="f-row"><div class="f-grp"><label>Email</label><input type="email"></div><div class="f-grp"><label>Téléphone</label><input type="tel"></div></div><div class="f-grp"><label>Société (optionnel)</label><input type="text"></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalClient')"><i class="fas fa-save"></i> Enregistrer</button><button class="btn-outline" onclick="closeModal('modalClient')">Annuler</button></div></div></div>
 
-<div class="modal-overlay" id="modalConvoyeur"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalConvoyeur')"><i class="fas fa-times"></i></button><h3 class="modal-h">Nouveau <em>convoyeur</em></h3><div class="f-row"><div class="f-grp"><label>Prénom</label><input type="text"></div><div class="f-grp"><label>Nom</label><input type="text"></div></div><div class="f-row"><div class="f-grp"><label>Email</label><input type="email"></div><div class="f-grp"><label>Téléphone</label><input type="tel"></div></div><div class="f-row"><div class="f-grp"><label>Taux auto (€/km)</label><input type="number" value="0.47" step="0.01"></div><div class="f-grp"><label>Taux moto (€/km)</label><input type="number" value="0.40" step="0.01"></div></div><div class="f-grp"><label>Zone d'intervention</label><input type="text" placeholder="IDF, Rhône-Alpes…"></div><div class="f-grp"><label>Niveau</label><select><option>Standard</option><option>Senior</option></select></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalConvoyeur')"><i class="fas fa-save"></i> Enregistrer</button><button class="btn-outline" onclick="closeModal('modalConvoyeur')">Annuler</button></div></div></div>
+<div class="modal-overlay" id="modalConvoyeur"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalConvoyeur')"><i class="fas fa-times"></i></button><h3 class="modal-h">Nouveau <em>convoyeur</em></h3><div class="f-row"><div class="f-grp"><label>Prénom</label><input type="text" id="conv-prenom"></div><div class="f-grp"><label>Nom</label><input type="text" id="conv-nom"></div></div><div class="f-row"><div class="f-grp"><label>Email</label><input type="email" id="conv-email"></div><div class="f-grp"><label>Téléphone</label><input type="tel" id="conv-phone"></div></div><div class="f-row"><div class="f-grp"><label>Taux auto (€/km)</label><input type="number" id="conv-taux-auto" value="0.47" step="0.01"></div><div class="f-grp"><label>Taux moto (€/km)</label><input type="number" id="conv-taux-moto" value="0.40" step="0.01"></div></div><div class="f-grp"><label>Zone d'intervention</label><input type="text" id="conv-zone" placeholder="IDF, Rhône-Alpes…"></div><div class="f-grp"><label>Niveau</label><select id="conv-niveau"><option value="Standard">Standard</option><option value="Senior">Senior</option></select></div><div class="modal-btns"><button class="btn-red" onclick="addConvoyeurDOM()"><i class="fas fa-save"></i> Enregistrer</button><button class="btn-outline" onclick="closeModal('modalConvoyeur')">Annuler</button></div></div></div>
 
 <div class="modal-overlay" id="modalEditConvoyeur"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalEditConvoyeur')"><i class="fas fa-times"></i></button><h3 class="modal-h">Modifier <em>convoyeur</em></h3><p class="modal-sub">M. Bathily — Île-de-France · Rhône-Alpes</p><div class="f-row"><div class="f-grp"><label>Taux auto (€/km)</label><input type="number" value="0.47" step="0.01"></div><div class="f-grp"><label>Taux moto (€/km)</label><input type="number" value="0.40" step="0.01"></div></div><div class="f-row"><div class="f-grp"><label>Bonus performance</label><input type="number" value="5" step="1"> %</div><div class="f-grp"><label>Niveau</label><select><option selected>Standard</option><option>Senior</option></select></div></div><div class="f-grp"><label>Zone d'intervention</label><input type="text" value="IDF · Rhône-Alpes · PACA"></div><div class="f-grp"><label>Note interne</label><textarea rows="2" placeholder="Commentaire admin…"></textarea></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalEditConvoyeur')"><i class="fas fa-save"></i> Sauvegarder</button><button class="btn-outline" onclick="closeModal('modalEditConvoyeur')">Annuler</button></div></div></div>
 
@@ -945,12 +1121,958 @@ if(window.matchMedia('(hover: hover)').matches) {
 // ========== DATE ==========
 document.getElementById('dashDate').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
+// ========== AUTH ==========
+const ADMIN_PASSWORD = 'bathily2025'; // Changez ici votre mot de passe admin
+function checkAdminSession() {
+  return sessionStorage.getItem('admin_auth') === 'ok';
+}
+function checkAdminPassword() {
+  const pwd = document.getElementById('adminPasswordInput').value;
+  if (pwd === ADMIN_PASSWORD) {
+    sessionStorage.setItem('admin_auth', 'ok');
+    document.getElementById('authOverlay').classList.add('hidden');
+    initDashboard();
+  } else {
+    const err = document.getElementById('authError');
+    err.style.display = 'block';
+    document.getElementById('adminPasswordInput').value = '';
+    setTimeout(() => err.style.display = 'none', 3000);
+  }
+}
+function adminLogout() {
+  sessionStorage.removeItem('admin_auth');
+  window.location.reload();
+}
+// Check on load
+if (checkAdminSession()) {
+  document.getElementById('authOverlay').classList.add('hidden');
+  initDashboard();
+}
+
+function initDashboard() {
+  // Start auto-refresh every 30s
+  loadMissions();
+  loadDevis();
+  loadConvoyeurs();
+  buildCaChart();
+  let prevCandidatureCount = 0;
+  setInterval(async () => {
+    const prev = prevCandidatureCount;
+    await loadMissions(true); // silent refresh
+    // Check for new candidatures
+    const client = getSupabase();
+    const { data } = await client.from('missions').select('id, candidatures').eq('statut', 'available');
+    if (data) {
+      const total = data.reduce((sum, m) => sum + (m.candidatures ? m.candidatures.length : 0), 0);
+      if (total > prev && prev > 0) {
+        // New candidature detected
+        const badge = document.querySelector('.nav-item[onclick*="missions"] .nav-badge');
+        if (badge) badge.classList.add('pulsing');
+        Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Nouveau(x) candidat(s) sur une mission !', timer: 5000, showConfirmButton: false });
+      }
+      prevCandidatureCount = total;
+    }
+  }, 30000);
+}
+
 // ========== TABS ==========
 function showTab(id, el) {
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
+  if (id === 'devis') {
+    loadDevis();
+  } else if (id === 'missions') {
+    loadMissions();
+    // Remove pulsing badge
+    const badge = document.querySelector('.nav-item[onclick*="missions"] .nav-badge');
+    if (badge) badge.classList.remove('pulsing');
+  } else if (id === 'convoyeurs') {
+    loadConvoyeurs();
+  } else if (id === 'analytics') {
+    loadAnalytics();
+  }
+  // Update convoyeurs list dropdown in manual modal whenever we open missions modal
+  if (id === 'missions') {
+    populateConvoyeursSelect();
+  }
+}
+
+let _supabaseClient = null;
+function getSupabase() {
+  if (!_supabaseClient) {
+    _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  }
+  return _supabaseClient;
+}
+
+function loadDevis() {
+  const client = getSupabase();
+  const tbody = document.getElementById('devisTableBody');
+  const alertBanner = document.getElementById('devisAlertBanner');
+  const navBadge = document.getElementById('devisNavBadge');
+
+  client.from('devis')
+    .select('*')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .then(({ data, error }) => {
+      if (error) {
+        console.error("Erreur lors de la récupération des devis :", error);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--bordeaux);">Erreur de chargement: ${error.message}</td></tr>`;
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Aucun devis enregistré pour le moment.</td></tr>`;
+        if (alertBanner) alertBanner.innerHTML = `<i class="fas fa-info-circle"></i> Aucun devis en attente.`;
+        if (navBadge) navBadge.textContent = '0';
+        return;
+      }
+
+      const pendingCount = data.filter(d => d.status === 'pending').length;
+      if (alertBanner) {
+        alertBanner.className = 'alert alert-warn';
+        alertBanner.innerHTML = `<i class="fas fa-clock"></i> ${pendingCount} devis en attente de confirmation — réponse requise sous 2h`;
+      }
+      if (navBadge) navBadge.textContent = pendingCount;
+
+      if (tbody) {
+        tbody.innerHTML = '';
+        data.forEach(d => {
+          const detail = d.details || {};
+          const coord = detail.coordonnees || {};
+          const clientName = `${coord.prenom || d.client_prenom || ''} ${coord.nom || d.client_nom || ''}`.trim() || 'Client Inconnu';
+          const trajet = `${detail.dep || d.depart || ''} → ${detail.arr || d.arrivee || ''}`;
+          
+          let dateStr = '—';
+          if (d.created_at) {
+            const dateObj = new Date(d.created_at);
+            dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${d.reference || '—'}</td>
+            <td>${clientName}</td>
+            <td>${trajet}</td>
+            <td>${d.vehicule || 'Auto'} · ${detail.mode === 'plateau' ? 'Plateau' : 'Route'}</td>
+            <td><span style="text-transform: capitalize;">${detail.pack || 'Starter'}</span></td>
+            <td class="td-price">${d.total_ht || 0}€</td>
+            <td>${dateStr}</td>
+            <td class="td-actions">
+              <button class="btn-sm btn-sm-green" onclick="confirmDevis('${d.id}')"><i class="fas fa-check"></i> Valider</button>
+              <button class="btn-sm btn-sm-orange" onclick="refuseDevis('${d.id}')"><i class="fas fa-times"></i> Refuser</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    });
+}
+
+function getConvoyeursList() {
+  const convoyeurs = [];
+  document.querySelectorAll('#tab-convoyeurs tbody tr').forEach(tr => {
+    const nameDiv = tr.querySelector('td:first-child');
+    if (nameDiv) {
+      let name = nameDiv.textContent.trim();
+      const ava = nameDiv.querySelector('.ava');
+      if (ava) {
+        // Remove initials
+        name = name.substring(ava.textContent.trim().length).trim();
+      }
+      const autoInput = tr.querySelector('td:nth-child(5) input');
+      const motoInput = tr.querySelector('td:nth-child(6) input');
+      const autoRate = autoInput ? parseFloat(autoInput.value) : 0.47;
+      const motoRate = motoInput ? parseFloat(motoInput.value) : 0.40;
+      convoyeurs.push({ name, autoRate, motoRate });
+    }
+  });
+  return convoyeurs;
+}
+
+function addConvoyeurDOM() {
+  const prenom = document.getElementById('conv-prenom').value.trim();
+  const nom = document.getElementById('conv-nom').value.trim();
+  const email = document.getElementById('conv-email').value.trim();
+  const phone = document.getElementById('conv-phone').value.trim();
+  const rateAuto = parseFloat(document.getElementById('conv-taux-auto').value) || 0.47;
+  const rateMoto = parseFloat(document.getElementById('conv-taux-moto').value) || 0.40;
+  const zone = document.getElementById('conv-zone').value.trim() || 'Nationale';
+  const niveau = document.getElementById('conv-niveau').value;
+
+  if (!prenom || !nom) {
+    Swal.fire('Erreur', 'Veuillez saisir le prénom et le nom.', 'error');
+    return;
+  }
+
+  const name = `${prenom} ${nom}`;
+  const initials = `${prenom[0] || ''}${nom[0] || ''}`.toUpperCase();
+
+  const tbody = document.querySelector('#tab-convoyeurs tbody');
+  if (tbody) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials}</div>${name}</div></td>
+      <td>${zone}</td>
+      <td>0</td>
+      <td>⭐ 5.0</td>
+      <td><input class="num-input" type="number" value="${rateAuto}" step="0.01" style="width:80px;font-size:0.8rem"> €/km</td>
+      <td><input class="num-input" type="number" value="${rateMoto}" step="0.01" style="width:80px;font-size:0.8rem"> €/km</td>
+      <td><input class="num-input" type="number" value="5" step="1" style="width:70px;font-size:0.8rem"> %</td>
+      <td class="td-price">0€</td>
+      <td><span class="sp sp-ok"><span class="sp-dot"></span>Disponible</span></td>
+      <td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="openModal('modalEditConvoyeur')"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-chart-bar"></i></button></td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  closeModal('modalConvoyeur');
+  Swal.fire('Succès !', `Le convoyeur ${name} a été ajouté.`, 'success');
+}
+
+function confirmDevis(id) {
+  console.log("confirmDevis triggered for id:", id);
+  const client = getSupabase();
+  client.from('devis')
+    .select('*')
+    .eq('id', id)
+    .single()
+    .then(({ data: devis, error }) => {
+      if (error || !devis) {
+        Swal.fire('Erreur', "Impossible de récupérer le devis : " + (error?.message || "Non trouvé"), 'error');
+        return;
+      }
+
+      const detail = devis.details || {};
+      const mode = (detail.mode || '').toLowerCase();
+      const totalHt = parseFloat(devis.total_ht) || 0;
+      const estimatedKm = Math.round(totalHt / 1.1) || 350;
+      const isMoto = (devis.vehicule || '').toLowerCase().includes('moto');
+      const kmRate = isMoto ? 0.40 : 0.47;
+      let recommendedRem = Math.round(estimatedKm * kmRate);
+      if (recommendedRem < 60) recommendedRem = 60;
+      if (mode === 'plateau') recommendedRem += 40;
+
+      Swal.fire({
+        title: 'Valider et Publier le Devis',
+        html: `
+          <div style="text-align: left; font-family: 'Inter', sans-serif;">
+            <p style="margin-bottom: 15px; font-size: 0.85rem; color: #666; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+              <strong>Trajet :</strong> ${devis.depart} → ${devis.arrivee}<br>
+              <strong>Véhicule :</strong> ${devis.vehicule || 'Auto'} (${mode || 'route'})
+            </p>
+            <div style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b625a; margin-bottom: 4px;">Prix Client (€ HT)</label>
+                <input type="number" id="swal-publish-client-price" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box; font-size: 0.95rem; border-radius: 12px; height: 40px;" value="${totalHt}" oninput="updateSwalPublishMargin()">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b625a; margin-bottom: 4px;">Rémunération Convoyeur (€)</label>
+                <input type="number" id="swal-publish-driver-rem" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box; font-size: 0.95rem; border-radius: 12px; height: 40px;" value="${recommendedRem}" oninput="updateSwalPublishMargin()">
+              </div>
+            </div>
+            <span style="font-size: 0.65rem; color: #999; display: block; margin-bottom: 15px;">Tarif recommandé par défaut : ${recommendedRem}€ (basé sur ${estimatedKm} km)</span>
+            <div style="background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">Marge brute estimée :</span>
+              <strong id="swal-publish-marge-val" style="font-size: 1.15rem; color: var(--success);">${totalHt - recommendedRem}€</strong>
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Valider et Publier',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: 'var(--bordeaux)',
+        didOpen: () => {
+          window.updateSwalPublishMargin = () => {
+            const clientPrice = parseFloat(document.getElementById('swal-publish-client-price').value) || 0;
+            const driverRem = parseFloat(document.getElementById('swal-publish-driver-rem').value) || 0;
+            const margin = clientPrice - driverRem;
+            const marginEl = document.getElementById('swal-publish-marge-val');
+            if (marginEl) {
+              marginEl.textContent = margin + '€';
+              marginEl.style.color = margin >= 0 ? 'var(--success)' : 'var(--bordeaux)';
+            }
+          }
+        },
+        preConfirm: () => {
+          const clientPrice = parseFloat(document.getElementById('swal-publish-client-price').value) || 0;
+          const driverRem = parseFloat(document.getElementById('swal-publish-driver-rem').value) || 0;
+          return { clientPrice, driverRem };
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const { clientPrice, driverRem } = result.value;
+          const finalMarge = clientPrice - driverRem;
+          const detail = devis.details || {};
+          const mode = (detail.mode || '').toLowerCase();
+
+          const missionData = {
+            reference: devis.reference.replace('DEV', 'BC'),
+            client_nom: `${devis.client_prenom || ''} ${devis.client_nom || ''}`.trim() || 'Client',
+            depart: devis.depart,
+            arrivee: devis.arrivee,
+            vehicule: devis.vehicule,
+            mode_transport: mode || 'route',
+            pack: detail.pack || 'starter',
+            montant_ht: clientPrice,
+            remuneration_convoyeur: driverRem,
+            marge: finalMarge,
+            status: 'available',
+            convoyeur_nom: null,
+            date_mission: devis.created_at ? new Date(devis.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+          };
+
+          // Insert mission and update devis
+          client.from('missions')
+            .insert([missionData])
+            .select()
+            .then(({ error: insError }) => {
+              if (insError) {
+                Swal.fire('Erreur', 'Impossible de publier la mission : ' + insError.message, 'error');
+                return;
+              }
+
+              client.from('devis')
+                .update({ status: 'confirmed' })
+                .eq('id', id)
+                .select()
+                .then(({ error: updError }) => {
+                  if (updError) {
+                    Swal.fire('Erreur', 'Impossible de mettre à jour le devis : ' + updError.message, 'error');
+                  } else {
+                    Swal.fire('Publié !', 'L\'offre est maintenant disponible pour les convoyeurs.', 'success');
+                    loadDevis();
+                    loadMissions();
+                  }
+                });
+            });
+        }
+      });
+    });
+}
+
+function refuseDevis(id) {
+  console.log("refuseDevis called for id:", id);
+  Swal.fire({
+    title: 'Êtes-vous sûr ?',
+    text: "Vous allez refuser ce devis. Cette action est irréversible.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: 'var(--bordeaux)',
+    cancelButtonColor: '#aaa',
+    confirmButtonText: 'Oui, refuser',
+    cancelButtonText: 'Annuler'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const client = getSupabase();
+      client.from('devis')
+        .update({ status: 'refused' })
+        .eq('id', id)
+        .select()
+        .then(({ data, error }) => {
+          if (error) {
+            Swal.fire('Erreur', "Erreur lors du refus : " + error.message, 'error');
+          } else {
+            Swal.fire('Refusé', 'Le devis a bien été marqué comme refusé.', 'success');
+            loadDevis();
+          }
+        });
+    }
+  });
+}
+
+function loadMissions(silent) {
+  const client = getSupabase();
+  const tbody = document.getElementById('missionsTableBody');
+  if (!tbody) return;
+
+  // Fetch pending candidatures first
+  client.from('candidatures')
+    .select('*')
+    .eq('status', 'pending')
+    .then(({ data: apps, error: appError }) => {
+      const applicationsByMission = {};
+      if (apps) {
+        apps.forEach(app => {
+          if (!applicationsByMission[app.mission_id]) {
+            applicationsByMission[app.mission_id] = [];
+          }
+          applicationsByMission[app.mission_id].push(app);
+        });
+      }
+
+      // Fetch all missions
+      client.from('missions')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error("Erreur missions :", error);
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;color:var(--bordeaux);">Erreur: ${error.message}</td></tr>`;
+            return;
+          }
+
+          if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;">Aucune mission enregistrée pour le moment.</td></tr>`;
+            _allMissions = [];
+            return;
+          }
+
+          // Store for filter use, attach candidatures
+          _allMissions = data.map(m => ({ ...m, _candidatures: applicationsByMission[m.id] || [] }));
+
+          // Normalize statut/status
+          _allMissions = _allMissions.map(m => ({ ...m, statut: m.statut || m.status || 'planned' }));
+
+          renderMissionsTable(_allMissions);
+          renderInvoicesTable(_allMissions);
+        });
+    });
+}
+
+function renderMissionsTable(missions) {
+  const tbody = document.getElementById('missionsTableBody');
+  if (!tbody) return;
+
+  if (!missions || missions.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;">Aucune mission ne correspond aux filtres.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  missions.forEach(m => {
+    const cand = m._candidatures || [];
+    let dateStr = '—';
+    if (m.date_mission) {
+      const dateObj = new Date(m.date_mission);
+      dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    const mStatus = m.statut || m.status || 'planned';
+    let statusClass = 'sp-att';
+    let statusText = 'Planifiée';
+    if (mStatus === 'available') { statusClass = 'sp-att'; statusText = 'Sur le marché'; }
+    else if (mStatus === 'in_progress') { statusClass = 'sp-cours'; statusText = 'En cours'; }
+    else if (mStatus === 'completed') { statusClass = 'sp-ok'; statusText = 'Terminée'; }
+    else if (mStatus === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
+
+    // Stripe Payment Badge
+    const payStatus = m.paiement_statut || 'pending';
+    const payClass = payStatus === 'paid' ? 'sp-ok' : 'sp-err';
+    const payText = payStatus === 'paid' ? 'Payé' : 'En attente';
+
+    // Build actions column
+    let actionsHtml = '';
+    if (mStatus === 'available') {
+      let candHtml = '';
+      if (cand.length === 0) {
+        candHtml = `<span style="font-size: 0.65rem; color: var(--gray-mid);"><i class="fas fa-clock"></i> Aucun candidat</span>`;
+      } else {
+        candHtml = `
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <span style="font-size:0.6rem; font-weight:700; color:var(--bordeaux); text-transform:uppercase;">Candidats :</span>
+            ${cand.map(c => `
+              <button class="btn-sm btn-sm-green" onclick="assignConvoyeur('${m.id}', '${c.convoyeur_nom}', '${c.id}')">
+                <i class="fas fa-user-check"></i> Assigner ${c.convoyeur_nom}
+              </button>
+            `).join('')}
+          </div>
+        `;
+      }
+      actionsHtml = `
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          ${candHtml}
+          <button class="btn-sm btn-sm-ghost" title="Modifier les tarifs" onclick="editMissionTariffs('${m.id}')" style="justify-content:center;">
+            <i class="fas fa-coins"></i> Tarifs
+          </button>
+          <a class="btn-sm btn-sm-ghost" href="bon-de-mission.html?id=${m.id}" target="_blank" style="justify-content:center;text-decoration:none;">
+            <i class="fas fa-file-alt"></i> Bon
+          </a>
+        </div>
+      `;
+    } else {
+      const payAction = payStatus === 'paid'
+        ? `<button class="btn-sm btn-sm-red" title="Bloquer (Marquer impayée)" onclick="markMissionUnpaid('${m.id}', '${m.reference}')" style="background:var(--bordeaux); color:white; border:none;"><i class="fas fa-lock"></i></button>`
+        : `<button class="btn-sm btn-sm-green" title="Débloquer (Marquer payée)" onclick="markMissionPaid('${m.id}', '${m.reference}')" style="background:#2ecc71; color:white; border:none;"><i class="fas fa-unlock"></i></button>`;
+      actionsHtml = `
+        <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap;">
+          ${mStatus === 'planned' ? `<button class="btn-sm btn-sm-ghost" title="D\u00e9marrer" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i></button>` : ''}
+          ${mStatus !== 'completed' && mStatus !== 'cancelled' ? `<button class="btn-sm btn-sm-green" title="Terminer" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}
+          ${payAction}
+          <button class="btn-sm btn-sm-ghost" title="Modifier les tarifs" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
+          <a class="btn-sm btn-sm-ghost" href="bon-de-mission.html?id=${m.id}" target="_blank" title="Bon de mission" style="text-decoration:none;"><i class="fas fa-file-alt"></i></a>
+          <button class="btn-sm btn-sm-red" title="Supprimer" onclick="deleteMission('${m.id}')"><i class="fas fa-trash"></i></button>
+        </div>
+      `;
+    }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${m.reference || '—'}</td>
+      <td>${m.client_nom || 'Client'}</td>
+      <td>${m.depart} → ${m.arrivee}</td>
+      <td>${m.convoyeur_nom || '—'}</td>
+      <td style="text-transform: capitalize;">${m.mode_transport || 'Route'}</td>
+      <td style="text-transform: capitalize;">${m.pack || 'Starter'}</td>
+      <td class="td-price">${m.montant_ht || 0}€</td>
+      <td class="td-price-red">${m.remuneration_convoyeur !== null && m.remuneration_convoyeur !== undefined ? m.remuneration_convoyeur + '€' : '—'}</td>
+      <td class="td-price" style="color: ${(m.marge || 0) >= 0 ? 'var(--success)' : 'var(--bordeaux)'};">${m.marge !== null && m.marge !== undefined ? m.marge + '€' : '—'}</td>
+      <td><span class="sp ${payClass}"><span class="sp-dot"></span>${payText}</span></td>
+      <td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusText}</span></td>
+      <td>${dateStr}</td>
+      <td class="td-actions">${actionsHtml}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ========== STRIPE MANUAL PAYMENTS ==========
+function markMissionPaid(missionId, reference) {
+  Swal.fire({
+    title: 'Marquer comme payée ?',
+    text: `Confirmer le règlement manuel pour la mission ${reference || ''}.`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#2ecc71',
+    confirmButtonText: 'Oui, marquer payée',
+    cancelButtonText: 'Annuler'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const client = getSupabase();
+      client.from('missions')
+        .update({ paiement_statut: 'paid' })
+        .eq('id', missionId)
+        .select()
+        .then(({ error }) => {
+          if (error) {
+            Swal.fire('Erreur', 'Impossible de mettre à jour le paiement : ' + error.message, 'error');
+          } else {
+            Swal.fire('Paiement enregistré', 'La mission est désormais marquée comme payée.', 'success');
+            loadMissions();
+          }
+        });
+    }
+  });
+}
+
+function markMissionUnpaid(missionId, reference) {
+  Swal.fire({
+    title: 'Marquer comme impayée (bloquer) ?',
+    text: `Confirmer le blocage manuel (statut en attente de paiement) pour la mission ${reference || ''}.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: 'var(--bordeaux)',
+    confirmButtonText: 'Oui, bloquer la mission',
+    cancelButtonText: 'Annuler'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const client = getSupabase();
+      client.from('missions')
+        .update({ paiement_statut: 'pending' })
+        .eq('id', missionId)
+        .select()
+        .then(({ error }) => {
+          if (error) {
+            Swal.fire('Erreur', 'Impossible de bloquer la mission : ' + error.message, 'error');
+          } else {
+            Swal.fire('Mission bloquée', 'La mission est désormais marquée en attente de paiement (bloquée).', 'success');
+            loadMissions();
+          }
+        });
+    }
+  });
+}
+
+function renderInvoicesTable(missions) {
+  const tbody = document.getElementById('invoicesTableBody');
+  if (!tbody) return;
+
+  const billingMissions = missions.filter(m => m.montant_ht);
+
+  if (billingMissions.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Aucune facture disponible.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = billingMissions.map(m => {
+    const payStatus = m.paiement_statut || 'pending';
+    const statusClass = payStatus === 'paid' ? 'sp-ok' : 'sp-att';
+    const statusLabel = payStatus === 'paid' ? 'Payée' : 'En attente';
+    const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : '—';
+    const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-', '') : m.id.slice(0,8).toUpperCase()}`;
+    const priceHt = parseFloat(m.montant_ht) || 0;
+    const tva = priceHt * 0.20;
+    const priceTtc = priceHt + tva;
+
+    const actionBtn = payStatus === 'paid'
+      ? `<button class="btn-sm btn-sm-red" onclick="markMissionUnpaid('${m.id}', '${m.reference}')"><i class="fas fa-lock"></i> Bloquer (Non payée)</button>`
+      : `<button class="btn-sm btn-sm-green" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i> Débloquer (Payée)</button>`;
+
+    return `<tr>
+      <td>${invoiceRef}</td>
+      <td>${m.client_nom || 'Client'}</td>
+      <td>${m.reference || '—'}</td>
+      <td>${priceHt.toFixed(2)}€</td>
+      <td>${tva.toFixed(2)}€</td>
+      <td class="td-price">${priceTtc.toFixed(2)}€</td>
+      <td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusLabel}</span></td>
+      <td>${dateStr}</td>
+      <td class="td-actions">
+        ${actionBtn}
+        <button class="btn-sm btn-sm-ghost" onclick="Swal.fire('Facture', 'Téléchargement de la facture au format PDF (Simulé)', 'info')"><i class="fas fa-download"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+
+function assignConvoyeur(missionId, convoyeurNom, candidatureId) {
+
+  console.log("assignConvoyeur called:", { missionId, convoyeurNom, candidatureId });
+  const client = getSupabase();
+
+  client.from('missions')
+    .select('*')
+    .eq('id', missionId)
+    .single()
+    .then(({ data: mission, error }) => {
+      if (error || !mission) {
+        Swal.fire('Erreur', 'Impossible de récupérer la mission : ' + (error?.message || 'Non trouvé'), 'error');
+        return;
+      }
+
+      const convoyeurs = getConvoyeursList();
+      const selectedConv = convoyeurs.find(c => c.name === convoyeurNom);
+      const price = parseFloat(mission.montant_ht) || 0;
+      const estimatedKm = Math.round(price / 1.1) || 350;
+      const isMoto = (mission.vehicule || '').toLowerCase().includes('moto');
+      const kmRate = selectedConv ? (isMoto ? selectedConv.motoRate : selectedConv.autoRate) : 0.47;
+
+      const standardRec = (() => {
+        let rec = Math.round(estimatedKm * kmRate);
+        if (rec < 60) rec = 60;
+        if (mission.mode_transport === 'plateau') rec += 40;
+        return rec;
+      })();
+
+      let recommendedRem = mission.remuneration_convoyeur;
+      let isCustom = true;
+      if (recommendedRem === null || recommendedRem === undefined || recommendedRem === 0) {
+        recommendedRem = standardRec;
+        isCustom = false;
+      }
+
+      Swal.fire({
+        title: `Affecter ${convoyeurNom}`,
+        html: `
+          <div style="text-align: left; font-family: 'Inter', sans-serif;">
+            <p style="margin-bottom: 15px; font-size: 0.85rem; color: #666; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+              <strong>Trajet :</strong> ${mission.depart} → ${mission.arrivee}<br>
+              <strong>Véhicule :</strong> ${mission.vehicule || 'Auto'}<br>
+              <strong>Prix client :</strong> ${price}€ HT
+            </p>
+            <div style="margin-bottom: 12px;">
+              <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b625a; margin-bottom: 4px;">Rémunération du Convoyeur (€)</label>
+              <input type="number" id="swal-rem" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box; font-size: 0.95rem; border-radius: 12px; height: 40px;" value="${recommendedRem}" oninput="updateSwalMargin(${price})">
+              <span style="font-size: 0.65rem; color: #999; display: block; margin-top: 4px;">Tarif ${isCustom ? 'défini lors de la publication' : 'recommandé par défaut'} : ${recommendedRem}€ (tarif standard basé sur les km : ${standardRec}€)</span>
+            </div>
+            <div style="margin-top: 15px; background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">Marge brute estimée :</span>
+              <strong id="swal-marge-val" style="font-size: 1.15rem; color: var(--success);">${price - recommendedRem}€</strong>
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Confirmer l\'affectation',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: 'var(--bordeaux)',
+        didOpen: () => {
+          window.updateSwalMargin = (clientPrice) => {
+            const inputVal = parseFloat(document.getElementById('swal-rem').value) || 0;
+            const margin = clientPrice - inputVal;
+            const marginEl = document.getElementById('swal-marge-val');
+            if (marginEl) {
+              marginEl.textContent = margin + '€';
+              marginEl.style.color = margin >= 0 ? 'var(--success)' : 'var(--bordeaux)';
+            }
+          }
+        },
+        preConfirm: () => {
+          return parseFloat(document.getElementById('swal-rem').value) || 0;
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const finalRem = result.value;
+          const finalMarge = price - finalRem;
+
+          client.from('missions')
+            .update({
+              convoyeur_nom: convoyeurNom,
+              remuneration_convoyeur: finalRem,
+              marge: finalMarge,
+              status: 'planned'
+            })
+            .eq('id', missionId)
+            .select()
+            .then(({ error: updError }) => {
+              if (updError) {
+                Swal.fire('Erreur', 'Impossible d\'assigner la mission : ' + updError.message, 'error');
+                return;
+              }
+
+              client.from('candidatures')
+                .update({ status: 'accepted' })
+                .eq('id', candidatureId)
+                .select()
+                .then(() => {
+                  client.from('candidatures')
+                    .update({ status: 'refused' })
+                    .eq('mission_id', missionId)
+                    .neq('id', candidatureId)
+                    .select()
+                    .then(() => {
+                      Swal.fire('Mission assignée !', `La mission a été attribuée à ${convoyeurNom} avec une rémunération de ${finalRem}€ (marge : ${finalMarge}€).`, 'success');
+                      loadMissions();
+                    });
+                });
+            });
+        }
+      });
+    });
+}
+
+function updateMissionStatus(id, newStatus) {
+  const client = getSupabase();
+  client.from('missions')
+    .update({ status: newStatus })
+    .eq('id', id)
+    .select()
+    .then(({ error }) => {
+      if (error) {
+        Swal.fire('Erreur', 'Impossible de modifier le statut : ' + error.message, 'error');
+      } else {
+        loadMissions();
+      }
+    });
+}
+
+function deleteMission(id) {
+  Swal.fire({
+    title: 'Supprimer la mission ?',
+    text: "Cette action va retirer définitivement la mission de la base de données.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: 'var(--bordeaux)',
+    cancelButtonColor: '#aaa',
+    confirmButtonText: 'Oui, supprimer',
+    cancelButtonText: 'Annuler'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const client = getSupabase();
+      client.from('missions')
+        .delete()
+        .eq('id', id)
+        .then(({ error }) => {
+          if (error) {
+            Swal.fire('Erreur', 'Impossible de supprimer : ' + error.message, 'error');
+          } else {
+            Swal.fire('Supprimé', 'La mission a été retirée.', 'success');
+            loadMissions();
+          }
+        });
+    }
+  });
+}
+
+function createMissionManually() {
+  const clientNom = document.getElementById('manual-client').value.trim();
+  const convoyeurNom = document.getElementById('manual-convoyeur').value;
+  const depart = document.getElementById('manual-depart').value.trim();
+  const arrivee = document.getElementById('manual-arrivee').value.trim();
+  const vehicule = document.getElementById('manual-vehicule').value;
+  const mode = document.getElementById('manual-mode').value;
+  const pack = document.getElementById('manual-pack').value;
+  const dateStr = document.getElementById('manual-date').value;
+  const price = parseFloat(document.getElementById('manual-price').value) || 0;
+  const remInput = document.getElementById('manual-remuneration').value.trim();
+
+  if (!clientNom || !depart || !arrivee || !dateStr) {
+    Swal.fire('Erreur', 'Veuillez remplir le client, le départ, l\'arrivée et la date.', 'error');
+    return;
+  }
+
+  let rem = remInput !== '' ? parseFloat(remInput) : null;
+  let status = convoyeurNom ? 'planned' : 'available';
+
+  if (rem === null) {
+    // Attempt automatic calculation
+    const isMoto = vehicule.toLowerCase().includes('moto');
+    let kmRate = 0.47;
+    if (convoyeurNom) {
+      const convoyeurs = getConvoyeursList();
+      const selectedConv = convoyeurs.find(c => c.name === convoyeurNom);
+      if (selectedConv) kmRate = isMoto ? selectedConv.motoRate : selectedConv.autoRate;
+    } else {
+      kmRate = isMoto ? 0.40 : 0.47;
+    }
+
+    const estimatedKm = Math.round(price / 1.1) || 350; 
+    rem = Math.round(estimatedKm * kmRate);
+    if (rem < 60) rem = 60;
+    if (mode === 'plateau') rem += 40;
+  }
+
+  const marge = price - rem;
+  const randNum = Math.floor(1000 + Math.random() * 9000);
+
+  const missionData = {
+    reference: `BC-2026-${randNum}`,
+    client_nom: clientNom,
+    depart: depart,
+    arrivee: arrivee,
+    vehicule: vehicule,
+    mode_transport: mode,
+    pack: pack,
+    montant_ht: price,
+    remuneration_convoyeur: rem,
+    marge: marge,
+    status: status,
+    convoyeur_nom: convoyeurNom || null,
+    date_mission: dateStr
+  };
+
+  const client = getSupabase();
+  client.from('missions')
+    .insert([missionData])
+    .select()
+    .then(({ error }) => {
+      if (error) {
+        Swal.fire('Erreur', 'Impossible de créer la mission : ' + error.message, 'error');
+      } else {
+        closeModal('modalMission');
+        Swal.fire('Succès !', convoyeurNom ? 'Mission créée et attribuée.' : 'Mission publiée sur le marché.', 'success');
+        loadMissions();
+      }
+    });
+}
+
+function updateManualMissionMargin() {
+  const price = parseFloat(document.getElementById('manual-price').value) || 0;
+  const remInput = document.getElementById('manual-remuneration').value.trim();
+  
+  let rem = 0;
+  if (remInput !== '') {
+    rem = parseFloat(remInput) || 0;
+  } else {
+    // Quick fallback calculation
+    const vehicule = document.getElementById('manual-vehicule').value;
+    const mode = document.getElementById('manual-mode').value;
+    const isMoto = vehicule.toLowerCase().includes('moto');
+    const kmRate = isMoto ? 0.40 : 0.47;
+    const estimatedKm = Math.round(price / 1.1) || 350;
+    rem = Math.round(estimatedKm * kmRate);
+    if (rem < 60) rem = 60;
+    if (mode === 'plateau') rem += 40;
+  }
+
+  const margin = price - rem;
+  const marginValEl = document.getElementById('manual-marge-val');
+  if (marginValEl) {
+    marginValEl.textContent = margin + '€';
+    marginValEl.style.color = margin >= 0 ? 'var(--success)' : 'var(--bordeaux)';
+  }
+}
+
+function editMissionTariffs(missionId) {
+  console.log("editMissionTariffs called for mission:", missionId);
+  const client = getSupabase();
+
+  client.from('missions')
+    .select('*')
+    .eq('id', missionId)
+    .single()
+    .then(({ data: m, error }) => {
+      if (error || !m) {
+        Swal.fire('Erreur', 'Impossible de récupérer la mission : ' + (error?.message || 'Non trouvé'), 'error');
+        return;
+      }
+
+      const clientPrice = parseFloat(m.montant_ht) || 0;
+      const driverRem = parseFloat(m.remuneration_convoyeur) || 0;
+
+      Swal.fire({
+        title: `Modifier les tarifs (Réf: ${m.reference || '—'})`,
+        html: `
+          <div style="text-align: left; font-family: 'Inter', sans-serif;">
+            <p style="margin-bottom: 15px; font-size: 0.85rem; color: #666; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+              <strong>Trajet :</strong> ${m.depart} → ${m.arrivee}<br>
+              <strong>Véhicule :</strong> ${m.vehicule || 'Auto'} · ${m.mode_transport || 'route'}<br>
+              <strong>Convoyeur :</strong> ${m.convoyeur_nom || 'Non assigné (Sur le marché)'}
+            </p>
+            <div style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b625a; margin-bottom: 4px;">Prix Client (€ HT)</label>
+                <input type="number" id="swal-edit-client-price" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box; font-size: 0.95rem; border-radius: 12px; height: 40px;" value="${clientPrice}" oninput="updateSwalEditMargin()">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #6b625a; margin-bottom: 4px;">Rémunération Convoyeur (€)</label>
+                <input type="number" id="swal-edit-driver-rem" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box; font-size: 0.95rem; border-radius: 12px; height: 40px;" value="${driverRem}" oninput="updateSwalEditMargin()">
+              </div>
+            </div>
+            <div style="background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">Marge brute estimée :</span>
+              <strong id="swal-edit-marge-val" style="font-size: 1.15rem; color: var(--success);">${clientPrice - driverRem}€</strong>
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Sauvegarder les tarifs',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: 'var(--bordeaux)',
+        didOpen: () => {
+          window.updateSwalEditMargin = () => {
+            const clientVal = parseFloat(document.getElementById('swal-edit-client-price').value) || 0;
+            const driverVal = parseFloat(document.getElementById('swal-edit-driver-rem').value) || 0;
+            const margin = clientVal - driverVal;
+            const marginEl = document.getElementById('swal-edit-marge-val');
+            if (marginEl) {
+              marginEl.textContent = margin + '€';
+              marginEl.style.color = margin >= 0 ? 'var(--success)' : 'var(--bordeaux)';
+            }
+          }
+        },
+        preConfirm: () => {
+          const clientVal = parseFloat(document.getElementById('swal-edit-client-price').value) || 0;
+          const driverVal = parseFloat(document.getElementById('swal-edit-driver-rem').value) || 0;
+          return { clientVal, driverVal };
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const { clientVal, driverVal } = result.value;
+          const newMargin = clientVal - driverVal;
+
+          client.from('missions')
+            .update({
+              montant_ht: clientVal,
+              remuneration_convoyeur: driverVal,
+              marge: newMargin
+            })
+            .eq('id', missionId)
+            .select()
+            .then(({ error: updError }) => {
+              if (updError) {
+                Swal.fire('Erreur', 'Impossible de modifier les tarifs : ' + updError.message, 'error');
+              } else {
+                Swal.fire('Tarifs mis à jour !', 'Les tarifs de la mission ont bien été enregistrés.', 'success');
+                loadMissions();
+              }
+            });
+        }
+      });
+    });
 }
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('keydown', (e) => {
@@ -983,7 +2105,7 @@ document.querySelectorAll('.toggle').forEach(toggle => {
 function buildChart(containerId, data){
   const container=document.getElementById(containerId);
   if(!container) return;
-  const max=Math.max(...data.map(d=>d.val));
+  const max=Math.max(...data.map(d=>d.val),1);
   container.innerHTML='';
   data.forEach(d=>{
     const bar=document.createElement('div');
@@ -991,20 +2113,316 @@ function buildChart(containerId, data){
     const h=Math.round((d.val/max)*140);
     bar.style.height=h+'px';
     bar.style.background=d.current?'var(--bordeaux)':'rgba(122,46,26,0.3)';
-    bar.innerHTML=`<div class="chart-bar-val">${d.val>=1000?(d.val/1000).toFixed(0)+'k':d.val+'€'}</div><div class="chart-bar-lbl">${d.lbl}</div>`;
+    bar.innerHTML=`<div class="chart-bar-val">${d.val>=1000?(d.val/1000).toFixed(1)+'k':d.val+'€'}</div><div class="chart-bar-lbl">${d.lbl}</div>`;
     container.appendChild(bar);
   });
 }
-const caData=[
-  {lbl:'Jan',val:28000,current:false},{lbl:'Fév',val:31000,current:false},
-  {lbl:'Mar',val:36000,current:false},{lbl:'Avr',val:39000,current:false},
-  {lbl:'Mai',val:42000,current:true},{lbl:'Jun',val:0,current:false},
-  {lbl:'Jul',val:0,current:false},{lbl:'Aoû',val:0,current:false},
-  {lbl:'Sep',val:0,current:false},{lbl:'Oct',val:0,current:false},
-  {lbl:'Nov',val:0,current:false},{lbl:'Déc',val:0,current:false},
-];
-buildChart('caChart',caData.filter(d=>d.val>0));
-buildChart('analyticsChart',caData.filter(d=>d.val>0));
+function buildCaChart(){
+  const caData=[
+    {lbl:'Jan',val:28000,current:false},{lbl:'Fév',val:31000,current:false},
+    {lbl:'Mar',val:36000,current:false},{lbl:'Avr',val:39000,current:false},
+    {lbl:'Mai',val:42000,current:true},{lbl:'Jun',val:0,current:false},
+  ];
+  buildChart('caChart',caData.filter(d=>d.val>0));
+}
+
+// ========== ANALYTICS DYNAMIQUES ==========
+async function loadAnalytics() {
+  const client = getSupabase();
+  const { data: missions, error } = await client.from('missions').select('*');
+  const { data: convoyeursList, error: convErr } = await client.from('convoyeurs').select('id');
+
+  if (error) { console.warn('Analytics error:', error.message); return; }
+
+  const total = missions ? missions.length : 0;
+  const completed = missions ? missions.filter(m => m.status === 'completed' || m.statut === 'completed').length : 0;
+  const ca = missions ? missions.filter(m => m.montant_ht).reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0) : 0;
+
+  const marges = missions ? missions.filter(m => m.marge != null).map(m => parseFloat(m.marge)) : [];
+  const margeAvg = marges.length > 0
+    ? Math.round((marges.reduce((s, v) => s + v, 0) / marges.length))
+    : 0;
+  const caCompleted = missions ? missions.filter(m => (m.status === 'completed' || m.statut === 'completed') && m.montant_ht)
+    .reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0) : 0;
+  const margePercent = caCompleted > 0 ? Math.round((marges.reduce((s, v) => s + v, 0) / caCompleted) * 100) : 0;
+
+  // KPIs
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('kpi-missions', total);
+  set('kpi-completed', completed);
+  set('kpi-ca', ca >= 1000 ? (ca/1000).toFixed(1) + 'k€' : ca + '€');
+  set('kpi-marge', margePercent + '%');
+  set('kpi-convoyeurs', convoyeursList ? convoyeursList.length : '—');
+
+  // Distribution by mode
+  const route = missions ? missions.filter(m => (m.mode_transport || '').toLowerCase().includes('route')).length : 0;
+  const plateau = missions ? missions.filter(m => (m.mode_transport || '').toLowerCase().includes('plateau')).length : 0;
+  const available = missions ? missions.filter(m => m.statut === 'available' || m.status === 'available').length : 0;
+  const routePct = total > 0 ? Math.round((route / total) * 100) : 0;
+  const plateauPct = total > 0 ? Math.round((plateau / total) * 100) : 0;
+  set('kpi-route', routePct + '%');
+  set('kpi-plateau', plateauPct + '%');
+  set('kpi-available', available);
+
+  // Monthly chart
+  const monthlyCA = {};
+  const monthNames = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  if (missions) {
+    missions.forEach(m => {
+      const dateStr = m.date_mission || m.created_at;
+      if (!dateStr || !m.montant_ht) return;
+      const d = new Date(dateStr);
+      const key = d.getMonth();
+      monthlyCA[key] = (monthlyCA[key] || 0) + parseFloat(m.montant_ht || 0);
+    });
+  }
+  const nowMonth = new Date().getMonth();
+  const chartData = Object.keys(monthlyCA).sort((a, b) => a - b).map(k => ({
+    lbl: monthNames[parseInt(k)],
+    val: Math.round(monthlyCA[k]),
+    current: parseInt(k) === nowMonth
+  }));
+
+  const chartTitle = document.getElementById('analyticsChartTitle');
+  if (chartTitle) chartTitle.textContent = total > 0
+    ? `Chiffre d'affaires par mois (€ HT) — ${total} missions enregistrées`
+    : 'Chiffre d\'affaires — Aucune donnée pour l\'instant';
+
+  if (chartData.length > 0) {
+    buildChart('analyticsChart', chartData);
+  } else {
+    const container = document.getElementById('analyticsChart');
+    if (container) container.innerHTML = '<div style="width:100%;text-align:center;color:var(--gray-mid);padding:40px;font-size:0.8rem;">Aucune mission avec montant enregistrée</div>';
+  }
+}
+
+// ========== MISSION FILTERS ==========
+let _allMissions = [];
+function applyMissionFilters() {
+  const status = document.getElementById('filter-status')?.value || '';
+  const mode = document.getElementById('filter-mode')?.value || '';
+  const search = (document.getElementById('filter-search')?.value || '').toLowerCase().trim();
+
+  const filtered = _allMissions.filter(m => {
+    const mStatus = m.statut || m.status || '';
+    const mMode = m.mode_transport || '';
+    const mSearch = `${m.reference || ''} ${m.client_nom || ''} ${m.convoyeur_nom || ''} ${m.depart || ''} ${m.arrivee || ''}`.toLowerCase();
+    return (!status || mStatus === status) &&
+           (!mode || mMode.toLowerCase().includes(mode)) &&
+           (!search || mSearch.includes(search));
+  });
+
+  renderMissionsTable(filtered);
+}
+function resetMissionFilters() {
+  const statusEl = document.getElementById('filter-status');
+  const modeEl = document.getElementById('filter-mode');
+  const searchEl = document.getElementById('filter-search');
+  if (statusEl) statusEl.value = '';
+  if (modeEl) modeEl.value = '';
+  if (searchEl) searchEl.value = '';
+  renderMissionsTable(_allMissions);
+}
+
+// ========== CONVOYEURS DB ==========
+let _convoyeursList = [];
+
+async function loadConvoyeurs() {
+  const client = getSupabase();
+  const { data, error } = await client.from('convoyeurs').select('*').order('created_at', { ascending: false });
+
+  if (error) {
+    console.warn('Erreur chargement convoyeurs:', error.message);
+    return;
+  }
+
+  _convoyeursList = data || [];
+
+  const countEl = document.getElementById('convoyeursCount');
+  if (countEl) countEl.innerHTML = `${_convoyeursList.length} convoyeur${_convoyeursList.length !== 1 ? 's' : ''} <em>enregistré${_convoyeursList.length !== 1 ? 's' : ''}</em>`;
+
+  renderConvoyeursTable(_convoyeursList);
+  populateConvoyeursSelect();
+}
+
+function renderConvoyeursTable(list) {
+  const tbody = document.getElementById('convoyeursTableBody');
+  if (!tbody) return;
+
+  if (!list || list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--gray-mid); padding:30px;">Aucun convoyeur enregistré. Cliquez sur <strong>Ajouter</strong> pour commencer.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(c => {
+    const initials = ((c.prenom || '')[0] || '') + ((c.nom || '')[0] || '');
+    const colors = ['var(--bordeaux-light);color:var(--bordeaux)', 'rgba(41,128,185,0.12);color:#2980b9', 'rgba(74,124,107,0.1);color:var(--success)'];
+    const colorStyle = colors[Math.abs(initials.charCodeAt(0) + initials.charCodeAt(1)) % colors.length];
+    return `
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div class="ava" style="background:${colorStyle}">${initials.toUpperCase() || '??'}</div>
+        ${c.prenom || ''} ${c.nom || ''}
+      </div></td>
+      <td>${c.zone || 'Nationale'}</td>
+      <td><span class="sp ${c.niveau === 'Senior' ? 'sp-cours' : 'sp-ok'}"><span class="sp-dot"></span>${c.niveau || 'Standard'}</span></td>
+      <td>${parseFloat(c.taux_auto || 0.47).toFixed(2)} €/km</td>
+      <td>${parseFloat(c.taux_moto || 0.40).toFixed(2)} €/km</td>
+      <td><span class="sp ${c.disponible !== false ? 'sp-ok' : 'sp-err'}"><span class="sp-dot"></span>${c.disponible !== false ? 'Disponible' : 'Indisponible'}</span></td>
+      <td class="td-actions">
+        <button class="btn-sm btn-sm-ghost" onclick="editConvoyeur('${c.id}')"><i class="fas fa-edit"></i></button>
+        <button class="btn-sm btn-sm-red" onclick="deleteConvoyeur('${c.id}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterConvoyeursTable() {
+  const q = (document.getElementById('conv-search-input')?.value || '').toLowerCase();
+  const filtered = _convoyeursList.filter(c =>
+    `${c.prenom} ${c.nom} ${c.zone} ${c.niveau} ${c.email}`.toLowerCase().includes(q)
+  );
+  renderConvoyeursTable(filtered);
+}
+
+function populateConvoyeursSelect() {
+  const select = document.getElementById('manual-convoyeur');
+  if (!select) return;
+  select.innerHTML = '<option value="">Marché (aucun convoyeur assigné)</option>' +
+    _convoyeursList.map(c => `<option value="${c.prenom} ${c.nom}">${c.prenom} ${c.nom}</option>`).join('');
+}
+
+async function addConvoyeurDB() {
+  const prenom = (document.getElementById('conv-prenom')?.value || '').trim();
+  const nom = (document.getElementById('conv-nom')?.value || '').trim();
+  const email = (document.getElementById('conv-email')?.value || '').trim();
+  const phone = (document.getElementById('conv-phone')?.value || '').trim();
+  const tauxAuto = parseFloat(document.getElementById('conv-taux-auto')?.value) || 0.47;
+  const tauxMoto = parseFloat(document.getElementById('conv-taux-moto')?.value) || 0.40;
+  const zone = (document.getElementById('conv-zone')?.value || '').trim() || 'Nationale';
+  const niveau = document.getElementById('conv-niveau')?.value || 'Standard';
+
+  if (!prenom || !nom) {
+    Swal.fire('Champs requis', 'Veuillez renseigner au moins le prénom et le nom.', 'warning');
+    return;
+  }
+
+  const client = getSupabase();
+  const { error } = await client.from('convoyeurs').insert([{
+    prenom, nom, email, telephone: phone,
+    taux_auto: tauxAuto, taux_moto: tauxMoto,
+    zone, niveau, disponible: true
+  }]);
+
+  if (error) {
+    Swal.fire('Erreur', 'Impossible d\'ajouter le convoyeur : ' + error.message, 'error');
+    return;
+  }
+
+  closeModal('modalConvoyeur');
+  // Clear form
+  ['conv-prenom','conv-nom','conv-email','conv-phone','conv-zone'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `${prenom} ${nom} ajouté !`, timer: 3000, showConfirmButton: false });
+  loadConvoyeurs();
+}
+
+async function deleteConvoyeur(id) {
+  const result = await Swal.fire({
+    title: 'Supprimer ce convoyeur ?',
+    text: 'Cette action est irréversible.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: 'var(--bordeaux)',
+    cancelButtonColor: '#aaa',
+    confirmButtonText: 'Supprimer',
+    cancelButtonText: 'Annuler'
+  });
+
+  if (!result.isConfirmed) return;
+
+  const client = getSupabase();
+  const { error } = await client.from('convoyeurs').delete().eq('id', id);
+  if (error) {
+    Swal.fire('Erreur', error.message, 'error');
+  } else {
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convoyeur supprimé', timer: 2000, showConfirmButton: false });
+    loadConvoyeurs();
+  }
+}
+
+async function editConvoyeur(id) {
+  const c = _convoyeursList.find(x => x.id === id);
+  if (!c) return;
+
+  const { value } = await Swal.fire({
+    title: `Modifier ${c.prenom} ${c.nom}`,
+    html: `
+      <div style="text-align:left;font-family:'Inter',sans-serif;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div><label style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#6b625a;">Prénom</label>
+            <input id="ec-prenom" class="swal2-input" style="margin:4px 0 0;height:38px;" value="${c.prenom || ''}"></div>
+          <div><label style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#6b625a;">Nom</label>
+            <input id="ec-nom" class="swal2-input" style="margin:4px 0 0;height:38px;" value="${c.nom || ''}"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div><label style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#6b625a;">Taux auto (€/km)</label>
+            <input id="ec-auto" type="number" step="0.01" class="swal2-input" style="margin:4px 0 0;height:38px;" value="${c.taux_auto || 0.47}"></div>
+          <div><label style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#6b625a;">Taux moto (€/km)</label>
+            <input id="ec-moto" type="number" step="0.01" class="swal2-input" style="margin:4px 0 0;height:38px;" value="${c.taux_moto || 0.40}"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div><label style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#6b625a;">Zone</label>
+            <input id="ec-zone" class="swal2-input" style="margin:4px 0 0;height:38px;" value="${c.zone || ''}"></div>
+          <div><label style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#6b625a;">Niveau</label>
+            <select id="ec-niveau" class="swal2-input" style="margin:4px 0 0;height:38px;">
+              <option value="Standard" ${c.niveau === 'Standard' ? 'selected' : ''}>Standard</option>
+              <option value="Senior" ${c.niveau === 'Senior' ? 'selected' : ''}>Senior</option>
+            </select></div>
+        </div>
+        <div><label style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#6b625a;">Note interne</label>
+          <textarea id="ec-note" class="swal2-textarea" style="margin:4px 0 0;font-size:0.85rem;">${c.note_interne || ''}</textarea></div>
+      </div>`,
+    showCancelButton: true,
+    confirmButtonColor: 'var(--bordeaux)',
+    confirmButtonText: 'Sauvegarder',
+    cancelButtonText: 'Annuler',
+    preConfirm: () => ({
+      prenom: document.getElementById('ec-prenom').value.trim(),
+      nom: document.getElementById('ec-nom').value.trim(),
+      taux_auto: parseFloat(document.getElementById('ec-auto').value) || 0.47,
+      taux_moto: parseFloat(document.getElementById('ec-moto').value) || 0.40,
+      zone: document.getElementById('ec-zone').value.trim(),
+      niveau: document.getElementById('ec-niveau').value,
+      note_interne: document.getElementById('ec-note').value.trim()
+    })
+  });
+
+  if (!value) return;
+
+  const client = getSupabase();
+  const { error } = await client.from('convoyeurs').update(value).eq('id', id);
+  if (error) {
+    Swal.fire('Erreur', error.message, 'error');
+  } else {
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convoyeur mis à jour !', timer: 2000, showConfirmButton: false });
+    loadConvoyeurs();
+  }
+}
+
+// Override addConvoyeurDOM to use DB version
+function addConvoyeurDOM() { addConvoyeurDB(); }
+
+// Override getConvoyeursList to use DB list
+function getConvoyeursList() {
+  return _convoyeursList.map(c => ({
+    name: `${c.prenom} ${c.nom}`.trim(),
+    autoRate: parseFloat(c.taux_auto) || 0.47,
+    motoRate: parseFloat(c.taux_moto) || 0.40
+  }));
+}
 
 // ========== SAVE CONFIG ==========
 function saveConfig(id){

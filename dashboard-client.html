@@ -11,6 +11,9 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👤</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
 * {
   margin: 0;
@@ -779,7 +782,7 @@ body {
 
 <!-- Topbar -->
 <div class="topbar">
-  <a href="index.html" class="topbar-logo">Bathily<span>.</span></a>
+  <a href="index.html" class="topbar-logo">Bathily-Convoyage<span>.</span></a>
   <span class="topbar-center">Espace Client</span>
   <div class="topbar-right">
     <div class="topbar-notif" aria-label="Notifications" role="button" tabindex="0">
@@ -788,10 +791,25 @@ body {
     </div>
     <a href="devis.html" class="sec-action" style="padding:6px 14px; font-size:0.65rem;"><i class="fas fa-plus"></i> Nouveau devis</a>
     <div class="topbar-user" role="button" tabindex="0" aria-label="Mon compte">
-      <div class="user-avatar">JD</div>
-      <span class="user-name">Jean D.</span>
+      <div class="user-avatar" id="cliAvatar">JD</div>
+      <span class="user-name" id="cliNomTopbar">Mon espace</span>
     </div>
-    <button class="topbar-logout" type="button" onclick="window.location.href='index.html'"><i class="fas fa-sign-out-alt"></i></button>
+    <button class="topbar-logout" type="button" onclick="clientLogout()" title="Changer de compte"><i class="fas fa-sign-out-alt"></i></button>
+  </div>
+</div>
+
+<!-- CLIENT LOGIN OVERLAY -->
+<div id="clientLoginOverlay" style="position:fixed;inset:0;background:rgba(253,251,247,0.97);backdrop-filter:blur(12px);z-index:9000;display:flex;align-items:center;justify-content:center;">
+  <div style="background:white;border:1px solid #E8E1D9;border-radius:28px;padding:44px 48px;max-width:440px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.08);">
+    <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:6px;">Espace <span style="color:#7A2E1A">Client</span></div>
+    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#6B625A;margin-bottom:28px;">Saisissez votre nom pour accéder à vos missions</div>
+    <div style="margin-bottom:16px;text-align:left;">
+      <label style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Votre nom (tel qu'il apparaît sur votre devis)</label>
+      <input id="clientLoginInput" type="text" placeholder="Ex: Jean Dupont" onkeydown="if(event.key==='Enter') clientLogin()" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:14px;font-size:0.9rem;font-family:'Inter',sans-serif;outline:none;">
+    </div>
+    <div id="clientLoginError" style="display:none;color:#7A2E1A;font-size:0.75rem;margin-bottom:12px;"><i class="fas fa-exclamation-circle"></i> Aucune mission trouvée pour ce nom.</div>
+    <button onclick="clientLogin()" style="width:100%;background:#7A2E1A;color:white;border:none;border-radius:14px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;"><i class="fas fa-arrow-right"></i> Accéder à mon espace</button>
+    <p style="font-size:0.65rem;color:#6B625A;margin-top:16px;">Votre nom doit correspondre exactement à celui indiqué lors de votre demande de devis.</p>
   </div>
 </div>
 
@@ -818,14 +836,14 @@ body {
     <!-- Dashboard -->
     <div class="tab-content active" id="tab-accueil">
       <div class="dash-header">
-        <h1 class="dash-hello">Bonjour, <em>Jean</em></h1>
+        <h1 class="dash-hello">Bonjour, <em id="cliPrenom">...</em></h1>
         <div class="dash-date" id="dashDate"></div>
       </div>
       <div class="stats-row">
-        <div class="stat-card"><div class="stat-ico"><i class="fas fa-route"></i></div><div class="stat-val">2</div><div class="stat-lbl">Missions en cours</div><div class="stat-trend trend-up">Actives</div></div>
-        <div class="stat-card"><div class="stat-ico"><i class="fas fa-check-circle"></i></div><div class="stat-val">14</div><div class="stat-lbl">Missions terminées</div><div class="stat-trend trend-neutral">Total</div></div>
-        <div class="stat-card"><div class="stat-ico"><i class="fas fa-euro-sign"></i></div><div class="stat-val">3<em>,</em>840</div><div class="stat-lbl">Dépensé en 2025</div><div class="stat-trend trend-neutral">HT</div></div>
-        <div class="stat-card"><div class="stat-ico"><i class="fas fa-car"></i></div><div class="stat-val">3</div><div class="stat-lbl">Véhicules enregistrés</div><div class="stat-trend trend-neutral">Profil</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-route"></i></div><div class="stat-val" id="kpiActives">—</div><div class="stat-lbl">Missions en cours</div><div class="stat-trend trend-up">Actives</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-check-circle"></i></div><div class="stat-val" id="kpiTerminees">—</div><div class="stat-lbl">Missions terminées</div><div class="stat-trend trend-neutral">Total</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-euro-sign"></i></div><div class="stat-val" id="kpiCA">—</div><div class="stat-lbl">Dépensé en 2025</div><div class="stat-trend trend-neutral">HT</div></div>
+        <div class="stat-card"><div class="stat-ico"><i class="fas fa-car"></i></div><div class="stat-val" id="kpiTotal">—</div><div class="stat-lbl">Total missions</div><div class="stat-trend trend-neutral">Toutes</div></div>
       </div>
       <div class="sec-title"><h2 class="sec-h">Actions <em>rapides</em></h2></div>
       <div class="qa-grid">
@@ -834,15 +852,20 @@ body {
         <div class="qa-item" onclick="showTab('factures',document.querySelector('[onclick*=factures]'))" role="button" tabindex="0"><div class="qa-ico"><i class="fas fa-file-invoice"></i></div><div class="qa-lbl">Mes factures</div></div>
         <div class="qa-item" onclick="showTab('support',document.querySelector('[onclick*=support]'))" role="button" tabindex="0"><div class="qa-ico"><i class="fas fa-headset"></i></div><div class="qa-lbl">Contacter le support</div></div>
       </div>
-      <div class="sec-title"><h2 class="sec-h">Missions <em>en cours</em></h2><div class="nav-item" onclick="showTab('missions',null)" style="padding:0; color:var(--bordeaux); cursor:pointer;" role="button" tabindex="0">Voir tout <i class="fas fa-arrow-right"></i></div></div>
-      <div class="missions-list">
-        <div class="mission-card"><div class="mc-status status-en-cours"></div><div class="mc-info"><div class="mc-ref">BC-2025-0847</div><div class="mc-route">Paris <em>→</em> Lyon</div><div class="mc-meta"><span class="mc-tag tag-auto">Automobile</span><span class="mc-tag tag-route">Route</span><span class="mc-date"><i class="fas fa-calendar"></i> 12 mai 2025</span><span class="mc-pack"><i class="fas fa-box"></i> Pack Sérénité</span></div></div><div class="mc-progress"><svg class="progress-circle" viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="none" stroke="#E5E7EB" stroke-width="3"/><circle cx="26" cy="26" r="22" fill="none" stroke="var(--bordeaux)" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="48" stroke-linecap="round" transform="rotate(-90 26 26)"/><text x="26" y="31" text-anchor="middle" fill="#2D2A24" font-family="'Plus Jakarta Sans'" font-size="12" font-weight="600">65%</text></svg><div class="progress-lbl">En transit</div></div><div class="mc-actions"><button class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> Suivre</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-file"></i> Détails</button></div></div>
-        <div class="mission-card"><div class="mc-status status-planifie"></div><div class="mc-info"><div class="mc-ref">BC-2025-0851</div><div class="mc-route">Bordeaux <em>→</em> Nice</div><div class="mc-meta"><span class="mc-tag tag-auto">Automobile</span><span class="mc-tag tag-plateau">Plateau</span><span class="mc-date"><i class="fas fa-calendar"></i> 15 mai 2025</span><span class="mc-pack"><i class="fas fa-box"></i> Pack Excellence</span></div></div><div class="mc-progress"><svg class="progress-circle" viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="none" stroke="#E5E7EB" stroke-width="3"/><circle cx="26" cy="26" r="22" fill="none" stroke="#E0A343" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="124" stroke-linecap="round" transform="rotate(-90 26 26)"/><text x="26" y="31" text-anchor="middle" fill="#2D2A24" font-family="'Plus Jakarta Sans'" font-size="12" font-weight="600">10%</text></svg><div class="progress-lbl">Planifiée</div></div><div class="mc-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-file"></i> Détails</button><button class="btn-sm btn-sm-ghost" style="color:var(--bordeaux); border-color:var(--bordeaux-light);"><i class="fas fa-times"></i> Annuler</button></div></div>
+      <div class="sec-title"><h2 class="sec-h">Missions <em>récentes</em></h2><div class="nav-item" onclick="showTab('missions',null)" style="padding:0; color:var(--bordeaux); cursor:pointer;" role="button" tabindex="0">Voir tout <i class="fas fa-arrow-right"></i></div></div>
+      <div class="missions-list" id="recentMissionsList">
+        <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
       </div>
     </div>
 
     <!-- Missions -->
     <div class="tab-content" id="tab-missions">
+      <div class="dash-header"><h1 class="dash-hello">Mes <em>missions</em></h1></div>
+      <div class="sec-title"><div class="tabs"><button class="tab-btn active" onclick="filterMissions('all',this)">Toutes</button><button class="tab-btn" onclick="filterMissions('active',this)">En cours</button><button class="tab-btn" onclick="filterMissions('planned',this)">Planifiées</button><button class="tab-btn" onclick="filterMissions('completed',this)">Terminées</button></div><a href="devis.html" class="sec-action"><i class="fas fa-plus"></i> Nouvelle mission</a></div>
+      <div class="missions-list" id="missionsList">
+        <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+      </div>
+    </div>
       <div class="dash-header"><h1 class="dash-hello">Mes <em>missions</em></h1></div>
       <div class="sec-title"><div class="tabs"><button class="tab-btn active" onclick="filterMissions('all',this)">Toutes</button><button class="tab-btn" onclick="filterMissions('cours',this)">En cours</button><button class="tab-btn" onclick="filterMissions('planifie',this)">Planifiées</button><button class="tab-btn" onclick="filterMissions('termine',this)">Terminées</button></div><a href="devis.html" class="sec-action"><i class="fas fa-plus"></i> Nouvelle mission</a></div>
       <div class="missions-list" id="missionsList">
@@ -869,13 +892,10 @@ body {
     <div class="tab-content" id="tab-factures">
       <div class="dash-header"><h1 class="dash-hello">Mes <em>factures</em></h1></div>
       <div class="sec-title"><h2 class="sec-h">Historique <em>facturation</em></h2></div>
-      <div class="fact-list">
-        <div class="fact-item"><div class="fact-ico"><i class="fas fa-file-invoice"></i></div><div><div class="fact-ref">FAC-2025-0847</div><div class="fact-date">12 mai 2025 · Paris → Lyon · BMW Série 3</div></div><div class="fact-montant">340€</div><div class="fact-status"><span class="td-status ts-att">En attente</span></div><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i> PDF</button></div>
-        <div class="fact-item"><div class="fact-ico"><i class="fas fa-file-invoice"></i></div><div><div class="fact-ref">FAC-2025-0821</div><div class="fact-date">28 avr. 2025 · Lyon → Marseille · Kawasaki Z900</div></div><div class="fact-montant">550€</div><div class="fact-status"><span class="td-status ts-ok">Payée</span></div><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i> PDF</button></div>
-        <div class="fact-item"><div class="fact-ico"><i class="fas fa-file-invoice"></i></div><div><div class="fact-ref">FAC-2025-0803</div><div class="fact-date">10 avr. 2025 · Paris → Bordeaux · Tesla Model 3</div></div><div class="fact-montant">620€</div><div class="fact-status"><span class="td-status ts-ok">Payée</span></div><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i> PDF</button></div>
-        <div class="fact-item"><div class="fact-ico"><i class="fas fa-file-invoice"></i></div><div><div class="fact-ref">FAC-2025-0774</div><div class="fact-date">15 mars 2025 · Marseille → Paris · BMW Série 3</div></div><div class="fact-montant">480€</div><div class="fact-status"><span class="td-status ts-ok">Payée</span></div><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i> PDF</button></div>
+      <div class="fact-list" id="clientFactList">
+        <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
       </div>
-      <div style="text-align:center; padding:20px 0; border-top:1px solid var(--border-light)"><span style="font-size:0.7rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Total 2025 : <span style="color:var(--bordeaux)">1 990€ HT</span></span></div>
+      <div style="text-align:center; padding:20px 0; border-top:1px solid var(--border-light)"><span style="font-size:0.7rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Total cumulé : <span style="color:var(--bordeaux)" id="factTotalHt">0€ HT</span></span></div>
     </div>
 
     <!-- Profil -->
@@ -915,6 +935,164 @@ body {
 </div>
 
 <script>
+// ========== SUPABASE ==========
+let _sbCli = null;
+function getSBCli() {
+  if (!_sbCli) _sbCli = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  return _sbCli;
+}
+
+// ========== CLIENT AUTH ==========
+let _clientName = null;
+let _clientMissions = [];
+let _activeFilter = 'all';
+
+function clientLogout() {
+  sessionStorage.removeItem('client_name');
+  window.location.reload();
+}
+
+async function clientLogin() {
+  const name = document.getElementById('clientLoginInput').value.trim();
+  if (!name) return;
+
+  const client = getSBCli();
+  const { data, error } = await client.from('missions').select('*').ilike('client_nom', `%${name}%`).order('created_at', { ascending: false });
+
+  if (error || !data || data.length === 0) {
+    document.getElementById('clientLoginError').style.display = 'block';
+    return;
+  }
+
+  _clientName = name;
+  sessionStorage.setItem('client_name', name);
+  document.getElementById('clientLoginError').style.display = 'none';
+  document.getElementById('clientLoginOverlay').style.display = 'none';
+  initClientDashboard(data);
+}
+
+async function initClientDashboard(missions) {
+  _clientMissions = missions || [];
+
+  // Topbar
+  const firstName = _clientName.split(' ')[0];
+  const initials = _clientName.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+  const nomEl = document.getElementById('cliNomTopbar');
+  const avaEl = document.getElementById('cliAvatar');
+  const prenomEl = document.getElementById('cliPrenom');
+  if (nomEl) nomEl.textContent = firstName;
+  if (avaEl) avaEl.textContent = initials;
+  if (prenomEl) prenomEl.textContent = firstName;
+
+  // KPIs
+  const actives = missions.filter(m => m.status === 'in_progress').length;
+  const terminees = missions.filter(m => m.status === 'completed').length;
+  const planned = missions.filter(m => m.status === 'planned' || m.status === 'available').length;
+  const caTotal = missions.filter(m => m.montant_ht).reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0);
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('kpiActives', actives);
+  set('kpiTerminees', terminees);
+  set('kpiCA', caTotal >= 1000 ? (caTotal/1000).toFixed(1) + 'k€' : caTotal + '€');
+  set('kpiTotal', missions.length);
+
+  // Recent missions (accueil)
+  renderClientMissions('recentMissionsList', missions.slice(0, 3), false);
+
+  // Full missions tab
+  renderClientMissions('missionsList', missions, true);
+
+  // Load Invoices dynamically
+  renderClientInvoices(missions);
+}
+
+function renderClientMissions(containerId, missions, showAll) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  if (!missions || missions.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-inbox" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune mission pour l\'instant.<br><a href="devis.html" style="color:var(--bordeaux);font-weight:700;font-size:0.8rem;">Faire un devis →</a></div>';
+    return;
+  }
+
+  const filtered = showAll && _activeFilter !== 'all'
+    ? missions.filter(m => {
+        if (_activeFilter === 'active') return m.status === 'in_progress';
+        if (_activeFilter === 'planned') return m.status === 'planned' || m.status === 'available';
+        if (_activeFilter === 'completed') return m.status === 'completed';
+        return true;
+      })
+    : missions;
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:20px;">Aucune mission dans cette catégorie.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(m => {
+    const mStatus = m.status || m.statut || 'planned';
+    const statusClass = mStatus === 'in_progress' ? 'status-en-cours' : mStatus === 'completed' ? 'status-termine' : 'status-planifie';
+    const statusLabel = mStatus === 'in_progress' ? 'En transit' : mStatus === 'completed' ? 'Livré' : 'Planifiée';
+    const pct = mStatus === 'completed' ? 100 : mStatus === 'in_progress' ? 65 : 10;
+    const strokeColor = mStatus === 'completed' ? 'var(--success)' : mStatus === 'in_progress' ? 'var(--bordeaux)' : '#E0A343';
+    const dashOffset = Math.round(138 - (pct/100)*138);
+    const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '—';
+    const tagMode = (m.mode_transport||'route').toLowerCase().includes('plateau') ? '<span class="mc-tag tag-plateau">Plateau</span>' : '<span class="mc-tag tag-route">Route</span>';
+    const tagVehicule = (m.vehicule||'auto').toLowerCase().includes('moto') ? '<span class="mc-tag tag-moto">Moto</span>' : '<span class="mc-tag tag-auto">Automobile</span>';
+    
+    // Stripe Payment Badge & Button
+    const payStatus = m.paiement_statut || 'pending';
+    const tagPay = payStatus === 'paid'
+      ? '<span class="mc-tag" style="background:rgba(74,124,107,0.12); color:var(--success); font-weight:700;"><i class="fas fa-check-circle"></i> Payée</span>'
+      : '<span class="mc-tag" style="background:rgba(224,163,67,0.12); color:var(--warning); font-weight:700;"><i class="fas fa-clock"></i> En attente de paiement</span>';
+    
+    const trackBtn = mStatus === 'in_progress' ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference||'')}" class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> Suivre GPS</a>` : '';
+    
+    const canPay = payStatus !== 'paid' && mStatus !== 'completed' && mStatus !== 'cancelled';
+    const payBtn = canPay
+      ? `<button class="btn-sm btn-sm-red" onclick="payMission('${m.id}')" style="background:#2ecc71; color:white; border:none;"><i class="fas fa-credit-card"></i> Payer</button>`
+      : '';
+
+    return `<div class="mission-card">
+      <div class="mc-status ${statusClass}"></div>
+      <div class="mc-info">
+        <div class="mc-ref">${m.reference || '—'}</div>
+        <div class="mc-route">${m.depart} <em>→</em> ${m.arrivee}</div>
+        <div class="mc-meta">${tagVehicule}${tagMode}${tagPay}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '—'} · ${m.montant_ht || '—'}€ HT</span></div>
+      </div>
+      <div class="mc-progress">
+        <svg class="progress-circle" viewBox="0 0 52 52">
+          <circle cx="26" cy="26" r="22" fill="none" stroke="#E5E7EB" stroke-width="3"/>
+          <circle cx="26" cy="26" r="22" fill="none" stroke="${strokeColor}" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="${dashOffset}" stroke-linecap="round" transform="rotate(-90 26 26)"/>
+          <text x="26" y="31" text-anchor="middle" fill="#2D2A24" font-family="'Plus Jakarta Sans'" font-size="12" font-weight="600">${pct}%</text>
+        </svg>
+        <div class="progress-lbl">${statusLabel}</div>
+      </div>
+      <div class="mc-actions">
+        ${payBtn}
+        ${trackBtn}
+        <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Détails</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterMissions(status, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  _activeFilter = status;
+  renderClientMissions('missionsList', _clientMissions, true);
+}
+
+// Check session
+const savedClient = sessionStorage.getItem('client_name');
+if (savedClient) {
+  _clientName = savedClient;
+  document.getElementById('clientLoginOverlay').style.display = 'none';
+  getSBCli().from('missions').select('*').ilike('client_nom', `%${savedClient}%`).order('created_at', {ascending: false})
+    .then(({ data }) => initClientDashboard(data || []));
+}
+
 // ========== CURSOR ==========
 if(window.matchMedia('(hover: hover)').matches) {
   const cur=document.getElementById('cur'),cring=document.getElementById('cring');
@@ -932,6 +1110,7 @@ function showTab(id, el) {
   document.getElementById('tab-'+id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
+  if (id === 'missions') filterMissions(_activeFilter, document.querySelector('.tab-btn.active'));
 }
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('keydown', (e) => {
@@ -941,15 +1120,6 @@ document.querySelectorAll('.nav-item').forEach(item => {
     }
   });
 });
-
-// ========== FILTER MISSIONS ==========
-function filterMissions(status, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  document.querySelectorAll('#missionsList .mission-card').forEach(c => {
-    c.style.display = (status === 'all' || c.dataset.status === status) ? 'grid' : 'none';
-  });
-}
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
@@ -961,7 +1131,7 @@ function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); }));
 
-// ========== QUICK ACTIONS KEYBOARD ==========
+// ========== QUICK ACTIONS ==========
 document.querySelectorAll('.qa-item').forEach(item => {
   item.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -974,11 +1144,109 @@ document.querySelectorAll('.qa-item').forEach(item => {
 const addVehi = document.querySelector('.add-vehi');
 if (addVehi) addVehi.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('modalVehicule'); } });
 
-// ========== NOTIFICATIONS & USER ==========
+// ========== NOTIFICATIONS ==========
 const notif = document.querySelector('.topbar-notif');
 if (notif) notif.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alert('Notifications (démo)'); } });
-const userBtn = document.querySelector('.topbar-user');
-if (userBtn) userBtn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showTab('profil', document.querySelector('.nav-item[onclick*="profil"]')); } });
+const userBtnCli = document.querySelector('.topbar-user');
+if (userBtnCli) userBtnCli.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showTab('profil', document.querySelector('.nav-item[onclick*="profil"]')); } });
+
+// ========== DYNAMIC INVOICES RENDER ==========
+function renderClientInvoices(missions) {
+  const container = document.getElementById('clientFactList');
+  if (!container) return;
+
+  const billingMissions = missions.filter(m => m.montant_ht);
+
+  if (billingMissions.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-file-invoice" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune facture disponible.</div>';
+    document.getElementById('factTotalHt').textContent = '0€ HT';
+    return;
+  }
+
+  const totalHt = billingMissions.reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0);
+  document.getElementById('factTotalHt').textContent = totalHt + '€ HT';
+
+  container.innerHTML = billingMissions.map(m => {
+    const payStatus = m.paiement_statut || 'pending';
+    const statusClass = payStatus === 'paid' ? 'ts-ok' : 'ts-att';
+    const statusLabel = payStatus === 'paid' ? 'Payée' : 'En attente';
+    const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '—';
+    const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-', '') : m.id.slice(0,8).toUpperCase()}`;
+
+    return `<div class="fact-item">
+      <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
+      <div style="flex:1;">
+        <div class="fact-ref">${invoiceRef}</div>
+        <div class="fact-date">${dateStr} · ${m.depart.split('(')[0]} ➔ ${m.arrivee.split('(')[0]}</div>
+      </div>
+      <div class="fact-montant" style="margin-left:20px; font-weight:600;">${m.montant_ht}€</div>
+      <div class="fact-status" style="margin-left:20px;"><span class="td-status ${statusClass}">${statusLabel}</span></div>
+      <button class="btn-sm btn-sm-ghost" style="margin-left:20px;" onclick="Swal.fire('Facture', 'Téléchargement de la facture au format PDF (Simulé)', 'info')"><i class="fas fa-download"></i> PDF</button>
+    </div>`;
+  }).join('');
+}
+
+// ========== STRIPE CHECKOUT ROUTING ==========
+async function payMission(missionId) {
+  Swal.fire({
+    title: 'Redirection...',
+    text: 'Nous préparons votre paiement sécurisé via Stripe.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  try {
+    const successUrl = window.location.origin + window.location.pathname;
+    const cancelUrl = window.location.origin + window.location.pathname;
+
+    const response = await fetch('/.netlify/functions/create-checkout-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ missionId, successUrl, cancelUrl })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Erreur lors de la création de la session Stripe.');
+    }
+
+    window.location.href = data.url;
+  } catch (err) {
+    Swal.fire({
+      title: 'Erreur de paiement',
+      text: err.message || 'Impossible d\'initier la session Stripe Checkout.',
+      icon: 'error',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+  }
+}
+
+// ========== STRIPE CALLBACK HANDLING ==========
+const urlParams = new URLSearchParams(window.location.search);
+const paymentStatus = urlParams.get('payment_status');
+if (paymentStatus === 'success') {
+  Swal.fire({
+    title: 'Paiement validé ! 🎉',
+    text: 'Votre règlement a été traité avec succès. La mission est maintenant prête à démarrer.',
+    icon: 'success',
+    confirmButtonColor: 'var(--bordeaux)'
+  }).then(() => {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  });
+} else if (paymentStatus === 'cancel') {
+  Swal.fire({
+    title: 'Paiement annulé',
+    text: 'Le processus de règlement a été annulé. Vous pouvez payer votre devis à tout moment.',
+    icon: 'info',
+    confirmButtonColor: 'var(--bordeaux)'
+  }).then(() => {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  });
+}
 </script>
 </body>
 </html>

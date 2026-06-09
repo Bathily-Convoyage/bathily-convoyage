@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
 * {
   margin: 0;
@@ -542,7 +543,7 @@ footer {
 
 <header>
   <div class="container header-inner">
-    <a href="index.html" class="logo">Bathily<span>.</span></a>
+    <a href="index.html" class="logo">Bathily-Convoyage<span>.</span></a>
     <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</div>
     <div class="nav-links">
       <a href="index.html" class="active">Accueil</a>
@@ -601,7 +602,7 @@ footer {
   <!-- Pourquoi Bathily (3 cartes) -->
   <section>
     <div class="container">
-      <div class="section-title reveal">Pourquoi Bathily ?</div>
+      <div class="section-title reveal">Pourquoi Bathily-Convoyage ?</div>
       <div class="section-sub reveal">L'innovation au service de votre tranquillité</div>
       <div class="grid-6">
         <div class="why-card card-4 reveal"><div class="why-icon"><i class="fas fa-chart-line"></i></div><h3>Technologie de pointe</h3><p>Devis instantané, plateforme de suivi, notifications automatiques.</p></div>
@@ -631,7 +632,7 @@ footer {
     <div class="container">
       <div class="section-title reveal">Ils nous font confiance</div>
       <div class="testimonial-carousel" id="testimonialCarousel">
-        <div class="testimonial-card"><div class="testimonial-text">"Excellente prestation. Suivi précis, communication fluide. Je recommande vivement Bathily."</div><div class="testimonial-author"><div class="testimonial-avatar">LM</div><div class="testimonial-info"><strong>Laurent M.</strong><span>Client particulier</span></div></div></div>
+        <div class="testimonial-card"><div class="testimonial-text">"Excellente prestation. Suivi précis, communication fluide. Je recommande vivement Bathily-Convoyage."</div><div class="testimonial-author"><div class="testimonial-avatar">LM</div><div class="testimonial-info"><strong>Laurent M.</strong><span>Client particulier</span></div></div></div>
         <div class="testimonial-card"><div class="testimonial-text">"Un gain de temps considérable. La plateforme est intuitive et les convoyeurs très pros."</div><div class="testimonial-author"><div class="testimonial-avatar">SK</div><div class="testimonial-info"><strong>Sabrina K.</strong><span>Gestionnaire de flotte</span></div></div></div>
         <div class="testimonial-card"><div class="testimonial-text">"Ma voiture de collection livrée avec un soin exceptionnel. Merci à toute l'équipe !"</div><div class="testimonial-author"><div class="testimonial-avatar">TR</div><div class="testimonial-info"><strong>Thomas R.</strong><span>Collectionneur</span></div></div></div>
       </div>
@@ -661,12 +662,12 @@ footer {
 <footer>
   <div class="container">
     <div class="footer-grid">
-      <div class="footer-about"><div class="footer-logo">Bathily<span>.</span></div><p>La solution digitale de convoyage automobile & moto avec suivi en temps réel en France.</p></div>
+      <div class="footer-about"><div class="footer-logo">Bathily-Convoyage<span>.</span></div><p>La solution digitale de convoyage automobile & moto avec suivi en temps réel en France.</p></div>
       <div class="footer-links"><h4>Navigation</h4><a href="index.html">Accueil</a><a href="#services">Services</a><a href="#howitworks">Processus</a><a href="devis.html">Devis</a></div>
       <div class="footer-links"><h4>Espaces</h4><a href="dashboard-client.html">Espace client</a><a href="dashboard-convoyeur.html">Espace convoyeur</a><a href="dashboard-admin.html">Espace admin</a></div>
       <div class="footer-links"><h4>Contact</h4><a href="mailto:contact@bathily-convoyage.fr">contact@bathily-convoyage.fr</a><span>France entière</span></div>
     </div>
-    <div class="footer-bottom">© 2025 Bathily Convoyage — Tous droits réservés</div>
+    <div class="footer-bottom">© 2025 Bathily Convoyage — Tous droits réservés — <a href="mentions-legales.html" style="color:inherit;text-decoration:underline;">Mentions Légales & CGV/CGU</a></div>
   </div>
 </footer>
 
@@ -804,7 +805,12 @@ footer {
     const depart = document.getElementById('depart').value;
     const arrivee = document.getElementById('arrivee').value;
     if (!depart || !arrivee) {
-      alert('Veuillez renseigner l\'adresse de départ et l\'adresse d\'arrivée.');
+      Swal.fire({
+        title: 'Champs requis',
+        text: 'Veuillez renseigner l\'adresse de départ et l\'adresse d\'arrivée.',
+        icon: 'warning',
+        confirmButtonColor: '#7A2E1A'
+      });
       return;
     }
     const type = document.getElementById('vehType').value === 'Automobile' ? 'auto' : 'moto';

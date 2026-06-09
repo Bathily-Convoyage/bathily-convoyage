@@ -11,6 +11,9 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚛</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
 * {
   margin: 0;
@@ -1064,6 +1067,91 @@ body {
   .edl-grid { grid-template-columns: 1fr 1fr; }
   .social-sidebar { grid-template-columns: 1fr; }
 }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+/* Profile Select Overlay */
+#convProfileOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(253,251,247,0.97);
+  backdrop-filter: blur(12px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#convProfileOverlay.hidden { display: none; }
+.profile-box {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 28px;
+  padding: 40px 44px;
+  max-width: 480px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+}
+.profile-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.profile-title span { color: var(--bordeaux); }
+.profile-sub {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gray-mid);
+  margin-bottom: 28px;
+}
+.profile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1.5px solid var(--border-light);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.profile-card:hover {
+  border-color: var(--bordeaux);
+  background: var(--bordeaux-light);
+}
+.profile-ava {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bordeaux-light);
+  color: var(--bordeaux);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+.profile-info-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--gray-dark);
+}
+.profile-info-sub {
+  font-size: 0.7rem;
+  color: var(--gray-mid);
+}
+.profile-loading { color: var(--gray-mid); font-size: 0.8rem; padding: 20px; }
 </style>
 </head>
 <body>
@@ -1071,17 +1159,30 @@ body {
 <div class="cur" id="cur"></div>
 <div class="cur-ring" id="cring"></div>
 
+<!-- PROFILE SELECT OVERLAY -->
+<div id="convProfileOverlay">
+  <div class="profile-box">
+    <div class="profile-title">Espace <span>Convoyeur</span></div>
+    <div class="profile-sub">Sélectionnez votre profil pour continuer</div>
+    <div class="profile-list" id="profileList">
+      <div class="profile-loading"><i class="fas fa-spinner fa-spin"></i> Chargement des profils...</div>
+    </div>
+    <p style="font-size:0.7rem; color:var(--gray-mid);">Vous n'êtes pas dans la liste ? Contactez l'administrateur.</p>
+  </div>
+</div>
+
+
 <div class="topbar">
-  <a href="index.html" class="topbar-logo">Bathily<span>.</span></a>
+  <a href="index.html" class="topbar-logo">Bathily-Convoyage<span>.</span></a>
   <span class="topbar-center">Espace Convoyeur</span>
   <div class="topbar-right">
     <div class="topbar-notif" role="button" tabindex="0" aria-label="Notifications"><i class="fas fa-bell"></i><div class="notif-badge">3</div></div>
     <div class="topbar-user" role="button" tabindex="0" aria-label="Mon compte">
-      <div class="user-avatar">MB</div>
-      <span class="user-name">M. Bathily</span>
+      <div class="user-avatar" id="convAvatar">MB</div>
+      <span class="user-name" id="convNom">M. Bathily</span>
       <div class="status-dot" title="Disponible"></div>
     </div>
-    <button class="topbar-logout" type="button" onclick="window.location.href='index.html'"><i class="fas fa-sign-out-alt"></i></button>
+    <button class="topbar-logout" type="button" onclick="convLogout()" title="Changer de profil"><i class="fas fa-sign-out-alt"></i></button>
   </div>
 </div>
 
@@ -1090,7 +1191,8 @@ body {
     <div class="nav-section">
       <div class="nav-section-lbl">Mission</div>
       <div class="nav-item active" onclick="showTab('accueil',this)" role="button" tabindex="0"><i class="fas fa-home"></i> Tableau de bord</div>
-      <div class="nav-item" onclick="showTab('missions',this)" role="button" tabindex="0"><i class="fas fa-route"></i> Mes missions <span class="nav-badge">2</span></div>
+      <div class="nav-item" onclick="showTab('missions',this)" role="button" tabindex="0"><i class="fas fa-route"></i> Mes missions <span class="nav-badge" id="assignedMissionsBadge">0</span></div>
+      <div class="nav-item" onclick="showTab('market',this)" role="button" tabindex="0"><i class="fas fa-handshake"></i> Marché des missions</div>
       <div class="nav-item" onclick="showTab('planning',this)" role="button" tabindex="0"><i class="fas fa-calendar-day"></i> Planning</div>
       <div class="nav-item" onclick="showTab('edl',this)" role="button" tabindex="0"><i class="fas fa-camera"></i> État des lieux</div>
     </div>
@@ -1153,21 +1255,8 @@ body {
     <div class="tab-content" id="tab-missions">
       <div class="dash-header"><h1 class="dash-hello">Mes <em>missions</em></h1></div>
       <div class="sec-title"><h2 class="sec-h">Missions <em>assignées</em></h2></div>
-      <div class="missions-list">
-        <div class="mission-card">
-          <div class="mc-top">
-            <div><div class="mc-ref">BC-2025-0847 <span class="status-pill sp-cours" style="margin-left:8px"><span class="sp-dot"></span> En transit</span></div><div class="mc-route">Paris <em>→</em> Lyon</div><div class="mc-meta"><span class="mc-tag tag-auto">BMW Série 3</span><span class="mc-tag tag-route">Route · 470 km</span><span class="mc-date">12 mai 2025 · 09:00</span></div></div>
-            <div class="mc-right"><div class="mc-montant">340€</div><div class="mc-pack">Pack Sérénité</div></div>
-          </div>
-          <div class="mc-bottom"><div class="mc-client"><div class="mc-client-ava">JD</div><div class="mc-client-info">Jean Dupont · IJ-789-KL</div></div><div class="mc-actions"><button class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> GPS</button><button class="btn-sm btn-sm-ghost" onclick="openModal('modalEdl')"><i class="fas fa-camera"></i> EDL</button><button class="btn-sm btn-sm-green" onclick="openModal('modalTerminer')"><i class="fas fa-check"></i> Terminer</button></div></div>
-        </div>
-        <div class="mission-card">
-          <div class="mc-top">
-            <div><div class="mc-ref">BC-2025-0851 <span class="status-pill sp-planifie" style="margin-left:8px"><span class="sp-dot"></span> Planifiée</span></div><div class="mc-route">Bordeaux <em>→</em> Nice</div><div class="mc-meta"><span class="mc-tag tag-auto">Renault Clio</span><span class="mc-tag tag-plateau">Plateau · 680 km</span><span class="mc-date">15 mai 2025 · 08:00</span></div></div>
-            <div class="mc-right"><div class="mc-montant">880€</div><div class="mc-pack">Pack Excellence</div></div>
-          </div>
-          <div class="mc-bottom"><div class="mc-client"><div class="mc-client-ava">AL</div><div class="mc-client-info">Alice Leblanc · AB-123-CD</div></div><div class="mc-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-file"></i> Détails</button><button class="btn-sm btn-sm-ghost" onclick="openModal('modalEdl')"><i class="fas fa-camera"></i> Préparer EDL</button></div></div>
-        </div>
+      <div class="missions-list" id="assignedMissionsList">
+        <!-- Chargé dynamiquement depuis Supabase -->
       </div>
       <div class="sec-title"><h2 class="sec-h">Historique <em>récent</em></h2></div>
       <table class="data-table">
@@ -1178,6 +1267,15 @@ body {
           <tr><td>BC-2025-0774</td><td>Marseille → Paris</td><td>BMW Série 3 · Route</td><td>15 mar. 2025</td><td class="td-price">480€</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- MARKET -->
+    <div class="tab-content" id="tab-market">
+      <div class="dash-header"><h1 class="dash-hello">Marché des <em>missions</em></h1></div>
+      <div class="sec-title"><h2 class="sec-h">Missions <em>disponibles</em></h2></div>
+      <div class="missions-list" id="marketMissionsList">
+        <!-- Chargé dynamiquement depuis Supabase -->
+      </div>
     </div>
 
     <!-- PLANNING -->
@@ -1354,6 +1452,90 @@ body {
 </div>
 
 <script>
+// ========== PROFILE SELECTION ==========
+let _currentConvoyeurData = null;
+
+function getConvoyeurName() {
+  return _currentConvoyeurData
+    ? `${_currentConvoyeurData.prenom} ${_currentConvoyeurData.nom}`.trim()
+    : (document.getElementById('convNom')?.textContent.trim() || 'M. Bathily');
+}
+
+async function initConvoyeurProfile() {
+  // Check session
+  const saved = sessionStorage.getItem('conv_profile');
+  if (saved) {
+    try {
+      _currentConvoyeurData = JSON.parse(saved);
+      applyProfile(_currentConvoyeurData);
+      document.getElementById('convProfileOverlay').classList.add('hidden');
+      return;
+    } catch(e) { sessionStorage.removeItem('conv_profile'); }
+  }
+
+  // Load from Supabase
+  const client = getSupabaseConv();
+  const { data, error } = await client.from('convoyeurs').select('*').order('nom', { ascending: true });
+
+  const list = document.getElementById('profileList');
+  if (error || !data || data.length === 0) {
+    list.innerHTML = `<div class="profile-loading" style="color:var(--bordeaux);">
+      <i class="fas fa-exclamation-triangle"></i> Aucun profil disponible.<br>
+      <small>Demandez à l'admin d'ajouter votre profil.</small>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = data.map(c => {
+    const initials = ((c.prenom || '')[0] || '') + ((c.nom || '')[0] || '');
+    return `
+    <div class="profile-card" onclick="selectProfile(${JSON.stringify(JSON.stringify(c))})">
+      <div class="profile-ava">${initials.toUpperCase() || '?'}</div>
+      <div>
+        <div class="profile-info-name">${c.prenom} ${c.nom}</div>
+        <div class="profile-info-sub">${c.zone || 'Nationale'} · ${c.niveau || 'Standard'}</div>
+      </div>
+      <i class="fas fa-chevron-right" style="margin-left:auto;color:var(--gray-mid);font-size:0.7rem;"></i>
+    </div>`;
+  }).join('');
+}
+
+function selectProfile(jsonStr) {
+  const c = JSON.parse(jsonStr);
+  _currentConvoyeurData = c;
+  sessionStorage.setItem('conv_profile', JSON.stringify(c));
+  applyProfile(c);
+  document.getElementById('convProfileOverlay').classList.add('hidden');
+  // Load initial data for this convoyeur
+  loadMissions();
+}
+
+function applyProfile(c) {
+  const name = `${c.prenom} ${c.nom}`.trim();
+  const initials = ((c.prenom || '')[0] || '') + ((c.nom || '')[0] || '');
+  const nomEl = document.getElementById('convNom');
+  const avaEl = document.getElementById('convAvatar');
+  if (nomEl) nomEl.textContent = name;
+  if (avaEl) avaEl.textContent = initials.toUpperCase() || 'MB';
+}
+
+function convLogout() {
+  sessionStorage.removeItem('conv_profile');
+  _currentConvoyeurData = null;
+  window.location.reload();
+}
+
+let _supabaseConvClient = null;
+function getSupabaseConv() {
+  if (!_supabaseConvClient) {
+    _supabaseConvClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  }
+  return _supabaseConvClient;
+}
+
+// Trigger profile selection on load
+initConvoyeurProfile();
+
 // ========== CURSOR ==========
 if(window.matchMedia('(hover: hover)').matches) {
   const cur=document.getElementById('cur'),cring=document.getElementById('cring');
@@ -1365,12 +1547,18 @@ if(window.matchMedia('(hover: hover)').matches) {
 // ========== DATE ==========
 document.getElementById('dashDate').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long', year:'numeric', month:'long', day:'numeric'});
 
+
 // ========== TABS ==========
 function showTab(id, el) {
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
+  if (id === 'missions') {
+    loadMissions();
+  } else if (id === 'market') {
+    loadMarketMissions();
+  }
 }
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('keydown', (e) => {
@@ -1454,6 +1642,267 @@ function addPost() {
   document.getElementById('postInput').value = '';
 }
 function escapeHtml(str) { return str.replace(/[&<>]/g, function(m) { if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m; }); }
+
+let _supabaseClient = null;
+function getSupabase() {
+  if (!_supabaseClient) {
+    _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  }
+  return _supabaseClient;
+}
+
+function loadMissions() {
+  const client = getSupabase();
+  const container = document.getElementById('assignedMissionsList');
+  const badge = document.getElementById('assignedMissionsBadge');
+  if (!container) return;
+
+  const currentConvoyeur = getConvoyeurName();
+
+  client.from('missions')
+    .select('*')
+    .eq('convoyeur_nom', currentConvoyeur)
+    .order('created_at', { ascending: false })
+    .then(({ data, error }) => {
+      if (error) {
+        console.error("Erreur missions assignees :", error);
+        container.innerHTML = `<div style="color:var(--bordeaux); text-align:center; padding:20px;">Erreur de chargement des missions : ${error.message}</div>`;
+        return;
+      }
+
+      if (badge) {
+        const activeCount = data ? data.filter(m => m.status !== 'completed' && m.status !== 'cancelled').length : 0;
+        badge.textContent = activeCount;
+      }
+
+      if (!data || data.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune mission ne vous est assignée actuellement.</div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      data.forEach(m => {
+        let dateStr = '—';
+        if (m.date_mission) {
+          const dateObj = new Date(m.date_mission);
+          dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        let statusClass = 'sp-planifie';
+        let statusText = 'Planifiée';
+        if (m.status === 'in_progress') { statusClass = 'sp-cours'; statusText = 'En transit'; }
+        else if (m.status === 'completed') { statusClass = 'sp-ok'; statusText = 'Terminée'; }
+        else if (m.status === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
+
+        let actionsHtml = '';
+        if (m.status === 'planned') {
+          actionsHtml = `
+            <button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i> Démarrer</button>
+            <button class="btn-sm btn-sm-ghost" onclick="openModal('modalEdl')"><i class="fas fa-camera"></i> EDL</button>
+          `;
+        } else if (m.status === 'in_progress') {
+          actionsHtml = `
+            <button class="btn-sm btn-sm-red" onclick="window.location.href='gps-emitter.html'"><i class="fas fa-map-marker-alt"></i> GPS</button>
+            <button class="btn-sm btn-sm-ghost" onclick="openModal('modalEdl')"><i class="fas fa-camera"></i> EDL</button>
+            <button class="btn-sm btn-sm-green" onclick="confirmDelivery('${m.id}')"><i class="fas fa-check"></i> Terminer</button>
+          `;
+        } else {
+          actionsHtml = `<span style="font-size:0.75rem; font-weight:700; color:var(--success);"><i class="fas fa-check-double"></i> Mission Terminée</span>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'mission-card';
+        card.innerHTML = `
+          <div class="mc-top">
+            <div>
+              <div class="mc-ref">${m.reference} <span class="status-pill ${statusClass}" style="margin-left:8px"><span class="sp-dot"></span> ${statusText}</span></div>
+              <div class="mc-route">${m.depart} <em>→</em> ${m.arrivee}</div>
+              <div class="mc-meta"><span class="mc-tag tag-auto">${m.vehicule || 'Automobile'}</span><span class="mc-tag tag-route">${m.mode_transport === 'plateau' ? 'Plateau' : 'Route'}</span><span class="mc-date">${dateStr}</span></div>
+            </div>
+            <div class="mc-right"><div class="mc-montant">${m.remuneration_convoyeur || 0}€</div><div class="mc-pack" style="text-transform: capitalize;">Pack ${m.pack || 'Starter'}</div></div>
+          </div>
+          <div class="mc-bottom">
+            <div class="mc-client"><div class="mc-client-ava">${(m.client_nom || 'C')[0]}</div><div class="mc-client-info">${m.client_nom || 'Client'}</div></div>
+            <div class="mc-actions">${actionsHtml}</div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    });
+}
+
+function confirmDelivery(id) {
+  Swal.fire({
+    title: 'Confirmer la livraison ?',
+    text: "Confirmez-vous avoir livré le véhicule à destination ? Cela validera la fin de la mission.",
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Oui, livrer',
+    cancelButtonText: 'Annuler',
+    confirmButtonColor: 'var(--bordeaux)'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      updateMissionStatus(id, 'completed');
+    }
+  });
+}
+
+function updateMissionStatus(id, newStatus) {
+  const client = getSupabase();
+  
+  if (newStatus === 'in_progress') {
+    // Vérifier le statut de paiement en temps réel avant d'autoriser le démarrage
+    client.from('missions')
+      .select('paiement_statut, reference')
+      .eq('id', id)
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data) {
+          Swal.fire('Erreur', 'Impossible de vérifier le statut de paiement pour cette mission.', 'error');
+          return;
+        }
+
+        if ((data.paiement_statut || 'pending') !== 'paid') {
+          Swal.fire({
+            title: 'Démarrage bloqué',
+            html: `Le paiement de la mission <strong>${data.reference || ''}</strong> n'a pas encore été validé.<br><br>Le démarrage est bloqué. Veuillez contacter l'administrateur.`,
+            icon: 'warning',
+            confirmButtonColor: 'var(--bordeaux)'
+          });
+          return;
+        }
+
+        // Si le paiement est OK, procéder au démarrage
+        proceedWithUpdate(client, id, newStatus);
+      });
+  } else {
+    proceedWithUpdate(client, id, newStatus);
+  }
+}
+
+function proceedWithUpdate(client, id, newStatus) {
+  client.from('missions')
+    .update({ status: newStatus })
+    .eq('id', id)
+    .select()
+    .then(({ error }) => {
+      if (error) {
+        Swal.fire('Erreur', 'Impossible de mettre à jour le statut : ' + error.message, 'error');
+      } else {
+        Swal.fire('Statut mis à jour !', 'Le statut de la mission a bien été modifié.', 'success');
+        loadMissions();
+      }
+    });
+}
+
+function loadMarketMissions() {
+  const client = getSupabase();
+  const container = document.getElementById('marketMissionsList');
+  if (!container) return;
+
+  const currentConvoyeur = getConvoyeurName();
+
+  client.from('candidatures')
+    .select('*')
+    .eq('convoyeur_nom', currentConvoyeur)
+    .then(({ data: apps, error: appError }) => {
+      const appliedMissions = {};
+      if (apps) {
+        apps.forEach(app => {
+          appliedMissions[app.mission_id] = app.status;
+        });
+      }
+
+      client.from('missions')
+        .select('*')
+        .eq('status', 'available')
+        .order('created_at', { ascending: false })
+        .then(({ data: missions, error: misError }) => {
+          if (misError) {
+            console.error("Erreur market missions :", misError);
+            container.innerHTML = `<div style="color:var(--bordeaux); text-align:center; padding:20px;">Erreur de chargement : ${misError.message}</div>`;
+            return;
+          }
+
+          if (!missions || missions.length === 0) {
+            container.innerHTML = `<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune offre de mission n'est disponible sur le marché actuellement.</div>`;
+            return;
+          }
+
+          container.innerHTML = '';
+          missions.forEach(m => {
+            const hasAppliedStatus = appliedMissions[m.id];
+            let rem = m.remuneration_convoyeur;
+            if (rem === null || rem === undefined || rem === 0) {
+              const price = parseFloat(m.montant_ht) || 0;
+              const estimatedKm = Math.round(price / 1.1) || 350;
+              const isMoto = (m.vehicule || '').toLowerCase().includes('moto');
+              const kmRate = isMoto ? 0.40 : 0.47;
+              rem = Math.round(estimatedKm * kmRate);
+              if (rem < 60) rem = 60;
+              if (m.mode_transport === 'plateau') rem += 40;
+            }
+
+            let actionBtn = '';
+            if (hasAppliedStatus === 'pending') {
+              actionBtn = `<button class="btn-sm btn-sm-ghost" style="opacity:0.7;" disabled><i class="fas fa-clock"></i> Candidature envoyée</button>`;
+            } else if (hasAppliedStatus === 'refused') {
+              actionBtn = `<button class="btn-sm btn-sm-red" disabled><i class="fas fa-times"></i> Candidature déclinée</button>`;
+            } else {
+              actionBtn = `<button class="btn-sm btn-sm-green" onclick="applyForMission('${m.id}')"><i class="fas fa-handshake"></i> Proposer ma prestation</button>`;
+            }
+
+            let dateStr = '—';
+            if (m.date_mission) {
+              const dateObj = new Date(m.date_mission);
+              dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+            }
+
+            const card = document.createElement('div');
+            card.className = 'mission-card';
+            card.innerHTML = `
+              <div class="mc-top">
+                <div>
+                  <div class="mc-ref">${m.reference} <span class="status-pill sp-planifie" style="margin-left:8px; background: rgba(41,128,185,0.1); color: #2980b9;"><span class="sp-dot"></span> Sur le marché</span></div>
+                  <div class="mc-route">${m.depart} <em>→</em> ${m.arrivee}</div>
+                  <div class="mc-meta"><span class="mc-tag tag-auto">${m.vehicule || 'Automobile'}</span><span class="mc-tag tag-route">${m.mode_transport === 'plateau' ? 'Plateau' : 'Route'}</span><span class="mc-date">${dateStr}</span></div>
+                </div>
+                <div class="mc-right"><div class="mc-montant">${rem}€</div><div class="mc-pack" style="text-transform: capitalize;">Rémunération</div></div>
+              </div>
+              <div class="mc-bottom">
+                <div class="mc-client"><div class="mc-client-ava">${(m.client_nom || 'C')[0]}</div><div class="mc-client-info">${m.client_nom || 'Client'}</div></div>
+                <div class="mc-actions">${actionBtn}</div>
+              </div>
+            `;
+            container.appendChild(card);
+          });
+        });
+    });
+}
+
+function applyForMission(missionId) {
+  const client = getSupabase();
+  const currentConvoyeur = getConvoyeurName();
+
+  client.from('candidatures')
+    .insert([{
+      mission_id: missionId,
+      convoyeur_nom: currentConvoyeur,
+      status: 'pending'
+    }])
+    .select()
+    .then(({ error }) => {
+      if (error) {
+        Swal.fire('Erreur', 'Impossible de postuler : ' + error.message, 'error');
+      } else {
+        Swal.fire('Candidature envoyée !', 'Votre intérêt pour cette mission a bien été transmis à l\'administrateur.', 'success');
+        loadMarketMissions();
+      }
+    });
+}
+
+loadMissions();
+loadMarketMissions();
 
 // ========== NOTIFICATIONS & USER ==========
 const notif = document.querySelector('.topbar-notif');

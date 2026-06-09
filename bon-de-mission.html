@@ -11,6 +11,9 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
 * {
   margin: 0;
@@ -804,10 +807,10 @@ body {
 <div class="cur-ring" id="cring"></div>
 
 <div class="topbar">
-  <a href="index.html" class="topbar-logo">Bathily<span>.</span></a>
+  <a href="index.html" class="topbar-logo">Bathily-Convoyage<span>.</span></a>
   <div class="topbar-mid">
     <div class="topbar-title">Bon de Mission</div>
-    <div class="topbar-ref" id="topRef">BC-2025-0847 · Paris → Lyon · 12 mai 2025</div>
+    <div class="topbar-ref" id="topRef">Chargement...</div>
   </div>
   <div class="topbar-right">
     <button class="tb-btn tb-ghost" onclick="window.location.href='dashboard-convoyeur.html'"><i class="fas fa-arrow-left"></i> Retour</button>
@@ -817,10 +820,10 @@ body {
 </div>
 
 <div class="status-bar">
-  <div class="sb-item"><i class="fas fa-hashtag"></i> Réf : <span class="sb-val">BC-2025-0847</span></div>
-  <div class="sb-item"><i class="fas fa-calendar"></i> Date : <span class="sb-val">12 mai 2025</span></div>
-  <div class="sb-item"><i class="fas fa-clock"></i> Départ : <span class="sb-val">09:00</span></div>
-  <div class="sb-item"><i class="fas fa-route"></i> Distance : <span class="sb-val">470 km</span></div>
+  <div class="sb-item"><i class="fas fa-hashtag"></i> Réf : <span class="sb-val" id="sbRef">—</span></div>
+  <div class="sb-item"><i class="fas fa-calendar"></i> Date : <span class="sb-val" id="sbDate">—</span></div>
+  <div class="sb-item"><i class="fas fa-clock"></i> Départ : <span class="sb-val" id="sbHeure">—</span></div>
+  <div class="sb-item"><i class="fas fa-route"></i> Mode : <span class="sb-val" id="sbMode">—</span></div>
   <div class="sb-item"><i class="fas fa-circle" style="color:#2980b9"></i>
     <span class="sb-status ss-planifie" id="missionStatus"><span class="ss-dot"></span> Planifiée</span>
   </div>
@@ -834,7 +837,7 @@ body {
   <!-- En-tête -->
   <div class="doc-header reveal">
     <div class="dh-left">
-      <div class="dh-logo">Bathily<span>.</span></div>
+      <div class="dh-logo">Bathily-Convoyage<span>.</span></div>
       <div class="dh-tagline">La solution digitale de convoyage automobile & moto</div>
       <div class="dh-contact">
         contact@bathily-convoyage.fr · France entière<br>
@@ -843,11 +846,11 @@ body {
     </div>
     <div class="dh-right">
       <div class="dh-doc-title">Bon de <em>Mission</em></div>
-      <div class="dh-ref">N° BC-2025-0847</div>
+      <div class="dh-ref" id="dhRef">N° —</div>
       <div class="dh-date">Émis le <span id="emitDate"></span></div>
       <div class="dh-badges">
         <span class="dh-badge badge-depart"><i class="fas fa-map-marker-alt"></i> Départ</span>
-        <span class="dh-badge badge-ev"><i class="fas fa-bolt"></i> Hybride</span>
+        <span class="dh-badge badge-ev" id="dhModeBadge"><i class="fas fa-road"></i> Route</span>
       </div>
     </div>
   </div>
@@ -862,28 +865,24 @@ body {
       <div class="route-visual">
         <div class="rv-point">
           <div class="rv-dot rv-dot-dep"></div>
-          <div class="rv-city">Paris</div>
-          <div class="rv-addr">15 Rue de Rivoli<br>75001 Paris 1er</div>
+          <div class="rv-city" id="rvDepart">—</div>
+          <div class="rv-addr" id="rvDepartAddr"></div>
         </div>
         <div class="rv-line-wrap">
-          <div class="rv-infos">470 km · ~4h30 · Route</div>
+          <div class="rv-infos" id="rvInfos">—</div>
           <div class="rv-line"></div>
         </div>
         <div class="rv-point" style="text-align:right">
           <div class="rv-dot rv-dot-arr"></div>
-          <div class="rv-city">Lyon</div>
-          <div class="rv-addr">3 Rue Servient<br>69003 Lyon 3ème</div>
+          <div class="rv-city" id="rvArrivee">—</div>
+          <div class="rv-addr" id="rvArriveeAddr"></div>
         </div>
       </div>
       <div class="data-grid-4">
-        <div class="data-item"><div class="data-lbl">Date</div><div class="data-val"><strong>Lundi 12 mai 2025</strong></div></div>
-        <div class="data-item"><div class="data-lbl">Prise en charge</div><div class="data-val highlight">09:00</div></div>
-        <div class="data-item"><div class="data-lbl">Livraison souhaitée</div><div class="data-val highlight">15:30</div></div>
-        <div class="data-item"><div class="data-lbl">Mode</div><div class="data-val"><strong>Route</strong> · Convoyeur</div></div>
-        <div class="data-item"><div class="data-lbl">Distance</div><div class="data-val">470 km</div></div>
-        <div class="data-item"><div class="data-lbl">Durée estimée</div><div class="data-val">4h30 (hors pauses)</div></div>
-        <div class="data-item"><div class="data-lbl">Flexibilité</div><div class="data-val">± 1 heure</div></div>
-        <div class="data-item"><div class="data-lbl">Urgence</div><div class="data-val green">Non</div></div>
+        <div class="data-item"><div class="data-lbl">Date</div><div class="data-val" id="dDate"><strong>—</strong></div></div>
+        <div class="data-item"><div class="data-lbl">Mode transport</div><div class="data-val highlight" id="dMode">—</div></div>
+        <div class="data-item"><div class="data-lbl">Pack</div><div class="data-val highlight" id="dPack">—</div></div>
+        <div class="data-item"><div class="data-lbl">Véhicule</div><div class="data-val" id="dVehicule">—</div></div>
       </div>
     </div>
   </div>
@@ -934,10 +933,8 @@ body {
     </div>
     <div class="section-body">
       <div class="data-grid">
-        <div class="data-item"><div class="data-lbl">Nom & Prénom</div><div class="data-val"><strong>Jean Dupont</strong></div></div>
-        <div class="data-item"><div class="data-lbl">Téléphone</div><div class="data-val highlight">+33 6 12 34 56 78</div></div>
-        <div class="data-item"><div class="data-lbl">Email</div><div class="data-val">jean.dupont@email.fr</div></div>
-        <div class="data-item"><div class="data-lbl">Société</div><div class="data-val">Dupont & Associés</div></div>
+        <div class="data-item"><div class="data-lbl">Nom & Prénom</div><div class="data-val" id="cliNom"><strong>—</strong></div></div>
+        <div class="data-item"><div class="data-lbl">Email</div><div class="data-val" id="cliEmail">—</div></div>
       </div>
       <div class="data-grid" style="margin-top:16px">
         <div class="data-item"><div class="data-lbl">Contact prise en charge</div><div class="data-val"><strong>Jean Dupont</strong> · +33 6 12 34 56 78<br><span style="font-size:0.65rem">Sonnette "Dupont" 2ème</span></div></div>
@@ -954,11 +951,10 @@ body {
     </div>
     <div class="section-body">
       <div class="conv-card">
-        <div class="conv-ava">MB</div>
+        <div class="conv-ava" id="convAva">MB</div>
         <div>
-          <div class="conv-name">M. Bathily</div>
-          <div class="conv-meta">Convoyeur Senior · Zone IDF & Rhône-Alpes · Certifié SIV 360°</div>
-          <div class="conv-meta">+33 6 98 76 54 32 · m.bathily@convoyeur.fr</div>
+          <div class="conv-name" id="convNom">—</div>
+          <div class="conv-meta" id="convMeta">—</div>
         </div>
       </div>
       <div class="data-grid-3" style="margin-top:16px">
@@ -981,19 +977,12 @@ body {
     <div class="section-body">
       <table class="tarif-table">
         <thead><tr><th>Prestation</th><th>Détail</th><th>Montant HT</th></tr></thead>
-        <tbody>
-          <tr><td>Convoyage routier</td><td>470 km × 1,00€/km</td><td class="price-td">470,00€</td></tr>
-          <tr><td>Pack Sérénité</td><td>Nettoyage HP + Mise à niveau carburant</td><td class="price-td">49,00€</td></tr>
-          <tr><td>Double RC Pro</td><td>Inclus</td><td class="price-td">0,00€</td></tr>
-          <tr><td>État des lieux</td><td>20 photos départ + arrivée</td><td class="price-td">0,00€</td></tr>
-          <tr><td>Suivi GPS</td><td>Notifications automatiques</td><td class="price-td">0,00€</td></tr>
-          <tr class="tarif-total"><td><strong>Total HT</strong></td><td></td><td class="price-td-total">519,00€</td></tr>
-          <tr><td>TVA (20%)</td><td></td><td class="price-td">103,80€</td></tr>
-          <tr class="tarif-total"><td><strong>Total TTC</strong></td><td></td><td class="price-td-total">622,80€</td></tr>
+        <tbody id="tarifBody">
+          <tr><td colspan="3" style="text-align:center;color:var(--gray-mid);">Chargement...</td></tr>
         </tbody>
       </table>
       <div class="data-grid" style="margin-top:16px">
-        <div class="data-item"><div class="data-lbl">Rémunération convoyeur (net)</div><div class="data-val highlight">247,00€</div></div>
+        <div class="data-item"><div class="data-lbl">Rémunération convoyeur (net)</div><div class="data-val highlight" id="remConvoyeur">—</div></div>
         <div class="data-item"><div class="data-lbl">Paiement</div><div class="data-val">Virement sous 48h après validation EDL arrivée</div></div>
       </div>
     </div>
@@ -1101,14 +1090,14 @@ body {
       <div class="sig-section">
         <div class="sig-block">
           <div class="sig-title">Signature du convoyeur</div>
-          <div class="sig-name">M. Bathily</div>
-          <div class="sig-date">Convoyeur Certifié SIV · <span id="sigDate1"></span></div>
+          <div class="sig-name" id="sigConvNom">—</div>
+          <div class="sig-date">Convoyeur · <span id="sigDate1"></span></div>
           <div class="sig-area" id="sigArea1" onclick="signDoc(1)" role="button" tabindex="0"><span>Cliquer pour signer</span></div>
           <div class="sig-done-badge" id="sigBadge1"><i class="fas fa-check-circle"></i> Signé et accepté</div>
         </div>
         <div class="sig-block">
           <div class="sig-title">Signature du client (prise en charge)</div>
-          <div class="sig-name">Jean Dupont</div>
+          <div class="sig-name" id="sigCliNom">—</div>
           <div class="sig-date">Client · <span id="sigDate2"></span></div>
           <div class="sig-area" id="sigArea2" onclick="signDoc(2)" role="button" tabindex="0"><span>Cliquer pour signer</span></div>
           <div class="sig-done-badge" id="sigBadge2"><i class="fas fa-check-circle"></i> Signé — véhicule remis</div>
@@ -1140,6 +1129,13 @@ body {
 </div>
 
 <script>
+// ========== SUPABASE ==========
+let _sbClient = null;
+function getSB() {
+  if (!_sbClient) _sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  return _sbClient;
+}
+
 // ========== CURSOR ==========
 if(window.matchMedia('(hover: hover)').matches) {
   const cur=document.getElementById('cur'),cring=document.getElementById('cring');
@@ -1148,12 +1144,108 @@ if(window.matchMedia('(hover: hover)').matches) {
   (function loop(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(loop)})();
 }
 
-// ========== INIT ==========
-document.addEventListener('DOMContentLoaded',()=>{
-  const now=new Date();
-  document.getElementById('emitDate').textContent=now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
-  document.getElementById('sigDate1').textContent=now.toLocaleDateString('fr-FR');
-  document.getElementById('sigDate2').textContent=now.toLocaleDateString('fr-FR');
+// ========== LOAD FROM SUPABASE ==========
+let _missionId = null;
+let _missionRef = null;
+let _paiementStatut = 'pending';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const now = new Date();
+  document.getElementById('emitDate').textContent = now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('sigDate1').textContent = now.toLocaleDateString('fr-FR');
+  document.getElementById('sigDate2').textContent = now.toLocaleDateString('fr-FR');
+
+  const params = new URLSearchParams(window.location.search);
+  const missionId = params.get('id');
+
+  if (!missionId) {
+    // No ID — show fallback demo message
+    document.getElementById('topRef').textContent = 'Mode démo — aucune mission sélectionnée';
+    return;
+  }
+
+  _missionId = missionId;
+
+  const client = getSB();
+  const { data: m, error } = await client.from('missions').select('*').eq('id', missionId).single();
+
+  if (error || !m) {
+    document.getElementById('topRef').textContent = 'Mission introuvable';
+    Swal.fire('Erreur', 'Mission non trouvée en base de données.', 'error');
+    return;
+  }
+
+  _missionRef = m.reference || `BC-${missionId.slice(0,8).toUpperCase()}`;
+  _paiementStatut = m.paiement_statut || 'pending';
+
+  // ---- Status bar ----
+  document.getElementById('topRef').textContent = `${m.reference || '—'} · ${m.depart} → ${m.arrivee} · ${m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR') : '—'}`;
+  document.getElementById('sbRef').textContent = m.reference || '—';
+  document.getElementById('sbDate').textContent = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}) : '—';
+  document.getElementById('sbHeure').textContent = m.heure_depart || '—';
+  document.getElementById('sbMode').textContent = m.mode_transport || 'Route';
+
+  // ---- Document header ----
+  document.getElementById('dhRef').textContent = `N° ${m.reference || '—'}`;
+  const modeBadge = document.getElementById('dhModeBadge');
+  if (modeBadge) {
+    const isPlateau = (m.mode_transport || '').toLowerCase().includes('plateau');
+    modeBadge.innerHTML = isPlateau ? '<i class="fas fa-truck"></i> Plateau' : '<i class="fas fa-road"></i> Route';
+  }
+
+  // ---- Trajet ----
+  document.getElementById('rvDepart').textContent = m.depart || '—';
+  document.getElementById('rvArrivee').textContent = m.arrivee || '—';
+  document.getElementById('rvInfos').textContent = `${m.mode_transport || 'Route'} · ${m.vehicule || 'Auto'}`;
+  document.getElementById('dDate').innerHTML = m.date_mission ? `<strong>${new Date(m.date_mission).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</strong>` : '—';
+  document.getElementById('dMode').textContent = m.mode_transport || 'Route';
+  document.getElementById('dPack').textContent = m.pack ? (m.pack.charAt(0).toUpperCase() + m.pack.slice(1)) : '—';
+  document.getElementById('dVehicule').textContent = m.vehicule || '—';
+
+  // ---- Client ----
+  document.getElementById('cliNom').innerHTML = `<strong>${m.client_nom || '—'}</strong>`;
+  document.getElementById('cliEmail').textContent = m.client_email || '—';
+
+  // ---- Convoyeur ----
+  const convNom = m.convoyeur_nom || '—';
+  const initials = convNom.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+  document.getElementById('convAva').textContent = initials || '?';
+  document.getElementById('convNom').textContent = convNom;
+  document.getElementById('convMeta').textContent = m.zone_convoyeur || 'Convoyeur assigné';
+
+  // ---- Signatures ----
+  document.getElementById('sigConvNom').textContent = convNom;
+  document.getElementById('sigCliNom').textContent = m.client_nom || '—';
+
+  // ---- Tarification ----
+  const price = parseFloat(m.montant_ht) || 0;
+  const rem = parseFloat(m.remuneration_convoyeur) || 0;
+  const tva = price * 0.20;
+  const ttc = price + tva;
+  const pack = m.pack ? (m.pack.charAt(0).toUpperCase() + m.pack.slice(1)) : 'Standard';
+  document.getElementById('tarifBody').innerHTML = `
+    <tr><td>Convoyage ${m.mode_transport || 'routier'}</td><td>${m.vehicule || 'Automobile'} · ${pack}</td><td class="price-td">${price.toFixed(2)}€</td></tr>
+    <tr><td>Pack ${pack}</td><td>Inclus selon pack</td><td class="price-td">0,00€</td></tr>
+    <tr><td>Double RC Pro</td><td>Inclus</td><td class="price-td">0,00€</td></tr>
+    <tr><td>État des lieux</td><td>Photos départ + arrivée</td><td class="price-td">0,00€</td></tr>
+    <tr class="tarif-total"><td><strong>Total HT</strong></td><td></td><td class="price-td-total">${price.toFixed(2)}€</td></tr>
+    <tr><td>TVA (20%)</td><td></td><td class="price-td">${tva.toFixed(2)}€</td></tr>
+    <tr class="tarif-total"><td><strong>Total TTC</strong></td><td></td><td class="price-td-total">${ttc.toFixed(2)}€</td></tr>
+  `;
+  document.getElementById('remConvoyeur').textContent = rem > 0 ? rem.toFixed(2) + '€' : '—';
+
+  // ---- Status ----
+  const statusEl = document.getElementById('missionStatus');
+  const mStatus = m.status || m.statut || 'planned';
+  if (mStatus === 'in_progress') {
+    statusEl.className = 'sb-status ss-cours';
+    statusEl.innerHTML = '<span class="ss-dot"></span> En cours';
+  } else if (mStatus === 'completed') {
+    statusEl.className = 'sb-status ss-cours';
+    statusEl.innerHTML = '<span class="ss-dot"></span> Terminée';
+    document.getElementById('startBtn').style.display = 'none';
+    document.getElementById('startMissionBtn').style.display = 'none';
+  }
 });
 
 // ========== CHECKLIST ==========
@@ -1218,29 +1310,79 @@ document.querySelectorAll('.sig-area').forEach(area => {
 });
 
 // ========== DÉMARRER ==========
-function startMission(){
+async function startMission(){
   const requiredDone=checkState.slice(0,7).every(Boolean);
   if(!requiredDone){
-    alert('Veuillez compléter les 7 étapes obligatoires de la checklist.');
+    Swal.fire('Checklist incomplète', 'Veuillez compléter les 7 étapes obligatoires avant de démarrer.', 'warning');
     document.getElementById('checklist').scrollIntoView({behavior:'smooth',block:'center'});
     return;
   }
-  if(confirm('Confirmer le démarrage de la mission BC-2025-0847 ?\n\nLe client et le dispatch seront notifiés.')){
-    const startBtn = document.getElementById('startBtn');
-    startBtn.innerHTML='<i class="fas fa-check"></i> Mission démarrée';
-    startBtn.style.background='var(--success)';
-    const statusSpan = document.querySelector('#missionStatus');
-    if(statusSpan){
-      statusSpan.className='sb-status ss-cours';
-      statusSpan.innerHTML='<span class="ss-dot"></span> En cours';
+
+  // Vérifier le statut de paiement en temps réel avant d'autoriser le démarrage
+  if (_missionId) {
+    const client = getSB();
+    const { data: payData, error: payError } = await client.from('missions').select('paiement_statut').eq('id', _missionId).single();
+    if (!payError && payData) {
+      _paiementStatut = payData.paiement_statut || 'pending';
     }
-    localStorage.setItem('mission_started_BC-2025-0847', new Date().toISOString());
-    setTimeout(() => {
-      if(confirm('Mission démarrée ! Accéder à l\'interface GPS pour partager votre position ?')) {
-        window.location.href = 'gps-emitter.html';
-      }
-    }, 500);
   }
+
+  if (_paiementStatut !== 'paid') {
+    Swal.fire({
+      title: 'Démarrage bloqué',
+      html: `Le paiement de cette mission n'a pas encore été validé.<br><br>Le démarrage est bloqué. Veuillez contacter l'administrateur.`,
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  const ref = _missionRef || 'cette mission';
+  const result = await Swal.fire({
+    title: 'Démarrer la mission ?',
+    text: `Confirmer le démarrage de ${ref}. Le client et le dispatch seront notifiés.`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: 'var(--bordeaux)',
+    confirmButtonText: 'Oui, démarrer',
+    cancelButtonText: 'Annuler'
+  });
+
+  if (!result.isConfirmed) return;
+
+  // Update status in Supabase if we have an ID
+  if (_missionId) {
+    const client = getSB();
+    const { error } = await client.from('missions').update({ status: 'in_progress' }).eq('id', _missionId);
+    if (error) {
+      Swal.fire('Erreur', 'Impossible de démarrer la mission : ' + error.message, 'error');
+      return;
+    }
+  }
+
+  const startBtn = document.getElementById('startBtn');
+  const startMissionBtn = document.getElementById('startMissionBtn');
+  if (startBtn) { startBtn.innerHTML='<i class="fas fa-check"></i> Mission démarrée'; startBtn.style.background='var(--success)'; }
+  if (startMissionBtn) { startMissionBtn.innerHTML='<i class="fas fa-check"></i> Démarrée'; startMissionBtn.style.background='var(--success)'; }
+  const statusSpan = document.querySelector('#missionStatus');
+  if(statusSpan){ statusSpan.className='sb-status ss-cours'; statusSpan.innerHTML='<span class="ss-dot"></span> En cours'; }
+
+  Swal.fire({
+    toast: true, position: 'top-end', icon: 'success',
+    title: 'Mission démarrée ! 🚗', timer: 3000, showConfirmButton: false
+  });
+
+  setTimeout(() => {
+    Swal.fire({
+      title: 'Activer le GPS ?',
+      text: 'Partagez votre position en temps réel au client.',
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: 'var(--bordeaux)',
+      confirmButtonText: 'Oui, activer GPS',
+      cancelButtonText: 'Plus tard'
+    }).then(r => { if (r.isConfirmed) window.location.href = 'gps-emitter.html'; });
+  }, 800);
 }
 
 // ========== REVEAL ON SCROLL ==========
