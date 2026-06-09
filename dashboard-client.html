@@ -799,17 +799,64 @@ body {
 </div>
 
 <!-- CLIENT LOGIN OVERLAY -->
-<div id="clientLoginOverlay" style="position:fixed;inset:0;background:rgba(253,251,247,0.97);backdrop-filter:blur(12px);z-index:9000;display:flex;align-items:center;justify-content:center;">
-  <div style="background:white;border:1px solid #E8E1D9;border-radius:28px;padding:44px 48px;max-width:440px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.08);">
-    <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:6px;">Espace <span style="color:#7A2E1A">Client</span></div>
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#6B625A;margin-bottom:28px;">Saisissez votre nom pour accéder à vos missions</div>
-    <div style="margin-bottom:16px;text-align:left;">
-      <label style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Votre nom (tel qu'il apparaît sur votre devis)</label>
-      <input id="clientLoginInput" type="text" placeholder="Ex: Jean Dupont" onkeydown="if(event.key==='Enter') clientLogin()" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:14px;font-size:0.9rem;font-family:'Inter',sans-serif;outline:none;">
+<!-- CLIENT LOGIN/SIGNUP OVERLAY -->
+<div id="clientLoginOverlay" style="position:fixed;inset:0;background:linear-gradient(135deg, rgba(122,46,26,0.94) 0%, rgba(253,251,247,0.96) 100%);backdrop-filter:blur(16px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:rgba(255,255,255,0.85);border:1px solid rgba(255,255,255,0.4);border-radius:28px;padding:36px;max-width:480px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,0.12);backdrop-filter:blur(10px);">
+    <!-- Brand / Header -->
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#2D2A24;">Bathily-Convoyage<span style="color:#7A2E1A">.</span></div>
+      <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#6B625A;margin-top:4px;">Espace Client Sécurisé</div>
     </div>
-    <div id="clientLoginError" style="display:none;color:#7A2E1A;font-size:0.75rem;margin-bottom:12px;"><i class="fas fa-exclamation-circle"></i> Aucune mission trouvée pour ce nom.</div>
-    <button onclick="clientLogin()" style="width:100%;background:#7A2E1A;color:white;border:none;border-radius:14px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;"><i class="fas fa-arrow-right"></i> Accéder à mon espace</button>
-    <p style="font-size:0.65rem;color:#6B625A;margin-top:16px;">Votre nom doit correspondre exactement à celui indiqué lors de votre demande de devis.</p>
+    
+    <!-- Auth Switch Tabs -->
+    <div style="display:flex;background:rgba(0,0,0,0.04);padding:4px;border-radius:14px;margin-bottom:24px;">
+      <button id="authTabLogin" onclick="switchAuthTab('login')" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:white;color:#2D2A24;transition:all 0.25s ease;">Se connecter</button>
+      <button id="authTabSignup" onclick="switchAuthTab('signup')" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:transparent;color:#6B625A;transition:all 0.25s ease;">Créer un compte</button>
+    </div>
+
+    <!-- FORM 1: LOGIN -->
+    <form id="authLoginForm" onsubmit="handleClientLogin(event)" style="display:block;">
+      <div style="margin-bottom:16px;text-align:left;">
+        <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Adresse Email</label>
+        <input id="loginEmail" type="email" required placeholder="nom@exemple.com" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
+      </div>
+      <div style="margin-bottom:20px;text-align:left;">
+        <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Mot de passe</label>
+        <input id="loginPassword" type="password" required placeholder="••••••••" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
+      </div>
+      <button type="submit" style="width:100%;background:#7A2E1A;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
+    </form>
+
+    <!-- FORM 2: SIGNUP -->
+    <form id="authSignupForm" onsubmit="handleClientSignup(event)" style="display:none; max-height: 450px; overflow-y: auto; padding-right: 4px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div style="text-align:left;">
+          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Prénom</label>
+          <input id="signupPrenom" type="text" required placeholder="Jean" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+        </div>
+        <div style="text-align:left;">
+          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Nom</label>
+          <input id="signupNom" type="text" required placeholder="Dupont" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+        </div>
+      </div>
+      <div style="margin-bottom:12px;text-align:left;">
+        <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Adresse Email</label>
+        <input id="signupEmail" type="email" required placeholder="jean.dupont@email.com" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+      </div>
+      <div style="margin-bottom:12px;text-align:left;">
+        <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Téléphone</label>
+        <input id="signupTel" type="tel" placeholder="+33 6 12 34 56 78" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+      </div>
+      <div style="margin-bottom:12px;text-align:left;">
+        <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Société (Optionnel)</label>
+        <input id="signupSociete" type="text" placeholder="Dupont Inc." style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+      </div>
+      <div style="margin-bottom:20px;text-align:left;">
+        <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Mot de passe</label>
+        <input id="signupPassword" type="password" required minlength="6" placeholder="••••••••" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+      </div>
+      <button type="submit" style="width:100%;background:#7A2E1A;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-user-plus"></i> Créer mon compte</button>
+    </form>
   </div>
 </div>
 
@@ -893,13 +940,13 @@ body {
     <div class="tab-content" id="tab-profil">
       <div class="dash-header"><h1 class="dash-hello">Mon <em>profil</em></h1></div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:700px">
-        <div class="f-grp"><label>Prénom</label><input type="text" value="Jean"></div>
-        <div class="f-grp"><label>Nom</label><input type="text" value="Dupont"></div>
-        <div class="f-grp"><label>Email</label><input type="email" value="jean.dupont@email.fr"></div>
-        <div class="f-grp"><label>Téléphone</label><input type="tel" value="+33 6 12 34 56 78"></div>
-        <div class="f-grp" style="grid-column:span 2"><label>Société (optionnel)</label><input type="text" value="Dupont & Associés"></div>
+        <div class="f-grp"><label>Prénom</label><input type="text" id="profilPrenom" value=""></div>
+        <div class="f-grp"><label>Nom</label><input type="text" id="profilNom" value=""></div>
+        <div class="f-grp"><label>Email</label><input type="email" id="profilEmail" value="" disabled style="opacity: 0.7; cursor: not-allowed;"></div>
+        <div class="f-grp"><label>Téléphone</label><input type="tel" id="profilTel" value=""></div>
+        <div class="f-grp" style="grid-column:span 2"><label>Société (optionnel)</label><input type="text" id="profilSociete" value=""></div>
       </div>
-      <button class="btn-red"><i class="fas fa-save"></i> Enregistrer</button>
+      <button class="btn-red" onclick="updateClientProfile()"><i class="fas fa-save"></i> Enregistrer</button>
     </div>
 
     <!-- Support -->
@@ -935,37 +982,275 @@ function getSBCli() {
 
 // ========== CLIENT AUTH ==========
 let _clientName = null;
+let _clientUser = null;
 let _clientMissions = [];
 let _activeFilter = 'all';
 
+async function hashPassword(pwd) {
+  const msgBuffer = new TextEncoder().encode(pwd);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 function clientLogout() {
+  sessionStorage.removeItem('client_user');
   sessionStorage.removeItem('client_name');
   window.location.reload();
 }
 
-async function clientLogin() {
-  const name = document.getElementById('clientLoginInput').value.trim();
-  if (!name) return;
+function switchAuthTab(tab) {
+  const loginTab = document.getElementById('authTabLogin');
+  const signupTab = document.getElementById('authTabSignup');
+  const loginForm = document.getElementById('authLoginForm');
+  const signupForm = document.getElementById('authSignupForm');
+
+  if (tab === 'login') {
+    loginTab.style.background = 'white';
+    loginTab.style.color = '#2D2A24';
+    signupTab.style.background = 'transparent';
+    signupTab.style.color = '#6B625A';
+    loginForm.style.display = 'block';
+    signupForm.style.display = 'none';
+  } else {
+    signupTab.style.background = 'white';
+    signupTab.style.color = '#2D2A24';
+    loginTab.style.background = 'transparent';
+    loginTab.style.color = '#6B625A';
+    signupForm.style.display = 'block';
+    loginForm.style.display = 'none';
+  }
+}
+
+async function handleClientLogin(event) {
+  event.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const mot_de_passe = document.getElementById('loginPassword').value;
+
+  if (!email || !mot_de_passe) return;
+
+  Swal.fire({
+    title: 'Connexion...',
+    didOpen: () => Swal.showLoading(),
+    allowOutsideClick: false
+  });
 
   const client = getSBCli();
-  const { data, error } = await client.from('missions').select('*').ilike('client_nom', `%${name}%`).order('created_at', { ascending: false });
+  const { data, error } = await client
+    .from('clients')
+    .select('*')
+    .eq('email', email)
+    .maybeSingle();
 
-  if (error || !data || data.length === 0) {
-    document.getElementById('clientLoginError').style.display = 'block';
+  if (error || !data) {
+    Swal.fire({
+      title: 'Échec de connexion',
+      text: 'Identifiants incorrects ou compte inexistant.',
+      icon: 'error',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
     return;
   }
 
-  _clientName = name;
-  sessionStorage.setItem('client_name', name);
-  document.getElementById('clientLoginError').style.display = 'none';
+  const hashedPassword = await hashPassword(mot_de_passe);
+  if (data.mot_de_passe !== hashedPassword) {
+    Swal.fire({
+      title: 'Échec de connexion',
+      text: 'Identifiants incorrects ou compte inexistant.',
+      icon: 'error',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  _clientUser = data;
+  _clientName = `${data.prenom} ${data.nom}`;
+  sessionStorage.setItem('client_user', JSON.stringify(data));
+  sessionStorage.setItem('client_name', _clientName);
+
+  const { data: missions, error: mErr } = await client
+    .from('missions')
+    .select('*')
+    .or(`client_email.eq.${email},client_nom.ilike.%${_clientName}%`)
+    .order('created_at', { ascending: false });
+
   document.getElementById('clientLoginOverlay').style.display = 'none';
-  initClientDashboard(data);
+  initClientDashboard(missions || []);
+
+  Swal.fire({
+    title: 'Bienvenue !',
+    text: `Content de vous revoir, ${data.prenom}.`,
+    icon: 'success',
+    timer: 2000,
+    showConfirmButton: false
+  });
+}
+
+async function handleClientSignup(event) {
+  event.preventDefault();
+  const prenom = document.getElementById('signupPrenom').value.trim();
+  const nom = document.getElementById('signupNom').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const telephone = document.getElementById('signupTel').value.trim();
+  const societe = document.getElementById('signupSociete').value.trim();
+  const mot_de_passe = document.getElementById('signupPassword').value;
+
+  if (!prenom || !nom || !email || !mot_de_passe) return;
+
+  if (mot_de_passe.length < 6) {
+    Swal.fire({
+      title: 'Mot de passe trop court',
+      text: 'Le mot de passe doit contenir au moins 6 caractères.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  Swal.fire({
+    title: 'Création du compte...',
+    didOpen: () => Swal.showLoading(),
+    allowOutsideClick: false
+  });
+
+  const client = getSBCli();
+  const { data: existing } = await client
+    .from('clients')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle();
+
+  if (existing) {
+    Swal.fire({
+      title: 'Compte existant',
+      text: 'Cette adresse e-mail est déjà associée à un compte.',
+      icon: 'error',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  const hashedPassword = await hashPassword(mot_de_passe);
+  const newClient = {
+    prenom,
+    nom,
+    email,
+    telephone,
+    societe,
+    mot_de_passe: hashedPassword
+  };
+
+  const { data, error } = await client
+    .from('clients')
+    .insert([newClient])
+    .select()
+    .single();
+
+  if (error || !data) {
+    Swal.fire({
+      title: 'Erreur',
+      text: error ? error.message : 'Impossible de créer le compte.',
+      icon: 'error',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  _clientUser = data;
+  _clientName = `${prenom} ${nom}`;
+  sessionStorage.setItem('client_user', JSON.stringify(data));
+  sessionStorage.setItem('client_name', _clientName);
+
+  const { data: missions } = await client
+    .from('missions')
+    .select('*')
+    .or(`client_email.eq.${email},client_nom.ilike.%${_clientName}%`)
+    .order('created_at', { ascending: false });
+
+  document.getElementById('clientLoginOverlay').style.display = 'none';
+  initClientDashboard(missions || []);
+
+  Swal.fire({
+    title: 'Compte créé ! 🎉',
+    text: `Bienvenue sur votre espace, ${prenom}.`,
+    icon: 'success',
+    timer: 2500,
+    showConfirmButton: false
+  });
+}
+
+async function updateClientProfile() {
+  if (!_clientUser) {
+    Swal.fire({
+      title: 'Action impossible',
+      text: 'Vous devez être connecté pour modifier votre profil.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  const prenom = document.getElementById('profilPrenom').value.trim();
+  const nom = document.getElementById('profilNom').value.trim();
+  const telephone = document.getElementById('profilTel').value.trim();
+  const societe = document.getElementById('profilSociete').value.trim();
+
+  if (!prenom || !nom) {
+    Swal.fire({
+      title: 'Champs requis',
+      text: 'Le prénom et le nom sont obligatoires.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  Swal.fire({
+    title: 'Mise à jour...',
+    didOpen: () => Swal.showLoading(),
+    allowOutsideClick: false
+  });
+
+  const { data, error } = await getSBCli()
+    .from('clients')
+    .update({ prenom, nom, telephone, societe })
+    .eq('id', _clientUser.id)
+    .select()
+    .single();
+
+  if (error) {
+    Swal.fire({
+      title: 'Erreur',
+      text: error.message || 'Impossible de mettre à jour le profil.',
+      icon: 'error',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+  } else {
+    _clientUser = data;
+    sessionStorage.setItem('client_user', JSON.stringify(data));
+    _clientName = `${prenom} ${nom}`;
+
+    const firstName = prenom;
+    const initials = (prenom[0] || '') + (nom[0] || '');
+    const nomEl = document.getElementById('cliNomTopbar');
+    const avaEl = document.getElementById('cliAvatar');
+    const prenomEl = document.getElementById('cliPrenom');
+    if (nomEl) nomEl.textContent = firstName;
+    if (avaEl) avaEl.textContent = initials.toUpperCase();
+    if (prenomEl) prenomEl.textContent = firstName;
+
+    Swal.fire({
+      title: 'Succès',
+      text: 'Votre profil a été mis à jour avec succès.',
+      icon: 'success',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+  }
 }
 
 async function initClientDashboard(missions) {
   _clientMissions = missions || [];
 
-  // Topbar
   const firstName = _clientName.split(' ')[0];
   const initials = _clientName.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
   const nomEl = document.getElementById('cliNomTopbar');
@@ -975,7 +1260,25 @@ async function initClientDashboard(missions) {
   if (avaEl) avaEl.textContent = initials;
   if (prenomEl) prenomEl.textContent = firstName;
 
-  // KPIs
+  if (_clientUser) {
+    const pPrenom = document.getElementById('profilPrenom');
+    const pNom = document.getElementById('profilNom');
+    const pEmail = document.getElementById('profilEmail');
+    const pTel = document.getElementById('profilTel');
+    const pSociete = document.getElementById('profilSociete');
+    if (pPrenom) pPrenom.value = _clientUser.prenom || '';
+    if (pNom) pNom.value = _clientUser.nom || '';
+    if (pEmail) pEmail.value = _clientUser.email || '';
+    if (pTel) pTel.value = _clientUser.telephone || '';
+    if (pSociete) pSociete.value = _clientUser.societe || '';
+  } else if (_clientName) {
+    const parts = _clientName.split(' ');
+    const pPrenom = document.getElementById('profilPrenom');
+    const pNom = document.getElementById('profilNom');
+    if (pPrenom) pPrenom.value = parts[0] || '';
+    if (pNom) pNom.value = parts.slice(1).join(' ') || '';
+  }
+
   const actives = missions.filter(m => m.status === 'in_progress').length;
   const terminees = missions.filter(m => m.status === 'completed').length;
   const planned = missions.filter(m => m.status === 'planned' || m.status === 'available').length;
@@ -987,13 +1290,8 @@ async function initClientDashboard(missions) {
   set('kpiCA', caTotal >= 1000 ? (caTotal/1000).toFixed(1) + 'k€' : caTotal + '€');
   set('kpiTotal', missions.length);
 
-  // Recent missions (accueil)
   renderClientMissions('recentMissionsList', missions.slice(0, 3), false);
-
-  // Full missions tab
   renderClientMissions('missionsList', missions, true);
-
-  // Load Invoices dynamically
   renderClientInvoices(missions);
 }
 
@@ -1076,12 +1374,28 @@ function filterMissions(status, btn) {
 }
 
 // Check session
-const savedClient = sessionStorage.getItem('client_name');
-if (savedClient) {
-  _clientName = savedClient;
-  document.getElementById('clientLoginOverlay').style.display = 'none';
-  getSBCli().from('missions').select('*').ilike('client_nom', `%${savedClient}%`).order('created_at', {ascending: false})
-    .then(({ data }) => initClientDashboard(data || []));
+const savedUser = sessionStorage.getItem('client_user');
+if (savedUser) {
+  try {
+    _clientUser = JSON.parse(savedUser);
+    _clientName = `${_clientUser.prenom} ${_clientUser.nom}`;
+    document.getElementById('clientLoginOverlay').style.display = 'none';
+    getSBCli().from('missions')
+      .select('*')
+      .or(`client_email.eq.${_clientUser.email},client_nom.ilike.%${_clientName}%`)
+      .order('created_at', {ascending: false})
+      .then(({ data }) => initClientDashboard(data || []));
+  } catch (e) {
+    console.warn("Session client_user invalide", e);
+  }
+} else {
+  const savedClient = sessionStorage.getItem('client_name');
+  if (savedClient) {
+    _clientName = savedClient;
+    document.getElementById('clientLoginOverlay').style.display = 'none';
+    getSBCli().from('missions').select('*').ilike('client_nom', `%${savedClient}%`).order('created_at', {ascending: false})
+      .then(({ data }) => initClientDashboard(data || []));
+  }
 }
 
 // ========== CURSOR ==========
@@ -1237,6 +1551,11 @@ if (paymentStatus === 'success') {
   }).then(() => {
     window.history.replaceState({}, document.title, window.location.pathname);
   });
+}
+
+// ========== SIGNUP TAB ROUTING ==========
+if (urlParams.get('signup') === 'true') {
+  switchAuthTab('signup');
 }
 </script>
 </body>

@@ -795,7 +795,15 @@ footer {
     <p class="modal-sub">Merci pour votre confiance. Un conseiller vous contactera sous 2h.</p>
     <div class="modal-ref"><div><div class="modal-ref-lbl">Référence</div><div class="modal-ref-val" id="devisRef">BC-2025-XXXX</div></div><i class="fas fa-clipboard" style="cursor:pointer" onclick="copyRef()"></i></div>
     <div class="modal-steps"><div class="modal-step"><i class="fas fa-envelope"></i> Confirmation email</div><div class="modal-step"><i class="fas fa-phone"></i> Appel sous 2h</div><div class="modal-step"><i class="fas fa-file-contract"></i> Devis définitif</div></div>
-    <div class="modal-btns"><a href="index.html" class="btn-primary">Accueil</a><button class="btn-secondary" onclick="resetAndNewDevis()">Nouveau devis</button></div>
+    
+    <!-- Register Invitation Box if not logged in -->
+    <div id="registerInvitationBox" style="display:none; margin-top:20px; padding:16px; background:var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius:16px; text-align:center;">
+      <div style="font-weight:700; color:var(--bordeaux); font-size:0.85rem; margin-bottom:6px;"><i class="fas fa-user-plus"></i> Suivez votre devis en temps réel !</div>
+      <p style="font-size:0.75rem; color:var(--gray-mid); margin-bottom:12px;">Créez votre compte client en quelques secondes pour accéder à votre tableau de bord.</p>
+      <a href="dashboard-client.html?signup=true" class="btn-sm btn-sm-red" style="font-size:0.7rem; padding:8px 16px; text-decoration:none; display:inline-block; border-radius:40px; background:var(--bordeaux); color:white; font-weight:700;"><i class="fas fa-magic"></i> Créer mon compte</a>
+    </div>
+
+    <div class="modal-btns" style="margin-top:20px;"><a href="index.html" class="btn-primary">Accueil</a><button class="btn-secondary" onclick="resetAndNewDevis()">Nouveau devis</button></div>
   </div>
 </div>
 
@@ -1045,6 +1053,11 @@ function submitDevis() {
       });
     } else {
       document.getElementById('devisRef').textContent = devisRef;
+      if (!sessionStorage.getItem('client_user')) {
+        document.getElementById('registerInvitationBox').style.display = 'block';
+      } else {
+        document.getElementById('registerInvitationBox').style.display = 'none';
+      }
       document.getElementById('modalOverlay').classList.add('open');
       console.log('Devis inséré avec succès', data);
     }
@@ -1093,7 +1106,23 @@ function copyRef() {
 function loadFromLocalStorage() { const saved=localStorage.getItem('bathily_devis'); if(!saved)return; try{ const data=JSON.parse(saved); if(data.vehicule){const vehCard=document.querySelector(`.v-card[onclick*="${data.vehicule}"]`);if(vehCard)selVeh(vehCard,data.vehicule);} if(data.immat){const plaqueInput=document.getElementById('plaque');plaqueInput.value=data.immat;fmtPlaque(plaqueInput);} if(data.depart){document.getElementById('depart').value=data.depart;document.getElementById('arrivee').value=data.arrivee;calcDist();} if(data.mode){const modeEl=document.querySelector(`.t-mode[onclick*="${data.mode}"]`);if(modeEl)selMode(modeEl,data.mode);} if(data.categorie){const catMap={berline:0,suv:15,utilitaire:20};const catEl=document.querySelector(`.cat-card[onclick*="${data.categorie}"]`);if(catEl)selCat(catEl,data.categorie,catMap[data.categorie]||0);} if(data.pack){const packPrice={starter:0,serenite:49,excellence:129};const packEl=document.querySelector(`.pck-card[onclick*="${data.pack}"]`);if(packEl)selPack(packEl,data.pack,packPrice[data.pack]);} if(data.options){if(data.options.urgence){const optUrg=document.querySelector('.opt-item[onclick*="urgence"]');if(optUrg)togOpt(optUrg,'urgence');} if(data.options.gardiennage){const optGard=document.querySelector('.opt-item[onclick*="gardiennage"]');if(optGard)togOpt(optGard,'gardiennage');}} if(data.date)document.getElementById('mDate').value=data.date; }catch(e){console.warn(e);} }
 document.getElementById('cbPrivacy').addEventListener('click',function(){ S.privacy=this.classList.contains('chk'); updBtn(); });
 document.getElementById('cbPrivacy').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); this.click(); } });
+function loadClientSession() {
+  const savedUser = sessionStorage.getItem('client_user');
+  if (savedUser) {
+    try {
+      const user = JSON.parse(savedUser);
+      if (user.prenom) document.getElementById('cli-prenom').value = user.prenom;
+      if (user.nom) document.getElementById('cli-nom').value = user.nom;
+      if (user.email) document.getElementById('cli-email').value = user.email;
+      if (user.telephone) document.getElementById('cli-tel').value = user.telephone;
+      if (user.societe) document.getElementById('cli-societe').value = user.societe;
+    } catch (e) {
+      console.warn("Erreur chargement session client_user dans devis", e);
+    }
+  }
+}
 loadFromLocalStorage();
+loadClientSession();
 setTimeout(()=>{ updPrice(); },100);
 function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
 window.addEventListener('scroll',()=>document.getElementById('hdr')?.classList.toggle('scrolled',scrollY>50));
