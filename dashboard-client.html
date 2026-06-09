@@ -1211,7 +1211,7 @@ async function payMission(missionId) {
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.error || 'Erreur lors de la création de la session Stripe.');
+      throw new Error(data.error || data.errorMessage || JSON.stringify(data) || 'Erreur lors de la création de la session Stripe.');
     }
 
     window.location.href = data.url;
