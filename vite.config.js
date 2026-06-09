@@ -16,6 +16,7 @@ export default defineConfig({
         gpsEmitter: resolve(__dirname, 'gps-emitter.html'),
         tracking: resolve(__dirname, 'tracking.html'),
         mentionsLegales: resolve(__dirname, 'mentions-legales.html'),
+        formationConvoyeur: resolve(__dirname, 'formation-convoyeur.html'),
       }
     }
   }
