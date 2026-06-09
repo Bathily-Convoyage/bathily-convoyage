@@ -1,11 +1,5 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
-
-// Initialiser Supabase avec la clé Service Role pour pouvoir modifier les données
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
 
 exports.handler = async (event, context) => {
   // Configurer les headers CORS pour autoriser l'accès depuis le frontend
@@ -34,6 +28,23 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    // Vérification des variables d'environnement
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error("La variable d'environnement STRIPE_SECRET_KEY est manquante.");
+    }
+    if (!process.env.SUPABASE_URL) {
+      throw new Error("La variable d'environnement SUPABASE_URL est manquante.");
+    }
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("La variable d'environnement SUPABASE_SERVICE_ROLE_KEY est manquante.");
+    }
+
+    const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
     const { missionId, successUrl, cancelUrl } = JSON.parse(event.body);
 
     if (!missionId || !successUrl || !cancelUrl) {

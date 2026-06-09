@@ -1,11 +1,5 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
-
-// Initialiser Supabase avec la clé Service Role pour contourner les RLS
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
 
 exports.handler = async (event, context) => {
   // Seuls les appels POST sont autorisés pour les webhooks
@@ -16,8 +10,26 @@ exports.handler = async (event, context) => {
     };
   }
 
-  const sigHeader = event.headers['stripe-signature'] || event.headers['Stripe-Signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  try {
+    // Vérification des variables d'environnement
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error("La variable d'environnement STRIPE_SECRET_KEY est manquante.");
+    }
+    if (!process.env.SUPABASE_URL) {
+      throw new Error("La variable d'environnement SUPABASE_URL est manquante.");
+    }
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("La variable d'environnement SUPABASE_SERVICE_ROLE_KEY est manquante.");
+    }
+
+    const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    const sigHeader = event.headers['stripe-signature'] || event.headers['Stripe-Signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!sigHeader || !webhookSecret) {
     console.error("Signature Stripe ou secret de webhook manquant.");
@@ -84,4 +96,11 @@ exports.handler = async (event, context) => {
     statusCode: 200,
     body: JSON.stringify({ received: true })
   };
+  } catch (error) {
+    console.error("Erreur dans stripe-webhook :", error);
+    return {
+      statusCode: 500,
+      body: `Erreur interne: ${error.message}`
+    };
+  }
 };
