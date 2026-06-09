@@ -911,6 +911,7 @@ body {
       <div class="nav-section-lbl">Utilisateurs</div>
       <div class="nav-item" onclick="showTab('clients',this)"><i class="fas fa-users"></i> Clients</div>
       <div class="nav-item" onclick="showTab('convoyeurs',this)"><i class="fas fa-truck"></i> Convoyeurs</div>
+      <div class="nav-item" onclick="showTab('candidatures',this); loadCandidatures()"><i class="fas fa-user-plus"></i> Candidatures <span class="nav-badge pulsing" id="candidaturesBadge" style="display:none">0</span></div>
     </div>
     <div class="nav-section">
       <div class="nav-section-lbl">Paramètres</div>
@@ -960,6 +961,24 @@ body {
           <tr><td>BC-2025-0821</td><td>Marc Renard</td><td>Lyon → Marseille</td><td>S. Fontaine</td><td>Starter</td><td class="td-price">550€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Terminée</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Candidatures Convoyeurs -->
+    <div class="tab-content" id="tab-candidatures">
+      <div class="dash-header"><h1 class="dash-hello">Candidatures <em>Convoyeurs</em></h1></div>
+      <div class="sec-title">
+        <h2 class="sec-h">Dossiers <em>à examiner</em></h2>
+        <div class="sec-actions">
+          <select id="candidaturesFilter" onchange="filterCandidatures()" style="padding:8px 14px; border:1px solid var(--border-light); border-radius:40px; font-size:0.75rem; font-weight:600; background:#F9FAFB; outline:none;">
+            <option value="all">Tous les statuts</option>
+            <option value="pending">En attente</option>
+            <option value="approved">Approuvés</option>
+            <option value="rejected">Refusés</option>
+          </select>
+          <button class="btn-outline" onclick="loadCandidatures()"><i class="fas fa-sync"></i> Actualiser</button>
+        </div>
+      </div>
+      <div id="candidaturesList"><div style="text-align:center; padding:40px; color:var(--gray-mid);"><i class="fas fa-spinner fa-spin"></i> Chargement...</div></div>
     </div>
 
     <!-- Missions -->
@@ -2468,6 +2487,164 @@ const notif = document.querySelector('.topbar-notif');
 if(notif) notif.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alert('Notifications (démo)'); } });
 const userBtn = document.querySelector('.topbar-user');
 if(userBtn) userBtn.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alert('Mon compte (démo)'); } });
+
+// ========== CANDIDATURES CONVOYEURS ==========
+let _allCandidatures = [];
+
+async function loadCandidatures() {
+  const container = document.getElementById('candidaturesList');
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--gray-mid);"><i class="fas fa-spinner fa-spin"></i> Chargement des candidatures...</div>';
+
+  const sb = getSupabase();
+  const { data, error } = await sb.from('convoyeurs_candidats').select('*').order('created_at', { ascending: false });
+
+  if (error) {
+    container.innerHTML = `<div style="color:var(--bordeaux); padding:20px;">Erreur : ${error.message}<br><small>Pensez à créer la table <code>convoyeurs_candidats</code> dans Supabase.</small></div>`;
+    return;
+  }
+
+  _allCandidatures = data || [];
+
+  // Update badge
+  const pending = _allCandidatures.filter(c => c.statut === 'pending');
+  const badge = document.getElementById('candidaturesBadge');
+  if (badge) {
+    if (pending.length > 0) { badge.textContent = pending.length; badge.style.display = 'inline-flex'; }
+    else { badge.style.display = 'none'; }
+  }
+
+  renderCandidatures(_allCandidatures);
+}
+
+function filterCandidatures() {
+  const filter = document.getElementById('candidaturesFilter').value;
+  const filtered = filter === 'all' ? _allCandidatures : _allCandidatures.filter(c => c.statut === filter);
+  renderCandidatures(filtered);
+}
+
+function renderCandidatures(list) {
+  const container = document.getElementById('candidaturesList');
+  if (!list || list.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--gray-mid);"><i class="fas fa-inbox" style="font-size:2rem; margin-bottom:12px; display:block;"></i>Aucune candidature pour le moment.</div>';
+    return;
+  }
+
+  const statusStyle = {
+    pending: { bg: 'rgba(224,163,67,0.12)', color: '#7a5a0d', label: 'En attente' },
+    approved: { bg: 'rgba(74,124,107,0.1)', color: 'var(--success)', label: 'Approuvé' },
+    rejected: { bg: 'rgba(231,76,60,0.08)', color: '#c0392b', label: 'Refusé' }
+  };
+
+  container.innerHTML = list.map(c => {
+    const st = statusStyle[c.statut] || statusStyle.pending;
+    const score = c.score_quiz ?? '—';
+    const pct = c.score_quiz != null ? Math.round(c.score_quiz / 12 * 100) : null;
+    const scoreColor = pct >= 80 ? 'var(--success)' : '#c0392b';
+    const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+    return `
+    <div style="background:white; border:1px solid var(--border-light); border-radius:20px; padding:24px; margin-bottom:14px; transition: box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(0,0,0,0.07)'" onmouseout="this.style.boxShadow=''">
+      <div style="display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+        <div style="width:48px; height:48px; border-radius:50%; background:var(--bordeaux-light); color:var(--bordeaux); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem; flex-shrink:0;">
+          ${(c.prenom || 'C')[0]}${(c.nom || '')[0] || ''}
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <div style="font-weight:700; font-size:1rem; margin-bottom:3px;">${c.prenom || ''} ${c.nom || ''}</div>
+          <div style="font-size:0.78rem; color:var(--gray-mid);">
+            <i class="fas fa-envelope" style="margin-right:5px;"></i>${c.email || '—'} &nbsp;·&nbsp;
+            <i class="fas fa-phone" style="margin-right:5px;"></i>${c.telephone || '—'} &nbsp;·&nbsp;
+            <i class="fas fa-map-marker-alt" style="margin-right:5px;"></i>${c.ville || '—'}
+          </div>
+          <div style="font-size:0.75rem; color:var(--gray-mid); margin-top:4px;">
+            <i class="fas fa-id-card" style="margin-right:5px;"></i>Permis : <strong>${c.type_permis || '—'}</strong> (depuis ${c.annee_permis || '?'}) &nbsp;·&nbsp;
+            <i class="fas fa-briefcase" style="margin-right:5px;"></i>${c.experience || '—'}
+          </div>
+        </div>
+        <div style="text-align:center; min-width:80px;">
+          <div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1.8rem; font-weight:800; color:${scoreColor}; line-height:1;">${score}</div>
+          <div style="font-size:0.65rem; color:var(--gray-mid); font-weight:600; text-transform:uppercase;">/12 Quiz</div>
+          ${pct !== null ? `<div style="font-size:0.7rem; font-weight:700; color:${scoreColor};">${pct}%</div>` : ''}
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; min-width:140px;">
+          <span style="padding:5px 12px; border-radius:40px; font-size:0.7rem; font-weight:700; background:${st.bg}; color:${st.color};">${st.label}</span>
+          <div style="font-size:0.68rem; color:var(--gray-mid);"><i class="fas fa-calendar" style="margin-right:4px;"></i>${dateStr}</div>
+          ${c.statut === 'pending' ? `
+          <div style="display:flex; gap:6px; margin-top:4px;">
+            <button onclick="approveCandidature('${c.id}', '${c.email}', '${c.prenom} ${c.nom}')"
+              style="background:var(--success); color:white; border:none; border-radius:10px; padding:7px 14px; font-size:0.72rem; font-weight:700; cursor:pointer;">
+              <i class="fas fa-check"></i> Approuver
+            </button>
+            <button onclick="rejectCandidature('${c.id}', '${c.prenom} ${c.nom}')"
+              style="background:rgba(231,76,60,0.1); color:#c0392b; border:1px solid rgba(231,76,60,0.2); border-radius:10px; padding:7px 14px; font-size:0.72rem; font-weight:700; cursor:pointer;">
+              <i class="fas fa-times"></i> Refuser
+            </button>
+          </div>` : `<div style="font-size:0.68rem; color:var(--gray-mid); font-style:italic;">Aucune action disponible</div>`}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function approveCandidature(id, email, nom) {
+  const result = await Swal.fire({
+    title: `Approuver ${nom} ?`,
+    html: `Le compte convoyeur sera activé.<br>Un email de confirmation lui sera envoyé à <strong>${email}</strong>.`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-check"></i> Approuver',
+    cancelButtonText: 'Annuler',
+    confirmButtonColor: 'var(--success)',
+  });
+  if (!result.isConfirmed) return;
+
+  Swal.fire({ title: 'Mise à jour...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+  const sb = getSupabase();
+  const { error } = await sb.from('convoyeurs_candidats').update({ statut: 'approved' }).eq('id', id);
+  if (error) {
+    Swal.fire('Erreur', error.message, 'error');
+  } else {
+    Swal.fire({ title: 'Candidature approuvée !', text: `${nom} peut maintenant se connecter à l'espace convoyeur.`, icon: 'success', confirmButtonColor: 'var(--bordeaux)' });
+    loadCandidatures();
+  }
+}
+
+async function rejectCandidature(id, nom) {
+  const result = await Swal.fire({
+    title: `Refuser ${nom} ?`,
+    input: 'textarea',
+    inputLabel: 'Motif du refus (optionnel)',
+    inputPlaceholder: 'Ex : Score insuffisant, permis non valide...',
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-times"></i> Confirmer le refus',
+    cancelButtonText: 'Annuler',
+    confirmButtonColor: '#e74c3c',
+  });
+  if (!result.isConfirmed) return;
+
+  Swal.fire({ title: 'Mise à jour...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+  const sb = getSupabase();
+  const { error } = await sb.from('convoyeurs_candidats').update({ statut: 'rejected', notes_admin: result.value || '' }).eq('id', id);
+  if (error) {
+    Swal.fire('Erreur', error.message, 'error');
+  } else {
+    Swal.fire({ title: 'Candidature refusée', icon: 'info', confirmButtonColor: 'var(--bordeaux)' });
+    loadCandidatures();
+  }
+}
+
+// Auto-check candidatures badge on load
+(async () => {
+  try {
+    const sb = getSupabase();
+    const { data } = await sb.from('convoyeurs_candidats').select('id').eq('statut', 'pending');
+    if (data && data.length > 0) {
+      const badge = document.getElementById('candidaturesBadge');
+      if (badge) { badge.textContent = data.length; badge.style.display = 'inline-flex'; }
+    }
+  } catch(e) { /* table may not exist yet */ }
+})();
+
 </script>
 </body>
 </html>
