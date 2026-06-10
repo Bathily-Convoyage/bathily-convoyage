@@ -75,7 +75,8 @@ exports.handler = async (event, context) => {
       energie: data.energie || data.fuelType || data.Fuel || '',
       couleur: data.couleur || data.color || data.Color || '',
       annee: data.annee || data.year || data.Year || '',
-      vin: data.vin || data.vinNumber || ''
+      vin: data.vin || data.vinNumber || '',
+      puissance: data.puissanceFiscale || data.puissance_fiscale || data.puissanceReelle || data.puissance_reelle || data.puissance || data.power || data.fiscalPower || ''
     };
 
     // Nettoyer la casse pour afficher joliment
