@@ -699,7 +699,7 @@ canvas {
   <div class="edl-step" data-step="2">
     <div class="step-header"><div class="step-tag">Étape 2 / 7</div><h2 class="step-title">Identification <em>véhicule</em></h2><p class="step-sub">Vérifiez les informations SIV.</p></div>
     <div class="card"><div class="card-title"><i class="fas fa-search"></i> Données SIV</div>
-      <div class="f-row"><div class="f-grp"><label>Plaque d'immatriculation *</label><input type="text" id="vPlaque" value="IJ-789-KL" oninput="fmtPlaque(this)"></div><div class="f-grp"><label>Type</label><select id="vType"><option value="berline">Berline</option><option value="suv">SUV</option><option value="break">Break</option><option value="utilitaire">Utilitaire</option><option value="moto">Moto</option></select></div></div>
+      <div class="f-row"><div class="f-grp"><label>Plaque d'immatriculation *</label><div style="display:flex; gap:8px;"><input type="text" id="vPlaque" value="IJ-789-KL" oninput="fmtPlaque(this)" style="flex:1;"><button type="button" class="btn-sig" style="padding:0 15px; margin:0;" onclick="lookupLicensePlate()" title="Rechercher avec le SIV"><i class="fas fa-search"></i></button></div></div><div class="f-grp"><label>Type</label><select id="vType"><option value="berline">Berline</option><option value="suv">SUV</option><option value="break">Break</option><option value="utilitaire">Utilitaire</option><option value="moto">Moto</option></select></div></div>
       <div class="f-row3"><div class="f-grp"><label>Marque *</label><input type="text" id="vMarque" value="BMW"></div><div class="f-grp"><label>Modèle *</label><input type="text" id="vModele" value="Série 3"></div><div class="f-grp"><label>Année</label><input type="number" id="vAnnee" value="2023"></div></div>
       <div class="f-row3"><div class="f-grp"><label>Couleur *</label><input type="text" id="vCouleur" value="Gris Mineralgrau"></div><div class="f-grp"><label>Énergie</label><select id="vEnergie"><option>Essence</option><option selected>Hybride</option><option>Diesel</option><option>Électrique</option></select></div><div class="f-grp"><label>Transmission</label><select id="vTransmission"><option>Manuelle</option><option selected>Automatique</option></select></div></div>
     </div>
@@ -1232,6 +1232,71 @@ async function initSupabaseEdl() {
     Swal.fire({
       title: 'Erreur',
       text: 'Impossible de charger les détails de la mission : ' + err.message,
+      icon: 'error',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+  }
+}
+
+async function lookupLicensePlate() {
+  const plaque = document.getElementById('vPlaque')?.value || '';
+  if (!plaque) {
+    Swal.fire({
+      title: 'Attention',
+      text: 'Veuillez saisir une plaque d\'immatriculation.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  Swal.fire({
+    title: 'Recherche SIV en cours...',
+    text: 'Identification du véhicule sur la base de données...',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  try {
+    const response = await fetch(`/.netlify/functions/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Erreur lors de l\'identification.');
+    }
+
+    if (data.marque) {
+      if (document.getElementById('vMarque')) document.getElementById('vMarque').value = data.marque;
+      if (document.getElementById('vModele')) document.getElementById('vModele').value = data.modele || '';
+      if (document.getElementById('vAnnee') && data.annee) document.getElementById('vAnnee').value = data.annee;
+      if (document.getElementById('vCouleur') && data.couleur) document.getElementById('vCouleur').value = data.couleur;
+      if (document.getElementById('vVin') && data.vin) document.getElementById('vVin').value = data.vin;
+      
+      // Auto-select fuel type if possible
+      if (data.energie && document.getElementById('vEnergie')) {
+        const option = Array.from(document.getElementById('vEnergie').options)
+          .find(opt => opt.text.toLowerCase().includes(data.energie.toLowerCase()));
+        if (option) option.selected = true;
+      }
+
+      updateRef();
+      updRecap();
+      
+      Swal.fire({
+        title: 'Véhicule identifié ! 🚗',
+        html: `<strong>Marque :</strong> ${data.marque}<br><strong>Modèle :</strong> ${data.modele || '—'}<br><strong>Énergie :</strong> ${data.energie || '—'}`,
+        icon: 'success',
+        confirmButtonColor: 'var(--bordeaux)'
+      });
+    } else {
+      throw new Error('Aucun véhicule trouvé pour cette plaque.');
+    }
+  } catch (err) {
+    Swal.fire({
+      title: 'Identification impossible',
+      text: err.message || 'Le service SIV n\'a pas pu identifier cette plaque. Saisie manuelle requise.',
       icon: 'error',
       confirmButtonColor: 'var(--bordeaux)'
     });
