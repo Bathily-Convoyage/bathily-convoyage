@@ -660,7 +660,15 @@ footer {
         <div class="cfg-step" data-step="2">
           <h3 class="step-h">Identification SIV</h3>
           <p class="step-p">Renseignez la plaque pour identifier votre véhicule automatiquement</p>
-          <div class="f-grp"><label>Plaque d'immatriculation</label><input type="text" id="plaque" placeholder="AB-123-CD" oninput="fmtPlaque(this)" maxlength="9"></div>
+          <div class="f-grp">
+            <label>Plaque d'immatriculation</label>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="plaque" placeholder="AB-123-CD" oninput="fmtPlaque(this)" maxlength="9" style="flex:1;">
+              <button type="button" onclick="lookupDevisLicensePlate()" style="background:var(--bordeaux); color:white; border:none; border-radius:16px; padding:0 18px; cursor:pointer; font-size:0.9rem; transition: background 0.2s;" onmouseover="this.style.background='var(--bordeaux-dark)'" onmouseout="this.style.background='var(--bordeaux)'" title="Rechercher avec le SIV">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
           <div class="siv-box" id="sivBox" style="display:none; background:#F9FAFB; border-radius:16px; padding:16px; margin-bottom:16px;"><div class="siv-lbl"><i class="fas fa-check-circle"></i> Véhicule identifié</div><div id="sivName" style="font-weight:600"></div><div class="siv-specs" style="display:flex; gap:12px; margin-top:8px;"><div><div class="siv-spec-lbl">Année</div><div class="siv-spec-val" id="sivYear">—</div></div><div><div class="siv-spec-lbl">Énergie</div><div class="siv-spec-val" id="sivEnergy">—</div></div><div><div class="siv-spec-lbl">Puissance</div><div class="siv-spec-val" id="sivPower">—</div></div></div></div>
           <button class="np-btn" id="npBtn" onclick="toggleNP()" style="background:none; border:none; color:var(--bordeaux); font-weight:600; cursor:pointer; margin-bottom:12px;"><i class="fas fa-lock-open"></i> Je ne souhaite pas communiquer ma plaque</button>
           <div class="np-form" id="npForm" style="display:none; background:#F9FAFB; border-radius:20px; padding:16px; margin-bottom:16px;">
@@ -812,7 +820,110 @@ footer {
 let S = { step:1, veh:null, immat:'', noPlaque:false, dep:'', arr:'', dist:0, addrDep:'', addrArr:'', mode:'route', cat:'berline', catS:0, pack:'starter', packP:0, opts:{urgence:false,gardiennage:false}, optP:0, date:'', privacy:false };
 const sivDB = {'AB-123-CD':{name:'Renault Clio V',year:'2022',energy:'Essence',power:'130 CV'},'IJ-789-KL':{name:'BMW Série 3',year:'2023',energy:'Hybride',power:'190 CV'},'MN-012-OP':{name:'Tesla Model 3',year:'2023',energy:'Électrique',power:'283 CV'}};
 function selVeh(el,t){ document.querySelectorAll('.v-card').forEach(c=>c.classList.remove('sel')); el.classList.add('sel'); S.veh=t; if(t==='moto'){S.cat='moto';S.catS=0;}else{S.cat='berline';S.catS=0;} updPrice(); }
-function fmtPlaque(inp){ let v=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,''); if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2); if(v.length>6)v=v.slice(0,6)+'-'+v.slice(6); inp.value=v; S.immat=v; const d=sivDB[v]; const box=document.getElementById('sivBox'); if(d){ box.style.display='block'; document.getElementById('sivName').textContent=d.name; document.getElementById('sivYear').textContent=d.year; document.getElementById('sivEnergy').textContent=d.energy; document.getElementById('sivPower').textContent=d.power; } else{ box.style.display='none'; } }
+function fmtPlaque(inp){
+  let v=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2);
+  if(v.length>6)v=v.slice(0,6)+'-'+v.slice(6);
+  inp.value=v;
+  S.immat=v;
+  
+  const d=sivDB[v];
+  const box=document.getElementById('sivBox');
+  if(d){
+    box.style.display='block';
+    document.getElementById('sivName').textContent=d.name;
+    document.getElementById('sivYear').textContent=d.year;
+    document.getElementById('sivEnergy').textContent=d.energy;
+    document.getElementById('sivPower').textContent=d.power;
+    window.lastLookedUpPlate = v;
+  } else {
+    if (!window.lastLookedUpPlate || v !== window.lastLookedUpPlate) {
+      box.style.display='none';
+    }
+  }
+}
+
+async function lookupDevisLicensePlate() {
+  const plaque = document.getElementById('plaque')?.value || '';
+  if (!plaque) {
+    Swal.fire({
+      title: 'Attention',
+      text: 'Veuillez saisir une plaque d\'immatriculation.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  Swal.fire({
+    title: 'Recherche SIV en cours...',
+    text: 'Identification du véhicule sur la base de données...',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  try {
+    const response = await fetch(`/.netlify/functions/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Erreur lors de l\'identification.');
+    }
+
+    if (data.marque) {
+      const box = document.getElementById('sivBox');
+      const nameEl = document.getElementById('sivName');
+      const yearEl = document.getElementById('sivYear');
+      const energyEl = document.getElementById('sivEnergy');
+      const powerEl = document.getElementById('sivPower');
+
+      const carName = `${data.marque} ${data.modele || ''}`.trim();
+      if (nameEl) nameEl.textContent = carName;
+      if (yearEl) yearEl.textContent = data.annee || '—';
+      if (energyEl) energyEl.textContent = data.energie || '—';
+      if (powerEl) powerEl.textContent = data.puissance ? `${data.puissance} CV` : '—';
+
+      if (box) box.style.display = 'block';
+
+      // Enregistrer dans l'objet de devis
+      S.immat = plaque;
+      S.sivInfo = {
+        marque: data.marque,
+        modele: data.modele,
+        annee: data.annee,
+        energie: data.energie,
+        puissance: data.puissance,
+        couleur: data.couleur || ''
+      };
+      
+      const cleanedPlate = plaque.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const formatted = cleanedPlate.length === 7 
+        ? cleanedPlate.slice(0, 2) + '-' + cleanedPlate.slice(2, 5) + '-' + cleanedPlate.slice(5)
+        : plaque;
+      document.getElementById('plaque').value = formatted;
+      S.immat = formatted;
+      window.lastLookedUpPlate = formatted;
+
+      Swal.fire({
+        title: 'Véhicule identifié ! 🚗',
+        html: `<strong>Marque :</strong> ${data.marque}<br><strong>Modèle :</strong> ${data.modele || '—'}<br><strong>Énergie :</strong> ${data.energie || '—'}`,
+        icon: 'success',
+        confirmButtonColor: 'var(--bordeaux)'
+      });
+    } else {
+      throw new Error('Aucun véhicule trouvé pour cette plaque.');
+    }
+  } catch (err) {
+    Swal.fire({
+      title: 'Identification impossible',
+      text: err.message || 'Le service SIV n\'a pas pu identifier cette plaque. Saisie manuelle requise.',
+      icon: 'error',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+  }
+}
 function toggleNP(){ S.noPlaque=!S.noPlaque; document.getElementById('npForm').style.display=S.noPlaque?'block':'none'; document.getElementById('plaque').disabled=S.noPlaque; if(S.noPlaque){ document.getElementById('plaque').value=''; document.getElementById('sivBox').style.display='none'; } document.getElementById('npBtn').innerHTML=S.noPlaque?'<i class="fas fa-lock"></i> Saisir ma plaque':'<i class="fas fa-lock-open"></i> Je ne souhaite pas communiquer ma plaque'; }
 function selMode(el,m){ document.querySelectorAll('.t-mode').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); S.mode=m; updPrice(); }
 function selCat(el,c,s){ document.querySelectorAll('.cat-card').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); S.cat=c; S.catS=s; updPrice(); }
@@ -1004,6 +1115,13 @@ function submitDevis() {
   if (!validateStep6()) return;
   const devisFinal = {
     ...S,
+    vehicule_details: S.noPlaque ? {
+      marque: document.getElementById('np-marque').value,
+      modele: document.getElementById('np-modele').value,
+      annee: document.getElementById('np-annee').value,
+      carburant: document.getElementById('np-carbu').value,
+      valeur: document.getElementById('np-valeur').value
+    } : (S.sivInfo || null),
     coordonnees: {
       prenom: document.getElementById('cli-prenom').value,
       nom: document.getElementById('cli-nom').value,
