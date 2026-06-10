@@ -1486,10 +1486,12 @@ async function initConvoyeurProfile() {
     return;
   }
 
-  list.innerHTML = data.map(c => {
+  window.allConvoyeurs = data;
+
+  list.innerHTML = data.map((c, idx) => {
     const initials = ((c.prenom || '')[0] || '') + ((c.nom || '')[0] || '');
     return `
-    <div class="profile-card" onclick="selectProfile(${JSON.stringify(JSON.stringify(c))})">
+    <div class="profile-card" onclick="selectProfileByIndex(${idx})">
       <div class="profile-ava">${initials.toUpperCase() || '?'}</div>
       <div>
         <div class="profile-info-name">${c.prenom} ${c.nom}</div>
@@ -1500,14 +1502,20 @@ async function initConvoyeurProfile() {
   }).join('');
 }
 
-function selectProfile(jsonStr) {
-  const c = JSON.parse(jsonStr);
+function selectProfile(jsonStrOrObj) {
+  const c = typeof jsonStrOrObj === 'string' ? JSON.parse(jsonStrOrObj) : jsonStrOrObj;
   _currentConvoyeurData = c;
   sessionStorage.setItem('conv_profile', JSON.stringify(c));
   applyProfile(c);
   document.getElementById('convProfileOverlay').classList.add('hidden');
   // Load initial data for this convoyeur
   loadMissions();
+}
+
+function selectProfileByIndex(idx) {
+  if (window.allConvoyeurs && window.allConvoyeurs[idx]) {
+    selectProfile(window.allConvoyeurs[idx]);
+  }
 }
 
 function applyProfile(c) {

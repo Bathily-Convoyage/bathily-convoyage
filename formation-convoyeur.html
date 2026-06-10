@@ -1069,7 +1069,7 @@ async function submitCandidature() {
       }
     }
 
-    const { error } = await sb.from('convoyeurs_candidats').insert([{
+    const { data: newCand, error } = await sb.from('convoyeurs_candidats').insert([{
       prenom: formData.prenom,
       nom: formData.nom,
       email: formData.email,
@@ -1085,13 +1085,22 @@ async function submitCandidature() {
       quiz_attempts: 1,
       last_attempt_at: new Date().toISOString(),
       statut: 'pending'
-    }]);
+    }]).select().single();
 
     if (error) throw new Error(error.message);
 
     document.getElementById('confirmEmail').textContent = formData.email;
     goPage(8);
     Swal.close();
+
+    // Déclenchement de l'envoi d'e-mail
+    if (newCand && newCand.id) {
+      fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trigger: 'candidature_submitted', id: newCand.id })
+      }).catch(err => console.warn("Erreur envoi email candidature:", err));
+    }
 
   } catch (err) {
     Swal.fire({ title: 'Erreur', text: err.message || 'Une erreur est survenue. Veuillez réessayer.', icon: 'error', confirmButtonColor: 'var(--bordeaux)' });

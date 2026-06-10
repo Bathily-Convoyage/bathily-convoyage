@@ -1180,7 +1180,7 @@ function initDashboard() {
     await loadMissions(true); // silent refresh
     // Check for new candidatures
     const client = getSupabase();
-    const { data } = await client.from('missions').select('id, candidatures').eq('statut', 'available');
+    const { data } = await client.from('missions').select('id, candidatures(id)').eq('status', 'available');
     if (data) {
       const total = data.reduce((sum, m) => sum + (m.candidatures ? m.candidatures.length : 0), 0);
       if (total > prev && prev > 0) {
@@ -2606,6 +2606,13 @@ async function approveCandidature(id, email, nom) {
   } else {
     Swal.fire({ title: 'Candidature approuvée !', text: `${nom} peut maintenant se connecter à l'espace convoyeur.`, icon: 'success', confirmButtonColor: 'var(--bordeaux)' });
     loadCandidatures();
+
+    // Déclenchement de l'envoi d'e-mail
+    fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trigger: 'candidature_status_changed', id: id })
+    }).catch(err => console.warn("Erreur envoi email approbation:", err));
   }
 }
 
@@ -2623,13 +2630,21 @@ async function rejectCandidature(id, nom) {
   if (!result.isConfirmed) return;
 
   Swal.fire({ title: 'Mise à jour...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+  const notes = result.value || '';
   const sb = getSupabase();
-  const { error } = await sb.from('convoyeurs_candidats').update({ statut: 'rejected', notes_admin: result.value || '' }).eq('id', id);
+  const { error } = await sb.from('convoyeurs_candidats').update({ statut: 'rejected', notes_admin: notes }).eq('id', id);
   if (error) {
     Swal.fire('Erreur', error.message, 'error');
   } else {
     Swal.fire({ title: 'Candidature refusée', icon: 'info', confirmButtonColor: 'var(--bordeaux)' });
     loadCandidatures();
+
+    // Déclenchement de l'envoi d'e-mail
+    fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trigger: 'candidature_status_changed', id: id, notes: notes })
+    }).catch(err => console.warn("Erreur envoi email refus:", err));
   }
 }
 
