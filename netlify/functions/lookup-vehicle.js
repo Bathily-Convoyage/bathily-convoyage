@@ -61,7 +61,7 @@ exports.handler = async (event, context) => {
     }
 
     // Clé RapidAPI : Utilise la variable Netlify ou la clé de test par défaut
-    const rapidApiKey = process.env.RAPIDAPI_KEY || '52a3036a5fmsh844f4d087cf7176p18fb51jsnd081c211f2cc';
+    const rapidApiKey = process.env.RAPIDAPI_KEY || '52a3036a5fmsh844f4d087cf7176p18fb51jsn0081c211f2cc';
     const host = 'api-siv-systeme-d-immatriculation-des-vehicules.p.rapidapi.com';
 
     console.log(`🔍 Interrogation SIV pour la plaque : ${formattedPlate}`);
