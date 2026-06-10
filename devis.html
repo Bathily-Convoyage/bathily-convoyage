@@ -1314,7 +1314,63 @@ function copyRef() {
     showConfirmButton: false
   });
 }
-function loadFromLocalStorage() { const saved=localStorage.getItem('bathily_devis'); if(!saved)return; try{ const data=JSON.parse(saved); if(data.vehicule){const vehCard=document.querySelector(`.v-card[onclick*="${data.vehicule}"]`);if(vehCard)selVeh(vehCard,data.vehicule);} if(data.immat){const plaqueInput=document.getElementById('plaque');plaqueInput.value=data.immat;fmtPlaque(plaqueInput);} if(data.depart){document.getElementById('depart').value=data.depart;document.getElementById('arrivee').value=data.arrivee;calcDist();} if(data.mode){const modeEl=document.querySelector(`.t-mode[onclick*="${data.mode}"]`);if(modeEl)selMode(modeEl,data.mode);} if(data.categorie){const catMap={berline:0,suv:15,utilitaire:20};const catEl=document.querySelector(`.cat-card[onclick*="${data.categorie}"]`);if(catEl)selCat(catEl,data.categorie,catMap[data.categorie]||0);} if(data.pack){const packPrice={starter:0,serenite:49,excellence:129};const packEl=document.querySelector(`.pck-card[onclick*="${data.pack}"]`);if(packEl)selPack(packEl,data.pack,packPrice[data.pack]);} if(data.options){if(data.options.urgence){const optUrg=document.querySelector('.opt-item[onclick*="urgence"]');if(optUrg)togOpt(optUrg,'urgence');} if(data.options.gardiennage){const optGard=document.querySelector('.opt-item[onclick*="gardiennage"]');if(optGard)togOpt(optGard,'gardiennage');}} if(data.date)document.getElementById('mDate').value=data.date; }catch(e){console.warn(e);} }
+function loadFromLocalStorage() {
+  const saved = localStorage.getItem('bathily_devis');
+  if (!saved) return;
+  try {
+    const data = JSON.parse(saved);
+    if (data.vehicule) {
+      const vehCard = document.querySelector(`.v-card[onclick*="${data.vehicule}"]`);
+      if (vehCard) selVeh(vehCard, data.vehicule);
+      // Auto-advance to Step 2 (SIV) since vehicle type is preloaded from homepage
+      goStep(2);
+    }
+    if (data.immat) {
+      const plaqueInput = document.getElementById('plaque');
+      plaqueInput.value = data.immat;
+      fmtPlaque(plaqueInput);
+    }
+    if (data.depart) {
+      document.getElementById('depart').value = data.depart;
+      document.getElementById('arrivee').value = data.arrivee;
+      // Prefill complete addresses to avoid double-typing
+      const addrDepInput = document.getElementById('addrDep');
+      const addrArrInput = document.getElementById('addrArr');
+      if (addrDepInput) addrDepInput.value = data.depart;
+      if (addrArrInput) addrArrInput.value = data.arrivee;
+      calcDist();
+    }
+    if (data.mode) {
+      const modeEl = document.querySelector(`.t-mode[onclick*="${data.mode}"]`);
+      if (modeEl) selMode(modeEl, data.mode);
+    }
+    if (data.categorie) {
+      const catMap = { berline: 0, suv: 15, utilitaire: 20 };
+      const catEl = document.querySelector(`.cat-card[onclick*="${data.categorie}"]`);
+      if (catEl) selCat(catEl, data.categorie, catMap[data.categorie] || 0);
+    }
+    if (data.pack) {
+      const packPrice = { starter: 0, serenite: 49, excellence: 129 };
+      const packEl = document.querySelector(`.pck-card[onclick*="${data.pack}"]`);
+      if (packEl) selPack(packEl, data.pack, packPrice[data.pack]);
+    }
+    if (data.options) {
+      if (data.options.urgence) {
+        const optUrg = document.querySelector('.opt-item[onclick*="urgence"]');
+        if (optUrg) togOpt(optUrg, 'urgence');
+      }
+      if (data.options.gardiennage) {
+        const optGard = document.querySelector('.opt-item[onclick*="gardiennage"]');
+        if (optGard) togOpt(optGard, 'gardiennage');
+      }
+    }
+    if (data.date) {
+      document.getElementById('mDate').value = data.date;
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+}
 document.getElementById('cbPrivacy').addEventListener('click',function(){ S.privacy=this.classList.contains('chk'); updBtn(); });
 document.getElementById('cbPrivacy').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); this.click(); } });
 function loadClientSession() {
