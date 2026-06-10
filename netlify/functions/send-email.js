@@ -270,6 +270,99 @@ Corps: ${html.substring(0, 300)}...`);
       resultData = { success: true, message: 'Email de notification candidat envoyé.' };
     }
 
+    // ==========================================
+    // 4. ÉVÉNEMENT : ÉTAT DES LIEUX VALIDÉ
+    // ==========================================
+    else if (trigger === 'edl_completed') {
+      const { data: edl, error } = await supabase
+        .from('edls')
+        .select('*, missions(*)')
+        .eq('id', id)
+        .single();
+
+      if (error || !edl) throw new Error(`État des lieux introuvable: ${error?.message}`);
+
+      const mission = edl.missions || {};
+      const typeLabel = edl.type === 'depart' ? 'Départ' : 'Arrivée';
+      
+      const emailTo = edl.email_client || mission.client_email || 'client@email.fr';
+      
+      // Build damages HTML
+      let damagesHtml = '<p>Aucun dommage signalé.</p>';
+      if (edl.dommages && edl.dommages.length > 0) {
+        damagesHtml = '<ul>' + edl.dommages.map(d => `<li><strong>${d.zone}</strong> (${d.type}) : ${d.desc}</li>`).join('') + '</ul>';
+      }
+
+      // Build signatures HTML
+      let signaturesHtml = '';
+      if (edl.signatures) {
+        signaturesHtml = `
+          <h3>Signatures :</h3>
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            ${edl.signatures.convoyeur ? `
+              <div style="flex: 1; min-width: 200px; border: 1px solid #E8E1D9; border-radius: 12px; padding: 10px; background: #fff; text-align: center;">
+                <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #7A2E1A; margin-bottom: 5px;">Convoyeur</div>
+                <img src="${edl.signatures.convoyeur}" style="max-height: 80px; max-width: 100%;" alt="Signature Convoyeur" />
+              </div>
+            ` : ''}
+            ${edl.signatures.client ? `
+              <div style="flex: 1; min-width: 200px; border: 1px solid #E8E1D9; border-radius: 12px; padding: 10px; background: #fff; text-align: center;">
+                <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #7A2E1A; margin-bottom: 5px;">Client</div>
+                <img src="${edl.signatures.client}" style="max-height: 80px; max-width: 100%;" alt="Signature Client" />
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      // Email client HTML
+      const clientHtml = wrapEmailLayout(
+        `Votre État des lieux d'${typeLabel} est disponible`,
+        `<p>Bonjour,</p>
+         <p>Nous vous confirmons la signature et la validation de l'état des lieux de <strong>${typeLabel.toLowerCase()}</strong> pour votre véhicule.</p>
+         <div class="highlight-box">
+           <strong>Référence EDL :</strong> ${edl.reference}<br>
+           <strong>Mission :</strong> ${mission.reference || edl.reference.split('-').slice(1, -2).join('-') || '—'}<br>
+           <strong>Type :</strong> État des lieux de ${typeLabel.toLowerCase()}
+         </div>
+         <h3>Informations véhicule & trajet :</h3>
+         <ul class="meta-list">
+           <li><span>Kilométrage relevé :</span> <strong>${edl.kilometrage} km</strong></li>
+           <li><span>Niveau de carburant :</span> <strong>${edl.niveau_carburant}%</strong></li>
+           <li><span>État général :</span> <strong>${edl.conforme ? 'Conforme (Aucun défaut bloquant)' : 'Non-conforme ou réserves signalées'}</strong></li>
+         </ul>
+         <h3>Dommages et anomalies signalés :</h3>
+         ${damagesHtml}
+         ${signaturesHtml}
+         <p>Cet e-mail fait office de reçu contradictoire d'état des lieux. Le document complet au format PDF imprimable est disponible dans votre espace client.</p>
+         <p style="text-align: center;">
+           <a href="https://bathily-convoyage.netlify.app/dashboard-client.html" class="btn">Accéder à mon Espace Client</a>
+         </p>`
+      );
+
+      // Email Admin HTML
+      const adminHtml = wrapEmailLayout(
+        `État des lieux d'${typeLabel} complété - ${edl.reference}`,
+        `<p>Bonjour l'administrateur,</p>
+         <p>Un état des lieux de <strong>${typeLabel.toLowerCase()}</strong> vient d'être validé et signé par le convoyeur <strong>${edl.convoyeur_nom}</strong> pour la mission <strong>${mission.reference || ''}</strong>.</p>
+         <div class="highlight-box">
+           <strong>Référence EDL :</strong> ${edl.reference}<br>
+           <strong>Convoyeur :</strong> ${edl.convoyeur_nom}<br>
+           <strong>Kilométrage :</strong> ${edl.kilometrage} km · <strong>Carburant :</strong> ${edl.niveau_carburant}%
+         </div>
+         <h3>Anomalies / Dommages :</h3>
+         ${damagesHtml}
+         ${signaturesHtml}
+         <p style="text-align: center;">
+           <a href="https://bathily-convoyage.netlify.app/dashboard-admin.html" class="btn">Accéder au panel Admin</a>
+         </p>`
+      );
+
+      await sendEmail({ to: emailTo, subject: `Bathily Convoyage - État des lieux ${typeLabel} - Réf: ${edl.reference}`, html: clientHtml });
+      await sendEmail({ to: ADMIN_EMAIL, subject: `[ADMIN] EDL ${typeLabel} complété - Réf: ${edl.reference}`, html: adminHtml });
+      resultData = { success: true, message: 'Emails état des lieux envoyés.' };
+    }
+
     return {
       statusCode: 200,
       headers,
