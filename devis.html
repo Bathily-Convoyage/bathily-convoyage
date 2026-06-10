@@ -606,7 +606,7 @@ footer {
     <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</div>
     <div class="nav-links">
       <a href="index.html">Accueil</a>
-      <a href="index.html#services">Services</a>
+      <a href="index.html#tarifs">Tarifs</a>
       <a href="devis.html" class="active">Devis</a>
       <a href="contact.html">Contact</a>
       <a href="dashboard-client.html" class="btn-outline">Espace client</a>
@@ -766,7 +766,19 @@ footer {
           <div class="ps-line"><span>Catégorie</span><span id="psCat">—</span></div>
           <div class="ps-line"><span>Pack</span><span id="psPack">Starter</span></div>
           <div class="ps-line"><span>Options</span><span id="psOpts">—</span></div>
+          <div class="ps-line" id="psPromoRow" style="display:none; color: var(--success); font-weight: 600;"><span>Réduction (10%)</span><span id="psPromoDiscount">-0 €</span></div>
           <div class="ps-line ps-total"><span>Total HT</span><span id="psTotal">0 €</span></div>
+        </div>
+        <!-- Code Promo -->
+        <div class="promo-code-box" style="margin-top: 16px; border-top: 1px dashed var(--border-light); padding-top: 16px;">
+          <div class="f-grp" style="margin-bottom: 8px;">
+            <label style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--gray-mid);">Code Promo</label>
+            <div style="display: flex; gap: 8px; margin-top: 4px;">
+              <input type="text" id="promoCode" placeholder="Ex: HELLO10" style="padding: 8px 12px; border-radius: 12px; font-size: 0.8rem; border: 1px solid var(--border-light); text-transform: uppercase; flex: 1;">
+              <button type="button" onclick="applyPromoCode()" style="background: var(--bordeaux); color: white; border: none; border-radius: 12px; padding: 0 16px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: background 0.2s;">Appliquer</button>
+            </div>
+          </div>
+          <div id="promoFeedback" style="font-size: 0.75rem; font-weight: 600; display: none; margin-top: 4px;"></div>
         </div>
         <div class="ps-recap" id="psRecap" style="display:none; margin-top:16px;">
           <div class="ps-recap-title">Récapitulatif</div>
@@ -787,7 +799,7 @@ footer {
   <div class="container">
     <div class="footer-grid">
       <div class="footer-about"><div class="footer-logo">Bathily-Convoyage<span>.</span></div><p>La solution digitale de convoyage automobile & moto avec suivi en temps réel en France.</p></div>
-      <div class="footer-links"><h4>Navigation</h4><a href="index.html">Accueil</a><a href="index.html#services">Services</a><a href="devis.html">Devis</a><a href="contact.html">Contact</a></div>
+      <div class="footer-links"><h4>Navigation</h4><a href="index.html">Accueil</a><a href="index.html#services">Services</a><a href="index.html#tarifs">Tarifs</a><a href="devis.html">Devis</a><a href="contact.html">Contact</a></div>
       <div class="footer-links"><h4>Espaces</h4><a href="dashboard-client.html">Espace client</a><a href="dashboard-convoyeur.html">Espace convoyeur</a><a href="dashboard-admin.html">Espace admin</a></div>
       <div class="footer-links"><h4>Contact</h4><a href="mailto:contact@bathily-convoyage.fr">contact@bathily-convoyage.fr</a><span>France entière</span></div>
     </div>
@@ -817,7 +829,7 @@ footer {
 
 <script>
 // ========== LOGIQUE MÉTIER (inchangée) ==========
-let S = { step:1, veh:null, immat:'', noPlaque:false, dep:'', arr:'', dist:0, addrDep:'', addrArr:'', mode:'route', cat:'berline', catS:0, pack:'starter', packP:0, opts:{urgence:false,gardiennage:false}, optP:0, date:'', privacy:false };
+let S = { step:1, veh:null, immat:'', noPlaque:false, dep:'', arr:'', dist:0, addrDep:'', addrArr:'', mode:'route', cat:'berline', catS:0, pack:'starter', packP:0, opts:{urgence:false,gardiennage:false}, optP:0, date:'', privacy:false, promoApplied:false, promoCode:'', discount:0 };
 const sivDB = {'AB-123-CD':{name:'Renault Clio V',year:'2022',energy:'Essence',power:'130 CV'},'IJ-789-KL':{name:'BMW Série 3',year:'2023',energy:'Hybride',power:'190 CV'},'MN-012-OP':{name:'Tesla Model 3',year:'2023',energy:'Électrique',power:'283 CV'}};
 function selVeh(el,t){ document.querySelectorAll('.v-card').forEach(c=>c.classList.remove('sel')); el.classList.add('sel'); S.veh=t; if(t==='moto'){S.cat='moto';S.catS=0;}else{S.cat='berline';S.catS=0;} updPrice(); }
 function fmtPlaque(inp){
@@ -930,7 +942,77 @@ function selCat(el,c,s){ document.querySelectorAll('.cat-card').forEach(x=>x.cla
 function selPack(el,p,pr){ document.querySelectorAll('.pck-card').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); S.pack=p; S.packP=pr; updPrice(); }
 function togOpt(el,o){ el.classList.toggle('chk'); S.opts[o]=!S.opts[o]; updPrice(); }
 function plateauForfait(km){ if(km<=100)return 350; if(km<=300)return 550; if(km<=500)return 750; return 1100; }
-function updPrice(){ const isMoto=(S.veh==='moto'); let base=0; if(S.dist>0){ if(S.mode==='route'){ const rate=isMoto?0.85:1.0; base=Math.max(S.dist*rate,isMoto?100:120); } else { base=plateauForfait(S.dist); } } let sub=isMoto?base:base*(1+S.catS/100); sub+=S.packP; let optP=0; if(S.opts.gardiennage)optP+=100; if(S.opts.urgence)sub*=1.30; S.optP=optP; const total=Math.round(sub+optP); document.getElementById('psNum').innerHTML=total+'<em>€</em>'; document.getElementById('psTotal').textContent=total+' €'; document.getElementById('psTrajet').textContent=S.dist?S.dist+'km · '+Math.round(base)+'€':'—'; const cl={berline:'Berline',suv:'SUV +15%',utilitaire:'Utilitaire +20%'}; document.getElementById('psCat').textContent=isMoto?'Moto':(cl[S.cat]||'—'); const packLabels={starter:'Starter',serenite:'Sérénité +49€',excellence:'Excellence +129€'}; document.getElementById('psPack').textContent=packLabels[S.pack]||'—'; const optsList=[]; if(S.opts.urgence)optsList.push('Urgence +30%'); if(S.opts.gardiennage)optsList.push('Gardiennage +100€'); document.getElementById('psOpts').textContent=optsList.length?optsList.join(', '):'—'; updBtn(); if(S.step>=3)updSidebar(); }
+function updPrice(){
+  const isMoto=(S.veh==='moto');
+  let base=0;
+  if(S.dist>0){
+    if(S.mode==='route'){
+      const rate=isMoto?0.85:1.0;
+      base=Math.max(S.dist*rate,isMoto?100:120);
+    } else {
+      base=plateauForfait(S.dist);
+    }
+  }
+  let sub=isMoto?base:base*(1+S.catS/100);
+  sub+=S.packP;
+  let optP=0;
+  if(S.opts.gardiennage)optP+=100;
+  if(S.opts.urgence)sub*=1.30;
+  S.optP=optP;
+  let total=Math.round(sub+optP);
+  
+  if (S.promoApplied && S.promoCode === 'HELLO10') {
+    S.discount = Math.round(total * 0.10);
+    total = total - S.discount;
+    document.getElementById('psPromoDiscount').textContent = `-${S.discount} €`;
+  } else {
+    S.discount = 0;
+  }
+  
+  document.getElementById('psNum').innerHTML=total+'<em>€</em>';
+  document.getElementById('psTotal').textContent=total+' €';
+  document.getElementById('psTrajet').textContent=S.dist?S.dist+'km · '+Math.round(base)+'€':'—';
+  const cl={berline:'Berline',suv:'SUV +15%',utilitaire:'Utilitaire +20%'};
+  document.getElementById('psCat').textContent=isMoto?'Moto':(cl[S.cat]||'—');
+  const packLabels={starter:'Starter',serenite:'Sérénité +49€',excellence:'Excellence +129€'};
+  document.getElementById('psPack').textContent=packLabels[S.pack]||'—';
+  const optsList=[];
+  if(S.opts.urgence)optsList.push('Urgence +30%');
+  if(S.opts.gardiennage)optsList.push('Gardiennage +100€');
+  document.getElementById('psOpts').textContent=optsList.length?optsList.join(', '):'—';
+  updBtn();
+  if(S.step>=3)updSidebar();
+}
+
+function applyPromoCode() {
+  const codeInput = document.getElementById('promoCode');
+  const feedback = document.getElementById('promoFeedback');
+  const code = codeInput.value.trim().toUpperCase();
+  
+  if (!code) {
+    feedback.textContent = "Veuillez entrer un code.";
+    feedback.style.color = "var(--warning)";
+    feedback.style.display = "block";
+    return;
+  }
+  
+  if (code === 'HELLO10') {
+    S.promoApplied = true;
+    S.promoCode = code;
+    feedback.textContent = "Code HELLO10 appliqué : -10% sur votre devis !";
+    feedback.style.color = "var(--success)";
+    feedback.style.display = "block";
+    document.getElementById('psPromoRow').style.display = 'flex';
+  } else {
+    S.promoApplied = false;
+    S.promoCode = '';
+    feedback.textContent = "Code promo invalide.";
+    feedback.style.color = "var(--bordeaux)";
+    feedback.style.display = "block";
+    document.getElementById('psPromoRow').style.display = 'none';
+  }
+  updPrice();
+}
 function updSidebar(){ const d=document.getElementById('mDate').value; S.date=d; document.getElementById('recType').textContent=S.veh==='moto'?'Moto':'Automobile'; document.getElementById('recDist').textContent=S.dist?S.dist+' km':'—'; document.getElementById('recMode').textContent=S.mode==='route'?'Route':'Plateau'; document.getElementById('recDate').textContent=d||'—'; }
 function updBtn(){ const total=parseInt(document.getElementById('psTotal').textContent)||0; document.getElementById('bVal').disabled=(total===0 || S.step<6 || !S.privacy); }
 function goStep(n){ document.querySelectorAll('.cfg-step').forEach(s=>s.classList.remove('active')); document.querySelector(`.cfg-step[data-step="${n}"]`).classList.add('active'); for(let i=1;i<=6;i++){ const d=document.getElementById('d'+i); d.classList.remove('active','done'); if(i<n)d.classList.add('done'); else if(i===n)d.classList.add('active'); if(i<6){const l=document.getElementById('l'+i);if(l)l.classList.toggle('done',i<n);} } if(n===5){ const isMoto=(S.veh==='moto'); document.getElementById('catBlock').style.display=isMoto?'none':'block'; document.getElementById('motoBadge').style.display=isMoto?'block':'none'; } if(n>=3)document.getElementById('psRecap').style.display='block'; document.getElementById('bPrev').disabled=(n===1); const bn=document.getElementById('bNext'); if(n===6)bn.style.display='none'; else{bn.style.display=''; bn.innerHTML=(n===5)?'Finaliser <i class="fas fa-arrow-right"></i>':'Suivant <i class="fas fa-arrow-right"></i>';} S.step=n; updPrice(); document.querySelector('.config-wrapper').scrollIntoView({behavior:'smooth',block:'start'}); }
@@ -1201,7 +1283,9 @@ function submitDevis() {
 }
 function resetAndNewDevis() {
   document.getElementById('modalOverlay').classList.remove('open');
-  S = { step:1, veh:null, immat:'', noPlaque:false, dep:'', arr:'', dist:0, addrDep:'', addrArr:'', mode:'route', cat:'berline', catS:0, pack:'starter', packP:0, opts:{urgence:false,gardiennage:false}, optP:0, date:'', privacy:false };
+  S = { step:1, veh:null, immat:'', noPlaque:false, dep:'', arr:'', dist:0, addrDep:'', addrArr:'', mode:'route', cat:'berline', catS:0, pack:'starter', packP:0, opts:{urgence:false,gardiennage:false}, optP:0, date:'', privacy:false, promoApplied:false, promoCode:'', discount:0 };
+  document.getElementById('promoFeedback').style.display = 'none';
+  document.getElementById('psPromoRow').style.display = 'none';
   document.querySelectorAll('input, select, textarea').forEach(f=>{if(f.type!=='button'&&f.type!=='submit')f.value='';});
   document.getElementById('plaque').disabled=false;
   document.getElementById('npForm').style.display='none';
@@ -1250,6 +1334,16 @@ function loadClientSession() {
 }
 loadFromLocalStorage();
 loadClientSession();
+
+const urlParams = new URLSearchParams(window.location.search);
+const paramMode = urlParams.get('mode');
+if (paramMode === 'route' || paramMode === 'plateau') {
+  setTimeout(() => {
+    const modeCard = document.querySelector(`.t-mode[onclick*="${paramMode}"]`);
+    if (modeCard) selMode(modeCard, paramMode);
+  }, 150);
+}
+
 setTimeout(()=>{ updPrice(); },100);
 function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
 window.addEventListener('scroll',()=>document.getElementById('hdr')?.classList.toggle('scrolled',scrollY>50));
