@@ -89,6 +89,30 @@ exports.handler = async (event, context) => {
     }
 
     console.log(`✅ Mission ${reference} marquée comme payée (status: paid).`);
+
+    // Déclencher l'e-mail automatique de succès de paiement
+    try {
+      const siteUrl = process.env.URL || 'https://bathily-convoyage.netlify.app';
+      console.log(`📨 Déclenchement de la notification d'e-mail de paiement à : ${siteUrl}/.netlify/functions/send-email`);
+      const emailResponse = await fetch(`${siteUrl}/.netlify/functions/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          trigger: 'payment_success',
+          id: missionId
+        })
+      });
+      if (emailResponse.ok) {
+        console.log(`✉️ E-mail de confirmation de paiement déclenché avec succès.`);
+      } else {
+        const text = await emailResponse.text();
+        console.warn(`⚠️ Échec du déclenchement d'e-mail (Statut ${emailResponse.status}) : ${text}`);
+      }
+    } catch (emailErr) {
+      console.error("❌ Erreur de déclenchement d'e-mail :", emailErr.message);
+    }
   }
 
   // Renvoyer un statut de succès à Stripe pour acquitter la réception du webhook

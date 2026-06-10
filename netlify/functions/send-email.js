@@ -363,6 +363,67 @@ Corps: ${html.substring(0, 300)}...`);
       resultData = { success: true, message: 'Emails état des lieux envoyés.' };
     }
 
+    // ==========================================
+    // 5. ÉVÉNEMENT : PAIEMENT VALIDÉ
+    // ==========================================
+    else if (trigger === 'payment_success') {
+      const { data: mission, error } = await supabase
+        .from('missions')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error || !mission) throw new Error(`Mission introuvable: ${error?.message}`);
+
+      const emailTo = mission.client_email || 'client@email.fr';
+      const priceHt = parseFloat(mission.montant_ht) || 0;
+      const priceTtc = priceHt * 1.20;
+
+      // Email client HTML
+      const clientHtml = wrapEmailLayout(
+        "Votre paiement a été validé ! 🎉",
+        `<p>Bonjour ${mission.client_nom.split(' ')[0] || ''},</p>
+         <p>Nous vous remercions pour votre règlement. Votre paiement a bien été traité avec succès et votre mission est désormais confirmée.</p>
+         <div class="highlight-box">
+           <strong>Référence Mission :</strong> ${mission.reference}<br>
+           <strong>Montant payé :</strong> ${priceTtc.toFixed(2)} € TTC (TVA 20% incluse)
+         </div>
+         <h3>Récapitulatif de la mission :</h3>
+         <ul class="meta-list">
+           <li><span>Véhicule :</span> <strong>${mission.vehicule}</strong></li>
+           <li><span>Départ :</span> <strong>${mission.depart}</strong></li>
+           <li><span>Arrivée :</span> <strong>${mission.arrivee}</strong></li>
+           <li><span>Mode de transport :</span> <strong>${mission.mode_transport === 'plateau' ? 'Plateau' : 'Par la route'}</strong></li>
+           <li><span>Pack choisi :</span> <strong>${mission.pack || 'Starter'}</strong></li>
+         </ul>
+         <p>Le convoyeur affecté prendra en charge votre véhicule selon les modalités convenues. Vous pouvez suivre l'état de votre mission en temps réel sur votre tableau de bord client.</p>
+         <p style="text-align: center;">
+           <a href="https://bathily-convoyage.netlify.app/dashboard-client.html" class="btn">Accéder à mon Espace Client</a>
+         </p>`
+      );
+
+      // Email Admin HTML
+      const adminHtml = wrapEmailLayout(
+        `Paiement reçu pour la mission ${mission.reference}`,
+        `<p>Bonjour l'administrateur,</p>
+         <p>Le paiement pour la mission <strong>${mission.reference}</strong> a été validé via Stripe.</p>
+         <div class="highlight-box">
+           <strong>Référence :</strong> ${mission.reference}<br>
+           <strong>Client :</strong> ${mission.client_nom}<br>
+           <strong>Montant :</strong> ${priceTtc.toFixed(2)} € TTC (${priceHt.toFixed(2)} € HT)<br>
+           <strong>Convoyeur assigné :</strong> ${mission.convoyeur_nom || 'Non assigné'}
+         </div>
+         <p>Le paiement étant reçu, la mission peut démarrer en toute sécurité.</p>
+         <p style="text-align: center;">
+           <a href="https://bathily-convoyage.netlify.app/dashboard-admin.html" class="btn">Accéder au panel Admin</a>
+         </p>`
+      );
+
+      await sendEmail({ to: emailTo, subject: `Bathily Convoyage - Confirmation de paiement ${mission.reference}`, html: clientHtml });
+      await sendEmail({ to: ADMIN_EMAIL, subject: `[ADMIN] Paiement reçu pour la mission ${mission.reference}`, html: adminHtml });
+      resultData = { success: true, message: 'Emails paiement validé envoyés.' };
+    }
+
     return {
       statusCode: 200,
       headers,

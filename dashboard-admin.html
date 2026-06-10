@@ -1431,6 +1431,7 @@ function confirmDevis(id) {
           const missionData = {
             reference: devis.reference.replace('DEV', 'BC'),
             client_nom: `${devis.client_prenom || ''} ${devis.client_nom || ''}`.trim() || 'Client',
+            client_email: devis.client_email || null,
             depart: devis.depart,
             arrivee: devis.arrivee,
             vehicule: devis.vehicule,
