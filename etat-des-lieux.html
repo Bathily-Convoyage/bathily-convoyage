@@ -637,6 +637,9 @@ canvas {
   .pb-lbl { display: none; }
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -834,6 +837,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   initPhotoSlots();
   updRecap();
   loadDraft();
+  initSupabaseEdl();
   setInterval(autoSave, 30000);
   window.addEventListener('beforeunload', (e) => { if (hasUnsavedChanges()) e.preventDefault(); });
 });
@@ -842,6 +846,7 @@ function hasUnsavedChanges() { return true; }
 function autoSave() { saveDraft(); showToast('Brouillon sauvegardé'); }
 function saveDraft() {
   const draft = {
+    mission_id: new URLSearchParams(window.location.search).get('mission_id') || '',
     step:STATE.step, edlType:STATE.edlType, photoExt:STATE.photoExt, photoInt:STATE.photoInt, dommages:STATE.dommages,
     sigConvDone:STATE.sigConvDone, sigCliDone:STATE.sigCliDone, fuelValue:STATE.fuelValue,
     mRef:document.getElementById('mRef')?.value, mDate:document.getElementById('mDate')?.value,
@@ -862,6 +867,12 @@ function loadDraft() {
   if (!saved) return;
   try {
     const d = JSON.parse(saved);
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlMissionId = urlParams.get('mission_id');
+    if (urlMissionId && d.mission_id !== urlMissionId) {
+      localStorage.removeItem('bathily_edl_draft');
+      return;
+    }
     if (d.edlType) setEdlType(d.edlType);
     Object.keys(d).forEach(key => {
       const el = document.getElementById(key);
@@ -1153,7 +1164,88 @@ function saveSig(canvasId, doneId, dateId) {
 }
 function updFuel(v){ STATE.fuelValue = v; document.getElementById('fuelVal').innerHTML = v+'%'; }
 function fmtPlaque(inp){ let v=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,''); if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2); if(v.length>6)v=v.slice(0,6)+'-'+v.slice(6); inp.value=v; }
-function updateRef(){ const ref=document.getElementById('mRef')?.value; if(ref) document.getElementById('topRef').innerHTML = ref+' · BMW Série 3 · IJ-789-KL'; }
+
+let _supabaseClient = null;
+function getSupabase() {
+  if (!_supabaseClient) {
+    _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  }
+  return _supabaseClient;
+}
+
+async function initSupabaseEdl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const missionId = urlParams.get('mission_id');
+  const typeParam = urlParams.get('type');
+
+  if (typeParam) {
+    setEdlType(typeParam);
+  }
+
+  if (!missionId) return;
+
+  // Show Loading indicator
+  Swal.fire({
+    title: 'Chargement de la mission...',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  try {
+    const client = getSupabase();
+    const { data: mission, error } = await client.from('missions').select('*').eq('id', missionId).single();
+
+    if (error || !mission) {
+      throw new Error(error?.message || "Mission introuvable");
+    }
+
+    if (document.getElementById('mRef')) {
+      document.getElementById('mRef').value = mission.reference;
+    }
+    if (document.getElementById('mDepart')) document.getElementById('mDepart').value = mission.depart || '';
+    if (document.getElementById('mArrivee')) document.getElementById('mArrivee').value = mission.arrivee || '';
+    if (document.getElementById('mConvoyeur')) document.getElementById('mConvoyeur').value = mission.convoyeur_nom || 'M. Bathily';
+    if (document.getElementById('cNom')) document.getElementById('cNom').value = mission.client_nom || 'Client';
+    
+    // Retrieve client details to extract email/phone if possible
+    if (mission.client_email && document.getElementById('cEmail')) {
+      document.getElementById('cEmail').value = mission.client_email;
+      document.getElementById('emailCli').value = mission.client_email;
+    }
+
+    if (mission.vehicule) {
+      const spaceIdx = mission.vehicule.indexOf(' ');
+      if (spaceIdx > 0) {
+        if (document.getElementById('vMarque')) document.getElementById('vMarque').value = mission.vehicule.substring(0, spaceIdx).trim();
+        if (document.getElementById('vModele')) document.getElementById('vModele').value = mission.vehicule.substring(spaceIdx).trim();
+      } else {
+        if (document.getElementById('vMarque')) document.getElementById('vMarque').value = mission.vehicule;
+      }
+    }
+
+    updateRef();
+    updRecap();
+    Swal.close();
+  } catch (err) {
+    Swal.fire({
+      title: 'Erreur',
+      text: 'Impossible de charger les détails de la mission : ' + err.message,
+      icon: 'error',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+  }
+}
+
+function updateRef(){
+  const ref = document.getElementById('mRef')?.value || '—';
+  const marque = document.getElementById('vMarque')?.value || '';
+  const modele = document.getElementById('vModele')?.value || '';
+  const plaque = document.getElementById('vPlaque')?.value || '';
+  document.getElementById('topRef').innerHTML = `${ref} · ${marque} ${modele} · ${plaque}`;
+}
+
 function updRecap(){
   document.getElementById('recRef').innerHTML = document.getElementById('mRef')?.value || '—';
   document.getElementById('recType').innerHTML = STATE.edlType==='depart'?'Départ':'Arrivée';
@@ -1167,17 +1259,108 @@ function updRecap(){
   document.getElementById('recSigConv').innerHTML = STATE.sigConvDone ? 'Signée' : 'En attente';
   document.getElementById('recSigCli').innerHTML = STATE.sigCliDone ? 'Signée' : 'En attente';
 }
-function validateEdl(){
+
+async function validateEdl(){
   if(!STATE.sigConvDone || !STATE.sigCliDone){ showToast('Les deux signatures sont requises', 'error'); return; }
   if(STATE.photoExt<5 || STATE.photoInt<5){ showToast('10 photos obligatoires', 'error'); return; }
-  const ref = 'EDL-2025-'+(document.getElementById('mRef')?.value||'0847')+'-'+(STATE.edlType==='depart'?'DEP':'ARR');
+  
+  const ref = 'EDL-'+(document.getElementById('mRef')?.value||'0847')+'-'+(STATE.edlType==='depart'?'DEP':'ARR');
   document.getElementById('edlRef').innerHTML = ref;
-  document.getElementById('successFinal').classList.add('show');
-  document.getElementById('finalNav').style.display = 'none';
-  window.scrollTo({top:document.getElementById('successFinal').offsetTop-80,behavior:'smooth'});
-  saveDraft();
-  localStorage.removeItem('bathily_edl_draft');
-  showToast('État des lieux validé avec succès !');
+  
+  // Show Loading indicator
+  Swal.fire({
+    title: 'Validation de l\'état des lieux...',
+    text: 'Sauvegarde des données et envoi des notifications en cours.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const missionId = urlParams.get('mission_id') || null;
+    const client = getSupabase();
+    
+    // Convert signatures to base64
+    const sigConvCanvas = document.getElementById('sigConv');
+    const sigCliCanvas = document.getElementById('sigCli');
+    const sigConvBase64 = sigConvCanvas ? sigConvCanvas.toDataURL() : null;
+    const sigCliBase64 = sigCliCanvas ? sigCliCanvas.toDataURL() : null;
+
+    // Collect documents states
+    const documentStates = [];
+    document.querySelectorAll('#docGrid .doc-item').forEach(item => {
+      const label = item.querySelector('.doc-lbl')?.textContent || '';
+      const stateBtn = item.querySelector('.doc-btn.ok') ? 'OK' : (item.querySelector('.doc-btn.nok') ? 'NOK' : 'N/A');
+      documentStates.push({ label, state: stateBtn });
+    });
+
+    const edlData = {
+      mission_id: missionId,
+      reference: ref,
+      type: STATE.edlType,
+      convoyeur_nom: document.getElementById('mConvoyeur')?.value || 'M. Bathily',
+      permis: document.getElementById('mPermis')?.value || '',
+      date_heure: new Date(document.getElementById('mDate')?.value || new Date()).toISOString(),
+      kilometrage: parseInt(document.getElementById('vKm')?.value) || 0,
+      niveau_carburant: parseInt(STATE.fuelValue) || 0,
+      photos: { ext_count: STATE.photoExt, int_count: STATE.photoInt },
+      dommages: STATE.dommages,
+      documents: documentStates,
+      observations: document.getElementById('obsGenerales')?.value || '',
+      email_client: document.getElementById('emailCli')?.value || document.getElementById('cEmail')?.value || '',
+      conforme: document.querySelectorAll('.doc-btn.nok').length === 0,
+      signatures: { convoyeur: sigConvBase64, client: sigCliBase64 }
+    };
+
+    // Insert into Supabase
+    const { data: insertedEdl, error: insertError } = await client.from('edls')
+      .insert([edlData])
+      .select()
+      .single();
+
+    if (insertError) {
+      throw new Error(insertError.message);
+    }
+
+    // Call Netlify send-email function
+    const emailResponse = await fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        trigger: 'edl_completed',
+        id: insertedEdl.id
+      })
+    });
+
+    if (!emailResponse.ok) {
+      console.warn("L'email n'a pas pu être envoyé, mais l'EDL est enregistré.");
+    }
+
+    Swal.fire({
+      title: 'État des lieux validé ! 🎉',
+      text: 'L\'état des lieux a été enregistré en base de données et envoyé par e-mail au client.',
+      icon: 'success',
+      confirmButtonText: 'Fermer',
+      confirmButtonColor: 'var(--bordeaux)'
+    }).then(() => {
+      document.getElementById('successFinal').classList.add('show');
+      document.getElementById('finalNav').style.display = 'none';
+      window.scrollTo({top:document.getElementById('successFinal').offsetTop-80,behavior:'smooth'});
+      localStorage.removeItem('bathily_edl_draft');
+    });
+
+  } catch (err) {
+    Swal.fire({
+      title: 'Erreur',
+      text: 'Impossible d\'enregistrer l\'état des lieux : ' + err.message,
+      icon: 'error',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+  }
 }
 function openModal(id){ const el=document.getElementById(id); if(el) el.style.display='flex'; }
 function closeModal(id){ const el=document.getElementById(id); if(el) el.style.display='none'; }

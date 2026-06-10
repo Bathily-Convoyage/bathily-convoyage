@@ -1427,7 +1427,7 @@ body {
     <h3 class="modal-h">État des <em>lieux</em></h3>
     <p class="modal-sub">Accès rapide à l'onglet état des lieux complet</p>
     <div class="modal-btns">
-      <button class="btn-red" onclick="closeModal('modalEdl'); showTab('edl', null);"><i class="fas fa-camera"></i> Ouvrir l'EDL complet</button>
+      <button class="btn-red" onclick="closeModal('modalEdl'); window.location.href='etat-des-lieux.html';"><i class="fas fa-camera"></i> Ouvrir l'EDL complet</button>
       <button class="btn-outline" onclick="closeModal('modalEdl')">Fermer</button>
     </div>
   </div>
@@ -1706,12 +1706,12 @@ function loadMissions() {
         if (m.status === 'planned') {
           actionsHtml = `
             <button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i> Démarrer</button>
-            <button class="btn-sm btn-sm-ghost" onclick="openModal('modalEdl')"><i class="fas fa-camera"></i> EDL</button>
+            <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?mission_id=${m.id}&type=depart'"><i class="fas fa-camera"></i> EDL Départ</button>
           `;
         } else if (m.status === 'in_progress') {
           actionsHtml = `
             <button class="btn-sm btn-sm-red" onclick="window.location.href='gps-emitter.html'"><i class="fas fa-map-marker-alt"></i> GPS</button>
-            <button class="btn-sm btn-sm-ghost" onclick="openModal('modalEdl')"><i class="fas fa-camera"></i> EDL</button>
+            <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?mission_id=${m.id}&type=arrivee'"><i class="fas fa-flag-checkered"></i> EDL Arrivée</button>
             <button class="btn-sm btn-sm-green" onclick="confirmDelivery('${m.id}')"><i class="fas fa-check"></i> Terminer</button>
           `;
         } else {
