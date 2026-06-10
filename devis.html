@@ -1060,6 +1060,15 @@ function submitDevis() {
       }
       document.getElementById('modalOverlay').classList.add('open');
       console.log('Devis inséré avec succès', data);
+
+      // Déclenchement de l'envoi d'e-mail
+      if (data && data[0] && data[0].id) {
+        fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trigger: 'devis_created', id: data[0].id })
+        }).catch(err => console.warn("Erreur envoi email devis:", err));
+      }
     }
   })
   .catch(err => {
