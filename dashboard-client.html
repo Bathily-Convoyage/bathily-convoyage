@@ -803,6 +803,7 @@ body {
   .qa-grid { grid-template-columns: 1fr; }
   .topbar-center { display: none; }
 }
+.clickable-card { cursor: pointer; }
 </style>
 </head>
 <body>
@@ -1020,6 +1021,12 @@ body {
 </div>
 
 <!-- Modal véhicule -->
+<div class="modal-overlay" id="modalMissionDetails"><div class="modal-box" style="max-width:700px;"><button class="modal-close" onclick="closeModal('modalMissionDetails')"><i class="fas fa-times"></i></button><h3 class="modal-h">Détails de la <em>mission</em></h3>
+<div class="f-row"><div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly style="background:#f5f5f5; cursor:not-allowed;"></div><div class="f-grp"><label>Statut</label><input type="text" id="md-status" readonly style="background:#f5f5f5; cursor:not-allowed;"></div></div>
+<div class="f-row"><div class="f-grp"><label>Départ</label><input type="text" id="md-depart" readonly style="background:#f5f5f5; cursor:not-allowed;"></div><div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee" readonly style="background:#f5f5f5; cursor:not-allowed;"></div></div>
+<div class="f-row"><div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule" readonly style="background:#f5f5f5; cursor:not-allowed;"></div><div class="f-grp"><label>Montant HT (€)</label><input type="number" id="md-price" readonly style="background:#f5f5f5; cursor:not-allowed; font-weight:bold; color:var(--bordeaux);"></div></div>
+<div class="modal-btns"><button class="btn-outline" onclick="closeModal('modalMissionDetails')">Fermer</button></div></div></div>
+
 <div class="modal-overlay" id="modalVehicule">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal('modalVehicule')"><i class="fas fa-times"></i></button>
@@ -1600,7 +1607,7 @@ function renderClientMissions(containerId, missions, showAll) {
       ? `<button class="btn-sm btn-sm-red" onclick="payMission('${m.id}')" style="background:#2ecc71; color:white; border:none;"><i class="fas fa-credit-card"></i> Payer</button>`
       : '';
 
-    return `<div class="mission-card">
+    return `<div class="mission-card clickable-card" onclick="if(event.target.closest('button') || event.target.closest('a')) return; showMissionDetails(encodeURIComponent(JSON.stringify(m)));">
       <div class="mc-status ${statusClass}"></div>
       <div class="mc-info">
         <div class="mc-ref">${m.reference || '—'}</div>
@@ -1933,6 +1940,28 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', bindClientAuthListeners);
 } else {
   bindClientAuthListeners();
+}
+function showMissionDetails(mObjStr) {
+  try {
+    const m = JSON.parse(decodeURIComponent(mObjStr));
+    document.getElementById('md-ref').value = m.reference || '';
+    
+    let statusText = 'Planifiée';
+    if (m.status === 'available') statusText = 'En recherche de convoyeur';
+    else if (m.status === 'in_progress') statusText = 'En cours';
+    else if (m.status === 'completed') statusText = 'Terminée';
+    else if (m.status === 'cancelled') statusText = 'Annulée';
+    document.getElementById('md-status').value = statusText;
+
+    document.getElementById('md-depart').value = m.depart || '';
+    document.getElementById('md-arrivee').value = m.arrivee || '';
+    document.getElementById('md-vehicule').value = m.vehicule || 'Automobile';
+    document.getElementById('md-price').value = m.montant_ht || 0;
+    
+    openModal('modalMissionDetails');
+  } catch(e) {
+    console.error('Error parsing mission details', e);
+  }
 }
 </script>
 </body>
