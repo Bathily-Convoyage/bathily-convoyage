@@ -2851,7 +2851,7 @@ function getConvoyeursList() {
 }
 // ========== PACKS CONFIG ==========
 async function loadPacksConfig() {
-  const client = getSBA();
+  const client = getSupabase();
   const { data, error } = await client.from('system_settings').select('*');
   if (error || !data) return;
 
@@ -2884,7 +2884,7 @@ async function savePack(packId, btn) {
   const valueObj = { name, price, features };
 
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-  const client = getSBA();
+  const client = getSupabase();
   
   const { error } = await client.from('system_settings')
     .upsert({ key: packId, value: valueObj });
