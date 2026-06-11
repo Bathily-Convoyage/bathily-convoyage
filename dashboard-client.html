@@ -800,7 +800,7 @@ body {
 
 <!-- CLIENT LOGIN OVERLAY -->
 <!-- CLIENT LOGIN/SIGNUP OVERLAY -->
-<div id="clientLoginOverlay" style="position:fixed;inset:0;background:linear-gradient(135deg, rgba(122,46,26,0.94) 0%, rgba(253,251,247,0.96) 100%);backdrop-filter:blur(16px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;">
+<div id="clientLoginOverlay" style="position:fixed;inset:0;background:linear-gradient(135deg, rgba(122,46,26,0.94) 0%, rgba(253,251,247,0.96) 100%);backdrop-filter:blur(16px);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;">
   <div style="background:rgba(255,255,255,0.85);border:1px solid rgba(255,255,255,0.4);border-radius:28px;padding:36px;max-width:480px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,0.12);backdrop-filter:blur(10px);">
     <!-- Brand / Header -->
     <div style="text-align:center;margin-bottom:24px;">
@@ -1299,7 +1299,7 @@ async function handleClientSignup(event) {
   const { data: missions } = await client
     .from('missions')
     .select('*')
-    .or(`client_email.eq.${email},client_nom.ilike.%${_clientName}%`)
+    .eq('client_id', data.id)
     .order('created_at', { ascending: false });
 
   document.getElementById('clientLoginOverlay').style.display = 'none';
@@ -1517,7 +1517,7 @@ if (savedUser) {
     document.getElementById('clientLoginOverlay').style.display = 'none';
     getSBCli().from('missions')
       .select('*')
-      .or(`client_email.eq.${_clientUser.email},client_nom.ilike.%${_clientName}%`)
+      .eq('client_id', _clientUser.id)
       .order('created_at', {ascending: false})
       .then(({ data }) => initClientDashboard(data || []));
   } catch (e) {
@@ -1526,10 +1526,7 @@ if (savedUser) {
 } else {
   const savedClient = sessionStorage.getItem('client_name');
   if (savedClient) {
-    _clientName = savedClient;
-    document.getElementById('clientLoginOverlay').style.display = 'none';
-    getSBCli().from('missions').select('*').ilike('client_nom', `%${savedClient}%`).order('created_at', {ascending: false})
-      .then(({ data }) => initClientDashboard(data || []));
+    sessionStorage.removeItem('client_name');
   }
 }
 
