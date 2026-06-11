@@ -974,7 +974,7 @@ function updPrice(){
   document.getElementById('psTrajet').textContent=S.dist?S.dist+'km · '+Math.round(base)+'€':'—';
   const cl={berline:'Berline',suv:'SUV +15%',utilitaire:'Utilitaire +20%'};
   document.getElementById('psCat').textContent=isMoto?'Moto':(cl[S.cat]||'—');
-  const packLabels={starter:'Starter',serenite:'Sérénité +49€',excellence:'Excellence +129€'};
+  const packLabels = window._packLabels || {starter:'Starter',serenite:'Sérénité +49€',excellence:'Excellence +129€'};
   document.getElementById('psPack').textContent=packLabels[S.pack]||'—';
   const optsList=[];
   if(S.opts.urgence)optsList.push('Urgence +30%');
@@ -1350,7 +1350,7 @@ function loadFromLocalStorage() {
       if (catEl) selCat(catEl, data.categorie, catMap[data.categorie] || 0);
     }
     if (data.pack) {
-      const packPrice = { starter: 0, serenite: 49, excellence: 129 };
+      const packPrice = window._packPrices || { starter: 0, serenite: 49, excellence: 129 };
       const packEl = document.querySelector(`.pck-card[onclick*="${data.pack}"]`);
       if (packEl) selPack(packEl, data.pack, packPrice[data.pack]);
     }
@@ -1407,6 +1407,50 @@ if (paramMode === 'route' || paramMode === 'plateau') {
     if (modeCard) selMode(modeCard, paramMode);
   }, 150);
 }
+
+async function loadPacksConfig() {
+  try {
+    const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    const { data, error } = await client.from('system_settings').select('*');
+    if(error || !data) return;
+
+    const labels = { starter: 'Starter' };
+    const prices = { starter: 0 };
+
+    data.forEach(setting => {
+      if (setting.key.startsWith('pack_')) {
+        const p = setting.value;
+        const type = setting.key.replace('pack_', ''); // 'starter', 'serenite', 'excellence'
+        prices[type] = p.price || 0;
+        
+        const cardEl = document.querySelector(`.pck-card[onclick*="'${type}'"]`);
+        if (cardEl) {
+          cardEl.setAttribute('onclick', `selPack(this,'${type}',${p.price || 0})`);
+          const nameEl = cardEl.querySelector('.pck-name');
+          if(nameEl) nameEl.textContent = p.name || type;
+          const priceEl = cardEl.querySelector('.pck-price');
+          if(priceEl) {
+            if(p.price > 0) priceEl.textContent = `+${p.price}€`;
+            else priceEl.textContent = 'Inclus';
+          }
+          labels[type] = `${p.name || type}` + (p.price > 0 ? ` +${p.price}€` : '');
+          
+          if (p.features) {
+            const ul = cardEl.querySelector('ul');
+            if(ul) ul.innerHTML = p.features.split('\n').map(f => `<li>${f}</li>`).join('');
+          }
+        }
+      }
+    });
+    window._packLabels = labels;
+    window._packPrices = prices;
+    updSidebar();
+    updPrice();
+  } catch (err) {
+    console.warn('Failed to load packs config', err);
+  }
+}
+loadPacksConfig();
 
 setTimeout(()=>{ updPrice(); },100);
 function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
