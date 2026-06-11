@@ -866,6 +866,25 @@ body {
   justify-content: center;
 }
 .profile-select-overlay.hidden { display: none; }
+
+/* Social network */
+.social-layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; }
+.post-card { background: white; border: 1px solid var(--border-light); border-radius: 24px; padding: 24px; margin-bottom: 12px; }
+.post-header { display: flex; gap: 12px; margin-bottom: 16px; justify-content: space-between; }
+.post-ava { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
+.post-name { font-weight: 700; font-size: 0.9rem; margin-bottom: 2px; }
+.post-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.7rem; color: var(--gray-mid); }
+.post-role { background: var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius: 40px; padding: 2px 8px; color: var(--bordeaux); }
+.post-body { font-size: 0.875rem; color: var(--gray-dark); margin-bottom: 16px; line-height: 1.6; }
+.post-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.post-tag { background: rgba(41,128,185,0.08); border: 1px solid rgba(41,128,185,0.15); border-radius: 40px; padding: 3px 12px; font-size: 0.6rem; font-weight: 700; color: #2980b9; cursor: pointer; }
+.post-actions { display: flex; gap: 20px; padding-top: 12px; border-top: 1px solid var(--border-light); justify-content: space-between; }
+.post-action { background: none; border: none; font-size: 0.7rem; font-weight: 600; color: var(--gray-mid); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.post-action:hover, .post-action.liked { color: var(--bordeaux); }
+.ss-card { background: white; border: 1px solid var(--border-light); border-radius: 24px; padding: 24px; margin-bottom: 20px; }
+.ss-title { font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--bordeaux); margin-bottom: 16px; }
+.zone-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.zone-tag { background: var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius: 40px; padding: 4px 12px; font-size: 0.6rem; font-weight: 700; color: var(--bordeaux); cursor: pointer; }
 </style>
 </head>
 <body>
@@ -912,6 +931,7 @@ body {
       <div class="nav-item" onclick="showTab('clients',this)"><i class="fas fa-users"></i> Clients</div>
       <div class="nav-item" onclick="showTab('convoyeurs',this)"><i class="fas fa-truck"></i> Convoyeurs</div>
       <div class="nav-item" onclick="showTab('candidatures',this); loadCandidatures()"><i class="fas fa-user-plus"></i> Candidatures <span class="nav-badge pulsing" id="candidaturesBadge" style="display:none">0</span></div>
+      <div class="nav-item" onclick="showTab('reseau-admin',this)"><i class="fas fa-comments"></i> Réseau (Modération)</div>
     </div>
     <div class="nav-section">
       <div class="nav-section-lbl">Paramètres</div>
@@ -1044,11 +1064,45 @@ body {
       <div class="sec-title"><h2 class="sec-h" id="convoyeursCount">Convoyeurs <em>certifiés</em></h2><div class="sec-actions"><button class="btn-red" onclick="openModal('modalConvoyeur')"><i class="fas fa-plus"></i> Ajouter</button></div></div>
       <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="conv-search-input" placeholder="Rechercher un convoyeur…" oninput="filterConvoyeursTable()"></div>
       <table class="data-table">
-        <thead><tr><th>Convoyeur</th><th>Zone</th><th>Niveau</th><th>Taux km auto</th><th>Taux km moto</th><th>Disponible</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Convoyeur</th><th>Zones d'action</th><th>Grade</th><th>Note</th><th>Taux km auto</th><th>Taux km moto</th><th>Statut</th><th>Actions</th></tr></thead>
         <tbody id="convoyeursTableBody">
           <tr><td colspan="7" style="text-align:center; color:var(--gray-mid);"><i class="fas fa-spinner fa-spin"></i> Chargement…</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Réseau (Modération) -->
+    <div class="tab-content" id="tab-reseau-admin">
+      <div class="dash-header">
+        <h1 class="dash-hello">Réseau <em>(Modération)</em></h1>
+        <div class="dash-date">Communauté Bathily · <span style="color:var(--bordeaux)">Vue Administrateur</span></div>
+      </div>
+      <div class="social-layout">
+        <div class="social-feed">
+          <div id="postsFeedAdmin">
+            <div class="post-card"><div class="post-header"><div style="display:flex;gap:12px;"><div class="post-ava" style="background:rgba(41,128,185,0.15); color:#2980b9;">KD</div><div><div class="post-name">Karim Diallo</div><div class="post-meta"><span class="post-role">Convoyeur Senior</span><span class="post-time">Il y a 2h · Lyon</span></div></div></div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button></div><div class="post-body">Astuce du jour : pour les longs trajets en été, vérifiez toujours la pression des pneus avant le départ — surtout pour les Tesla qui chauffent plus vite en mode auto-pilote. J'ai évité un incident hier sur l'A7. 🚗⚡</div><div class="post-tags"><span class="post-tag">#conseil</span><span class="post-tag">#sécurité</span><span class="post-tag">#EV</span></div><div class="post-actions"><div style="display:flex;gap:20px"><button class="post-action liked"><i class="fas fa-heart"></i> 14</button><button class="post-action"><i class="fas fa-comment"></i> 3 commentaires</button></div></div></div>
+            <div class="post-card"><div class="post-header"><div style="display:flex;gap:12px;"><div class="post-ava" style="background:rgba(74,124,107,0.15); color:var(--success);">SF</div><div><div class="post-name">Sophie Fontaine</div><div class="post-meta"><span class="post-role">Convoyeur · Moto</span><span class="post-time">Il y a 5h · Bordeaux</span></div></div></div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button></div><div class="post-body">Mission terminée ! Paris → Bordeaux avec une R1250GS. Trajet impeccable, client ravi, 5 étoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout litige. Merci Bathily pour la logistique au top. 🏍️</div><div class="post-tags"><span class="post-tag">#moto</span><span class="post-tag">#mission</span><span class="post-tag">#5étoiles</span></div><div class="post-actions"><div style="display:flex;gap:20px"><button class="post-action"><i class="fas fa-heart"></i> 22</button><button class="post-action"><i class="fas fa-comment"></i> 7 commentaires</button></div></div></div>
+          </div>
+        </div>
+        <div class="social-sidebar">
+          <div class="ss-card">
+            <div class="ss-title">Actions Modérateur</div>
+            <div style="font-size:0.75rem; color:var(--gray-mid); margin-bottom:12px; line-height:1.5;">
+              En tant qu'administrateur, vous pouvez voir tous les messages publiés par les convoyeurs et les supprimer si besoin.
+            </div>
+            <button class="btn-red" style="width:100%" onclick="Swal.fire('Annonce Globale', 'La publication globale est en cours de développement.', 'info')"><i class="fas fa-bullhorn"></i> Publier une annonce</button>
+          </div>
+          <div class="ss-card">
+            <div class="ss-title">Hashtags populaires</div>
+            <div class="zone-tags">
+              <span class="zone-tag" style="background:rgba(41,128,185,0.08);color:#2980b9;">#conseil</span>
+              <span class="zone-tag" style="background:rgba(41,128,185,0.08);color:#2980b9;">#sécurité</span>
+              <span class="zone-tag" style="background:rgba(41,128,185,0.08);color:#2980b9;">#EV</span>
+              <span class="zone-tag" style="background:rgba(41,128,185,0.08);color:#2980b9;">#moto</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Tarifs & Prix -->
@@ -2477,18 +2531,23 @@ function renderConvoyeursTable(list) {
   tbody.innerHTML = list.map(c => {
     const initials = ((c.prenom || '')[0] || '') + ((c.nom || '')[0] || '');
     const colors = ['var(--bordeaux-light);color:var(--bordeaux)', 'rgba(41,128,185,0.12);color:#2980b9', 'rgba(74,124,107,0.1);color:var(--success)'];
-    const colorStyle = colors[Math.abs(initials.charCodeAt(0) + initials.charCodeAt(1)) % colors.length];
+    const colorStyle = colors[Math.abs(initials.charCodeAt(0) + initials.charCodeAt(1)) % colors.length] || colors[0];
+    const zonesStr = c.zones && Array.isArray(c.zones) && c.zones.length > 0 ? c.zones.join(', ') : (c.zone || 'Toute la France');
+    const grade = c.grade || c.niveau || 'Standard';
+    const note = c.note_moyenne || '5.0';
+    const isDispo = c.disponible === true || (c.statut !== 'indisponible' && c.statut !== 'en_mission');
     return `
     <tr>
       <td><div style="display:flex;align-items:center;gap:8px">
         <div class="ava" style="background:${colorStyle}">${initials.toUpperCase() || '??'}</div>
         ${c.prenom || ''} ${c.nom || ''}
       </div></td>
-      <td>${c.zone || 'Nationale'}</td>
-      <td><span class="sp ${c.niveau === 'Senior' ? 'sp-cours' : 'sp-ok'}"><span class="sp-dot"></span>${c.niveau || 'Standard'}</span></td>
+      <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${zonesStr}">${zonesStr}</td>
+      <td><span class="sp ${grade.toLowerCase().includes('senior') ? 'sp-cours' : (grade.toLowerCase().includes('expert') ? 'sp-ok' : 'sp-att')}"><span class="sp-dot"></span>${grade}</span></td>
+      <td><span style="color:var(--warning)">⭐</span> ${note}</td>
       <td>${parseFloat(c.taux_auto || 0.47).toFixed(2)} €/km</td>
       <td>${parseFloat(c.taux_moto || 0.40).toFixed(2)} €/km</td>
-      <td><span class="sp ${c.disponible !== false ? 'sp-ok' : 'sp-err'}"><span class="sp-dot"></span>${c.disponible !== false ? 'Disponible' : 'Indisponible'}</span></td>
+      <td><span class="sp ${isDispo ? 'sp-ok' : 'sp-err'}"><span class="sp-dot"></span>${isDispo ? 'Disponible' : 'Indisponible'}</span></td>
       <td class="td-actions">
         <button class="btn-sm btn-sm-ghost" onclick="editConvoyeur('${c.id}')"><i class="fas fa-edit"></i></button>
         <button class="btn-sm btn-sm-red" onclick="deleteConvoyeur('${c.id}')"><i class="fas fa-trash"></i></button>
