@@ -1222,7 +1222,7 @@ body {
         <div class="stat-card"><div class="stat-ico"><i class="fas fa-star"></i></div><div class="stat-val">4<em>.</em>9</div><div class="stat-lbl">Note clients</div><div class="stat-trend trend-up">★★★★★</div></div>
       </div>
       <div class="sec-title"><h2 class="sec-h">Mission <em>en cours</em></h2></div>
-      <div class="missions-list">
+      <div class="missions-list" id="accueilMissionEnCours">
         <div class="mission-card">
           <div class="mc-top">
             <div>
@@ -1445,7 +1445,7 @@ body {
       En validant, vous confirmez que l'état des lieux de livraison (10 photos) a été réalisé et signé par le client.
     </div>
     <div class="modal-btns">
-      <button class="btn-red" onclick="closeModal('modalTerminer')"><i class="fas fa-check"></i> Valider la livraison</button>
+      <button class="btn-red" onclick="submitDelivery()"><i class="fas fa-check"></i> Valider la livraison</button>
       <button class="btn-outline" onclick="closeModal('modalTerminer')">Annuler</button>
     </div>
   </div>
@@ -1685,6 +1685,8 @@ function loadMissions() {
 
       if (!data || data.length === 0) {
         container.innerHTML = `<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune mission ne vous est assignée actuellement.</div>`;
+        const accueilContainer = document.getElementById('accueilMissionEnCours');
+        if (accueilContainer) accueilContainer.innerHTML = '<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune mission en cours.</div>';
         return;
       }
 
@@ -1736,23 +1738,76 @@ function loadMissions() {
         `;
         container.appendChild(card);
       });
+
+      // Populate Accueil with the first active mission
+      const accueilContainer = document.getElementById('accueilMissionEnCours');
+      if (accueilContainer) {
+        const inProgress = data.find(m => m.status === 'in_progress' || m.status === 'planned');
+        if (inProgress) {
+          let dateStr = '—';
+          if (inProgress.date_mission) {
+            const dateObj = new Date(inProgress.date_mission);
+            dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+          }
+
+          let statusClass = 'sp-planifie';
+          let statusText = 'Planifiée';
+          if (inProgress.status === 'in_progress') { statusClass = 'sp-cours'; statusText = 'En transit'; }
+
+          let actionsHtml = '';
+          if (inProgress.status === 'planned') {
+            actionsHtml = `
+              <button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${inProgress.id}', 'in_progress')"><i class="fas fa-play"></i> Démarrer</button>
+              <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?mission_id=${inProgress.id}&type=depart'"><i class="fas fa-camera"></i> EDL Départ</button>
+            `;
+          } else if (inProgress.status === 'in_progress') {
+            actionsHtml = `
+              <button class="btn-sm btn-sm-red" onclick="window.location.href='gps-emitter.html'"><i class="fas fa-map-marker-alt"></i> GPS</button>
+              <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?mission_id=${inProgress.id}&type=arrivee'"><i class="fas fa-flag-checkered"></i> EDL Arrivée</button>
+              <button class="btn-sm btn-sm-green" onclick="confirmDelivery('${inProgress.id}')"><i class="fas fa-check"></i> Terminer</button>
+            `;
+          }
+
+          accueilContainer.innerHTML = `
+            <div class="mission-card">
+              <div class="mc-top">
+                <div>
+                  <div class="mc-ref">${inProgress.reference} <span class="status-pill ${statusClass}" style="margin-left:8px"><span class="sp-dot"></span> ${statusText}</span></div>
+                  <div class="mc-route">${inProgress.depart} <em>→</em> ${inProgress.arrivee}</div>
+                  <div class="mc-meta"><span class="mc-tag tag-auto">${inProgress.vehicule || 'Automobile'}</span><span class="mc-tag tag-route">${inProgress.mode_transport === 'plateau' ? 'Plateau' : 'Route'}</span><span class="mc-date">${dateStr}</span></div>
+                </div>
+                <div class="mc-right"><div class="mc-montant">${inProgress.remuneration_convoyeur || 0}€</div><div class="mc-pack" style="text-transform: capitalize;">Pack ${inProgress.pack || 'Starter'}</div></div>
+              </div>
+              <div class="mc-bottom">
+                <div class="mc-client"><div class="mc-client-ava">${(inProgress.client_nom || 'C')[0]}</div><div class="mc-client-info">${inProgress.client_nom || 'Client'}</div></div>
+                <div class="mc-actions">${actionsHtml}</div>
+              </div>
+            </div>
+          `;
+        } else {
+          accueilContainer.innerHTML = '<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune mission en cours.</div>';
+        }
+      }
     });
 }
 
+let currentMissionToComplete = null;
+
 function confirmDelivery(id) {
-  Swal.fire({
-    title: 'Confirmer la livraison ?',
-    text: "Confirmez-vous avoir livré le véhicule à destination ? Cela validera la fin de la mission.",
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Oui, livrer',
-    cancelButtonText: 'Annuler',
-    confirmButtonColor: 'var(--bordeaux)'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      updateMissionStatus(id, 'completed');
-    }
-  });
+  currentMissionToComplete = id;
+  openModal('modalTerminer');
+}
+
+function submitDelivery() {
+  if (!currentMissionToComplete) {
+    closeModal('modalTerminer');
+    Swal.fire('Succès !', 'La livraison a été validée avec succès.', 'success');
+    return;
+  }
+  
+  updateMissionStatus(currentMissionToComplete, 'completed');
+  closeModal('modalTerminer');
+  currentMissionToComplete = null;
 }
 
 function updateMissionStatus(id, newStatus) {
