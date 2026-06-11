@@ -975,10 +975,34 @@ body {
   </div>
 </div>
 
-<script>
+// ========== DEVIATION/CDN FALLBACKS ==========
+if (typeof supabase === 'undefined') {
+  alert("⚠️ Erreur de chargement : Le module de base de données (Supabase) n'a pas pu être chargé.\n\nCela est généralement dû à un bloqueur de publicité (comme uBlock Origin, AdBlock) ou un bloqueur de scripts sur votre navigateur.\n\nVeuillez désactiver votre bloqueur de publicité pour ce site ou essayer en mode Navigation Privée sans extensions pour vous connecter.");
+}
+
+if (typeof Swal === 'undefined') {
+  window.Swal = {
+    fire: function(options) {
+      if (options.showCancelButton) {
+        const confirm = window.confirm((options.title || '') + '\n\n' + (options.text || ''));
+        return Promise.resolve({ isConfirmed: confirm });
+      } else {
+        window.alert((options.title || '') + '\n\n' + (options.text || ''));
+        return Promise.resolve({ isConfirmed: true });
+      }
+    },
+    showLoading: function() {},
+    close: function() {}
+  };
+}
+
 // ========== SUPABASE ==========
 let _sbCli = null;
 function getSBCli() {
+  if (typeof supabase === 'undefined') {
+    alert("⚠️ Base de données inaccessible. Veuillez désactiver votre bloqueur de publicité.");
+    throw new Error("Supabase non défini");
+  }
   if (!_sbCli) _sbCli = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
   return _sbCli;
 }
@@ -1182,7 +1206,7 @@ async function handleClientSignup(event) {
 
   if (!prenom || !nom || !email || !mot_de_passe) return;
 
-  if (mot_de_passe.length < 6) {
+  if (!(mot_de_passe.length >= 6)) {
     Swal.fire({
       title: 'Mot de passe trop court',
       text: 'Le mot de passe doit contenir au moins 6 caractères.',
