@@ -1391,14 +1391,47 @@ body {
     <div class="tab-content" id="tab-profil">
       <div class="dash-header"><h1 class="dash-hello">Mon <em>profil</em></h1></div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:640px;">
-        <div class="f-grp"><label>Prénom</label><input type="text" value="Moussa"></div>
-        <div class="f-grp"><label>Nom</label><input type="text" value="Bathily"></div>
-        <div class="f-grp"><label>Email</label><input type="email" value="m.bathily@convoyeur.fr"></div>
-        <div class="f-grp"><label>Téléphone</label><input type="tel" value="+33 6 98 76 54 32"></div>
-        <div class="f-grp" style="grid-column:span 2"><label>Zone principale</label><input type="text" value="Île-de-France · Rhône-Alpes"></div>
-        <div class="f-grp" style="grid-column:span 2"><label>Disponibilité</label><select><option>Disponible</option><option>En mission</option><option>Indisponible</option></select></div>
+        <div class="f-grp"><label>Prénom</label><input type="text" id="convPrenom" value=""></div>
+        <div class="f-grp"><label>Nom</label><input type="text" id="convNomInput" value=""></div>
+        <div class="f-grp"><label>Email</label><input type="email" id="convEmail" value="" disabled style="opacity: 0.7; cursor: not-allowed;"></div>
+        <div class="f-grp"><label>Téléphone</label><input type="tel" id="convTel" value=""></div>
+        
+        <div class="sec-title" style="grid-column:span 2; margin-top: 20px;"><h2 class="sec-h">Adresse <em>postale</em></h2></div>
+        <div class="f-grp" style="grid-column:span 2"><label>Adresse (N° et rue)</label><input type="text" id="convAdresse" value=""></div>
+        <div class="f-grp"><label>Code postal</label><input type="text" id="convCp" value=""></div>
+        <div class="f-grp"><label>Ville</label><input type="text" id="convVille" value=""></div>
+        
+        <div class="sec-title" style="grid-column:span 2; margin-top: 20px;"><h2 class="sec-h">Informations <em>professionnelles</em></h2></div>
+        <div class="f-grp"><label>SIRET</label><input type="text" id="convSiret" value=""></div>
+        <div class="f-grp"><label>IBAN</label><input type="text" id="convIban" value=""></div>
+        <div class="f-grp"><label>N° de Permis de conduire</label><input type="text" id="convNumPermis" value=""></div>
+        <div class="f-grp"><label>Type de Permis</label><input type="text" id="convTypePermis" value="" placeholder="ex: B, A2..."></div>
+        <div class="f-grp" style="grid-column:span 2"><label>Zone principale</label><input type="text" id="convZone" value=""></div>
+        <div class="f-grp" style="grid-column:span 2"><label>Disponibilité</label><select id="convDispo"><option value="disponible">Disponible</option><option value="en_mission">En mission</option><option value="indisponible">Indisponible</option></select></div>
+        
+        <div class="sec-title" style="grid-column:span 2; margin-top: 20px;"><h2 class="sec-h">Documents <em>officiels</em></h2></div>
+        <div class="f-grp" style="grid-column:span 2">
+          <label>Permis de conduire <span style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
+          <input type="file" id="uploadPermis" accept=".pdf,.jpg,.jpeg,.png">
+          <div id="permisLink" style="font-size:0.8rem; margin-top:5px; color:var(--bordeaux);"></div>
+        </div>
+        <div class="f-grp" style="grid-column:span 2">
+          <label>Attestation d'Assurance RC Pro <span style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
+          <input type="file" id="uploadAssurance" accept=".pdf,.jpg,.jpeg,.png">
+          <div id="assuranceLink" style="font-size:0.8rem; margin-top:5px; color:var(--bordeaux);"></div>
+        </div>
+        <div class="f-grp" style="grid-column:span 2">
+          <label>KBIS ou Avis de situation <span style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
+          <input type="file" id="uploadKbisConv" accept=".pdf,.jpg,.jpeg,.png">
+          <div id="kbisConvLink" style="font-size:0.8rem; margin-top:5px; color:var(--bordeaux);"></div>
+        </div>
+        <div class="f-grp" style="grid-column:span 2">
+          <label>Pièce d'identité (CNI / Passeport) <span style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
+          <input type="file" id="uploadCniConv" accept=".pdf,.jpg,.jpeg,.png">
+          <div id="cniConvLink" style="font-size:0.8rem; margin-top:5px; color:var(--bordeaux);"></div>
+        </div>
       </div>
-      <button class="btn-red" style="margin-top:20px;"><i class="fas fa-save"></i> Enregistrer</button>
+      <button class="btn-red" style="margin-top:20px;" onclick="updateConvoyeurProfile()"><i class="fas fa-save"></i> Enregistrer</button>
     </div>
 
     <!-- SUPPORT -->
@@ -1525,6 +1558,44 @@ function applyProfile(c) {
   const avaEl = document.getElementById('convAvatar');
   if (nomEl) nomEl.textContent = name;
   if (avaEl) avaEl.textContent = initials.toUpperCase() || 'MB';
+
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  setVal('convPrenom', c.prenom);
+  setVal('convNomInput', c.nom);
+  setVal('convEmail', c.email);
+  setVal('convTel', c.telephone);
+  setVal('convAdresse', c.adresse);
+  setVal('convCp', c.code_postal);
+  setVal('convVille', c.ville);
+  setVal('convSiret', c.siret);
+  setVal('convIban', c.iban);
+  setVal('convNumPermis', c.numero_permis);
+  setVal('convTypePermis', c.type_permis);
+  setVal('convZone', c.zone);
+  
+  const dispoEl = document.getElementById('convDispo');
+  if (dispoEl && c.statut) {
+    if (c.statut === 'indisponible') dispoEl.value = 'indisponible';
+    else if (c.statut === 'en_mission') dispoEl.value = 'en_mission';
+    else dispoEl.value = 'disponible';
+  }
+
+  const showLink = (id, url) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = url ? `<a href="${url}" target="_blank" style="text-decoration:underline;color:inherit;"><i class="fas fa-file-pdf"></i> Voir le document actuel</a>` : '';
+  };
+  
+  if (c.documents) {
+    showLink('permisLink', c.documents.permis);
+    showLink('assuranceLink', c.documents.assurance);
+    showLink('kbisConvLink', c.documents.kbis);
+    showLink('cniConvLink', c.documents.cni);
+  } else {
+    showLink('permisLink', null);
+    showLink('assuranceLink', null);
+    showLink('kbisConvLink', null);
+    showLink('cniConvLink', null);
+  }
 }
 
 function convLogout() {
@@ -1543,6 +1614,82 @@ function getSupabaseConv() {
 
 // Trigger profile selection on load
 initConvoyeurProfile();
+
+async function uploadDocumentConvoyeur(fileInputId, docType) {
+  const fileInput = document.getElementById(fileInputId);
+  if (!fileInput || !fileInput.files || fileInput.files.length === 0) return null;
+  const file = fileInput.files[0];
+  const fileExt = file.name.split('.').pop();
+  const fileName = `convoyeurs/${_currentConvoyeurData.id}/${docType}_${Date.now()}.${fileExt}`;
+  
+  const client = getSupabaseConv();
+  const { data, error } = await client.storage
+    .from('documents')
+    .upload(fileName, file, { upsert: true });
+    
+  if (error) {
+    console.error(`Erreur upload ${docType}:`, error);
+    return null;
+  }
+  
+  const { data: publicUrlData } = client.storage
+    .from('documents')
+    .getPublicUrl(fileName);
+    
+  return publicUrlData.publicUrl;
+}
+
+async function updateConvoyeurProfile() {
+  if (!_currentConvoyeurData) return;
+
+  Swal.fire({
+    title: 'Mise à jour...',
+    text: 'Enregistrement de votre profil et de vos documents...',
+    didOpen: () => Swal.showLoading(),
+    allowOutsideClick: false
+  });
+
+  const prenom = document.getElementById('convPrenom').value.trim();
+  const nom = document.getElementById('convNomInput').value.trim();
+  const telephone = document.getElementById('convTel').value.trim();
+  const adresse = document.getElementById('convAdresse').value.trim();
+  const code_postal = document.getElementById('convCp').value.trim();
+  const ville = document.getElementById('convVille').value.trim();
+  const siret = document.getElementById('convSiret').value.trim();
+  const iban = document.getElementById('convIban').value.trim();
+  const numero_permis = document.getElementById('convNumPermis').value.trim();
+  const type_permis = document.getElementById('convTypePermis').value.trim();
+  const zone = document.getElementById('convZone').value.trim();
+  const statutSelect = document.getElementById('convDispo').value;
+
+  let permisUrl = await uploadDocumentConvoyeur('uploadPermis', 'permis');
+  let assuranceUrl = await uploadDocumentConvoyeur('uploadAssurance', 'assurance');
+  let kbisUrl = await uploadDocumentConvoyeur('uploadKbisConv', 'kbis');
+  let cniUrl = await uploadDocumentConvoyeur('uploadCniConv', 'cni');
+
+  let docs = _currentConvoyeurData.documents || {};
+  if (permisUrl) docs.permis = permisUrl;
+  if (assuranceUrl) docs.assurance = assuranceUrl;
+  if (kbisUrl) docs.kbis = kbisUrl;
+  if (cniUrl) docs.cni = cniUrl;
+
+  const { data, error } = await getSupabaseConv()
+    .from('convoyeurs')
+    .update({
+      prenom, nom, telephone, adresse, code_postal, ville, siret, iban,
+      numero_permis, type_permis, zone, statut: statutSelect, documents: docs
+    })
+    .eq('id', _currentConvoyeurData.id)
+    .select()
+    .single();
+
+  if (error) {
+    Swal.fire('Erreur', error.message || 'Impossible de mettre à jour le profil.', 'error');
+  } else {
+    selectProfile(data);
+    Swal.fire('Succès', 'Votre profil a été mis à jour avec succès.', 'success');
+  }
+}
 
 // ========== CURSOR ==========
 if(window.matchMedia('(hover: hover)').matches) {

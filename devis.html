@@ -1383,6 +1383,14 @@ function loadClientSession() {
       if (user.email) document.getElementById('cli-email').value = user.email;
       if (user.telephone) document.getElementById('cli-tel').value = user.telephone;
       if (user.societe) document.getElementById('cli-societe').value = user.societe;
+      
+      if (user.adresse && user.ville) {
+        const adresseComplete = `${user.adresse}, ${user.code_postal || ''} ${user.ville}`.replace(/,\s*$/, '').trim();
+        const departInput = document.getElementById('depart');
+        const addrDepInput = document.getElementById('addrDep');
+        if (departInput && !departInput.value) departInput.value = adresseComplete;
+        if (addrDepInput && !addrDepInput.value) addrDepInput.value = adresseComplete;
+      }
     } catch (e) {
       console.warn("Erreur chargement session client_user dans devis", e);
     }
