@@ -1080,8 +1080,8 @@ body {
       <div class="social-layout">
         <div class="social-feed">
           <div id="postsFeedAdmin">
-            <div class="post-card"><div class="post-header"><div style="display:flex;gap:12px;"><div class="post-ava" style="background:rgba(41,128,185,0.15); color:#2980b9;">KD</div><div><div class="post-name">Karim Diallo</div><div class="post-meta"><span class="post-role">Convoyeur Senior</span><span class="post-time">Il y a 2h · Lyon</span></div></div></div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button></div><div class="post-body">Astuce du jour : pour les longs trajets en été, vérifiez toujours la pression des pneus avant le départ — surtout pour les Tesla qui chauffent plus vite en mode auto-pilote. J'ai évité un incident hier sur l'A7. 🚗⚡</div><div class="post-tags"><span class="post-tag">#conseil</span><span class="post-tag">#sécurité</span><span class="post-tag">#EV</span></div><div class="post-actions"><div style="display:flex;gap:20px"><button class="post-action liked"><i class="fas fa-heart"></i> 14</button><button class="post-action" onclick="replyPost(this)"><i class="fas fa-comment"></i> 3 commentaires</button></div></div></div>
-            <div class="post-card"><div class="post-header"><div style="display:flex;gap:12px;"><div class="post-ava" style="background:rgba(74,124,107,0.15); color:var(--success);">SF</div><div><div class="post-name">Sophie Fontaine</div><div class="post-meta"><span class="post-role">Convoyeur · Moto</span><span class="post-time">Il y a 5h · Bordeaux</span></div></div></div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button></div><div class="post-body">Mission terminée ! Paris → Bordeaux avec une R1250GS. Trajet impeccable, client ravi, 5 étoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout litige. Merci Bathily pour la logistique au top. 🏍️</div><div class="post-tags"><span class="post-tag">#moto</span><span class="post-tag">#mission</span><span class="post-tag">#5étoiles</span></div><div class="post-actions"><div style="display:flex;gap:20px"><button class="post-action"><i class="fas fa-heart"></i> 22</button><button class="post-action" onclick="replyPost(this)"><i class="fas fa-comment"></i> 7 commentaires</button></div></div></div>
+            <div class="post-card"><div class="post-header"><div style="display:flex;gap:12px;"><div class="post-ava" style="background:rgba(41,128,185,0.15); color:#2980b9;">KD</div><div><div class="post-name">Karim Diallo</div><div class="post-meta"><span class="post-role">Convoyeur Senior</span><span class="post-time">Il y a 2h · Lyon</span></div></div></div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button></div><div class="post-body">Astuce du jour : pour les longs trajets en été, vérifiez toujours la pression des pneus avant le départ — surtout pour les Tesla qui chauffent plus vite en mode auto-pilote. J'ai évité un incident hier sur l'A7. 🚗⚡</div><div class="post-tags"><span class="post-tag">#conseil</span><span class="post-tag">#sécurité</span><span class="post-tag">#EV</span></div><div class="post-actions"><div style="display:flex;gap:20px"><button class="post-action liked"><i class="fas fa-heart"></i> 14</button><button class="post-action" onclick="toggleComments(this)"><i class="fas fa-comment"></i> 3 commentaires</button></div></div></div>
+            <div class="post-card"><div class="post-header"><div style="display:flex;gap:12px;"><div class="post-ava" style="background:rgba(74,124,107,0.15); color:var(--success);">SF</div><div><div class="post-name">Sophie Fontaine</div><div class="post-meta"><span class="post-role">Convoyeur · Moto</span><span class="post-time">Il y a 5h · Bordeaux</span></div></div></div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button></div><div class="post-body">Mission terminée ! Paris → Bordeaux avec une R1250GS. Trajet impeccable, client ravi, 5 étoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout litige. Merci Bathily pour la logistique au top. 🏍️</div><div class="post-tags"><span class="post-tag">#moto</span><span class="post-tag">#mission</span><span class="post-tag">#5étoiles</span></div><div class="post-actions"><div style="display:flex;gap:20px"><button class="post-action"><i class="fas fa-heart"></i> 22</button><button class="post-action" onclick="toggleComments(this)"><i class="fas fa-comment"></i> 7 commentaires</button></div></div></div>
           </div>
         </div>
         <div class="social-sidebar">
@@ -2921,23 +2921,67 @@ async function rejectCandidature(id, nom) {
 })();
 
 // ========== RESEAU COMMENTAIRES ==========
-function replyPost(btn) {
-  Swal.fire({
-    title: 'Répondre',
-    input: 'textarea',
-    inputPlaceholder: 'Écrivez votre commentaire...',
-    showCancelButton: true,
-    confirmButtonText: 'Publier',
-    cancelButtonText: 'Annuler',
-    confirmButtonColor: 'var(--bordeaux)'
-  }).then((result) => {
-    if (result.isConfirmed && result.value.trim() !== '') {
-      Swal.fire('Publié !', 'Votre commentaire a bien été ajouté.', 'success');
-      let text = btn.innerText;
-      let count = parseInt(text.replace(/[^0-9]/g, '')) || 0;
-      btn.innerHTML = `<i class="fas fa-comment"></i> ${count + 1} commentaires`;
+function toggleComments(btn) {
+  const postCard = btn.closest('.post-card');
+  let commentsSection = postCard.querySelector('.post-comments-section');
+  
+  if (commentsSection) {
+    commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
+  } else {
+    const count = parseInt(btn.innerText.replace(/[^0-9]/g, '')) || 0;
+    let fakeCommentsHTML = '';
+    
+    if (count > 0) {
+      fakeCommentsHTML += `
+        <div class="comment-item" style="display:flex; gap:10px; margin-bottom:12px;">
+          <div class="post-ava" style="width:28px; height:28px; font-size:0.6rem; background:rgba(41,128,185,0.1); color:#2980b9;">AB</div>
+          <div style="flex:1; background:#F9FAFB; padding:10px 14px; border-radius:0 16px 16px 16px; font-size:0.8rem; border:1px solid var(--border-light);">
+            <div style="font-weight:700; margin-bottom:2px;">Alexandre B.</div>
+            <div style="color:var(--gray-dark);">C'est totalement vrai, merci du conseil ! 🙌</div>
+          </div>
+        </div>
+      `;
     }
-  });
+    
+    const html = `
+      <div class="post-comments-section" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border-light); animation: fadeIn 0.3s ease;">
+        <div class="comments-list">
+          ${fakeCommentsHTML}
+        </div>
+        <div class="comment-composer" style="display:flex; gap:10px; margin-top:12px; align-items:center;">
+          <div class="post-ava" style="width:28px; height:28px; font-size:0.6rem; background:var(--bordeaux-light); color:var(--bordeaux);">ADMIN</div>
+          <input type="text" placeholder="Répondre en tant qu'admin..." style="flex:1; height:36px; font-size:0.8rem; border:1px solid var(--border-light); border-radius:20px; padding:0 14px; background:#F9FAFB; outline:none;" onkeydown="if(event.key==='Enter') submitInlineComment(this)">
+          <button class="btn-sm btn-sm-ghost" style="color:var(--bordeaux); border:none; background:none; cursor:pointer;" onclick="submitInlineComment(this)"><i class="fas fa-paper-plane" style="font-size:1.1rem;"></i></button>
+        </div>
+      </div>
+    `;
+    postCard.insertAdjacentHTML('beforeend', html);
+  }
+}
+
+function submitInlineComment(el) {
+  const composer = el.closest('.comment-composer');
+  const input = composer.querySelector('input');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  const commentsList = composer.previousElementSibling;
+  const newComment = `
+    <div class="comment-item" style="display:flex; gap:10px; margin-bottom:12px; animation: fadeIn 0.3s ease;">
+      <div class="post-ava" style="width:28px; height:28px; font-size:0.6rem; background:var(--bordeaux-light); color:var(--bordeaux);">ADMIN</div>
+      <div style="flex:1; background:#F9FAFB; padding:10px 14px; border-radius:0 16px 16px 16px; font-size:0.8rem; border:1px solid var(--border-light);">
+        <div style="font-weight:700; margin-bottom:2px;">Admin</div>
+        <div style="color:var(--gray-dark);">${text}</div>
+      </div>
+    </div>
+  `;
+  commentsList.insertAdjacentHTML('beforeend', newComment);
+  input.value = '';
+  
+  const postCard = el.closest('.post-card');
+  const btn = postCard.querySelector('.post-action .fa-comment').parentElement;
+  let count = parseInt(btn.innerText.replace(/[^0-9]/g, '')) || 0;
+  btn.innerHTML = `<i class="fas fa-comment"></i> ${count + 1} commentaires`;
 }
 </script>
 </body>
