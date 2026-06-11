@@ -2007,7 +2007,7 @@ function renderInvoicesTable(missions) {
 }
 
 function downloadInvoicePdf(missionId) {
-  const m = window._allMissions.find(x => x.id === missionId);
+  const m = _allMissions.find(x => x.id === missionId);
   if (!m) return;
 
   const { jsPDF } = window.jspdf;
