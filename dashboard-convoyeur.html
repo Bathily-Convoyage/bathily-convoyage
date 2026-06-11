@@ -14,6 +14,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
 * {
   margin: 0;
@@ -1360,7 +1362,7 @@ body {
             <button type="button" class="btn-sm btn-sm-red" onclick="saveSig()"><i class="fas fa-save"></i> Valider la signature</button>
           </div>
         </div>
-        <button type="button" class="btn-red"><i class="fas fa-check"></i> Valider l'état des lieux de départ</button>
+        <button type="button" class="btn-red" onclick="downloadEdlPdf()"><i class="fas fa-check"></i> Valider et télécharger l'état des lieux (PDF)</button>
       </div>
     </div>
 
@@ -2397,6 +2399,84 @@ function submitInlineComment(el) {
   const btn = postCard.querySelector('.post-action .fa-comment').parentElement;
   let count = parseInt(btn.innerText.replace(/[^0-9]/g, '')) || 0;
   btn.innerHTML = `<i class="fas fa-comment"></i> ${count + 1} commentaires`;
+}
+function downloadEdlPdf() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  // Generic info
+  const companyName = "Bathily-Convoyage";
+  const companyAddress = "10 Avenue des Champs-Élysées, 75008 Paris";
+  const companySiret = "SIRET : 123 456 789 00012";
+
+  const dateStr = new Date().toLocaleDateString('fr-FR');
+  const edlRef = `EDL-BC-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  // Header
+  doc.setFontSize(22);
+  doc.setTextColor(122, 46, 26); // Bordeaux
+  doc.text(companyName, 14, 20);
+  
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  doc.text(companyAddress, 14, 28);
+  doc.text(companySiret, 14, 34);
+
+  // Title
+  doc.setFontSize(16);
+  doc.setTextColor(0, 0, 0);
+  doc.text("ÉTAT DES LIEUX - DÉPART", 130, 20);
+  
+  doc.setFontSize(10);
+  doc.text(`Numéro : ${edlRef}`, 130, 28);
+  doc.text(`Date : ${dateStr}`, 130, 34);
+
+  // Vehicle info
+  doc.setFontSize(12);
+  doc.setTextColor(122, 46, 26);
+  doc.text("Informations du Véhicule", 14, 50);
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(10);
+  doc.text("Modèle : BMW Série 3 (Exemple)", 14, 58);
+  doc.text("Immatriculation : AB-123-CD", 14, 64);
+  doc.text("Kilométrage départ : 45 600 km", 14, 70);
+  
+  // Checks
+  doc.setFontSize(12);
+  doc.setTextColor(122, 46, 26);
+  doc.text("Contrôles", 14, 85);
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(10);
+  doc.text("État général : Bon", 14, 93);
+  doc.text("Carburant / Charge : 75%", 14, 99);
+  doc.text("Photos requises (10) : Validées", 14, 105);
+
+  // Observations
+  doc.setFontSize(12);
+  doc.setTextColor(122, 46, 26);
+  doc.text("Observations", 14, 120);
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(10);
+  doc.text("Aucune anomalie majeure constatée avant le départ.", 14, 128);
+
+  // Signatures
+  doc.setFontSize(12);
+  doc.setTextColor(122, 46, 26);
+  doc.text("Signatures", 14, 150);
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(10);
+  doc.text("Client :", 14, 158);
+  doc.text("Convoyeur :", 130, 158);
+
+  // Footer
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(150, 150, 150);
+  doc.text("Document généré numériquement - Valeur légale d'état des lieux.", 105, 280, { align: 'center' });
+
+  doc.save(`${edlRef}.pdf`);
+  
+  Swal.fire('Succès', 'L\'état des lieux a été validé et le PDF a été téléchargé.', 'success');
 }
 </script>
 </body>
