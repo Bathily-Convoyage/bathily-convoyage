@@ -810,12 +810,12 @@ body {
     
     <!-- Auth Switch Tabs -->
     <div style="display:flex;background:rgba(0,0,0,0.04);padding:4px;border-radius:14px;margin-bottom:24px;">
-      <button id="authTabLogin" onclick="switchAuthTab('login')" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:white;color:#2D2A24;transition:all 0.25s ease;">Se connecter</button>
-      <button id="authTabSignup" onclick="switchAuthTab('signup')" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:transparent;color:#6B625A;transition:all 0.25s ease;">Créer un compte</button>
+      <button id="authTabLogin" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:white;color:#2D2A24;transition:all 0.25s ease;">Se connecter</button>
+      <button id="authTabSignup" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:transparent;color:#6B625A;transition:all 0.25s ease;">Créer un compte</button>
     </div>
 
     <!-- FORM 1: LOGIN -->
-    <form id="authLoginForm" onsubmit="handleClientLogin(event)" style="display:block;">
+    <form id="authLoginForm" style="display:block;">
       <div style="margin-bottom:16px;text-align:left;">
         <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Adresse Email</label>
         <input id="loginEmail" type="email" required placeholder="nom@exemple.com" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
@@ -823,7 +823,7 @@ body {
       <div style="margin-bottom:20px;text-align:left;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
           <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;">Mot de passe</label>
-          <a href="#" onclick="handleForgotPassword(event)" style="font-size:0.65rem;font-weight:600;color:#7A2E1A;text-decoration:none;">Mot de passe oublié ?</a>
+          <a href="#" id="linkForgotPassword" style="font-size:0.65rem;font-weight:600;color:#7A2E1A;text-decoration:none;">Mot de passe oublié ?</a>
         </div>
         <input id="loginPassword" type="password" required placeholder="••••••••" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
       </div>
@@ -831,7 +831,7 @@ body {
     </form>
 
     <!-- FORM 2: SIGNUP -->
-    <form id="authSignupForm" onsubmit="handleClientSignup(event)" style="display:none; max-height: 450px; overflow-y: auto; padding-right: 4px;">
+    <form id="authSignupForm" style="display:none; max-height: 450px; overflow-y: auto; padding-right: 4px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
         <div style="text-align:left;">
           <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Prénom</label>
@@ -1674,6 +1674,43 @@ if (paymentStatus === 'success') {
 // ========== SIGNUP TAB ROUTING ==========
 if (urlParams.get('signup') === 'true') {
   switchAuthTab('signup');
+}
+
+// ========== CLIENT AUTH EVENT LISTENERS ==========
+function bindClientAuthListeners() {
+  const tabLogin = document.getElementById('authTabLogin');
+  const tabSignup = document.getElementById('authTabSignup');
+  const loginForm = document.getElementById('authLoginForm');
+  const signupForm = document.getElementById('authSignupForm');
+  const forgotBtn = document.getElementById('linkForgotPassword');
+
+  if (tabLogin) {
+    tabLogin.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchAuthTab('login');
+    });
+  }
+  if (tabSignup) {
+    tabSignup.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchAuthTab('signup');
+    });
+  }
+  if (loginForm) {
+    loginForm.addEventListener('submit', handleClientLogin);
+  }
+  if (signupForm) {
+    signupForm.addEventListener('submit', handleClientSignup);
+  }
+  if (forgotBtn) {
+    forgotBtn.addEventListener('click', handleForgotPassword);
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bindClientAuthListeners);
+} else {
+  bindClientAuthListeners();
 }
 </script>
 </body>
