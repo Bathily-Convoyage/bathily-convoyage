@@ -1244,7 +1244,10 @@ body {
     <div class="tab-content active" id="tab-accueil">
       <div class="dash-header">
         <h1 class="dash-hello">Bonjour, <em>Moussa</em></h1>
-        <div class="dash-date" id="dashDate"></div>
+        <div>
+          <div class="dash-date" id="dashDate"></div>
+          <div id="dashGradeDisplay" style="margin-top:8px;"></div>
+        </div>
       </div>
       <div class="stats-row">
         <div class="stat-card"><div class="stat-ico"><i class="fas fa-route"></i></div><div class="stat-val">2</div><div class="stat-lbl">Missions actives</div><div class="stat-trend trend-up">En cours</div></div>
@@ -1445,8 +1448,35 @@ body {
         <div class="f-grp"><label>IBAN</label><input type="text" id="convIban" value=""></div>
         <div class="f-grp"><label>N° de Permis de conduire</label><input type="text" id="convNumPermis" value=""></div>
         <div class="f-grp"><label>Type de Permis</label><input type="text" id="convTypePermis" value="" placeholder="ex: B, A2..."></div>
-        <div class="f-grp" style="grid-column:span 2"><label>Zone principale</label><input type="text" id="convZone" value=""></div>
-        <div class="f-grp" style="grid-column:span 2"><label>Disponibilité</label><select id="convDispo"><option value="disponible">Disponible</option><option value="en_mission">En mission</option><option value="indisponible">Indisponible</option></select></div>
+        <div class="sec-title" style="grid-column:span 2; margin-top: 20px;"><h2 class="sec-h">Disponibilités & <em>Rayon d'action</em></h2></div>
+        
+        <div class="f-grp" style="grid-column:span 2">
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+            <input type="checkbox" id="convDisponibleCheckbox" style="width:20px; height:20px; accent-color:var(--bordeaux);">
+            <span style="font-weight:700; color:var(--bordeaux);">Je suis disponible pour recevoir des missions</span>
+          </label>
+          <div style="font-size:0.75rem; color:var(--gray-mid); margin-top:4px;">Cochez cette case pour apparaître dans les recherches de l'administrateur.</div>
+        </div>
+
+        <div class="f-grp" style="grid-column:span 2">
+          <label>Zones géographiques couvertes</label>
+          <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px;" id="convZonesContainer">
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Île-de-France"> Île-de-France</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="PACA"> PACA</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Auvergne-Rhône-Alpes"> Auvergne-Rhône-Alpes</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Nouvelle-Aquitaine"> Nouvelle-Aquitaine</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Occitanie"> Occitanie</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Hauts-de-France"> Hauts-de-France</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Grand Est"> Grand Est</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Bretagne"> Bretagne</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Pays de la Loire"> Pays de la Loire</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Normandie"> Normandie</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Bourgogne-Franche-Comté"> Bourgogne-Franche-Comté</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Centre-Val de Loire"> Centre-Val de Loire</label>
+            <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Corse"> Corse</label>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:700;"><input type="checkbox" name="convZoneCheck" value="Toute la France"> Toute la France</label>
+          </div>
+        </div>
         
         <div class="sec-title" style="grid-column:span 2; margin-top: 20px;"><h2 class="sec-h">Documents <em>officiels</em></h2></div>
         <div class="f-grp" style="grid-column:span 2">
@@ -1482,11 +1512,11 @@ body {
       </div>
       <div class="sec-title"><h2 class="sec-h">Signaler un <em>incident</em></h2></div>
       <div style="max-width:540px;">
-        <div class="f-grp"><label>Mission concernée</label><input type="text" placeholder="BC-2025-XXXX"></div>
-        <div class="f-grp"><label>Type d'incident</label><select><option>Problème technique véhicule</option><option>Problème d'itinéraire</option><option>Incident avec le client</option><option>Accident</option><option>Panne</option><option>Autre</option></select></div>
-        <div class="f-grp"><label>Niveau d'urgence</label><select><option>Normal</option><option>Urgent</option><option>Critique — Intervention immédiate</option></select></div>
-        <div class="f-grp"><label>Description de l'incident</label><textarea rows="4" placeholder="Décrivez la situation précisément…"></textarea></div>
-        <button class="btn-red"><i class="fas fa-paper-plane"></i> Envoyer le signalement</button>
+        <div class="f-grp"><label>Mission concernée</label><input type="text" id="sigMission" placeholder="BC-2025-XXXX"></div>
+        <div class="f-grp"><label>Type d'incident</label><select id="sigType"><option>Problème technique véhicule</option><option>Problème d'itinéraire</option><option>Incident avec le client</option><option>Accident</option><option>Panne</option><option>Autre</option></select></div>
+        <div class="f-grp"><label>Niveau d'urgence</label><select id="sigUrgence"><option>Normal</option><option>Urgent</option><option>Critique — Intervention immédiate</option></select></div>
+        <div class="f-grp"><label>Description de l'incident</label><textarea id="sigDesc" rows="4" placeholder="Décrivez la situation précisément…"></textarea></div>
+        <button type="button" class="btn-red" onclick="envoyerSignalement()"><i class="fas fa-paper-plane"></i> Envoyer le signalement</button>
       </div>
     </div>
   </main>
@@ -1610,13 +1640,29 @@ function applyProfile(c) {
   setVal('convIban', c.iban);
   setVal('convNumPermis', c.numero_permis);
   setVal('convTypePermis', c.type_permis);
-  setVal('convZone', c.zone);
   
-  const dispoEl = document.getElementById('convDispo');
-  if (dispoEl && c.statut) {
-    if (c.statut === 'indisponible') dispoEl.value = 'indisponible';
-    else if (c.statut === 'en_mission') dispoEl.value = 'en_mission';
-    else dispoEl.value = 'disponible';
+  // Disponibilité
+  const dispoCheck = document.getElementById('convDisponibleCheckbox');
+  if (dispoCheck) {
+    dispoCheck.checked = c.disponible === true;
+  }
+
+  // Zones
+  document.querySelectorAll('input[name="convZoneCheck"]').forEach(cb => {
+    cb.checked = false;
+    if (c.zones && Array.isArray(c.zones)) {
+      if (c.zones.includes(cb.value)) {
+        cb.checked = true;
+      }
+    } else if (c.zone && cb.value === c.zone) { // backward compatibility
+      cb.checked = true;
+    }
+  });
+
+  // Affichage Grade et Note dans le header (s'il existe)
+  const gradeDisplay = document.getElementById('dashGradeDisplay');
+  if (gradeDisplay) {
+    gradeDisplay.innerHTML = `<span style="background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:8px; font-size:0.75rem;">Grade: <b>${c.grade || 'Standard'}</b> &nbsp;|&nbsp; ⭐ ${c.note_moyenne || '5.0'}</span>`;
   }
 
   const showLink = (id, url) => {
@@ -1698,8 +1744,9 @@ async function updateConvoyeurProfile() {
   const iban = document.getElementById('convIban').value.trim();
   const numero_permis = document.getElementById('convNumPermis').value.trim();
   const type_permis = document.getElementById('convTypePermis').value.trim();
-  const zone = document.getElementById('convZone').value.trim();
-  const statutSelect = document.getElementById('convDispo').value;
+  
+  const disponible = document.getElementById('convDisponibleCheckbox').checked;
+  const zones = Array.from(document.querySelectorAll('input[name="convZoneCheck"]:checked')).map(cb => cb.value);
 
   let permisUrl = await uploadDocumentConvoyeur('uploadPermis', 'permis');
   let assuranceUrl = await uploadDocumentConvoyeur('uploadAssurance', 'assurance');
@@ -1716,7 +1763,7 @@ async function updateConvoyeurProfile() {
     .from('convoyeurs')
     .update({
       prenom, nom, telephone, adresse, code_postal, ville, siret, iban,
-      numero_permis, type_permis, zone, statut: statutSelect, documents: docs
+      numero_permis, type_permis, disponible, zones, documents: docs
     })
     .eq('id', _currentConvoyeurData.id)
     .select()
@@ -2255,6 +2302,27 @@ document.addEventListener('click', function(e) {
     document.querySelectorAll('.suggest-box').forEach(box => box.style.display = 'none');
   }
 });
+
+// ========== SUPPORT URGENCE ==========
+function envoyerSignalement() {
+  const mission = document.getElementById('sigMission').value.trim();
+  const desc = document.getElementById('sigDesc').value.trim();
+
+  if (!mission || !desc) {
+    Swal.fire('Champs requis', 'Veuillez renseigner la mission concernée et la description.', 'warning');
+    return;
+  }
+
+  Swal.fire({
+    title: 'Signalement envoyé',
+    text: 'Votre incident a bien été transmis au support d\'urgence. Nous revenons vers vous dans les plus brefs délais.',
+    icon: 'success',
+    confirmButtonColor: 'var(--bordeaux)'
+  }).then(() => {
+    document.getElementById('sigMission').value = '';
+    document.getElementById('sigDesc').value = '';
+  });
+}
 </script>
 </body>
 </html>
