@@ -1080,8 +1080,8 @@ body {
       <div class="social-layout">
         <div class="social-feed">
           <div id="postsFeedAdmin">
-            <div class="post-card"><div class="post-header"><div style="display:flex;gap:12px;"><div class="post-ava" style="background:rgba(41,128,185,0.15); color:#2980b9;">KD</div><div><div class="post-name">Karim Diallo</div><div class="post-meta"><span class="post-role">Convoyeur Senior</span><span class="post-time">Il y a 2h · Lyon</span></div></div></div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button></div><div class="post-body">Astuce du jour : pour les longs trajets en été, vérifiez toujours la pression des pneus avant le départ — surtout pour les Tesla qui chauffent plus vite en mode auto-pilote. J'ai évité un incident hier sur l'A7. 🚗⚡</div><div class="post-tags"><span class="post-tag">#conseil</span><span class="post-tag">#sécurité</span><span class="post-tag">#EV</span></div><div class="post-actions"><div style="display:flex;gap:20px"><button class="post-action liked"><i class="fas fa-heart"></i> 14</button><button class="post-action"><i class="fas fa-comment"></i> 3 commentaires</button></div></div></div>
-            <div class="post-card"><div class="post-header"><div style="display:flex;gap:12px;"><div class="post-ava" style="background:rgba(74,124,107,0.15); color:var(--success);">SF</div><div><div class="post-name">Sophie Fontaine</div><div class="post-meta"><span class="post-role">Convoyeur · Moto</span><span class="post-time">Il y a 5h · Bordeaux</span></div></div></div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button></div><div class="post-body">Mission terminée ! Paris → Bordeaux avec une R1250GS. Trajet impeccable, client ravi, 5 étoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout litige. Merci Bathily pour la logistique au top. 🏍️</div><div class="post-tags"><span class="post-tag">#moto</span><span class="post-tag">#mission</span><span class="post-tag">#5étoiles</span></div><div class="post-actions"><div style="display:flex;gap:20px"><button class="post-action"><i class="fas fa-heart"></i> 22</button><button class="post-action"><i class="fas fa-comment"></i> 7 commentaires</button></div></div></div>
+            <div class="post-card"><div class="post-header"><div style="display:flex;gap:12px;"><div class="post-ava" style="background:rgba(41,128,185,0.15); color:#2980b9;">KD</div><div><div class="post-name">Karim Diallo</div><div class="post-meta"><span class="post-role">Convoyeur Senior</span><span class="post-time">Il y a 2h · Lyon</span></div></div></div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button></div><div class="post-body">Astuce du jour : pour les longs trajets en été, vérifiez toujours la pression des pneus avant le départ — surtout pour les Tesla qui chauffent plus vite en mode auto-pilote. J'ai évité un incident hier sur l'A7. 🚗⚡</div><div class="post-tags"><span class="post-tag">#conseil</span><span class="post-tag">#sécurité</span><span class="post-tag">#EV</span></div><div class="post-actions"><div style="display:flex;gap:20px"><button class="post-action liked"><i class="fas fa-heart"></i> 14</button><button class="post-action" onclick="replyPost(this)"><i class="fas fa-comment"></i> 3 commentaires</button></div></div></div>
+            <div class="post-card"><div class="post-header"><div style="display:flex;gap:12px;"><div class="post-ava" style="background:rgba(74,124,107,0.15); color:var(--success);">SF</div><div><div class="post-name">Sophie Fontaine</div><div class="post-meta"><span class="post-role">Convoyeur · Moto</span><span class="post-time">Il y a 5h · Bordeaux</span></div></div></div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button></div><div class="post-body">Mission terminée ! Paris → Bordeaux avec une R1250GS. Trajet impeccable, client ravi, 5 étoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout litige. Merci Bathily pour la logistique au top. 🏍️</div><div class="post-tags"><span class="post-tag">#moto</span><span class="post-tag">#mission</span><span class="post-tag">#5étoiles</span></div><div class="post-actions"><div style="display:flex;gap:20px"><button class="post-action"><i class="fas fa-heart"></i> 22</button><button class="post-action" onclick="replyPost(this)"><i class="fas fa-comment"></i> 7 commentaires</button></div></div></div>
           </div>
         </div>
         <div class="social-sidebar">
@@ -2920,6 +2920,25 @@ async function rejectCandidature(id, nom) {
   } catch(e) { /* table may not exist yet */ }
 })();
 
+// ========== RESEAU COMMENTAIRES ==========
+function replyPost(btn) {
+  Swal.fire({
+    title: 'Répondre',
+    input: 'textarea',
+    inputPlaceholder: 'Écrivez votre commentaire...',
+    showCancelButton: true,
+    confirmButtonText: 'Publier',
+    cancelButtonText: 'Annuler',
+    confirmButtonColor: 'var(--bordeaux)'
+  }).then((result) => {
+    if (result.isConfirmed && result.value.trim() !== '') {
+      Swal.fire('Publié !', 'Votre commentaire a bien été ajouté.', 'success');
+      let text = btn.innerText;
+      let count = parseInt(text.replace(/[^0-9]/g, '')) || 0;
+      btn.innerHTML = `<i class="fas fa-comment"></i> ${count + 1} commentaires`;
+    }
+  });
+}
 </script>
 </body>
 </html>
