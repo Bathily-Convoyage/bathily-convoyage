@@ -1134,7 +1134,7 @@ async function handleForgotPassword(event) {
 
 async function handleClientLogin(event) {
   event.preventDefault();
-  const email = document.getElementById('loginEmail').value.trim();
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const mot_de_passe = document.getElementById('loginPassword').value;
 
   if (!email || !mot_de_passe) return;
@@ -1181,7 +1181,7 @@ async function handleClientLogin(event) {
   const { data: missions, error: mErr } = await client
     .from('missions')
     .select('*')
-    .or(`client_email.eq.${email},client_nom.ilike.%${_clientName}%`)
+    .eq('client_id', data.id)
     .order('created_at', { ascending: false });
 
   document.getElementById('clientLoginOverlay').style.display = 'none';
@@ -1200,7 +1200,7 @@ async function handleClientSignup(event) {
   event.preventDefault();
   const prenom = document.getElementById('signupPrenom').value.trim();
   const nom = document.getElementById('signupNom').value.trim();
-  const email = document.getElementById('signupEmail').value.trim();
+  const email = document.getElementById('signupEmail').value.trim().toLowerCase();
   const telephone = document.getElementById('signupTel').value.trim();
   const societe = document.getElementById('signupSociete').value.trim();
   const mot_de_passe = document.getElementById('signupPassword').value;
@@ -1265,6 +1265,23 @@ async function handleClientSignup(event) {
     .single();
 
   if (error || !data) {
+    if (error && error.code === '23505') {
+      Swal.fire({
+        title: 'Compte existant',
+        text: 'Cette adresse e-mail est déjà associée à un compte. Souhaitez-vous vous connecter ?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Se connecter',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: 'var(--bordeaux)'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          switchAuthTab('login');
+          document.getElementById('loginEmail').value = email;
+        }
+      });
+      return;
+    }
     Swal.fire({
       title: 'Erreur',
       text: error ? error.message : 'Impossible de créer le compte.',

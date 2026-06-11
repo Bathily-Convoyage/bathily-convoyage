@@ -1030,14 +1030,12 @@ body {
     <!-- Clients -->
     <div class="tab-content" id="tab-clients">
       <div class="dash-header"><h1 class="dash-hello">Base <em>clients</em></h1></div>
-      <div class="sec-title"><h2 class="sec-h">247 clients <em>enregistrés</em></h2><div class="sec-actions"><button class="btn-red" onclick="openModal('modalClient')"><i class="fas fa-plus"></i> Ajouter</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div></div>
-      <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Rechercher un client…"></div>
+      <div class="sec-title"><h2 class="sec-h" id="clientsCountHeader">0 clients <em>enregistrés</em></h2><div class="sec-actions"><button class="btn-red" onclick="openModal('modalClient')"><i class="fas fa-plus"></i> Ajouter</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div></div>
+      <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="client-search-input" placeholder="Rechercher un client…" oninput="filterClientsTable()"></div>
       <table class="data-table">
-        <thead><tr><th>Client</th><th>Email</th><th>Téléphone</th><th>Missions</th><th>CA total</th><th>Dernière mission</th><th>Statut</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">JD</div>Jean Dupont</div></td><td>jean.dupont@email.fr</td><td>+33 6 12 34 56 78</td><td>14</td><td class="td-price">3 840€</td><td>12/05/25</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Actif</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></td></tr>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:rgba(41,128,185,0.12);color:#2980b9">AL</div>Alice Leblanc</div></td><td>a.leblanc@pro.fr</td><td>+33 6 98 76 54 32</td><td>7</td><td class="td-price">2 100€</td><td>15/05/25</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Actif</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></td></tr>
-          <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:rgba(74,124,107,0.1);color:var(--success)">MR</div>Marc Renard</div></td><td>m.renard@gmail.com</td><td>+33 7 11 22 33 44</td><td>3</td><td class="td-price">1 380€</td><td>28/04/25</td><td><span class="sp sp-att"><span class="sp-dot"></span>Inactif</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></td></tr>
+        <thead><tr><th>Client</th><th>Email</th><th>Téléphone</th><th>Société</th><th>Créé le</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody id="clientsTableBody">
+          <tr><td colspan="7" style="text-align:center; color:var(--gray-mid);"><i class="fas fa-spinner fa-spin"></i> Chargement…</td></tr>
         </tbody>
       </table>
     </div>
@@ -1173,6 +1171,7 @@ function initDashboard() {
   loadMissions();
   loadDevis();
   loadConvoyeurs();
+  loadClients();
   buildCaChart();
   let prevCandidatureCount = 0;
   setInterval(async () => {
@@ -1289,6 +1288,70 @@ function loadDevis() {
         });
       }
     });
+}
+
+async function loadClients() {
+  const client = getSupabase();
+  const tbody = document.getElementById('clientsTableBody');
+  const countHeader = document.getElementById('clientsCountHeader');
+  
+  if (!tbody) return;
+
+  const { data, error } = await client
+    .from('clients')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--bordeaux);">Erreur: ${error.message}</td></tr>`;
+    return;
+  }
+
+  window._allClientsData = data || []; // for search filter
+  if (countHeader) countHeader.innerHTML = `${data.length} clients <em>enregistrés</em>`;
+  renderClientsTable(window._allClientsData);
+}
+
+function renderClientsTable(data) {
+  const tbody = document.getElementById('clientsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  
+  if (!data || data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Aucun client trouvé.</td></tr>`;
+    return;
+  }
+  
+  data.forEach(c => {
+    const name = `${c.prenom || ''} ${c.nom || ''}`.trim() || 'Inconnu';
+    const initials = `${c.prenom?.[0]||''}${c.nom?.[0]||''}`.toUpperCase();
+    const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials}</div>${name}</div></td>
+      <td>${c.email || '—'}</td>
+      <td>${c.telephone || '—'}</td>
+      <td>${c.societe || '—'}</td>
+      <td>${dateStr}</td>
+      <td><span class="sp sp-ok"><span class="sp-dot"></span>Actif</span></td>
+      <td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterClientsTable() {
+  const search = (document.getElementById('client-search-input').value || '').toLowerCase();
+  if (!window._allClientsData) return;
+  
+  const filtered = window._allClientsData.filter(c => {
+    const name = `${c.prenom || ''} ${c.nom || ''}`.toLowerCase();
+    const email = (c.email || '').toLowerCase();
+    const societe = (c.societe || '').toLowerCase();
+    return name.includes(search) || email.includes(search) || societe.includes(search);
+  });
+  
+  renderClientsTable(filtered);
 }
 
 function getConvoyeursList() {
