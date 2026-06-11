@@ -947,7 +947,26 @@ body {
         <div class="f-grp"><label>Nom</label><input type="text" id="profilNom" value=""></div>
         <div class="f-grp"><label>Email</label><input type="email" id="profilEmail" value="" disabled style="opacity: 0.7; cursor: not-allowed;"></div>
         <div class="f-grp"><label>Téléphone</label><input type="tel" id="profilTel" value=""></div>
-        <div class="f-grp" style="grid-column:span 2"><label>Société (optionnel)</label><input type="text" id="profilSociete" value=""></div>
+        <div class="f-grp" style="grid-column:span 2"><label>Adresse (N° et rue)</label><input type="text" id="profilAdresse" value=""></div>
+        <div class="f-grp"><label>Code postal</label><input type="text" id="profilCp" value=""></div>
+        <div class="f-grp"><label>Ville</label><input type="text" id="profilVille" value=""></div>
+        <div class="f-grp" style="grid-column:span 2"><label>Pays</label><input type="text" id="profilPays" value="France"></div>
+        
+        <div class="sec-title" style="grid-column:span 2; margin-top: 20px;"><h2 class="sec-h">Informations <em>entreprise</em></h2></div>
+        <div class="f-grp"><label>Société (optionnel)</label><input type="text" id="profilSociete" value=""></div>
+        <div class="f-grp"><label>SIRET (optionnel)</label><input type="text" id="profilSiret" value=""></div>
+        
+        <div class="sec-title" style="grid-column:span 2; margin-top: 20px;"><h2 class="sec-h">Documents <em>officiels</em></h2></div>
+        <div class="f-grp" style="grid-column:span 2">
+          <label>Pièce d'identité (CNI / Passeport) <span style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
+          <input type="file" id="uploadCni" accept=".pdf,.jpg,.jpeg,.png">
+          <div id="cniLink" style="font-size:0.8rem; margin-top:5px; color:var(--bordeaux);"></div>
+        </div>
+        <div class="f-grp" style="grid-column:span 2">
+          <label>KBIS (pour les professionnels) <span style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
+          <input type="file" id="uploadKbis" accept=".pdf,.jpg,.jpeg,.png">
+          <div id="kbisLink" style="font-size:0.8rem; margin-top:5px; color:var(--bordeaux);"></div>
+        </div>
       </div>
       <button class="btn-red" onclick="updateClientProfile()"><i class="fas fa-save"></i> Enregistrer</button>
     </div>
@@ -1314,6 +1333,30 @@ async function handleClientSignup(event) {
   });
 }
 
+async function uploadDocumentClient(fileInputId, docType) {
+  const fileInput = document.getElementById(fileInputId);
+  if (!fileInput || !fileInput.files || fileInput.files.length === 0) return null;
+  const file = fileInput.files[0];
+  const fileExt = file.name.split('.').pop();
+  const fileName = `clients/${_clientUser.id}/${docType}_${Date.now()}.${fileExt}`;
+  
+  const client = getSBCli();
+  const { data, error } = await client.storage
+    .from('documents')
+    .upload(fileName, file, { upsert: true });
+    
+  if (error) {
+    console.error(`Erreur upload ${docType}:`, error);
+    return null;
+  }
+  
+  const { data: publicUrlData } = client.storage
+    .from('documents')
+    .getPublicUrl(fileName);
+    
+  return publicUrlData.publicUrl;
+}
+
 async function updateClientProfile() {
   if (!_clientUser) {
     Swal.fire({
@@ -1329,6 +1372,11 @@ async function updateClientProfile() {
   const nom = document.getElementById('profilNom').value.trim();
   const telephone = document.getElementById('profilTel').value.trim();
   const societe = document.getElementById('profilSociete').value.trim();
+  const adresse = document.getElementById('profilAdresse')?.value.trim();
+  const code_postal = document.getElementById('profilCp')?.value.trim();
+  const ville = document.getElementById('profilVille')?.value.trim();
+  const pays = document.getElementById('profilPays')?.value.trim();
+  const siret = document.getElementById('profilSiret')?.value.trim();
 
   if (!prenom || !nom) {
     Swal.fire({
@@ -1342,13 +1390,27 @@ async function updateClientProfile() {
 
   Swal.fire({
     title: 'Mise à jour...',
+    text: 'Enregistrement du profil et des documents (cela peut prendre quelques secondes)...',
     didOpen: () => Swal.showLoading(),
     allowOutsideClick: false
   });
 
+  // Upload files
+  let cniUrl = await uploadDocumentClient('uploadCni', 'cni');
+  let kbisUrl = await uploadDocumentClient('uploadKbis', 'kbis');
+
+  // Load existing documents to merge
+  let docs = _clientUser.documents || {};
+  if (cniUrl) docs.cni = cniUrl;
+  if (kbisUrl) docs.kbis = kbisUrl;
+
   const { data, error } = await getSBCli()
     .from('clients')
-    .update({ prenom, nom, telephone, societe })
+    .update({ 
+      prenom, nom, telephone, societe,
+      adresse, code_postal, ville, pays, siret,
+      documents: docs
+    })
     .eq('id', _clientUser.id)
     .select()
     .single();
@@ -1406,6 +1468,29 @@ async function initClientDashboard(missions) {
     if (pEmail) pEmail.value = _clientUser.email || '';
     if (pTel) pTel.value = _clientUser.telephone || '';
     if (pSociete) pSociete.value = _clientUser.societe || '';
+    
+    const pAdresse = document.getElementById('profilAdresse');
+    const pCp = document.getElementById('profilCp');
+    const pVille = document.getElementById('profilVille');
+    const pPays = document.getElementById('profilPays');
+    const pSiret = document.getElementById('profilSiret');
+
+    if (pAdresse) pAdresse.value = _clientUser.adresse || '';
+    if (pCp) pCp.value = _clientUser.code_postal || '';
+    if (pVille) pVille.value = _clientUser.ville || '';
+    if (pPays) pPays.value = _clientUser.pays || 'France';
+    if (pSiret) pSiret.value = _clientUser.siret || '';
+
+    const cniLink = document.getElementById('cniLink');
+    const kbisLink = document.getElementById('kbisLink');
+    if (_clientUser.documents) {
+      if (_clientUser.documents.cni && cniLink) {
+        cniLink.innerHTML = `<a href="${_clientUser.documents.cni}" target="_blank"><i class="fas fa-file-pdf"></i> Voir le document actuel</a>`;
+      } else if (cniLink) { cniLink.innerHTML = ''; }
+      if (_clientUser.documents.kbis && kbisLink) {
+        kbisLink.innerHTML = `<a href="${_clientUser.documents.kbis}" target="_blank"><i class="fas fa-file-pdf"></i> Voir le document actuel</a>`;
+      } else if (kbisLink) { kbisLink.innerHTML = ''; }
+    }
   } else if (_clientName) {
     const parts = _clientName.split(' ');
     const pPrenom = document.getElementById('profilPrenom');
