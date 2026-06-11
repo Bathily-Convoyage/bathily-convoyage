@@ -2067,30 +2067,61 @@ function downloadInvoicePdf(missionId) {
       ]
     ],
     theme: 'grid',
-    headStyles: { fillColor: [122, 46, 26] },
-    styles: { fontSize: 10, cellPadding: 6 }
+    headStyles: { 
+      fillColor: [122, 46, 26],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold'
+    },
+    styles: { 
+      fontSize: 10, 
+      cellPadding: 8,
+      lineColor: [220, 220, 220],
+      lineWidth: 0.1
+    },
+    columnStyles: {
+      0: { cellWidth: 100 },
+      1: { cellWidth: 35, halign: 'right' },
+      2: { cellWidth: 20, halign: 'right' },
+      3: { cellWidth: 35, halign: 'right' }
+    }
   });
 
   const finalY = doc.lastAutoTable.finalY || 100;
 
+  // Box around totals to make it look professional
+  doc.setFillColor(249, 246, 240); // Beige-cream background
+  doc.setDrawColor(220, 220, 220);
+  doc.rect(115, finalY + 10, 80, 35, 'FD'); // Filled and stroke
+
   // Totals
   doc.setFontSize(11);
-  doc.text(`Total HT :`, 140, finalY + 15);
-  doc.text(`${priceHt.toFixed(2)} €`, 175, finalY + 15, { align: 'right' });
+  doc.setTextColor(0, 0, 0);
+  doc.text(`Total HT :`, 125, finalY + 18);
+  doc.text(`${priceHt.toFixed(2)} €`, 185, finalY + 18, { align: 'right' });
   
-  doc.text(`TVA (20%) :`, 140, finalY + 22);
-  doc.text(`${tva.toFixed(2)} €`, 175, finalY + 22, { align: 'right' });
+  doc.text(`TVA (20%) :`, 125, finalY + 26);
+  doc.text(`${tva.toFixed(2)} €`, 185, finalY + 26, { align: 'right' });
+
+  // Line before Total TTC
+  doc.setDrawColor(122, 46, 26); // Bordeaux line
+  doc.line(125, finalY + 31, 185, finalY + 31);
 
   doc.setFontSize(12);
   doc.setFont(undefined, 'bold');
-  doc.text(`Total TTC :`, 140, finalY + 32);
-  doc.text(`${priceTtc.toFixed(2)} €`, 175, finalY + 32, { align: 'right' });
+  doc.setTextColor(122, 46, 26); // Total TTC in bordeaux
+  doc.text(`Total TTC :`, 125, finalY + 39);
+  doc.text(`${priceTtc.toFixed(2)} €`, 185, finalY + 39, { align: 'right' });
   
   // Footer
   doc.setFont(undefined, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(150, 150, 150);
-  doc.text("Merci de votre confiance.", 105, 280, { align: 'center' });
+  
+  // Payment terms
+  doc.text("Conditions de paiement : Paiement à réception.", 14, 265);
+  doc.text("En cas de retard de paiement, une pénalité égale à 3 fois le taux d'intérêt légal sera appliquée.", 14, 270);
+  
+  doc.text("Document généré numériquement - Bathily Convoyage", 105, 285, { align: 'center' });
 
   doc.save(`Facture_${invoiceRef}.pdf`);
 }
