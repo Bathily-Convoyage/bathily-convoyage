@@ -1249,6 +1249,8 @@ function loadDevis() {
         return;
       }
 
+      window._allDevisData = data;
+
       const pendingCount = data.filter(d => d.status === 'pending').length;
       if (alertBanner) {
         alertBanner.className = 'alert alert-warn';
@@ -1280,14 +1282,79 @@ function loadDevis() {
             <td class="td-price">${d.total_ht || 0}€</td>
             <td>${dateStr}</td>
             <td class="td-actions">
-              <button class="btn-sm btn-sm-green" onclick="confirmDevis('${d.id}')"><i class="fas fa-check"></i> Valider</button>
-              <button class="btn-sm btn-sm-orange" onclick="refuseDevis('${d.id}')"><i class="fas fa-times"></i> Refuser</button>
+              <button class="btn-sm btn-sm-ghost" onclick="viewDevisDetails('${d.id}')" title="Voir les détails"><i class="fas fa-eye"></i></button>
+              <button class="btn-sm btn-sm-ghost" onclick="editDevisPrice('${d.id}')" title="Modifier le prix"><i class="fas fa-edit"></i></button>
+              <button class="btn-sm btn-sm-green" onclick="confirmDevis('${d.id}')" title="Valider"><i class="fas fa-check"></i></button>
+              <button class="btn-sm btn-sm-orange" onclick="refuseDevis('${d.id}')" title="Refuser"><i class="fas fa-times"></i></button>
             </td>
           `;
           tbody.appendChild(tr);
         });
       }
     });
+}
+
+function viewDevisDetails(id) {
+  const devis = (window._allDevisData || []).find(d => d.id === id);
+  if (!devis) return;
+  const detail = devis.details || {};
+  const coord = detail.coordonnees || {};
+  const dateStr = devis.created_at ? new Date(devis.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year:'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+  const html = `
+    <div style="text-align:left; font-size:0.9rem; line-height:1.6;">
+      <b>Référence:</b> ${devis.reference}<br>
+      <b>Date de demande:</b> ${dateStr}<br>
+      <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
+      <b>Client:</b> ${coord.prenom || devis.client_prenom || ''} ${coord.nom || devis.client_nom || ''}<br>
+      <b>Email:</b> ${coord.email || devis.client_email || '—'}<br>
+      <b>Téléphone:</b> ${coord.telephone || '—'}<br>
+      <b>Société:</b> ${coord.societe || '—'}<br>
+      <b>Notes/Informations:</b> ${coord.notes || '—'}<br>
+      <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
+      <b>Trajet:</b> ${detail.dep || devis.depart || ''} ➔ ${detail.arr || devis.arrivee || ''}<br>
+      <b>Dist:</b> ${detail.dist || '—'} km<br>
+      <b>Véhicule:</b> ${devis.vehicule || 'Auto'} (${detail.cat || '—'})<br>
+      <b>Plaque:</b> ${detail.immat || 'Non renseignée'}<br>
+      <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
+      <b>Transport:</b> ${detail.mode === 'plateau' ? 'Plateau' : 'Route'}<br>
+      <b>Pack:</b> <span style="text-transform:capitalize">${detail.pack || 'Starter'}</span><br>
+      <b>Options:</b> Gardiennage: ${detail.opts?.gardiennage?'Oui':'Non'}, Urgence: ${detail.opts?.urgence?'Oui':'Non'}<br>
+      <b>Horaires:</b> Dép ${detail.horaires?.heureDep||'—'}, Liv ${detail.horaires?.heureLiv||'—'} (${detail.horaires?.flexibilite||'—'})<br>
+      <b>Date prévue:</b> ${detail.date || '—'}<br>
+      <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
+      <div style="font-size:1.1rem; text-align:right;"><b>Total estimé: <span style="color:var(--bordeaux)">${devis.total_ht || 0} € HT</span></b></div>
+    </div>
+  `;
+  Swal.fire({
+    title: 'Détails du Devis',
+    html: html,
+    width: 500,
+    showCloseButton: true,
+    showConfirmButton: false
+  });
+}
+
+function editDevisPrice(id) {
+  const devis = (window._allDevisData || []).find(d => d.id === id);
+  if (!devis) return;
+  Swal.fire({
+    title: 'Modifier le montant HT',
+    input: 'number',
+    inputValue: devis.total_ht || 0,
+    inputLabel: 'Montant HT (€)',
+    showCancelButton: true,
+    confirmButtonText: 'Enregistrer',
+    cancelButtonText: 'Annuler',
+    confirmButtonColor: 'var(--bordeaux)'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      const newTotal = parseFloat(result.value);
+      const client = getSupabase();
+      await client.from('devis').update({ total_ht: newTotal }).eq('id', id);
+      loadDevis();
+      Swal.fire('Succès', 'Montant mis à jour.', 'success');
+    }
+  });
 }
 
 async function loadClients() {
