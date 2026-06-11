@@ -952,13 +952,11 @@ body {
         <div class="mini-card"><div class="mini-ico"><i class="fas fa-file-invoice"></i></div><div><div class="mini-val">7</div><div class="mini-lbl">Factures en attente</div></div></div>
         <div class="mini-card"><div class="mini-ico"><i class="fas fa-user-plus"></i></div><div><div class="mini-val">3</div><div class="mini-lbl">Nouveaux clients</div></div></div>
       </div>
-      <div class="sec-title"><h2 class="sec-h">Missions <em>récentes</em></h2><div class="sec-actions"><button class="btn-red" onclick="showTab('missions',null)"><i class="fas fa-eye"></i> Voir tout</button></div></div>
+      <div class="sec-title"><h2 class="sec-h">Missions <em>récentes</em></h2><div class="sec-actions"><button class="btn-red" onclick="showTab('missions', document.querySelector('.nav-item[onclick*=\\'missions\\']'))"><i class="fas fa-eye"></i> Voir tout</button></div></div>
       <table class="data-table">
         <thead><tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Convoyeur</th><th>Pack</th><th>Montant</th><th>Statut</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr><td>BC-2025-0847</td><td>Jean Dupont</td><td>Paris → Lyon</td><td>M. Bathily</td><td>Sérénité</td><td class="td-price">340€</td><td><span class="sp sp-cours"><span class="sp-dot"></span>En cours</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></td></tr>
-          <tr><td>BC-2025-0851</td><td>Alice Leblanc</td><td>Bordeaux → Nice</td><td>K. Diallo</td><td>Excellence</td><td class="td-price">880€</td><td><span class="sp sp-att"><span class="sp-dot"></span>Planifiée</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></td></tr>
-          <tr><td>BC-2025-0821</td><td>Marc Renard</td><td>Lyon → Marseille</td><td>S. Fontaine</td><td>Starter</td><td class="td-price">550€</td><td><span class="sp sp-ok"><span class="sp-dot"></span>Terminée</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost"><i class="fas fa-eye"></i></button><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td></tr>
+        <tbody id="recentMissionsTableBody">
+          <tr><td colspan="8" style="text-align:center; color:var(--gray-mid);"><i class="fas fa-spinner fa-spin"></i> Chargement...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1407,6 +1405,45 @@ function renderClientsTable(data) {
   });
 }
 
+function renderRecentMissionsTable(missions) {
+  const tbody = document.getElementById('recentMissionsTableBody');
+  if (!tbody) return;
+
+  if (!missions || missions.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Aucune mission récente.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  // Prendre les 3 dernières missions
+  const recentMissions = missions.slice(0, 3);
+  
+  recentMissions.forEach(m => {
+    const mStatus = m.statut || m.status || 'planned';
+    let statusClass = 'sp-att';
+    let statusText = 'Planifiée';
+    if (mStatus === 'available') { statusClass = 'sp-att'; statusText = 'Sur le marché'; }
+    else if (mStatus === 'in_progress') { statusClass = 'sp-cours'; statusText = 'En cours'; }
+    else if (mStatus === 'completed') { statusClass = 'sp-ok'; statusText = 'Terminée'; }
+    else if (mStatus === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${m.reference || '—'}</td>
+      <td>${m.client_nom || 'Client'}</td>
+      <td>${m.depart} → ${m.arrivee}</td>
+      <td>${m.convoyeur_nom || '—'}</td>
+      <td style="text-transform: capitalize;">${m.pack || 'starter'}</td>
+      <td class="td-price">${m.montant_ht || 0}€</td>
+      <td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusText}</span></td>
+      <td class="td-actions">
+        <button class="btn-sm btn-sm-ghost" title="Voir dans l'onglet Missions" onclick="showTab('missions', document.querySelector('.nav-item[onclick*=\\'missions\\']'))"><i class="fas fa-eye"></i></button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 function filterClientsTable() {
   const search = (document.getElementById('client-search-input').value || '').toLowerCase();
   if (!window._allClientsData) return;
@@ -1710,6 +1747,7 @@ function loadMissions(silent) {
           _allMissions = _allMissions.map(m => ({ ...m, statut: m.statut || m.status || 'planned' }));
 
           renderMissionsTable(_allMissions);
+          renderRecentMissionsTable(_allMissions);
           renderInvoicesTable(_allMissions);
         });
     });
