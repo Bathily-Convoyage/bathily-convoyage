@@ -1217,7 +1217,7 @@ function showTab(id, el) {
   }
 }
 
-let _supabaseClient = null;
+var _supabaseClient = null;
 function getSupabase() {
   if (!_supabaseClient) {
     _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
