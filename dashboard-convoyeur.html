@@ -2325,23 +2325,78 @@ function envoyerSignalement() {
 }
 
 // ========== RESEAU COMMENTAIRES ==========
-function replyPost(btn) {
-  Swal.fire({
-    title: 'Répondre',
-    input: 'textarea',
-    inputPlaceholder: 'Écrivez votre commentaire...',
-    showCancelButton: true,
-    confirmButtonText: 'Publier',
-    cancelButtonText: 'Annuler',
-    confirmButtonColor: 'var(--bordeaux)'
-  }).then((result) => {
-    if (result.isConfirmed && result.value.trim() !== '') {
-      Swal.fire('Publié !', 'Votre commentaire a bien été ajouté.', 'success');
-      let text = btn.innerText;
-      let count = parseInt(text.replace(/[^0-9]/g, '')) || 0;
-      btn.innerHTML = `<i class="fas fa-comment"></i> ${count + 1} commentaires`;
+function toggleComments(btn) {
+  const postCard = btn.closest('.post-card');
+  let commentsSection = postCard.querySelector('.post-comments-section');
+  
+  if (commentsSection) {
+    commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
+  } else {
+    const count = parseInt(btn.innerText.replace(/[^0-9]/g, '')) || 0;
+    let fakeCommentsHTML = '';
+    
+    if (count > 0) {
+      fakeCommentsHTML += `
+        <div class="comment-item" style="display:flex; gap:10px; margin-bottom:12px;">
+          <div class="post-ava" style="width:28px; height:28px; font-size:0.6rem; background:rgba(41,128,185,0.1); color:#2980b9;">AB</div>
+          <div style="flex:1; background:#F9FAFB; padding:10px 14px; border-radius:0 16px 16px 16px; font-size:0.8rem; border:1px solid var(--border-light);">
+            <div style="font-weight:700; margin-bottom:2px;">Alexandre B.</div>
+            <div style="color:var(--gray-dark);">C'est totalement vrai, merci du conseil ! 🙌</div>
+          </div>
+        </div>
+      `;
     }
-  });
+    if (count > 1) {
+      fakeCommentsHTML += `
+        <div class="comment-item" style="display:flex; gap:10px; margin-bottom:12px;">
+          <div class="post-ava" style="width:28px; height:28px; font-size:0.6rem; background:rgba(142,68,173,0.1); color:#8e44ad;">CL</div>
+          <div style="flex:1; background:#F9FAFB; padding:10px 14px; border-radius:0 16px 16px 16px; font-size:0.8rem; border:1px solid var(--border-light);">
+            <div style="font-weight:700; margin-bottom:2px;">Claire L.</div>
+            <div style="color:var(--gray-dark);">Je valide à 100%, j'ai eu la blague la semaine dernière.</div>
+          </div>
+        </div>
+      `;
+    }
+    
+    const html = `
+      <div class="post-comments-section" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border-light); animation: fadeIn 0.3s ease;">
+        <div class="comments-list">
+          ${fakeCommentsHTML}
+        </div>
+        <div class="comment-composer" style="display:flex; gap:10px; margin-top:12px; align-items:center;">
+          <div class="post-ava" style="width:28px; height:28px; font-size:0.6rem; background:var(--bordeaux-light); color:var(--bordeaux);">MB</div>
+          <input type="text" placeholder="Écrivez un commentaire..." style="flex:1; height:36px; font-size:0.8rem; border:1px solid var(--border-light); border-radius:20px; padding:0 14px; background:#F9FAFB; outline:none;" onkeydown="if(event.key==='Enter') submitInlineComment(this)">
+          <button class="btn-sm btn-sm-ghost" style="color:var(--bordeaux); border:none; background:none; cursor:pointer;" onclick="submitInlineComment(this)"><i class="fas fa-paper-plane" style="font-size:1.1rem;"></i></button>
+        </div>
+      </div>
+    `;
+    postCard.insertAdjacentHTML('beforeend', html);
+  }
+}
+
+function submitInlineComment(el) {
+  const composer = el.closest('.comment-composer');
+  const input = composer.querySelector('input');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  const commentsList = composer.previousElementSibling;
+  const newComment = `
+    <div class="comment-item" style="display:flex; gap:10px; margin-bottom:12px; animation: fadeIn 0.3s ease;">
+      <div class="post-ava" style="width:28px; height:28px; font-size:0.6rem; background:var(--bordeaux-light); color:var(--bordeaux);">MB</div>
+      <div style="flex:1; background:#F9FAFB; padding:10px 14px; border-radius:0 16px 16px 16px; font-size:0.8rem; border:1px solid var(--border-light);">
+        <div style="font-weight:700; margin-bottom:2px;">Vous</div>
+        <div style="color:var(--gray-dark);">${text}</div>
+      </div>
+    </div>
+  `;
+  commentsList.insertAdjacentHTML('beforeend', newComment);
+  input.value = '';
+  
+  const postCard = el.closest('.post-card');
+  const btn = postCard.querySelector('.post-action .fa-comment').parentElement;
+  let count = parseInt(btn.innerText.replace(/[^0-9]/g, '')) || 0;
+  btn.innerHTML = `<i class="fas fa-comment"></i> ${count + 1} commentaires`;
 }
 </script>
 </body>
