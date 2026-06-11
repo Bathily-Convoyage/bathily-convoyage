@@ -1444,6 +1444,9 @@ async function loadPacksConfig() {
     });
     window._packLabels = labels;
     window._packPrices = prices;
+    if (typeof S !== 'undefined' && S.pack && prices[S.pack] !== undefined) {
+      S.packP = prices[S.pack];
+    }
     updSidebar();
     updPrice();
   } catch (err) {
