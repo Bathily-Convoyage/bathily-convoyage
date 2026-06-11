@@ -78,22 +78,24 @@ exports.handler = async (event, context) => {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || data.error || (data.code && data.code !== 200)) {
         console.error('Erreur API SIV:', data);
-        throw new Error(data.message || `Erreur de communication avec l'API SIV (${response.status})`);
+        throw new Error(data.message || `Erreur SIV ou véhicule introuvable (${data.code || response.status})`);
       }
 
       console.log('Données brutes reçues de la plaque:', data);
 
-      // Mappage robuste gérant les clés françaises et anglaises
+      const innerData = data.data || {};
+
+      // Mappage robuste gérant les clés françaises, anglaises et préfixées AW_ / AWN_
       const result = {
-        marque: data.marque || data.make || data.Brand || '',
-        modele: data.modele || data.model || data.Model || '',
-        energie: data.energie || data.fuelType || data.Fuel || '',
-        couleur: data.couleur || data.color || data.Color || '',
-        annee: data.annee || data.year || data.Year || '',
-        vin: data.vin || data.vinNumber || '',
-        puissance: data.puissanceFiscale || data.puissance_fiscale || data.puissanceReelle || data.puissance_reelle || data.puissance || data.power || data.fiscalPower || ''
+        marque: innerData.AWN_marque || innerData.marque || data.marque || data.make || data.Brand || '',
+        modele: innerData.AWN_modele || innerData.modele || data.modele || data.model || data.Model || '',
+        energie: innerData.AWN_energie || innerData.energie || data.energie || data.fuelType || data.Fuel || '',
+        couleur: innerData.AWN_couleur || innerData.couleur || data.couleur || data.color || data.Color || '',
+        annee: (innerData.AWN_date_mise_en_circulation_us ? innerData.AWN_date_mise_en_circulation_us.substring(0, 4) : null) || innerData.AWN_annee_de_debut_modele || data.annee || data.year || data.Year || '',
+        vin: innerData.AWN_VIN || innerData.vin || data.vin || data.vinNumber || '',
+        puissance: innerData.AWN_puissance_fiscale || innerData.puissance || data.puissanceFiscale || data.puissance_fiscale || data.puissanceReelle || data.puissance_reelle || data.power || data.fiscalPower || ''
       };
 
       // Nettoyer la casse pour afficher joliment
