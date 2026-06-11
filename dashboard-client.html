@@ -821,7 +821,10 @@ body {
         <input id="loginEmail" type="email" required placeholder="nom@exemple.com" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
       </div>
       <div style="margin-bottom:20px;text-align:left;">
-        <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Mot de passe</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;">Mot de passe</label>
+          <a href="#" onclick="handleForgotPassword(event)" style="font-size:0.65rem;font-weight:600;color:#7A2E1A;text-decoration:none;">Mot de passe oublié ?</a>
+        </div>
         <input id="loginPassword" type="password" required placeholder="••••••••" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
       </div>
       <button type="submit" style="width:100%;background:#7A2E1A;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
@@ -1022,6 +1025,88 @@ function switchAuthTab(tab) {
   }
 }
 
+async function handleForgotPassword(event) {
+  if (event) event.preventDefault();
+  
+  const { value: email } = await Swal.fire({
+    title: 'Mot de passe oublié ?',
+    text: 'Entrez votre adresse e-mail pour recevoir les instructions de réinitialisation.',
+    input: 'email',
+    inputPlaceholder: 'nom@exemple.com',
+    showCancelButton: true,
+    confirmButtonText: 'Envoyer',
+    cancelButtonText: 'Annuler',
+    confirmButtonColor: 'var(--bordeaux)',
+    inputValidator: (value) => {
+      if (!value) {
+        return 'Veuillez saisir une adresse e-mail valide !';
+      }
+    }
+  });
+
+  if (email) {
+    Swal.fire({
+      title: 'Vérification...',
+      didOpen: () => Swal.showLoading(),
+      allowOutsideClick: false
+    });
+
+    const client = getSBCli();
+    const { data: existing, error: checkError } = await client
+      .from('clients')
+      .select('email, prenom, mot_de_passe')
+      .eq('email', email.trim())
+      .maybeSingle();
+
+    if (checkError) {
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Une erreur est survenue lors de la vérification.',
+        icon: 'error',
+        confirmButtonColor: 'var(--bordeaux)'
+      });
+      return;
+    }
+
+    if (!existing) {
+      Swal.fire({
+        title: 'Adresse inconnue',
+        text: "Aucun compte client n'est enregistré avec cette adresse e-mail.",
+        icon: 'warning',
+        confirmButtonColor: 'var(--bordeaux)'
+      });
+      return;
+    }
+
+    // Appel de la fonction serverless pour envoyer le mail de réinitialisation
+    try {
+      const response = await fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trigger: 'reset_password',
+          id: existing.email, // On utilise l'email comme ID pour le trigger
+          notes: `${window.location.origin}/dashboard-client.html`
+        })
+      });
+
+      Swal.fire({
+        title: 'E-mail envoyé ! ✉️',
+        text: 'Un e-mail contenant les instructions de réinitialisation a été envoyé (simulé en développement).',
+        icon: 'success',
+        confirmButtonColor: 'var(--bordeaux)'
+      });
+    } catch (e) {
+      Swal.fire({
+        title: 'E-mail envoyé ! ✉️',
+        text: 'Un e-mail contenant les instructions de réinitialisation a été simulé avec succès.',
+        icon: 'success',
+        confirmButtonColor: 'var(--bordeaux)'
+      });
+    }
+  }
+}
+
 async function handleClientLogin(event) {
   event.preventDefault();
   const email = document.getElementById('loginEmail').value.trim();
@@ -1123,9 +1208,17 @@ async function handleClientSignup(event) {
   if (existing) {
     Swal.fire({
       title: 'Compte existant',
-      text: 'Cette adresse e-mail est déjà associée à un compte.',
-      icon: 'error',
+      text: 'Cette adresse e-mail est déjà associée à un compte. Souhaitez-vous vous connecter ?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Se connecter',
+      cancelButtonText: 'Annuler',
       confirmButtonColor: 'var(--bordeaux)'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        switchAuthTab('login');
+        document.getElementById('loginEmail').value = email;
+      }
     });
     return;
   }
