@@ -1132,9 +1132,9 @@ body {
     <!-- Packs & Options -->
     <div class="tab-content" id="tab-packs-config">
       <div class="dash-header"><h1 class="dash-hello">Packs & <em>Options</em></h1></div>
-      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Pack Starter</span><span class="config-card-tag">Inclus</span></div><div class="f-grp"><label>Nom du pack</label><input type="text" value="Starter"></div><div class="f-grp"><label>Prestations incluses (une par ligne)</label><textarea rows="4">Logistique de convoyage standard&#10;Double assurance RC Pro&#10;Identification SIV&#10;État des lieux numérisé (20 photos)&#10;Suivi GPS basique</textarea></div><button class="btn-red"><i class="fas fa-save"></i> Sauvegarder</button></div>
-      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Pack Sérénité</span><span class="config-card-tag">+49€ HT</span></div><div class="f-row"><div class="f-grp"><label>Nom</label><input type="text" value="Sérénité"></div><div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" value="49" step="1" style="font-size:1rem; width:100px"> €</div></div><div class="f-grp"><label>Prestations incluses</label><textarea rows="3">Nettoyage extérieur haute pression&#10;Mise à niveau carburant / charge&#10;Check-list digitale par email</textarea></div><button class="btn-red"><i class="fas fa-save"></i> Sauvegarder</button></div>
-      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Pack Excellence</span><span class="config-card-tag">+129€ HT</span></div><div class="f-row"><div class="f-grp"><label>Nom</label><input type="text" value="Excellence"></div><div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" value="129" step="1" style="font-size:1rem; width:100px"> €</div></div><div class="f-grp"><label>Prestations incluses</label><textarea rows="3">Préparation esthétique complète&#10;Full Energy — 100% charge / plein&#10;Cadeau premium personnalisé</textarea></div><button class="btn-red"><i class="fas fa-save"></i> Sauvegarder</button></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Pack Starter</span><span class="config-card-tag" id="tag_pack_starter">Inclus</span></div><div class="f-grp"><label>Nom du pack</label><input type="text" id="name_pack_starter" value="Starter"></div><div class="f-grp"><label>Prestations incluses (une par ligne)</label><textarea id="features_pack_starter" rows="4">Logistique de convoyage standard&#10;Double assurance RC Pro&#10;Identification SIV&#10;État des lieux numérisé (20 photos)&#10;Suivi GPS basique</textarea></div><button class="btn-red" onclick="savePack('pack_starter', this)"><i class="fas fa-save"></i> Sauvegarder</button></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Pack Sérénité</span><span class="config-card-tag" id="tag_pack_serenite">+49€ HT</span></div><div class="f-row"><div class="f-grp"><label>Nom</label><input type="text" id="name_pack_serenite" value="Sérénité"></div><div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" id="price_pack_serenite" value="49" step="1" style="font-size:1rem; width:100px"> €</div></div><div class="f-grp"><label>Prestations incluses</label><textarea id="features_pack_serenite" rows="3">Nettoyage extérieur haute pression&#10;Mise à niveau carburant / charge&#10;Check-list digitale par email</textarea></div><button class="btn-red" onclick="savePack('pack_serenite', this)"><i class="fas fa-save"></i> Sauvegarder</button></div>
+      <div class="config-card"><div class="config-card-header"><span class="config-card-title">Pack Excellence</span><span class="config-card-tag" id="tag_pack_excellence">+129€ HT</span></div><div class="f-row"><div class="f-grp"><label>Nom</label><input type="text" id="name_pack_excellence" value="Excellence"></div><div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" id="price_pack_excellence" value="129" step="1" style="font-size:1rem; width:100px"> €</div></div><div class="f-grp"><label>Prestations incluses</label><textarea id="features_pack_excellence" rows="3">Préparation esthétique complète&#10;Full Energy — 100% charge / plein&#10;Cadeau premium personnalisé</textarea></div><button class="btn-red" onclick="savePack('pack_excellence', this)"><i class="fas fa-save"></i> Sauvegarder</button></div>
     </div>
 
     <!-- Facturation -->
@@ -1234,6 +1234,7 @@ if (checkAdminSession()) {
 }
 
 function initDashboard() {
+  loadPacksConfig();
   // Start auto-refresh every 30s
   loadMissions();
   loadDevis();
@@ -2847,6 +2848,64 @@ function getConvoyeursList() {
     autoRate: parseFloat(c.taux_auto) || 0.47,
     motoRate: parseFloat(c.taux_moto) || 0.40
   }));
+}
+
+}
+
+// ========== PACKS CONFIG ==========
+async function loadPacksConfig() {
+  const client = getSBA();
+  const { data, error } = await client.from('system_settings').select('*');
+  if (error || !data) return;
+
+  data.forEach(setting => {
+    if (setting.key.startsWith('pack_')) {
+      const p = setting.value;
+      const nameEl = document.getElementById(`name_${setting.key}`);
+      const priceEl = document.getElementById(`price_${setting.key}`);
+      const featuresEl = document.getElementById(`features_${setting.key}`);
+      const tagEl = document.getElementById(`tag_${setting.key}`);
+
+      if (nameEl && p.name) nameEl.value = p.name;
+      if (priceEl && p.price !== undefined) priceEl.value = p.price;
+      if (featuresEl && p.features) featuresEl.value = p.features;
+      if (tagEl && p.price !== undefined) {
+        tagEl.textContent = p.price > 0 ? `+${p.price}€ HT` : 'Inclus';
+      }
+    }
+  });
+}
+
+async function savePack(packId, btn) {
+  const name = document.getElementById(`name_${packId}`)?.value;
+  let price = 0;
+  if (document.getElementById(`price_${packId}`)) {
+      price = parseFloat(document.getElementById(`price_${packId}`).value) || 0;
+  }
+  const features = document.getElementById(`features_${packId}`)?.value;
+
+  const valueObj = { name, price, features };
+
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  const client = getSBA();
+  
+  const { error } = await client.from('system_settings')
+    .upsert({ key: packId, value: valueObj });
+
+  if (error) {
+    btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erreur';
+    btn.style.background = 'var(--error)';
+  } else {
+    btn.innerHTML = '<i class="fas fa-check"></i> Sauvegardé';
+    btn.style.background = 'var(--success)';
+    const tagEl = document.getElementById(`tag_${packId}`);
+    if(tagEl) tagEl.textContent = price > 0 ? `+${price}€ HT` : 'Inclus';
+  }
+
+  setTimeout(() => {
+    btn.innerHTML = '<i class="fas fa-save"></i> Sauvegarder';
+    btn.style.background = '';
+  }, 2000);
 }
 
 // ========== SAVE CONFIG ==========
