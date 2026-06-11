@@ -887,6 +887,8 @@ body {
 .ss-title { font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--bordeaux); margin-bottom: 16px; }
 .zone-tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .zone-tag { background: var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius: 40px; padding: 4px 12px; font-size: 0.6rem; font-weight: 700; color: var(--bordeaux); cursor: pointer; }
+.clickable-row { transition: background 0.2s; }
+.clickable-row:hover { background: #f0ebe1; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -1179,6 +1181,15 @@ body {
 <div class="modal-overlay" id="modalClient"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalClient')"><i class="fas fa-times"></i></button><h3 class="modal-h" id="modalClientTitle">Nouveau <em>client</em></h3><div class="f-row"><div class="f-grp"><label>Prénom</label><input type="text" id="clientPrenom"></div><div class="f-grp"><label>Nom</label><input type="text" id="clientNom"></div></div><div class="f-row"><div class="f-grp"><label>Email</label><input type="email" id="clientEmail"></div><div class="f-grp"><label>Téléphone</label><input type="tel" id="clientTel"></div></div><div class="f-grp"><label>Société (optionnel)</label><input type="text" id="clientSociete"></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalClient')"><i class="fas fa-save"></i> Enregistrer</button><button class="btn-outline" onclick="closeModal('modalClient')">Annuler</button></div></div></div>
 
 <div class="modal-overlay" id="modalConvoyeur"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalConvoyeur')"><i class="fas fa-times"></i></button><h3 class="modal-h">Nouveau <em>convoyeur</em></h3><div class="f-row"><div class="f-grp"><label>Prénom</label><input type="text" id="conv-prenom"></div><div class="f-grp"><label>Nom</label><input type="text" id="conv-nom"></div></div><div class="f-row"><div class="f-grp"><label>Email</label><input type="email" id="conv-email"></div><div class="f-grp"><label>Téléphone</label><input type="tel" id="conv-phone"></div></div><div class="f-row"><div class="f-grp"><label>Taux auto (€/km)</label><input type="number" id="conv-taux-auto" value="0.47" step="0.01"></div><div class="f-grp"><label>Taux moto (€/km)</label><input type="number" id="conv-taux-moto" value="0.40" step="0.01"></div></div><div class="f-grp"><label>Zone d'intervention</label><input type="text" id="conv-zone" placeholder="IDF, Rhône-Alpes…"></div><div class="f-grp"><label>Niveau</label><select id="conv-niveau"><option value="Standard">Standard</option><option value="Senior">Senior</option></select></div><div class="modal-btns"><button class="btn-red" onclick="addConvoyeurDOM()"><i class="fas fa-save"></i> Enregistrer</button><button class="btn-outline" onclick="closeModal('modalConvoyeur')">Annuler</button></div></div></div>
+
+<div class="modal-overlay" id="modalMissionDetails"><div class="modal-box" style="max-width:700px;"><button class="modal-close" onclick="closeModal('modalMissionDetails')"><i class="fas fa-times"></i></button><h3 class="modal-h">Détails de la <em>mission</em></h3><input type="hidden" id="md-id">
+<div class="f-row"><div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly style="background:#f5f5f5; cursor:not-allowed;"></div><div class="f-grp"><label>Statut</label><select id="md-status"><option value="available">Sur le marché</option><option value="assigned">Assignée</option><option value="in_progress">En cours</option><option value="completed">Terminée</option><option value="cancelled">Annulée</option></select></div></div>
+<div class="f-row"><div class="f-grp"><label>Client Nom</label><input type="text" id="md-client-nom"></div><div class="f-grp"><label>Email Client</label><input type="email" id="md-client-email"></div></div>
+<div class="f-row"><div class="f-grp"><label>Départ</label><input type="text" id="md-depart"></div><div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee"></div></div>
+<div class="f-row"><div class="f-grp"><label>Montant HT (€)</label><input type="number" id="md-price" oninput="updateMdMarge()"></div><div class="f-grp"><label>Rémunération Convoyeur (€)</label><input type="number" id="md-rem" oninput="updateMdMarge()"></div></div>
+<div class="f-row"><div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule"></div><div class="f-grp"><label>Paiement Statut</label><select id="md-pay-status"><option value="pending">En attente</option><option value="paid">Payé</option></select></div></div>
+<div style="margin-bottom: 15px; background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">Marge brute estimée :</span><strong id="md-marge" style="font-size: 1.15rem; color: var(--success);">0€</strong></div>
+<div class="modal-btns"><button class="btn-red" onclick="saveMissionDetails()"><i class="fas fa-save"></i> Sauvegarder</button><button class="btn-outline" onclick="closeModal('modalMissionDetails')">Annuler</button></div></div></div>
 
 <div class="modal-overlay" id="modalEditConvoyeur"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalEditConvoyeur')"><i class="fas fa-times"></i></button><h3 class="modal-h">Modifier <em>convoyeur</em></h3><p class="modal-sub">M. Bathily — Île-de-France · Rhône-Alpes</p><div class="f-row"><div class="f-grp"><label>Taux auto (€/km)</label><input type="number" value="0.47" step="0.01"></div><div class="f-grp"><label>Taux moto (€/km)</label><input type="number" value="0.40" step="0.01"></div></div><div class="f-row"><div class="f-grp"><label>Bonus performance</label><input type="number" value="5" step="1"> %</div><div class="f-grp"><label>Niveau</label><select><option selected>Standard</option><option>Senior</option></select></div></div><div class="f-grp"><label>Zone d'intervention</label><input type="text" value="IDF · Rhône-Alpes · PACA"></div><div class="f-grp"><label>Note interne</label><textarea rows="2" placeholder="Commentaire admin…"></textarea></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalEditConvoyeur')"><i class="fas fa-save"></i> Sauvegarder</button><button class="btn-outline" onclick="closeModal('modalEditConvoyeur')">Annuler</button></div></div></div>
 
@@ -1486,6 +1497,11 @@ function renderRecentMissionsTable(missions) {
     else if (mStatus === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
 
     const tr = document.createElement('tr');
+    tr.className = 'clickable-row';
+    tr.onclick = (e) => {
+      if(e.target.closest('button') || e.target.closest('a')) return;
+      showMissionDetails(m.id);
+    };
     tr.innerHTML = `
       <td>${m.reference || '—'}</td>
       <td>${m.client_nom || 'Client'}</td>
@@ -1888,6 +1904,11 @@ function renderMissionsTable(missions) {
     }
 
     const tr = document.createElement('tr');
+    tr.className = 'clickable-row';
+    tr.onclick = (e) => {
+      if(e.target.closest('button') || e.target.closest('a')) return;
+      showMissionDetails(m.id);
+    };
     tr.innerHTML = `
       <td>${m.reference || '—'}</td>
       <td>${m.client_nom || 'Client'}</td>
@@ -1989,7 +2010,7 @@ function renderInvoicesTable(missions) {
       ? `<button class="btn-sm btn-sm-red" onclick="markMissionUnpaid('${m.id}', '${m.reference}')"><i class="fas fa-lock"></i> Bloquer (Non payée)</button>`
       : `<button class="btn-sm btn-sm-green" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i> Débloquer (Payée)</button>`;
 
-    return `<tr>
+    return `<tr class="clickable-row" onclick="if(event.target.closest('button') || event.target.closest('a')) return; showMissionDetails('${m.id}')">
       <td>${invoiceRef}</td>
       <td>${m.client_nom || 'Client'}</td>
       <td>${m.reference || '—'}</td>
@@ -3107,6 +3128,67 @@ function submitInlineComment(el) {
   const btn = postCard.querySelector('.post-action .fa-comment').parentElement;
   let count = parseInt(btn.innerText.replace(/[^0-9]/g, '')) || 0;
   btn.innerHTML = `<i class="fas fa-comment"></i> ${count + 1} commentaires`;
+}
+function updateMdMarge() {
+  const price = parseFloat(document.getElementById('md-price').value) || 0;
+  const rem = parseFloat(document.getElementById('md-rem').value) || 0;
+  const marge = price - rem;
+  const el = document.getElementById('md-marge');
+  el.textContent = marge + '€';
+  el.style.color = marge >= 0 ? 'var(--success)' : 'var(--bordeaux)';
+}
+
+function showMissionDetails(id) {
+  const m = _allMissions.find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('md-id').value = m.id;
+  document.getElementById('md-ref').value = m.reference || '';
+  document.getElementById('md-status').value = m.statut || m.status || 'planned';
+  document.getElementById('md-client-nom').value = m.client_nom || '';
+  document.getElementById('md-client-email').value = m.client_email || '';
+  document.getElementById('md-depart').value = m.depart || '';
+  document.getElementById('md-arrivee').value = m.arrivee || '';
+  document.getElementById('md-price').value = m.montant_ht || 0;
+  document.getElementById('md-rem').value = m.remuneration_convoyeur || 0;
+  document.getElementById('md-vehicule').value = m.vehicule || '';
+  document.getElementById('md-pay-status').value = m.paiement_statut || 'pending';
+  
+  updateMdMarge();
+  openModal('modalMissionDetails');
+}
+
+function saveMissionDetails() {
+  const id = document.getElementById('md-id').value;
+  const m = _allMissions.find(x => x.id === id);
+  if (!m) return;
+
+  const priceVal = parseFloat(document.getElementById('md-price').value) || 0;
+  const remVal = parseFloat(document.getElementById('md-rem').value) || 0;
+
+  const data = {
+    statut: document.getElementById('md-status').value,
+    status: document.getElementById('md-status').value,
+    client_nom: document.getElementById('md-client-nom').value,
+    client_email: document.getElementById('md-client-email').value,
+    depart: document.getElementById('md-depart').value,
+    arrivee: document.getElementById('md-arrivee').value,
+    montant_ht: priceVal,
+    remuneration_convoyeur: remVal,
+    marge: priceVal - remVal,
+    vehicule: document.getElementById('md-vehicule').value,
+    paiement_statut: document.getElementById('md-pay-status').value
+  };
+
+  const client = getSupabase();
+  client.from('missions').update(data).eq('id', id).then(({ error }) => {
+    if (error) {
+      Swal.fire('Erreur', 'Impossible de mettre à jour la mission : ' + error.message, 'error');
+    } else {
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Mission mise à jour', timer: 2000, showConfirmButton: false });
+      closeModal('modalMissionDetails');
+      loadMissions(true); // reload background
+    }
+  });
 }
 </script>
 </body>
