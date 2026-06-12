@@ -92,7 +92,7 @@ exports.handler = async (event, context) => {
 
     // Déclencher l'e-mail automatique de succès de paiement
     try {
-      const siteUrl = process.env.URL || 'https://bathily-convoyage.netlify.app';
+      const siteUrl = process.env.URL || 'https://bathily-convoyage.fr';
       console.log(`📨 Déclenchement de la notification d'e-mail de paiement à : ${siteUrl}/.netlify/functions/send-email`);
       const emailResponse = await fetch(`${siteUrl}/.netlify/functions/send-email`, {
         method: 'POST',

@@ -5,7 +5,7 @@ Ce document récapitule les procédures de connexion et les identifiants d'accè
 ---
 
 ## 🔑 1. Espace Client
-* **URL de connexion** : `https://bathily-convoyage.netlify.app/dashboard-client.html`
+* **URL de connexion** : `https://bathily-convoyage.fr/dashboard-client.html`
 * **Méthode d'accès** : Saisir le nom complet d'un client ayant des missions enregistrées dans la base de données.
 * **Exemples de comptes clients valides** (à tester) :
   * **`Bathily Boubacar`** (Contient la mission test payée avec Stripe)
@@ -14,7 +14,7 @@ Ce document récapitule les procédures de connexion et les identifiants d'accè
 ---
 
 ## 🛠️ 2. Espace Administrateur
-* **URL de connexion** : `https://bathily-convoyage.netlify.app/dashboard-admin.html`
+* **URL de connexion** : `https://bathily-convoyage.fr/dashboard-admin.html`
 * **Méthode d'accès** : Saisir le mot de passe d'administration.
 * **Mot de passe par défaut** :
   ```text
@@ -25,7 +25,7 @@ Ce document récapitule les procédures de connexion et les identifiants d'accè
 ---
 
 ## 🚗 3. Espace Convoyeur
-* **URL de connexion** : `https://bathily-convoyage.netlify.app/dashboard-convoyeur.html`
+* **URL de connexion** : `https://bathily-convoyage.fr/dashboard-convoyeur.html`
 * **Méthode d'accès** : Sélectionner ton nom dans la liste déroulante des convoyeurs certifiés enregistrés dans ta base Supabase.
 * **Exemple de profil valide** (à tester) :
   * **`M. Bathily`** (ou tout autre profil présent dans ta table `convoyeurs`)

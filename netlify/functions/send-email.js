@@ -133,7 +133,7 @@ Corps: ${html.substring(0, 300)}...`);
       if (error || !devis) throw new Error(`Devis introuvable: ${error?.message}`);
 
       const details = devis.details || {};
-      const devisURL = `https://bathily-convoyage.netlify.app/dashboard-client.html`;
+      const devisURL = `https://bathily-convoyage.fr/dashboard-client.html`;
 
       // Email client
       const clientHtml = wrapEmailLayout(
@@ -168,7 +168,7 @@ Corps: ${html.substring(0, 300)}...`);
          </div>
          <p>Veuillez vous rendre sur le panel d'administration pour valider le tarif et assigner un convoyeur.</p>
          <p style="text-align: center;">
-           <a href="https://bathily-convoyage.netlify.app/dashboard-admin.html" class="btn">Accéder au panel Admin</a>
+           <a href="https://bathily-convoyage.fr/dashboard-admin.html" class="btn">Accéder au panel Admin</a>
          </p>`
       );
 
@@ -214,7 +214,7 @@ Corps: ${html.substring(0, 300)}...`);
          </div>
          <p>Veuillez examiner ses pièces et valider son profil dans l'onglet "Candidatures" du tableau de bord Admin.</p>
          <p style="text-align: center;">
-           <a href="https://bathily-convoyage.netlify.app/dashboard-admin.html" class="btn">Voir la candidature</a>
+           <a href="https://bathily-convoyage.fr/dashboard-admin.html" class="btn">Voir la candidature</a>
          </p>`
       );
 
@@ -242,7 +242,7 @@ Corps: ${html.substring(0, 300)}...`);
            <p>Nous avons le plaisir de vous annoncer que votre candidature de convoyeur a été **approuvée** par notre équipe !</p>
            <p>Votre profil est désormais actif. Vous pouvez vous connecter à votre Espace Convoyeur et commencer à proposer vos services sur le marché des missions.</p>
            <div class="highlight-box">
-             <strong>Lien de connexion :</strong> <a href="https://bathily-convoyage.netlify.app/dashboard-convoyeur.html">dashboard-convoyeur.html</a><br>
+             <strong>Lien de connexion :</strong> <a href="https://bathily-convoyage.fr/dashboard-convoyeur.html">dashboard-convoyeur.html</a><br>
              <strong>Votre identifiant :</strong> Sélectionnez votre nom dans la liste au démarrage.
            </div>
            <h3>Conseils pour débuter :</h3>
@@ -252,7 +252,7 @@ Corps: ${html.substring(0, 300)}...`);
              <li>Effectuez toujours les 20 photos obligatoires lors de l'état des lieux.</li>
            </ul>
            <p style="text-align: center;">
-             <a href="https://bathily-convoyage.netlify.app/dashboard-convoyeur.html" class="btn">Accéder à mon Espace Convoyeur</a>
+             <a href="https://bathily-convoyage.fr/dashboard-convoyeur.html" class="btn">Accéder à mon Espace Convoyeur</a>
            </p>`
         );
         await sendEmail({ to: candidat.email, subject: "Votre compte convoyeur Bathily a été activé ! 🎉", html: welcomeHtml });
@@ -336,7 +336,7 @@ Corps: ${html.substring(0, 300)}...`);
          ${signaturesHtml}
          <p>Cet e-mail fait office de reçu contradictoire d'état des lieux. Le document complet au format PDF imprimable est disponible dans votre espace client.</p>
          <p style="text-align: center;">
-           <a href="https://bathily-convoyage.netlify.app/dashboard-client.html" class="btn">Accéder à mon Espace Client</a>
+           <a href="https://bathily-convoyage.fr/dashboard-client.html" class="btn">Accéder à mon Espace Client</a>
          </p>`
       );
 
@@ -354,7 +354,7 @@ Corps: ${html.substring(0, 300)}...`);
          ${damagesHtml}
          ${signaturesHtml}
          <p style="text-align: center;">
-           <a href="https://bathily-convoyage.netlify.app/dashboard-admin.html" class="btn">Accéder au panel Admin</a>
+           <a href="https://bathily-convoyage.fr/dashboard-admin.html" class="btn">Accéder au panel Admin</a>
          </p>`
       );
 
@@ -398,7 +398,7 @@ Corps: ${html.substring(0, 300)}...`);
          </ul>
          <p>Le convoyeur affecté prendra en charge votre véhicule selon les modalités convenues. Vous pouvez suivre l'état de votre mission en temps réel sur votre tableau de bord client.</p>
          <p style="text-align: center;">
-           <a href="https://bathily-convoyage.netlify.app/dashboard-client.html" class="btn">Accéder à mon Espace Client</a>
+           <a href="https://bathily-convoyage.fr/dashboard-client.html" class="btn">Accéder à mon Espace Client</a>
          </p>`
       );
 
@@ -415,7 +415,7 @@ Corps: ${html.substring(0, 300)}...`);
          </div>
          <p>Le paiement étant reçu, la mission peut démarrer en toute sécurité.</p>
          <p style="text-align: center;">
-           <a href="https://bathily-convoyage.netlify.app/dashboard-admin.html" class="btn">Accéder au panel Admin</a>
+           <a href="https://bathily-convoyage.fr/dashboard-admin.html" class="btn">Accéder au panel Admin</a>
          </p>`
       );
 
