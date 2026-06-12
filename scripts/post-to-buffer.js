@@ -64,7 +64,11 @@ async function publishTodayPost() {
         channelId: channelId,
         schedulingType: 'automatic',
         mode: 'shareNow',
-        type: 'post',
+        metadata: {
+          instagram: {
+            type: 'post'
+          }
+        },
         assets: assets.length > 0 ? assets : undefined
       }
     };
