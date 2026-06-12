@@ -17,6 +17,7 @@ export default defineConfig({
         tracking: resolve(__dirname, 'tracking.html'),
         mentionsLegales: resolve(__dirname, 'mentions-legales.html'),
         formationConvoyeur: resolve(__dirname, 'formation-convoyeur.html'),
+        convoyageMotoLyon: resolve(__dirname, 'convoyage-moto-lyon.html'),
       }
     }
   }
