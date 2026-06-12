@@ -13,6 +13,8 @@
   <meta property="og:image" content="https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg">
   <link rel="icon" type="image/svg+xml"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
     rel="stylesheet">
@@ -20,6 +22,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-config.js"></script>
   <style>
     * {
       margin: 0;
@@ -989,7 +993,7 @@
   <header>
     <div class="container header-inner">
       <a href="index.html" class="logo">Bathily-Convoyage<span>.</span></a>
-      <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</div>
+      <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')" aria-label="Menu principal" style="background:none;border:none;">☰</button>
       <div class="nav-links">
         <a href="index.html" class="active">Accueil</a>
         <a href="formation-convoyeur.html">Devenir convoyeur</a>
@@ -1011,14 +1015,14 @@
             Pro.</p>
           <div class="quick-quote">
             <div class="search-wrapper">
-              <input type="text" id="depart" placeholder="Adresse de départ" autocomplete="off">
+              <input type="text" id="depart" placeholder="Adresse de départ" autocomplete="off" aria-label="Adresse de départ">
               <div id="departSuggests" class="suggest-box"></div>
             </div>
             <div class="search-wrapper">
-              <input type="text" id="arrivee" placeholder="Adresse d'arrivée" autocomplete="off">
+              <input type="text" id="arrivee" placeholder="Adresse d'arrivée" autocomplete="off" aria-label="Adresse d'arrivée">
               <div id="arriveeSuggests" class="suggest-box"></div>
             </div>
-            <select id="vehType">
+            <select id="vehType" aria-label="Type de véhicule">
               <option>Automobile</option>
               <option>Moto</option>
             </select>
@@ -1158,21 +1162,20 @@
           <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;">
             <div
               style="background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
-              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Formule Starter</strong>
-              <span style="font-size: 0.8rem; color: var(--gray-mid);">Inclus par défaut. Convoyeur certifié, service
+              <strong id="idx_pack_starter_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Formule Starter</strong>
+              <span id="idx_pack_starter_desc" style="font-size: 0.8rem; color: var(--gray-mid);">Inclus par défaut. Convoyeur certifié, service
                 client standard.</span>
             </div>
             <div
               style="background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
-              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Sérénité (+49€)</strong>
-              <span style="font-size: 0.8rem; color: var(--gray-mid);">Nettoyage intérieur/extérieur, rendez-vous
+              <strong id="idx_pack_serenite_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Sérénité (+49€)</strong>
+              <span id="idx_pack_serenite_desc" style="font-size: 0.8rem; color: var(--gray-mid);">Nettoyage intérieur/extérieur, rendez-vous
                 planifié précis, support VIP.</span>
             </div>
             <div
               style="background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
-              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Excellence
-                (+129€)</strong>
-              <span style="font-size: 0.8rem; color: var(--gray-mid);">Plein de carburant offert, nettoyage complet
+              <strong id="idx_pack_excellence_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Excellence (+129€)</strong>
+              <span id="idx_pack_excellence_desc" style="font-size: 0.8rem; color: var(--gray-mid);">Plein de carburant offert, nettoyage complet
                 prestige, priorité d'affectation.</span>
             </div>
           </div>
@@ -1578,6 +1581,38 @@
       });
     }, { threshold: 0.15 });
     document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // ----- Supabase Sync Packs Config -----
+    async function loadPacksConfig() {
+      try {
+        const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        const { data, error } = await client.from('system_settings').select('*');
+        if (error || !data) return;
+
+        data.forEach(setting => {
+          if (setting.key.startsWith('pack_')) {
+            const p = setting.value;
+            const type = setting.key.replace('pack_', ''); // 'starter', 'serenite', 'excellence'
+            
+            const nameEl = document.getElementById(`idx_pack_${type}_name`);
+            const descEl = document.getElementById(`idx_pack_${type}_desc`);
+            
+            if (nameEl) {
+              nameEl.textContent = p.name || type;
+              if (p.price > 0) nameEl.textContent += ` (+${p.price}€)`;
+            }
+            if (descEl && p.features) {
+              // Extract the first feature or a summary for the short description if needed,
+              // or we just replace the text with a comma separated list.
+              descEl.textContent = p.features.split('\n').slice(0, 3).join(', ') + '.';
+            }
+          }
+        });
+      } catch (err) {
+        console.warn('Failed to load packs config on index', err);
+      }
+    }
+    loadPacksConfig();
   </script>
 
   <section style="padding:40px 20px" id="seo-zones">
