@@ -4,3 +4,9 @@
 
 [functions]
   directory = "netlify/functions"
+
+[[redirects]]
+  from = "https://bathily-convoyage.netlify.app/*"
+  to = "https://bathily-convoyage.fr/:splat"
+  status = 301
+  force = true
