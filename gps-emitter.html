@@ -689,6 +689,33 @@ setTimeout(() => {
 }, 500);
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Parse URL query parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramRef = urlParams.get('ref');
+  const paramRoute = urlParams.get('route');
+  const paramVehicle = urlParams.get('vehicle');
+
+  if (paramRef) {
+    STATE.missionRef = paramRef;
+    const refEl = document.getElementById('mRef');
+    if (refEl) refEl.textContent = 'Mission · ' + paramRef;
+    
+    // Update data path indicator in UI
+    const pathEl = document.getElementById('posFirebase');
+    if (pathEl) pathEl.textContent = 'missions/' + paramRef + '/gps';
+  }
+  if (paramRoute) {
+    STATE.missionRoute = paramRoute;
+    const routeEl = document.getElementById('mRoute');
+    if (routeEl) routeEl.innerHTML = paramRoute.replace('➔', '<em>→</em>');
+  }
+  if (paramVehicle) {
+    const metaEl = document.getElementById('mMeta');
+    if (metaEl) {
+      metaEl.textContent = paramVehicle + ' · M. Bathily';
+    }
+  }
+
   if('permissions' in navigator) {
     navigator.permissions.query({name:'geolocation'}).then(r => {
       if(r.state === 'granted') document.getElementById('permOverlay').classList.add('hidden');

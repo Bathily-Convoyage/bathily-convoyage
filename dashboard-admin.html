@@ -1178,7 +1178,7 @@ body {
 <!-- MODALS -->
 <div class="modal-overlay" id="modalMission"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalMission')"><i class="fas fa-times"></i></button><h3 class="modal-h">Créer une <em>mission</em></h3><p class="modal-sub">Saisie manuelle d'une nouvelle mission</p><div class="f-row"><div class="f-grp"><label>Client</label><input type="text" id="manual-client" placeholder="Nom ou email client"></div><div class="f-grp"><label>Convoyeur</label><select id="manual-convoyeur" onchange="updateManualMissionMargin()"><!-- Options générées dynamiquement --></select></div></div><div class="f-row"><div class="f-grp"><label>Ville de départ</label><input type="text" id="manual-depart" placeholder="Paris"></div><div class="f-grp"><label>Ville d'arrivée</label><input type="text" id="manual-arrivee" placeholder="Lyon"></div></div><div class="f-row"><div class="f-grp"><label>Type véhicule</label><select id="manual-vehicule" onchange="updateManualMissionMargin()"><option value="Automobile">Automobile</option><option value="Moto">Moto</option></select></div><div class="f-grp"><label>Mode transport</label><select id="manual-mode" onchange="updateManualMissionMargin()"><option value="route">Route</option><option value="plateau">Plateau</option></select></div></div><div class="f-row"><div class="f-grp"><label>Pack</label><select id="manual-pack"><option value="starter">Starter</option><option value="sérénité">Sérénité</option><option value="excellence">Excellence</option></select></div><div class="f-grp"><label>Date souhaitée</label><input type="date" id="manual-date"></div></div><div class="f-row"><div class="f-grp"><label>Montant Client HT (€)</label><input type="number" id="manual-price" placeholder="340" oninput="updateManualMissionMargin()"></div><div class="f-grp"><label>Rémunération Convoyeur (€)</label><input type="number" id="manual-remuneration" placeholder="Laisser vide pour calcul auto" oninput="updateManualMissionMargin()"></div></div><div style="margin-bottom: 15px; background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">Marge brute estimée :</span><strong id="manual-marge-val" style="font-size: 1.15rem; color: var(--success);">0€</strong></div><div class="modal-btns"><button class="btn-red" onclick="createMissionManually()"><i class="fas fa-plus"></i> Créer la mission</button><button class="btn-outline" onclick="closeModal('modalMission')">Annuler</button></div></div></div>
 
-<div class="modal-overlay" id="modalClient"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalClient')"><i class="fas fa-times"></i></button><h3 class="modal-h" id="modalClientTitle">Nouveau <em>client</em></h3><div class="f-row"><div class="f-grp"><label>Prénom</label><input type="text" id="clientPrenom"></div><div class="f-grp"><label>Nom</label><input type="text" id="clientNom"></div></div><div class="f-row"><div class="f-grp"><label>Email</label><input type="email" id="clientEmail"></div><div class="f-grp"><label>Téléphone</label><input type="tel" id="clientTel"></div></div><div class="f-grp"><label>Société (optionnel)</label><input type="text" id="clientSociete"></div><div class="modal-btns"><button class="btn-red" onclick="closeModal('modalClient')"><i class="fas fa-save"></i> Enregistrer</button><button class="btn-outline" onclick="closeModal('modalClient')">Annuler</button></div></div></div>
+<div class="modal-overlay" id="modalClient"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalClient')"><i class="fas fa-times"></i></button><h3 class="modal-h" id="modalClientTitle">Nouveau <em>client</em></h3><input type="hidden" id="client-id"><div class="f-row"><div class="f-grp"><label>Prénom</label><input type="text" id="clientPrenom"></div><div class="f-grp"><label>Nom</label><input type="text" id="clientNom"></div></div><div class="f-row"><div class="f-grp"><label>Email</label><input type="email" id="clientEmail"></div><div class="f-grp"><label>Téléphone</label><input type="tel" id="clientTel"></div></div><div class="f-grp"><label>Société (optionnel)</label><input type="text" id="clientSociete"></div><div class="modal-btns"><button class="btn-red" onclick="saveClientDB()"><i class="fas fa-save"></i> Enregistrer</button><button class="btn-outline" onclick="closeModal('modalClient')">Annuler</button></div></div></div>
 
 <div class="modal-overlay" id="modalConvoyeur"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalConvoyeur')"><i class="fas fa-times"></i></button><h3 class="modal-h">Nouveau <em>convoyeur</em></h3><div class="f-row"><div class="f-grp"><label>Prénom</label><input type="text" id="conv-prenom"></div><div class="f-grp"><label>Nom</label><input type="text" id="conv-nom"></div></div><div class="f-row"><div class="f-grp"><label>Email</label><input type="email" id="conv-email"></div><div class="f-grp"><label>Téléphone</label><input type="tel" id="conv-phone"></div></div><div class="f-row"><div class="f-grp"><label>Taux auto (€/km)</label><input type="number" id="conv-taux-auto" value="0.47" step="0.01"></div><div class="f-grp"><label>Taux moto (€/km)</label><input type="number" id="conv-taux-moto" value="0.40" step="0.01"></div></div><div class="f-grp"><label>Zone d'intervention</label><input type="text" id="conv-zone" placeholder="IDF, Rhône-Alpes…"></div><div class="f-grp"><label>Niveau</label><select id="conv-niveau"><option value="Standard">Standard</option><option value="Senior">Senior</option></select></div><div class="modal-btns"><button class="btn-red" onclick="addConvoyeurDOM()"><i class="fas fa-save"></i> Enregistrer</button><button class="btn-outline" onclick="closeModal('modalConvoyeur')">Annuler</button></div></div></div>
 
@@ -1206,13 +1206,23 @@ if(window.matchMedia('(hover: hover)').matches) {
 document.getElementById('dashDate').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
 // ========== AUTH ==========
-const ADMIN_PASSWORD = 'bathily2025'; // Changez ici votre mot de passe admin
+const ADMIN_PASSWORD_HASH = '4baa6ee623d18679e6a05a82b2a59ba95c6850872d2a0dc583877745740738e0'; // Hash SHA-256 de 'bathily2025'
+
+async function hashPassword(pwd) {
+  const msgBuffer = new TextEncoder().encode(pwd);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 function checkAdminSession() {
   return sessionStorage.getItem('admin_auth') === 'ok';
 }
-function checkAdminPassword() {
+
+async function checkAdminPassword() {
   const pwd = document.getElementById('adminPasswordInput').value;
-  if (pwd === ADMIN_PASSWORD) {
+  const hashed = await hashPassword(pwd);
+  if (hashed === ADMIN_PASSWORD_HASH) {
     sessionStorage.setItem('admin_auth', 'ok');
     document.getElementById('authOverlay').classList.add('hidden');
     initDashboard();
@@ -1535,6 +1545,7 @@ function filterClientsTable() {
 
 function openNewClientModal() {
   document.getElementById('modalClientTitle').innerHTML = `Nouveau <em>client</em>`;
+  document.getElementById('client-id').value = '';
   document.getElementById('clientPrenom').value = '';
   document.getElementById('clientNom').value = '';
   document.getElementById('clientEmail').value = '';
@@ -1547,12 +1558,54 @@ function editClient(id) {
   const client = window._allClientsData.find(c => c.id === id);
   if (!client) return;
   document.getElementById('modalClientTitle').innerHTML = `Modifier <em>client</em>`;
+  document.getElementById('client-id').value = id;
   document.getElementById('clientPrenom').value = client.prenom || '';
   document.getElementById('clientNom').value = client.nom || '';
   document.getElementById('clientEmail').value = client.email || '';
   document.getElementById('clientTel').value = client.telephone || '';
   document.getElementById('clientSociete').value = client.societe || '';
   openModal('modalClient');
+}
+
+async function saveClientDB() {
+  const id = document.getElementById('client-id').value;
+  const prenom = document.getElementById('clientPrenom').value.trim();
+  const nom = document.getElementById('clientNom').value.trim();
+  const email = document.getElementById('clientEmail').value.trim();
+  const telephone = document.getElementById('clientTel').value.trim();
+  const societe = document.getElementById('clientSociete').value.trim();
+  
+  if (!prenom || !nom || !email) {
+    Swal.fire('Champs requis', 'Veuillez renseigner le prénom, le nom et l\'email.', 'warning');
+    return;
+  }
+  
+  Swal.fire({ title: 'Enregistrement...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+  const sb = getSupabase();
+  let error;
+  
+  if (id) {
+    const { error: err } = await sb
+      .from('clients')
+      .update({ prenom, nom, email, telephone, societe })
+      .eq('id', id);
+    error = err;
+  } else {
+    // Generate default client password hash
+    const defaultPasswordHash = await hashPassword('client2025');
+    const { error: err } = await sb
+      .from('clients')
+      .insert([{ prenom, nom, email, telephone, societe, mot_de_passe: defaultPasswordHash }]);
+    error = err;
+  }
+  
+  if (error) {
+    Swal.fire('Erreur', 'Impossible de sauvegarder le client : ' + error.message, 'error');
+  } else {
+    closeModal('modalClient');
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: id ? 'Client mis à jour !' : 'Client créé !', timer: 2000, showConfirmButton: false });
+    loadClients();
+  }
 }
 
 function viewClientDetails(id) {

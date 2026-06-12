@@ -1623,9 +1623,75 @@ function selectProfile(jsonStrOrObj) {
   loadMissions();
 }
 
-function selectProfileByIndex(idx) {
+async function hashPassword(pwd) {
+  const msgBuffer = new TextEncoder().encode(pwd);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function selectProfileByIndex(idx) {
   if (window.allConvoyeurs && window.allConvoyeurs[idx]) {
-    selectProfile(window.allConvoyeurs[idx]);
+    const c = window.allConvoyeurs[idx];
+    
+    const { value: pwd } = await Swal.fire({
+      title: 'Connexion sécurisée',
+      text: `Entrez le mot de passe pour ${c.prenom} ${c.nom}`,
+      input: 'password',
+      inputPlaceholder: 'Votre mot de passe',
+      showCancelButton: true,
+      confirmButtonColor: 'var(--bordeaux)',
+      cancelButtonText: 'Annuler',
+      confirmButtonText: 'Se connecter',
+      allowOutsideClick: false,
+      preConfirm: (val) => {
+        if (!val) {
+          Swal.showValidationMessage('Veuillez saisir votre mot de passe');
+        }
+        return val;
+      }
+    });
+
+    if (pwd) {
+      Swal.fire({
+        title: 'Vérification...',
+        didOpen: () => Swal.showLoading(),
+        allowOutsideClick: false
+      });
+      
+      try {
+        const client = getSupabaseConv();
+        const { data: cand, error } = await client
+          .from('convoyeurs_candidats')
+          .select('mot_de_passe')
+          .eq('email', c.email)
+          .maybeSingle();
+          
+        if (error) {
+          Swal.fire('Erreur', 'Impossible de se connecter : ' + error.message, 'error');
+          return;
+        }
+
+        const hashedPassword = await hashPassword(pwd);
+        const expectedHash = cand ? cand.mot_de_passe : await hashPassword('bathily2025');
+
+        if (hashedPassword === expectedHash) {
+          selectProfile(c);
+          Swal.fire({
+            title: 'Connecté !',
+            text: `Bienvenue, ${c.prenom}.`,
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } else {
+          Swal.fire('Échec de connexion', 'Mot de passe incorrect.', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Erreur', 'Une erreur est survenue lors de la connexion.', 'error');
+      }
+    }
   }
 }
 
