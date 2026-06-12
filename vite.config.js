@@ -18,6 +18,7 @@ export default defineConfig({
         mentionsLegales: resolve(__dirname, 'mentions-legales.html'),
         formationConvoyeur: resolve(__dirname, 'formation-convoyeur.html'),
         convoyageMotoLyon: resolve(__dirname, 'convoyage-moto-lyon.html'),
+        convoyageMotoVoitureFrance: resolve(__dirname, 'convoyage-moto-voiture-france.html'),
         convoyageVehiculeParis: resolve(__dirname, 'convoyage-vehicule-paris.html'),
         convoyageVehiculeMarseille: resolve(__dirname, 'convoyage-vehicule-marseille.html'),
         convoyageVehiculeBordeaux: resolve(__dirname, 'convoyage-vehicule-bordeaux.html'),
