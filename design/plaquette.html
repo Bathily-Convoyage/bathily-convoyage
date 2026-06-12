@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plaquette Bathily Convoyage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0A4D68;
+      --secondary: #088395;
+      --accent: #F5A623;
+      --text: #1A1A1A;
+      --bg: #FFFFFF;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0;
+      padding: 20mm;
+    }
+    .page {
+      width: 100%;
+      min-height: 257mm;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid var(--primary);
+    }
+    .logo {
+      height: 80px;
+      width: auto;
+    }
+    .header-text h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+    .header-text p {
+      font-size: 14px;
+      color: var(--secondary);
+      margin-top: 4px;
+    }
+    .section {
+      margin-bottom: 28px;
+    }
+    .section-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .service-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      border: 2px solid var(--primary);
+    }
+    .service-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    .service-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .service-desc {
+      font-size: 11px;
+      line-height: 1.4;
+      color: #555;
+    }
+    .france-section {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      border-radius: 16px;
+      padding: 24px;
+      color: white;
+    }
+    .france-section .section-title {
+      color: white;
+    }
+    .france-section .section-title::before {
+      background: var(--accent);
+    }
+    .cities-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .city {
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .arguments-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .argument {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border-left: 4px solid var(--accent);
+    }
+    .argument-icon {
+      font-size: 24px;
+      color: var(--primary);
+    }
+    .argument-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .footer {
+      background: var(--primary);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 32px;
+    }
+    .footer-cta {
+      flex: 1;
+    }
+    .footer-cta h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      color: white;
+      margin-bottom: 8px;
+    }
+    .footer-cta p {
+      color: rgba(255,255,255,0.9);
+      font-size: 13px;
+    }
+    .footer-contact {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    .footer-item {
+      text-align: center;
+    }
+    .footer-item-icon {
+      font-size: 20px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .footer-item-text {
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .qr-section {
+      text-align: center;
+    }
+    .qr-code {
+      width: 80px;
+      height: 80px;
+      background: white;
+      padding: 8px;
+      border-radius: 8px;
+    }
+    @media print {
+      body {
+        margin: 0;
+        padding: 20mm;
+      }
+      @page {
+        size: A4;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <img src="/images/logo.png" alt="Bathily Convoyage" class="logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 60%22><text x=%2210%22 y=%2245%22 font-size=%2240%22 font-weight=%22800%22 fill=%22%230A4D68%22>Bathily</text></svg>'">
+      <div class="header-text">
+        <h1>Bathily Convoyage</h1>
+        <p>Convoyage automobile France</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Nos Services</div>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon">🚗</div>
+          <div class="service-title">Particuliers</div>
+          <div class="service-desc">Transport de votre véhicule en toute sécurité partout en France</div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">🏢</div>
+          <div class="service-title">Professionnels</div>
+          <div class="service-desc">Solutions adaptées pour flottes et concessionnaires</div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">🌍</div>
+          <div class="service-title">Import/Export</div>
+          <div class="service-desc">Transport international vers l'Europe</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section france-section">
+      <div class="section-title">Zone Desservie</div>
+      <div class="cities-grid">
+        <div class="city">Paris</div>
+        <div class="city">Lyon</div>
+        <div class="city">Marseille</div>
+        <div class="city">Toulouse</div>
+        <div class="city">Bordeaux</div>
+        <div class="city">Lille</div>
+        <div class="city">Nantes</div>
+        <div class="city">Nice</div>
+        <div class="city">Strasbourg</div>
+        <div class="city">Rennes</div>
+        <div class="city">Montpellier</div>
+        <div class="city">France entière</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Pourquoi Nous Choisir ?</div>
+      <div class="arguments-grid">
+        <div class="argument">
+          <div class="argument-icon">🛡️</div>
+          <div class="argument-text">Assurance tous risques</div>
+        </div>
+        <div class="argument">
+          <div class="argument-icon">📍</div>
+          <div class="argument-text">Traçabilité GPS temps réel</div>
+        </div>
+        <div class="argument">
+          <div class="argument-icon">⚡</div>
+          <div class="argument-text">Livraison en 48h</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-cta">
+        <h2>Devis gratuit en 2min</h2>
+        <p>Obtenez votre tarif instantanément sur notre site</p>
+      </div>
+      <div class="footer-contact">
+        <div class="footer-item">
+          <div class="footer-item-icon">📞</div>
+          <div class="footer-item-text">01 23 45 67 89</div>
+        </div>
+        <div class="footer-item">
+          <div class="footer-item-icon">💬</div>
+          <div class="footer-item-text">WhatsApp</div>
+        </div>
+        <div class="qr-section">
+          <div class="qr-code" id="qrCode"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script>
+    QRCode.toCanvas(document.getElementById('qrCode'), 'https://www.bathily-convoyage.fr', {
+      width: 80,
+      margin: 0,
+      color: {
+        dark: '#0A4D68',
+        light: '#FFFFFF'
+      }
+    });
+  </script>
+</body>
+</html>

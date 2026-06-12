@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carte de Visite Bathily Convoyage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0A4D68;
+      --secondary: #088395;
+      --accent: #F5A623;
+      --text: #1A1A1A;
+      --bg: #FFFFFF;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 20px;
+    }
+    .card {
+      width: 85mm;
+      height: 55mm;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .card-recto {
+      background: var(--bg);
+      padding: 8mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card-verso {
+      background: var(--primary);
+      padding: 8mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .logo {
+      height: 24px;
+      width: auto;
+      margin-bottom: 8px;
+    }
+    .company-name {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+    .tagline {
+      font-size: 9px;
+      color: var(--secondary);
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 8pt;
+      font-weight: 500;
+    }
+    .contact-icon {
+      font-size: 10px;
+      color: var(--primary);
+    }
+    .verso-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .service-item {
+      text-align: center;
+    }
+    .service-icon {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    .service-text {
+      font-size: 7pt;
+      font-weight: 500;
+    }
+    .qr-container {
+      background: white;
+      padding: 6px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .qr-code {
+      width: 50px;
+      height: 50px;
+    }
+    .whatsapp-cta {
+      font-size: 8pt;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
+        background: white;
+      }
+      .card {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Recto -->
+  <div class="card card-recto">
+    <div>
+      <img src="/images/logo.png" alt="Bathily Convoyage" class="logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 60%22><text x=%2210%22 y=%2245%22 font-size=%2240%22 font-weight=%22800%22 fill=%22%230A4D68%22>Bathily</text></svg>'">
+      <div class="company-name">Bathily Convoyage</div>
+      <div class="tagline">Convoyage Auto France</div>
+    </div>
+    <div class="contact-info">
+      <div class="contact-item">
+        <span class="contact-icon">📞</span>
+        <span>01 23 45 67 89</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-icon">✉️</span>
+        <span>contact@bathily-convoyage.fr</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-icon">🌐</span>
+        <span>www.bathily-convoyage.fr</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verso -->
+  <div class="card card-verso">
+    <div class="verso-title">Nos Services</div>
+    <div class="services-grid">
+      <div class="service-item">
+        <div class="service-icon">🚗</div>
+        <div class="service-text">Particuliers</div>
+      </div>
+      <div class="service-item">
+        <div class="service-icon">🏢</div>
+        <div class="service-text">Pros</div>
+      </div>
+      <div class="service-item">
+        <div class="service-icon">🌍</div>
+        <div class="service-text">International</div>
+      </div>
+    </div>
+    <div class="qr-container">
+      <canvas id="qrCode" class="qr-code"></canvas>
+    </div>
+    <div class="whatsapp-cta">💬 Devis WhatsApp</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script>
+    QRCode.toCanvas(document.getElementById('qrCode'), 'https://www.bathily-convoyage.fr', {
+      width: 50,
+      margin: 0,
+      color: {
+        dark: '#0A4D68',
+        light: '#FFFFFF'
+      }
+    });
+  </script>
+</body>
+</html>
