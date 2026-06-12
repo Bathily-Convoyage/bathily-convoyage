@@ -9,3 +9,7 @@ dist/
 
 # Local Netlify folder
 .netlify
+
+# Google service account credentials
+gsc-credentials.json
+

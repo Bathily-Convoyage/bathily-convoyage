@@ -1,141 +1,56 @@
 {
-  "last_updated": "2026-06-12T14:40:46.081Z",
-  "period": "2026-06-05 au 2026-06-11 (MOCK)",
+  "last_updated": "2026-06-12T18:10:03.081Z",
+  "period": "2026-06-05 au 2026-06-11",
   "gsc": {
-    "period": "2026-06-05 au 2026-06-11 (MOCK)",
+    "period": "2026-06-05 au 2026-06-11",
     "global": {
-      "clicks": 450,
-      "impressions": 12000,
-      "ctr": 3.75,
-      "position": 12.4
+      "clicks": 0,
+      "impressions": 0,
+      "ctr": 0,
+      "position": 0
     },
-    "pages": [
-      {
-        "page": "https://www.bathily-convoyage.fr/",
-        "name": "Accueil",
-        "clicks": 220,
-        "impressions": 5500,
-        "ctr": 4,
-        "position": 8.5
-      },
-      {
-        "page": "https://www.bathily-convoyage.fr/convoyage-moto-voiture-paris.html",
-        "name": "Convoyage Moto Voiture Paris",
-        "clicks": 80,
-        "impressions": 1800,
-        "ctr": 4.4,
-        "position": 5.2
-      },
-      {
-        "page": "https://www.bathily-convoyage.fr/convoyage-bordeaux.html",
-        "name": "Convoyage Bordeaux",
-        "clicks": 45,
-        "impressions": 1200,
-        "ctr": 3.8,
-        "position": 12.3
-      },
-      {
-        "page": "https://www.bathily-convoyage.fr/convoyage-lyon.html",
-        "name": "Convoyage Lyon",
-        "clicks": 35,
-        "impressions": 1100,
-        "ctr": 3.2,
-        "position": 14.1
-      },
-      {
-        "page": "https://www.bathily-convoyage.fr/convoyage-marseille.html",
-        "name": "Convoyage Marseille",
-        "clicks": 30,
-        "impressions": 950,
-        "ctr": 3.2,
-        "position": 15.2
-      },
-      {
-        "page": "https://www.bathily-convoyage.fr/convoyage-toulouse.html",
-        "name": "Convoyage Toulouse",
-        "clicks": 25,
-        "impressions": 800,
-        "ctr": 3.1,
-        "position": 16
-      },
-      {
-        "page": "https://www.bathily-convoyage.fr/convoyage-montpellier.html",
-        "name": "Convoyage Montpellier",
-        "clicks": 15,
-        "impressions": 650,
-        "ctr": 2.3,
-        "position": 18.4
-      }
-    ],
-    "queries": [
-      {
-        "query": "convoyage voiture",
-        "clicks": 110,
-        "impressions": 1500,
-        "ctr": 7.3,
-        "position": 3.4
-      },
-      {
-        "query": "convoyage moto paris",
-        "clicks": 75,
-        "impressions": 800,
-        "ctr": 9.4,
-        "position": 2.1
-      },
-      {
-        "query": "convoyeur voiture tarif",
-        "clicks": 40,
-        "impressions": 650,
-        "ctr": 6.2,
-        "position": 5.6
-      },
-      {
-        "query": "convoyage moto france",
-        "clicks": 30,
-        "impressions": 500,
-        "ctr": 6,
-        "position": 4.8
-      }
-    ]
+    "pages": [],
+    "queries": []
   },
   "stripe": {
-    "period": "2026-06-05 au 2026-06-11 (MOCK)",
-    "total_revenue": 600,
+    "total_revenue": 2337.6,
     "total_costs": {
-      "chauffeur": 347.6,
-      "essence": 104.28,
+      "chauffeur": 240,
+      "essence": 72,
       "peage": 70,
-      "total": 521.88
+      "total": 382
     },
-    "net_margin": 78.12,
+    "net_margin": 1955.6,
     "transactions": [
       {
-        "date": "2026-06-10",
-        "amount": 280,
-        "reference": "BC-2026-001",
-        "route": "Paris-Lyon",
-        "distance": "465km",
+        "date": "2026-06-09",
+        "amount": 1378.8,
+        "reference": "BC-2026-2569",
+        "route": "Inconnu",
+        "distance": "300km",
+        "distance_value": 300,
         "costs": {
-          "chauffeur": 186,
-          "essence": 55.8,
+          "chauffeur": 120,
+          "essence": 36,
           "peage": 35,
-          "total": 276.8
+          "total": 191
         },
-        "margin": 3.2
+        "margin": 1187.8
       },
       {
         "date": "2026-06-11",
-        "amount": 320,
-        "reference": "BC-2026-002",
-        "route": "Marseille-Toulouse",
-        "distance": "404km",
+        "amount": 958.8,
+        "reference": "BC-2026-3046",
+        "route": "Inconnu",
+        "distance": "300km",
+        "distance_value": 300,
         "costs": {
-          "chauffeur": 161.6,
-          "essence": 48.48,
+          "chauffeur": 120,
+          "essence": 36,
           "peage": 35,
-          "total": 245.08
+          "total": 191
         },
-        "margin": 74.92
+        "margin": 767.8
       }
     ]
   }

@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -13,7 +14,14 @@ export async function exportGSCData() {
   }
 
   try {
-    const credentials = JSON.parse(gCredentialsString);
+    let credentialsJson;
+    if (gCredentialsString.trim().startsWith('{')) {
+      credentialsJson = gCredentialsString;
+    } else {
+      const filePath = gCredentialsString.replace(/^"|"$/g, ''); // Remove potential quotes
+      credentialsJson = fs.readFileSync(filePath, 'utf8');
+    }
+    const credentials = JSON.parse(credentialsJson);
 
     const auth = new google.auth.JWT(
       credentials.client_email,
