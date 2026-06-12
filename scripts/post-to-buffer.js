@@ -66,7 +66,8 @@ async function publishTodayPost() {
         mode: 'shareNow',
         metadata: {
           instagram: {
-            type: 'post'
+            type: 'post',
+            shouldShareToFeed: true
           }
         },
         assets: assets.length > 0 ? assets : undefined
