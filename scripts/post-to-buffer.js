@@ -30,41 +30,72 @@ async function publishTodayPost() {
     return;
   }
 
-  console.log(`🚀 Envoi du post vers Buffer : "${todayPost.text.substring(0, 50)}..."`);
+  console.log(`🚀 Envoi du post vers Buffer (GraphQL) : "${todayPost.text.substring(0, 50)}..."`);
 
-  // Préparer la requête vers l'API Buffer
-  // Endpoint : https://api.bufferapp.com/1/updates/create.json
-  const params = new URLSearchParams();
-  profileIds.forEach(id => params.append('profile_ids[]', id));
-  params.append('text', todayPost.text);
-  params.append('shorten', 'false'); // Empêche Buffer d'altérer vos liens bathily-convoyage.fr
-  params.append('now', 'true'); // Publie immédiatement (ou false pour ajouter à la file d'attente Buffer)
-  
+  // Préparer les variables GraphQL
+  const assets = [];
   if (todayPost.media) {
-    params.append('media[link]', todayPost.media);
-    params.append('media[picture]', todayPost.media);
+    assets.push({ image: { url: todayPost.media } });
   }
 
-  try {
-    const response = await fetch(`https://api.bufferapp.com/1/updates/create.json?access_token=${token}`, {
-      method: 'POST',
-      body: params,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+  // Pour chaque profil, nous faisons une requête d'insertion
+  for (const channelId of profileIds) {
+    console.log(`📤 Envoi vers le canal : ${channelId}`);
+    
+    const query = `
+      mutation CreatePost($input: CreatePostInput!) {
+        createPost(input: $input) {
+          __typename
+          ... on PostActionSuccess {
+            post {
+              id
+            }
+          }
+          ... on MutationError {
+            message
+          }
+        }
       }
-    });
+    `;
 
-    const data = await response.json();
+    const variables = {
+      input: {
+        text: todayPost.text,
+        channelId: channelId,
+        schedulingType: 'automatic',
+        mode: 'shareNow',
+        assets: assets.length > 0 ? assets : undefined
+      }
+    };
 
-    if (response.ok) {
-      console.log('✅ Post publié avec succès sur Buffer !', data);
-    } else {
-      console.error('❌ Échec de la publication Buffer :', data);
+    try {
+      const response = await fetch('https://api.buffer.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ query, variables })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.data && data.data.createPost) {
+        const result = data.data.createPost;
+        if (result.__typename === 'PostActionSuccess') {
+          console.log(`✅ Post publié avec succès sur le canal ${channelId} ! ID: ${result.post.id}`);
+        } else {
+          console.error(`❌ Échec de la publication sur le canal ${channelId} :`, result.message);
+          process.exit(1);
+        }
+      } else {
+        console.error(`❌ Échec de la requête API GraphQL pour le canal ${channelId} :`, data);
+        process.exit(1);
+      }
+    } catch (err) {
+      console.error(`❌ Erreur de requête vers Buffer pour le canal ${channelId} :`, err.message);
       process.exit(1);
     }
-  } catch (err) {
-    console.error('❌ Erreur de requête vers Buffer :', err.message);
-    process.exit(1);
   }
 }
 
