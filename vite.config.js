@@ -19,7 +19,7 @@ export default defineConfig({
         formationConvoyeur: resolve(__dirname, 'formation-convoyeur.html'),
         convoyageMotoLyon: resolve(__dirname, 'convoyage-moto-lyon.html'),
         convoyageMotoVoitureFrance: resolve(__dirname, 'convoyage-moto-voiture-france.html'),
-        convoyageVehiculeParis: resolve(__dirname, 'convoyage-vehicule-paris.html'),
+        convoyageMotoVoitureParis: resolve(__dirname, 'convoyage-moto-voiture-paris.html'),
         convoyageVehiculeMarseille: resolve(__dirname, 'convoyage-vehicule-marseille.html'),
         convoyageVehiculeBordeaux: resolve(__dirname, 'convoyage-vehicule-bordeaux.html'),
         convoyageVehiculeToulouse: resolve(__dirname, 'convoyage-vehicule-toulouse.html'),
