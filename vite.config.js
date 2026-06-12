@@ -17,18 +17,18 @@ export default defineConfig({
         tracking: resolve(__dirname, 'tracking.html'),
         mentionsLegales: resolve(__dirname, 'mentions-legales.html'),
         formationConvoyeur: resolve(__dirname, 'formation-convoyeur.html'),
-        convoyageMotoLyon: resolve(__dirname, 'convoyage-moto-lyon.html'),
         convoyageMotoVoitureFrance: resolve(__dirname, 'convoyage-moto-voiture-france.html'),
         convoyageMotoVoitureParis: resolve(__dirname, 'convoyage-moto-voiture-paris.html'),
-        convoyageVehiculeMarseille: resolve(__dirname, 'convoyage-vehicule-marseille.html'),
-        convoyageVehiculeBordeaux: resolve(__dirname, 'convoyage-vehicule-bordeaux.html'),
-        convoyageVehiculeToulouse: resolve(__dirname, 'convoyage-vehicule-toulouse.html'),
         convoyageVehiculeLille: resolve(__dirname, 'convoyage-vehicule-lille.html'),
         convoyageVehiculeNantes: resolve(__dirname, 'convoyage-vehicule-nantes.html'),
         convoyageVehiculeStrasbourg: resolve(__dirname, 'convoyage-vehicule-strasbourg.html'),
         convoyageVehiculeNice: resolve(__dirname, 'convoyage-vehicule-nice.html'),
-        convoyageVehiculeMontpellier: resolve(__dirname, 'convoyage-vehicule-montpellier.html'),
         convoyageVehiculeRennes: resolve(__dirname, 'convoyage-vehicule-rennes.html'),
+        convoyageLyon: resolve(__dirname, 'convoyage-lyon.html'),
+        convoyageMarseille: resolve(__dirname, 'convoyage-marseille.html'),
+        convoyageBordeaux: resolve(__dirname, 'convoyage-bordeaux.html'),
+        convoyageToulouse: resolve(__dirname, 'convoyage-toulouse.html'),
+        convoyageMontpellier: resolve(__dirname, 'convoyage-montpellier.html'),
       }
     }
   }
