@@ -21,10 +21,10 @@
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/supabase-config.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="/supabase-config.js" defer></script>
   <style>
     * {
       margin: 0;
@@ -984,6 +984,42 @@
       font-size: 0.9rem;
       color: var(--gray-mid);
       line-height: 1.6;
+    }
+
+    @media (max-width: 375px) {
+      .container {
+        padding: 0 16px;
+      }
+      .hero-title {
+        font-size: 1.8rem;
+      }
+      .quick-quote {
+        flex-direction: column;
+      }
+      .quick-quote input,
+      .quick-quote select {
+        width: 100%;
+      }
+      .grid-6 {
+        grid-template-columns: 1fr;
+      }
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+      .nav-links {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        display: none;
+      }
+      .nav-links.show {
+        display: flex;
+      }
     }
   </style>
 
