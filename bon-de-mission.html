@@ -1148,6 +1148,8 @@ if(window.matchMedia('(hover: hover)').matches) {
 let _missionId = null;
 let _missionRef = null;
 let _paiementStatut = 'pending';
+let _vehicle = 'Véhicule';
+let _route = 'Paris ➔ Lyon';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const now = new Date();
@@ -1177,6 +1179,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   _missionRef = m.reference || `BC-${missionId.slice(0,8).toUpperCase()}`;
   _paiementStatut = m.paiement_statut || 'pending';
+  _vehicle = m.vehicule || 'Véhicule';
+  _route = (m.depart || 'Paris').split('(')[0].trim() + ' ➔ ' + (m.arrivee || 'Lyon').split('(')[0].trim();
 
   // ---- Status bar ----
   document.getElementById('topRef').textContent = `${m.reference || '—'} · ${m.depart} → ${m.arrivee} · ${m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR') : '—'}`;
@@ -1381,7 +1385,7 @@ async function startMission(){
       confirmButtonColor: 'var(--bordeaux)',
       confirmButtonText: 'Oui, activer GPS',
       cancelButtonText: 'Plus tard'
-    }).then(r => { if (r.isConfirmed) window.location.href = 'gps-emitter.html'; });
+    }).then(r => { if (r.isConfirmed) window.location.href = 'gps-emitter.html?id=' + _missionId + '&ref=' + encodeURIComponent(_missionRef) + '&route=' + encodeURIComponent(_route) + '&vehicle=' + encodeURIComponent(_vehicle); });
   }, 800);
 }
 

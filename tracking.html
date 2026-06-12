@@ -12,6 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/supabase-config.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style>
 * {
@@ -751,6 +753,113 @@ body {
 <div class="modal-overlay" id="modalShare"><div class="modal-box"><button class="modal-close" onclick="closeModal('modalShare')"><i class="fas fa-times"></i></button><h3 class="modal-h">Partager le <em>suivi</em></h3><div><div id="shareLink">bathily-convoyage.fr/tracking/BC-2025-0847</div><button onclick="copyLink()">Copier le lien</button></div><div class="modal-btns"><button class="btn-outline" onclick="closeModal('modalShare')">Fermer</button></div></div></div>
 
 <script>
+// ========== SUPABASE INTEGRATION & DYNAMIC LOAD ==========
+let _supabaseClient = null;
+function getSupabase() {
+  if (!_supabaseClient) {
+    _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  }
+  return _supabaseClient;
+}
+
+// Geocode addresses helper
+async function geocodeAddress(query) {
+  if (!query.trim()) return null;
+  const cleanQuery = query.split('(')[0].trim();
+  try {
+    const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(cleanQuery)}&limit=1`);
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+      const [lon, lat] = data.features[0].geometry.coordinates;
+      return [lat, lon];
+    }
+    return null;
+  } catch (err) {
+    console.warn("Erreur géocodage:", err);
+    return null;
+  }
+}
+
+// Load real data from Supabase
+async function loadMissionDetails() {
+  const refParam = new URLSearchParams(window.location.search).get('ref');
+  if (!refParam) return;
+
+  try {
+    const client = getSupabase();
+    const { data: m, error } = await client
+      .from('missions')
+      .select('*')
+      .eq('reference', refParam)
+      .maybeSingle();
+
+    if (error || !m) {
+      console.warn("Mission introuvable ou erreur Supabase:", error);
+      return;
+    }
+
+    STATE.missionRef = m.reference;
+
+    // Update UI elements
+    const cleanDep = m.depart.split('(')[0].trim();
+    const cleanArr = m.arrivee.split('(')[0].trim();
+    
+    document.getElementById('topRef').textContent = `${m.reference} · ${m.vehicule} · ${cleanDep} ➔ ${cleanArr}`;
+    document.querySelector('.sh-mission-ref').textContent = `Mission · ${m.reference}`;
+    document.querySelector('.sh-vehicle').innerHTML = m.vehicule;
+    document.querySelector('.sh-plate').textContent = m.reference;
+    document.getElementById('rvDepart').textContent = cleanDep;
+    document.getElementById('rvArrivee').textContent = cleanArr;
+    document.getElementById('rvInfos').textContent = `${m.mode_transport || 'Route'} · ${m.vehicule}`;
+    
+    // Status handling
+    const mStatus = m.status || m.statut || 'planned';
+    const badge = document.querySelector('.sh-status-badge');
+    if (badge) {
+      if (mStatus === 'completed') {
+        badge.className = 'sh-status-badge status-termine';
+        badge.innerHTML = '<i class="fas fa-check-circle"></i> Mission terminée';
+      } else if (mStatus === 'in_progress') {
+        badge.className = 'sh-status-badge status-transit';
+        badge.innerHTML = '<i class="fas fa-circle" style="font-size:0.5rem"></i> En transit';
+      } else {
+        badge.className = 'sh-status-badge';
+        badge.style.background = 'rgba(224,163,67,0.1)';
+        badge.style.color = 'var(--warning)';
+        badge.innerHTML = '<i class="fas fa-circle" style="font-size:0.5rem"></i> En attente';
+      }
+    }
+    
+    document.getElementById('shareLink').textContent = window.location.href;
+
+    // Geocode cities and update Leaflet map
+    const startCoords = await geocodeAddress(m.depart);
+    const endCoords = await geocodeAddress(m.arrivee);
+    
+    if (startCoords && endCoords) {
+      if (startMarker) map.removeLayer(startMarker);
+      if (endMarker) map.removeLayer(endMarker);
+      if (routeLine) map.removeLayer(routeLine);
+      
+      startMarker = L.marker(startCoords).addTo(map).bindPopup(`${cleanDep} (départ)`);
+      endMarker = L.marker(endCoords).addTo(map).bindPopup(`${cleanArr} (arrivée)`);
+      
+      const routePoints = [startCoords, endCoords];
+      routeLine = L.polyline(routePoints, { color: '#7A2E1A', weight: 4, opacity: 0.7 }).addTo(map);
+      
+      const bounds = L.latLngBounds(startCoords, endCoords);
+      map.fitBounds(bounds, { padding: [50, 50] });
+      
+      if (carMarker) carMarker.setLatLng(startCoords);
+    }
+  } catch (err) {
+    console.error("Error loading mission details:", err);
+  }
+}
+
+// Call details load on start
+loadMissionDetails();
+
 // ========== CURSOR ==========
 if(window.matchMedia('(hover: hover)').matches) {
   const cur=document.getElementById('cur'),cring=document.getElementById('cring');
@@ -874,7 +983,7 @@ function refreshData() {
   document.getElementById('lastUpdate').innerText = '0';
 }
 function copyLink() {
-  navigator.clipboard.writeText('https://bathily-convoyage.fr/tracking/BC-2025-0847');
+  navigator.clipboard.writeText(window.location.href);
   alert('Lien copié !');
 }
 function openModal(id) { document.getElementById(id).classList.add('open'); }
@@ -902,14 +1011,21 @@ try {
       };
       const app = initializeApp(firebaseConfig);
       const db = getDatabase(app);
-      const tripRef = ref(db, 'trips/BC-2025-0847/gps/current');
+      const tripRef = ref(db, `missions/${STATE.missionRef}/gps/current`);
       onValue(tripRef, (snapshot) => {
         const data = snapshot.val();
         if (data && data.lat && data.lng) {
-          // Mise à jour réelle
+          // Real update
           if (carMarker) carMarker.setLatLng([data.lat, data.lng]);
-          if (data.speed) document.getElementById('speedVal').innerHTML = Math.round(data.speed) + '<em> km/h</em>';
-          // autres mises à jour...
+          if (data.speed) {
+            document.getElementById('speedVal').innerHTML = Math.round(data.speed) + '<em> km/h</em>';
+            document.getElementById('speedBar').innerText = Math.round(data.speed) + ' km/h';
+          }
+          if (data.accuracy) {
+            document.getElementById('currentCoords').innerText = `${data.lat.toFixed(4)}°N · ${data.lng.toFixed(4)}°E (±${data.accuracy}m)`;
+          }
+          // Disable mock simulation once real data arrives
+          locIndex = locations.length;
         }
       });
     });
