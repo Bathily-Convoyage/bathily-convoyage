@@ -624,8 +624,14 @@
 
     .footer-grid {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
       gap: 48px;
+    }
+
+    .footer-cities-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
 
     .footer-logo {
@@ -722,6 +728,11 @@
       .quick-quote {
         width: 100%;
         justify-content: center;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
       }
     }
 
@@ -1316,6 +1327,22 @@
         <div class="footer-links">
           <h4>Contact</h4><a href="mailto:contact@bathily-convoyage.fr">contact@bathily-convoyage.fr</a><span>France
             entière</span>
+        </div>
+        <div class="footer-links">
+          <h4>Convoyage dans votre ville</h4>
+          <div class="footer-cities-grid">
+            <div>
+              <a href="convoyage-moto-voiture-france.html">France</a>
+              <a href="convoyage-moto-voiture-paris.html">Paris</a>
+              <a href="convoyage-lyon.html">Lyon</a>
+              <a href="convoyage-marseille.html">Marseille</a>
+            </div>
+            <div>
+              <a href="convoyage-bordeaux.html">Bordeaux</a>
+              <a href="convoyage-toulouse.html">Toulouse</a>
+              <a href="convoyage-montpellier.html">Montpellier</a>
+            </div>
+          </div>
         </div>
       </div>
       <div class="footer-bottom">© 2025 Bathily Convoyage — Tous droits réservés — <a href="mentions-legales.html"
