@@ -1600,11 +1600,23 @@
         const elapsed = currentTime - start;
         const progress = Math.min(elapsed / duration, 1);
         const easeOut = 1 - Math.pow(1 - progress, 3);
-        current = Math.floor(target * easeOut);
-        el.textContent = current + suffix;
+        
+        // Special handling for Google rating to show 4.9 instead of 49
+        let displayValue = Math.floor(target * easeOut);
+        if (el.id === 'stat3') {
+          displayValue = (displayValue / 10).toFixed(1);
+        }
+        
+        el.textContent = displayValue + suffix;
         
         if (progress < 1) requestAnimationFrame(update);
-        else el.textContent = target + suffix;
+        else {
+          if (el.id === 'stat3') {
+            el.textContent = (target / 10).toFixed(1) + suffix;
+          } else {
+            el.textContent = target + suffix;
+          }
+        }
       };
       
       requestAnimationFrame(update);
@@ -1615,7 +1627,7 @@
       const counters = document.querySelectorAll('.counter');
       counters.forEach(counter => {
         const target = parseInt(counter.dataset.target);
-        const suffix = counter.id === 'stat1' ? '+' : (counter.id === 'stat2' ? 'h' : '/5');
+        const suffix = counter.id === 'stat1' ? '+' : (counter.id === 'stat2' ? 'h' : (counter.id === 'stat3' ? '/5' : ''));
         animateCounter(counter, target, suffix);
       });
     }, 1000);
