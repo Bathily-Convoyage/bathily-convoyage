@@ -997,26 +997,69 @@
         flex-direction: column;
       }
       .quick-quote input,
-      .quick-quote select {
+      .quick-quote select,
+      .quick-quote button {
         width: 100%;
       }
-      .grid-6 {
-        grid-template-columns: 1fr;
-      }
-      .pricing-grid {
-        grid-template-columns: 1fr;
-      }
-      .nav-links {
-        position: fixed;
-        top: 60px;
-        left: 0;
-        right: 0;
-        background: white;
-        flex-direction: column;
-        padding: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        display: none;
-      }
+    }
+
+    /* UX Animations - Fade-in Scroll */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* UX Animations - Hover Effects */
+    .service-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .service-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 40px rgba(10, 77, 104, 0.25);
+      border-color: #F5A623;
+    }
+
+    .btn-primary {
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background: #088395;
+      transform: scale(1.05);
+    }
+
+    .btn-outline {
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-outline:hover {
+      transform: scale(1.05);
+    }
+
+    /* UX Animations - Counters */
+    .counter {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 2.5rem;
+      color: #0A4D68;
+    }
+
+    .counter-label {
+      color: #088395;
+      font-weight: 600;
+    }
+
+    .quick-quote select {
+      width: 100%;
+    }
+  </style>
       .nav-links.show {
         display: flex;
       }
@@ -1056,7 +1099,7 @@
     <!-- Hero -->
     <section class="hero">
       <div class="container hero-grid">
-        <div class="hero-content">
+        <div class="hero-content fade-in">
           <div class="hero-badge">✨ Convoyeur certifié SIV</div>
           <h1>Convoyage Voiture et Moto - Partout en France : <span>Estimez votre tarif</span> en 60s</h1>
           <p>Convoyage auto et moto partout en France. Devis en 60 secondes, suivi GPS temps réel, double assurance RC
@@ -1083,17 +1126,17 @@
             <span>💰 Tarif estimé : <strong id="quickQuotePrice">— € HT</strong></span>
           </div>
           <div class="hero-stats">
-            <div class="stat">
-              <h3 id="stat1">0</h3>
-              <p>Missions réalisées</p>
+            <div class="stat fade-in">
+              <h3 id="stat1" class="counter" data-target="500">0</h3>
+              <p class="counter-label">Missions réalisées</p>
             </div>
-            <div class="stat">
-              <h3 id="stat2">0</h3>
-              <p>Livraison moyenne</p>
+            <div class="stat fade-in">
+              <h3 id="stat2" class="counter" data-target="48">0</h3>
+              <p class="counter-label">Livraison moyenne (h)</p>
             </div>
-            <div class="stat">
-              <h3 id="stat3">0</h3>
-              <p>Note Google</p>
+            <div class="stat fade-in">
+              <h3 id="stat3" class="counter" data-target="49">0</h3>
+              <p class="counter-label">Note Google /5</p>
             </div>
           </div>
         </div>
@@ -1537,32 +1580,46 @@
       }
     });
 
+    // ----- UX Animations: Fade-in Scroll -----
+    const fadeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
+
     // ----- Compteurs animés -----
     function animateCounter(el, target, suffix) {
       let current = 0;
-      const step = Math.ceil(target / 60);
-      const timer = setInterval(() => {
-        current += step;
-        if (current >= target) {
-          el.innerText = target + suffix;
-          clearInterval(timer);
-        } else {
-          el.innerText = current + suffix;
-        }
-      }, 20);
+      const duration = 2000;
+      const start = performance.now();
+      
+      const update = (currentTime) => {
+        const elapsed = currentTime - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        current = Math.floor(target * easeOut);
+        el.textContent = current + suffix;
+        
+        if (progress < 1) requestAnimationFrame(update);
+        else el.textContent = target + suffix;
+      };
+      
+      requestAnimationFrame(update);
     }
 
-    const statsObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          animateCounter(document.getElementById('stat1'), 500, '+');
-          animateCounter(document.getElementById('stat2'), 24, 'h');
-          animateCounter(document.getElementById('stat3'), 49, '★');
-          statsObserver.disconnect();
-        }
+    // Délai 1s après load pour 0 impact LCP
+    setTimeout(() => {
+      const counters = document.querySelectorAll('.counter');
+      counters.forEach(counter => {
+        const target = parseInt(counter.dataset.target);
+        const suffix = counter.id === 'stat1' ? '+' : (counter.id === 'stat2' ? 'h' : '/5');
+        animateCounter(counter, target, suffix);
       });
-    }, { threshold: 0.5 });
-    statsObserver.observe(document.querySelector('.hero-stats'));
+    }, 1000);
 
     // ----- Carrousel témoignages -----
     const carousel = document.getElementById('testimonialCarousel');
