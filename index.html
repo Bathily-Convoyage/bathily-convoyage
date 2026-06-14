@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 
 <head>
@@ -17,11 +17,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./supabase-config.js"></script>
@@ -47,16 +46,16 @@
     }
 
     :root {
-      --bordeaux: #7A2E1A;
-      --bordeaux-dark: #5C2212;
-      --bordeaux-light: #F3E8E4;
+      --bordeaux: #0A4D68;
+      --bordeaux-dark: #063244;
+      --bordeaux-light: #E6F0F4;
       --cream: #FDFBF7;
       --beige: #F9F6F0;
       --gray-dark: #2D2A24;
       --gray-mid: #6B625A;
       --border-light: #E8E1D9;
       --success: #4A7C6B;
-      --warning: #E0A343;
+      --warning: #F5A623;
     }
 
     /* Header */
@@ -77,7 +76,7 @@
     }
 
     .logo {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-size: 1.6rem;
       font-weight: 800;
       color: var(--gray-dark);
@@ -131,84 +130,181 @@
 
     /* Hero */
     .hero {
-      padding: 80px 0 60px;
+      padding: 80px 0 40px;
       background: linear-gradient(135deg, var(--cream) 0%, var(--beige) 100%);
+      overflow: hidden;
     }
 
     .hero-grid {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
       align-items: center;
-      gap: 60px;
+      gap: 48px;
     }
 
     .hero-content {
-      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     .hero-badge {
       display: inline-block;
-      background: var(--bordeaux-light);
-      color: var(--bordeaux);
+      align-self: flex-start;
+      background: #E6F0F4;
+      color: #088395;
       padding: 6px 14px;
       border-radius: 40px;
       font-size: 0.75rem;
-      font-weight: 600;
-      margin-bottom: 24px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      border: 1px solid rgba(8, 131, 149, 0.2);
     }
 
     .hero h1 {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 3.2rem;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.8rem;
       font-weight: 800;
-      line-height: 1.2;
-      margin-bottom: 20px;
-      color: var(--gray-dark);
-    }
-
-    .hero h1 span {
-      color: var(--bordeaux);
+      line-height: 1.25;
+      margin-bottom: 16px;
+      color: #0A4D68;
     }
 
     .hero p {
-      font-size: 1.125rem;
-      color: var(--gray-mid);
-      margin-bottom: 32px;
-      max-width: 500px;
+      font-size: 1.1rem;
+      color: #6B625A;
+      margin-bottom: 28px;
+      max-width: 580px;
+      line-height: 1.6;
     }
 
-    .hero-stats {
+    .hero-trust-line {
       display: flex;
-      gap: 32px;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+      font-size: 0.875rem;
+      color: #6B625A;
+      font-weight: 500;
+    }
+
+    .hero-trust-line .stars {
+      color: #F5A623;
+      font-size: 1.05rem;
+      letter-spacing: 1px;
+    }
+
+    .hero-trust-line strong {
+      color: var(--gray-dark);
+      font-weight: 700;
+    }
+
+    .hero-map-container {
+      width: 100%;
+      height: 440px;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(10, 77, 104, 0.12);
+      border: 1px solid var(--border-light);
+      position: relative;
+      background: #E6F0F4;
+    }
+
+    #heroMap {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Animated Map Path */
+    .animated-polyline {
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
+      animation: drawPath 5s ease-in-out forwards;
+    }
+
+    @keyframes drawPath {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    /* Partners B2B Banner */
+    .partners-banner {
+      background: var(--beige);
+      border-top: 1px solid var(--border-light);
+      border-bottom: 1px solid var(--border-light);
+      padding: 20px 0;
       margin-top: 40px;
     }
 
-    .stat h3 {
-      font-size: 2rem;
+    .partners-banner-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .partners-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-mid);
       font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .partners-logos {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      flex: 1;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .partner-logo {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #8C847C;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      transition: color 0.2s ease;
+    }
+
+    .partner-logo:hover {
       color: var(--bordeaux);
     }
 
-    .stat p {
-      font-size: 0.875rem;
-      color: var(--gray-mid);
+    .partner-logo i {
+      font-size: 1.15rem;
     }
 
-    .hero-image {
-      flex: 1;
-      border-radius: 32px;
-      overflow: hidden;
-      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
+    @media (max-width: 1024px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .hero-map-container {
+        height: 380px;
+      }
+      .partners-banner-inner {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+      }
+      .partners-logos {
+        justify-content: center;
+      }
     }
 
-    .hero-image img {
-      width: 100%;
-      height: auto;
-      display: block;
-      transition: transform 0.8s ease;
-    }
-
-    .hero-image:hover img {
-      transform: scale(1.03);
+    @media (max-width: 600px) {
+      .hero h1 {
+        font-size: 2.2rem;
+      }
+      .hero-map-container {
+        height: 320px;
+      }
     }
 
     /* Buttons */
@@ -256,7 +352,7 @@
 
     .section-title {
       text-align: center;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-size: 2.2rem;
       font-weight: 700;
       margin-bottom: 16px;
@@ -524,6 +620,39 @@
       color: var(--gray-dark);
     }
 
+    .veh-tabs {
+      display: flex;
+      background: var(--cream);
+      border: 1px solid var(--border-light);
+      border-radius: 40px;
+      padding: 4px;
+      flex: 1 1 200px;
+      min-width: 180px;
+    }
+
+    .veh-tab {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px 16px;
+      border-radius: 36px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--gray-mid);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .veh-tab.active {
+      background: #0A4D68;
+      color: white;
+    }
+
     .suggest-box {
       position: absolute;
       top: 100%;
@@ -558,21 +687,35 @@
       padding-left: 20px;
     }
 
-    .quick-quote button {
-      background: var(--bordeaux);
+    #btnEstimate {
+      background: #F5A623;
       border: none;
       border-radius: 40px;
       padding: 12px 28px;
-      color: white;
-      font-weight: 600;
+      color: #0A4D68;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
       white-space: nowrap;
+      animation: pulse 2s infinite;
+      transition: all 0.2s ease;
     }
 
-    .quick-quote button:hover {
-      background: var(--bordeaux-dark);
+    #btnEstimate:hover {
+      background: #e09315;
       transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(245, 166, 35, 0.4);
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 12px rgba(245, 166, 35, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(245, 166, 35, 0);
+      }
     }
 
     /* Map preview */
@@ -742,12 +885,52 @@
       bottom: 20px;
       right: 20px;
       z-index: 999;
-      background: #7A2E1A;
+      background: var(--bordeaux);
       color: #fff;
       padding: 14px 22px;
       border-radius: 50px;
       text-decoration: none;
       font-weight: 700;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(10, 77, 104, 0.25);
+    }
+    .floating-devis:hover {
+      background: var(--bordeaux-dark);
+      transform: translateY(-2px);
+    }
+
+    /* Sticky Call Mobile */
+    .sticky-call-mobile {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 999;
+      background: #F5A623;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(245, 166, 35, 0.4);
+      transition: transform 0.2s ease, background-color 0.2s ease;
+      text-decoration: none;
+    }
+    .sticky-call-mobile:hover {
+      transform: scale(1.08);
+      background: #e09315;
+    }
+    .sticky-call-mobile:active {
+      transform: scale(0.95);
+    }
+
+    @media (max-width: 900px) {
+      .sticky-call-mobile {
+        display: flex;
+      }
+      .floating-devis {
+        bottom: 90px !important;
+      }
     }
 
     /* Bandeau promotionnel */
@@ -875,7 +1058,7 @@
     }
 
     .price-card-title {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-size: 1.5rem;
       font-weight: 800;
       margin-bottom: 8px;
@@ -889,7 +1072,7 @@
     }
 
     .price-card-val {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-size: 2.2rem;
       font-weight: 800;
       color: var(--bordeaux);
@@ -1045,7 +1228,7 @@
 
     /* UX Animations - Counters */
     .counter {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-weight: 800;
       font-size: 2.5rem;
       color: #0A4D68;
@@ -1099,10 +1282,9 @@
     <section class="hero">
       <div class="container hero-grid">
         <div class="hero-content fade-in">
-          <div class="hero-badge">✨ Convoyeur certifié SIV</div>
-          <h1>Convoyage Auto et Moto - Partout en France : <span>Estimez votre tarif</span> en 60s</h1>
-          <p>Convoyage auto et moto partout en France. Devis en 60 secondes, suivi GPS temps réel, double assurance RC
-            Pro.</p>
+          <div class="hero-badge">📍 Suivi GPS en temps réel</div>
+          <h1>Convoyage Auto & Moto Partout en France.</h1>
+          <p>Votre véhicule transporté en toute sécurité par des professionnels. Devis gratuit en 60s.</p>
           <div class="quick-quote">
             <div class="search-wrapper">
               <input type="text" id="depart" placeholder="Adresse de départ" autocomplete="off" aria-label="Adresse de départ">
@@ -1112,11 +1294,12 @@
               <input type="text" id="arrivee" placeholder="Adresse d'arrivée" autocomplete="off" aria-label="Adresse d'arrivée">
               <div id="arriveeSuggests" class="suggest-box"></div>
             </div>
-            <select id="vehType" aria-label="Type de véhicule">
-              <option>Automobile</option>
-              <option>Moto</option>
-            </select>
-            <button onclick="goToDevis()">Estimer mon devis →</button>
+            <input type="hidden" id="vehType" value="Automobile">
+            <div class="veh-tabs">
+              <button type="button" class="veh-tab active" data-value="Automobile" onclick="setVehType('Automobile')">🚗 Auto</button>
+              <button type="button" class="veh-tab" data-value="Moto" onclick="setVehType('Moto')">🏍 Moto</button>
+            </div>
+            <button id="btnEstimate" onclick="goToDevis()">Estimer mon prix →</button>
           </div>
           <div id="quickQuoteResult"
             style="display:none; margin-top: 16px; padding: 12px 24px; background: var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius: 40px; align-items: center; justify-content: center; gap: 16px; font-weight: 600; color: var(--bordeaux); font-size: 0.95rem; box-shadow: 0 4px 12px rgba(122,46,26,0.1); width: max-content; max-width: 100%;">
@@ -1124,24 +1307,24 @@
             <span style="color: var(--gray-mid);">|</span>
             <span>💰 Tarif estimé : <strong id="quickQuotePrice">— € HT</strong></span>
           </div>
-          <div class="hero-stats">
-            <div class="stat fade-in">
-              <h3 id="stat1" class="counter" data-target="500">0</h3>
-              <p class="counter-label">Missions réalisées</p>
-            </div>
-            <div class="stat fade-in">
-              <h3 id="stat2" class="counter" data-target="48">0</h3>
-              <p class="counter-label">Livraison moyenne (h)</p>
-            </div>
-            <div class="stat fade-in">
-              <h3 id="stat3" class="counter" data-target="49">0</h3>
-              <p class="counter-label">Note Google /5</p>
-            </div>
+          <div class="hero-trust-line">
+            <span class="stars">★★★★★</span>
+            <span><strong>4.9/5</strong> Google Reviews - basé sur +500 avis</span>
           </div>
         </div>
-        <div class="hero-image">
-          <img src="https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&cs=tinysrgb&w=1200"
-            alt="Convoyage automobile premium">
+        <div class="hero-map-container">
+          <div id="heroMap"></div>
+        </div>
+      </div>
+      <div class="partners-banner">
+        <div class="container partners-banner-inner">
+          <div class="partners-title">Ils nous font confiance :</div>
+          <div class="partners-logos">
+            <span class="partner-logo"><i class="fas fa-car-side"></i> Concessions</span>
+            <span class="partner-logo"><i class="fas fa-wrench"></i> Garages</span>
+            <span class="partner-logo"><i class="fas fa-truck-fleet"></i> Flottes Auto</span>
+            <span class="partner-logo"><i class="fas fa-handshake"></i> Loueurs</span>
+          </div>
         </div>
       </div>
     </section>
@@ -1247,7 +1430,7 @@
         <!-- Optionnel / Personnalisation de service -->
         <div style="margin-top: 50px; text-align: center;" class="reveal">
           <h4
-            style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.2rem; margin-bottom: 16px; color: var(--gray-dark);">
+            style="font-family: 'Montserrat', sans-serif; font-size: 1.2rem; margin-bottom: 16px; color: var(--gray-dark);">
             Niveaux de service optionnels</h4>
           <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;">
             <div
@@ -1465,11 +1648,11 @@
       const resultBox = document.getElementById('quickQuoteResult');
       const distEl = document.getElementById('quickQuoteDist');
       const priceEl = document.getElementById('quickQuotePrice');
-      const btn = document.querySelector('.quick-quote button');
+      const btn = document.getElementById('btnEstimate');
 
       if (!depart || !arrivee) {
         if (resultBox) resultBox.style.display = 'none';
-        if (btn) btn.innerHTML = "Estimer mon devis →";
+        if (btn) btn.innerHTML = "Estimer mon prix →";
         return;
       }
 
@@ -1528,7 +1711,7 @@
           box.style.display = 'none';
           return;
         }
-        debounceTimer = setTimeout(() => fetchSuggestions(query, box, inputElement), 300);
+        debounceTimer = setTimeout(() => fetchSuggestions(query, box, inputElement), 150);
       });
 
       async function fetchSuggestions(query, box, inputElement) {
@@ -1549,6 +1732,7 @@
                 inputElement.value = fullAddress;
                 box.style.display = 'none';
                 calculateQuickQuote();
+                if (typeof saveDraftQuote === 'function') saveDraftQuote();
               });
               box.appendChild(div);
             });
@@ -1571,6 +1755,84 @@
 
     // Listen to select type changes
     document.getElementById('vehType').addEventListener('change', calculateQuickQuote);
+
+    // ----- Tabs Véhicule Helper -----
+    function setVehType(value) {
+      const input = document.getElementById('vehType');
+      if (!input) return;
+      input.value = value;
+      
+      const tabs = document.querySelectorAll('.veh-tab');
+      tabs.forEach(tab => {
+        if (tab.dataset.value === value) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+      
+      input.dispatchEvent(new Event('change'));
+    }
+
+    // ----- Auto-save Devis Helper -----
+    function saveDraftQuote() {
+      const depart = document.getElementById('depart').value.trim();
+      const arrivee = document.getElementById('arrivee').value.trim();
+      const vehType = document.getElementById('vehType').value;
+      
+      const draft = { depart, arrivee, vehType };
+      localStorage.setItem('bathily_draft_quote', JSON.stringify(draft));
+    }
+
+    function restoreDraftQuote() {
+      try {
+        const saved = localStorage.getItem('bathily_draft_quote');
+        if (saved) {
+          const draft = JSON.parse(saved);
+          if (draft.depart) document.getElementById('depart').value = draft.depart;
+          if (draft.arrivee) document.getElementById('arrivee').value = draft.arrivee;
+          if (draft.vehType) {
+            // Set type and style active tab
+            const input = document.getElementById('vehType');
+            if (input) input.value = draft.vehType;
+            const tabs = document.querySelectorAll('.veh-tab');
+            tabs.forEach(tab => {
+              if (tab.dataset.value === draft.vehType) {
+                tab.classList.add('active');
+              } else {
+                tab.classList.remove('active');
+              }
+            });
+          }
+          if (draft.depart && draft.arrivee) {
+            calculateQuickQuote();
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to restore draft quote:", e);
+      }
+    }
+
+    // Bind auto-save listeners on blur
+    document.addEventListener('DOMContentLoaded', () => {
+      const departEl = document.getElementById('depart');
+      const arriveeEl = document.getElementById('arrivee');
+      const vehTypeEl = document.getElementById('vehType');
+      
+      if (departEl) {
+        departEl.addEventListener('blur', saveDraftQuote);
+        departEl.addEventListener('change', saveDraftQuote);
+      }
+      if (arriveeEl) {
+        arriveeEl.addEventListener('blur', saveDraftQuote);
+        arriveeEl.addEventListener('change', saveDraftQuote);
+      }
+      if (vehTypeEl) {
+        vehTypeEl.addEventListener('change', saveDraftQuote);
+      }
+      
+      restoreDraftQuote();
+    });
 
     // Fermer les suggestions en cliquant ailleurs
     document.addEventListener('click', (e) => {
@@ -1662,17 +1924,100 @@
     }
     initCarousel();
 
-    // ----- Carte Leaflet -----
-    if (typeof L !== 'undefined') {
-      const map = L.map('miniMap').setView([46.5, 2.5], 6);
+    // ----- Chargement asynchrone et dynamique de Leaflet (Lazy Load) -----
+    let leafletPromise = null;
+    function loadLeaflet() {
+      if (leafletPromise) return leafletPromise;
+      
+      leafletPromise = new Promise((resolve, reject) => {
+        // Chargement du fichier CSS de Leaflet
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+        link.crossOrigin = '';
+        document.head.appendChild(link);
+        
+        // Chargement du fichier JS de Leaflet
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+        script.crossOrigin = '';
+        script.onload = () => resolve(window.L);
+        script.onerror = () => reject(new Error('Leaflet failed to load'));
+        document.head.appendChild(script);
+      });
+      return leafletPromise;
+    }
+
+    function initHeroMap(L) {
+      const heroMapEl = document.getElementById('heroMap');
+      if (!heroMapEl) return;
+      
+      const heroMap = L.map('heroMap', {
+        zoomControl: true,
+        scrollWheelZoom: false
+      });
+      
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+      }).addTo(heroMap);
+
+      const route = [
+        [48.8566, 2.3522], // Paris
+        [45.7640, 4.8357], // Lyon
+        [43.2965, 5.3698]  // Marseille
+      ];
+
+      L.marker([48.8566, 2.3522]).addTo(heroMap).bindPopup('Paris').openPopup();
+      L.marker([45.7640, 4.8357]).addTo(heroMap).bindPopup('Lyon');
+      L.marker([43.2965, 5.3698]).addTo(heroMap).bindPopup('Marseille');
+
+      const polyline = L.polyline(route, {
+        color: '#0A4D68',
+        weight: 5,
+        opacity: 0.9,
+        className: 'animated-polyline'
+      }).addTo(heroMap);
+
+      heroMap.fitBounds(polyline.getBounds(), { padding: [40, 40] });
+    }
+
+    function initMiniMap(L) {
+      const miniMapEl = document.getElementById('miniMap');
+      if (!miniMapEl) return;
+      
+      const miniMap = L.map('miniMap').setView([46.5, 2.5], 6);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB',
         subdomains: 'abcd',
         maxZoom: 19
-      }).addTo(map);
-      L.marker([48.8566, 2.3522]).addTo(map).bindPopup('Paris').openPopup();
-      L.marker([45.7640, 4.8357]).addTo(map).bindPopup('Lyon');
-      L.polyline([[48.8566, 2.3522], [45.7640, 4.8357]], { color: '#7A2E1A', weight: 4, opacity: 0.8 }).addTo(map);
+      }).addTo(miniMap);
+      
+      L.marker([48.8566, 2.3522]).addTo(miniMap).bindPopup('Paris').openPopup();
+      L.marker([45.7640, 4.8357]).addTo(miniMap).bindPopup('Lyon');
+      L.polyline([[48.8566, 2.3522], [45.7640, 4.8357]], { color: '#0A4D68', weight: 4, opacity: 0.8 }).addTo(miniMap);
+    }
+
+    // Initialisation différée via IntersectionObserver
+    const mapObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          loadLeaflet().then(L => {
+            initHeroMap(L);
+            initMiniMap(L);
+          }).catch(err => console.error("Erreur Leaflet lazy-load :", err));
+          observer.disconnect();
+        }
+      });
+    }, { rootMargin: '100px' });
+
+    const heroMapEl = document.getElementById('heroMap');
+    if (heroMapEl) {
+      mapObserver.observe(heroMapEl);
+    } else {
+      const miniMapEl = document.getElementById('miniMap');
+      if (miniMapEl) mapObserver.observe(miniMapEl);
     }
 
     // ----- Redirection vers la page devis avec stockage des données -----
@@ -1684,7 +2029,7 @@
           title: 'Champs requis',
           text: 'Veuillez renseigner l\'adresse de départ et l\'adresse d\'arrivée.',
           icon: 'warning',
-          confirmButtonColor: '#7A2E1A'
+          confirmButtonColor: '#0A4D68'
         });
         return;
       }
@@ -1752,7 +2097,7 @@
   <section style="padding:40px 20px" id="seo-zones">
     <div class="container" style="text-align: center; max-width: 800px; margin-bottom: 60px;">
       <h2
-        style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.8rem; font-weight: 700; margin-bottom: 16px; color: var(--gray-dark);">
+        style="font-family: 'Montserrat', sans-serif; font-size: 1.8rem; font-weight: 700; margin-bottom: 16px; color: var(--gray-dark);">
         Convoyage de véhicules partout en France</h2>
       <p style="color: var(--gray-mid); font-size: 0.95rem; line-height: 1.6;">Bathily Convoyage intervient à Paris,
         Lyon, Marseille, Lille, Bordeaux, Toulouse, Nantes, Strasbourg, Nice et sur l'ensemble du territoire français.
@@ -1804,6 +2149,13 @@
     </div>
   </section>
   <a href="devis.html" class="floating-devis">Demander un devis</a>
+
+  <!-- Sticky Call Mobile -->
+  <a href="tel:0767215100" class="sticky-call-mobile" aria-label="Appeler Bathily Convoyage">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+    </svg>
+  </a>
 
 </body>
 

@@ -1,4 +1,4 @@
-import fs from 'fs';
+﻿import fs from 'fs';
 import path from 'path';
 
 const __dirname = path.resolve();
@@ -30,7 +30,7 @@ const cities = [
     lon: 4.8357,
     region: 'Auvergne-Rhône-Alpes & France entière',
     routes: [
-      { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#7A2E1A' },
+      { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#0A4D68' },
       { name: 'Marseille', lat: 43.2965, lon: 5.3698, color: '#4A7C6B' }
     ],
     faqQuestion: 'Puis-je faire prendre en charge mon véhicule aux gares Part-Dieu ou Perrache ?',
@@ -44,7 +44,7 @@ const cities = [
     lon: 5.3698,
     region: 'Provence-Alpes-Côte d\'Azur & France entière',
     routes: [
-      { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#7A2E1A' },
+      { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#0A4D68' },
       { name: 'Lyon', lat: 45.7640, lon: 4.8357, color: '#4A7C6B' }
     ],
     faqQuestion: 'Gérez-vous la prise en charge au port maritime pour les transferts vers la Corse ?',
@@ -58,7 +58,7 @@ const cities = [
     lon: -0.5792,
     region: 'Nouvelle-Aquitaine & France entière',
     routes: [
-      { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#7A2E1A' },
+      { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#0A4D68' },
       { name: 'Toulouse', lat: 43.6047, lon: 1.4442, color: '#4A7C6B' }
     ],
     faqQuestion: 'Prenez-vous en charge les véhicules dans les châteaux et vignobles du Bordelais ?',
@@ -72,7 +72,7 @@ const cities = [
     lon: 1.4442,
     region: 'Occitanie & France entière',
     routes: [
-      { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#7A2E1A' },
+      { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#0A4D68' },
       { name: 'Bordeaux', lat: 44.8378, lon: -0.5792, color: '#4A7C6B' }
     ],
     faqQuestion: 'Livrez-vous les véhicules sur la zone aéronautique de Blagnac ?',
@@ -86,7 +86,7 @@ const cities = [
     lon: 3.8767,
     region: 'Occitanie & France entière',
     routes: [
-      { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#7A2E1A' },
+      { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#0A4D68' },
       { name: 'Marseille', lat: 43.2965, lon: 5.3698, color: '#4A7C6B' }
     ],
     faqQuestion: 'Livrez-vous dans les stations balnéaires autour de Montpellier ?',

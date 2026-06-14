@@ -7,8 +7,8 @@ console.log('Début de la génération des PDF premium adaptés aux modèles d\'
 // ============================================================================
 // CONFIGURATION DE LA CHARTE GRAPHIQUE
 // ============================================================================
-const COLOR_BORDEAUX = '#7A2E1A';
-const COLOR_BORDEAUX_DARK = '#5C2212';
+const COLOR_BORDEAUX = '#0A4D68';
+const COLOR_BORDEAUX_DARK = '#063244';
 const COLOR_CREAM = '#FDFBF7';
 const COLOR_BEIGE = '#F9F6F0';
 const COLOR_ANTHRACITE = '#2D2A24';
@@ -242,26 +242,27 @@ function generateCharteGraphique() {
   doc.strokeColor(COLOR_BORDER).lineWidth(1).moveTo(40, 75).lineTo(555, 75).stroke();
 
   const colors = [
-    { name: 'Bordeaux Premium', hex: '#7A2E1A', usage: 'Éléments de marque, boutons d\'action, logo' },
-    { name: 'Bordeaux Sombre', hex: '#5C2212', usage: 'Contraste, texte important, état de survol' },
-    { name: 'Crème Douceur', hex: '#FDFBF7', usage: 'Fond principal de l\'application' },
-    { name: 'Beige Léger', hex: '#F9F6F0', usage: 'Fonds secondaires et composants (cards)' },
-    { name: 'Anthracite Chic', hex: '#2D2A24', usage: 'Texte principal de lecture' }
+    { name: 'Bleu Brand (Primaire)', hex: '#0A4D68', usage: 'Éléments de marque majeurs, titres, logo' },
+    { name: 'Bleu Sombre', hex: '#063244', usage: 'Contraste fort, survol des éléments primaires' },
+    { name: 'Cyan GPS (Secondaire)', hex: '#088395', usage: 'Badges de confiance et suivi en temps réel' },
+    { name: 'Jaune Or (Accent)', hex: '#F5A623', usage: 'Boutons d\'appel à l\'action (CTA) pulsés' },
+    { name: 'Gris Neutre (Texte)', hex: '#6B625A', usage: 'Corps de texte et descriptions secondaires' },
+    { name: 'Crème Douceur', hex: '#FDFBF7', usage: 'Fond principal de l\'application' }
   ];
 
   let currentY = 110;
   colors.forEach(c => {
     doc.save();
-    doc.roundedRect(40, currentY, 40, 40, 8).fill(c.hex);
+    doc.roundedRect(40, currentY, 32, 32, 6).fill(c.hex);
     doc.restore();
-    doc.fillColor(COLOR_BORDEAUX).font('Helvetica-Bold').fontSize(12).text(c.name, 95, currentY + 6);
-    doc.fillColor(COLOR_ANTHRACITE).font('Helvetica').fontSize(9.5).text(`HEX : ${c.hex}  |  Usage : ${c.usage}`, 95, currentY + 22);
-    currentY += 55;
+    doc.fillColor(COLOR_BORDEAUX).font('Helvetica-Bold').fontSize(11).text(c.name, 85, currentY + 3);
+    doc.fillColor(COLOR_ANTHRACITE).font('Helvetica').fontSize(9).text(`HEX : ${c.hex}  |  Usage : ${c.usage}`, 85, currentY + 18);
+    currentY += 46;
   });
 
   doc.fillColor(COLOR_BORDEAUX).font('Helvetica-Bold').fontSize(14).text('Typographie', 40, 410);
   doc.fillColor(COLOR_ANTHRACITE).font('Helvetica').fontSize(10).moveDown(0.5);
-  doc.text("• Titres : Plus Jakarta Sans (Gras, géométrique, moderne)", { bulletRadius: 2 });
+  doc.text("• Titres : Montserrat (Gras, géométrique, moderne)", { bulletRadius: 2 });
   doc.text("• Corps : Inter (Sobre, hautement lisible sur mobile)", { bulletRadius: 2 });
 
   doc.fontSize(8).fillColor(COLOR_BORDEAUX).text('Bathily Convoyage — Livre de Marque', 40, 800, { width: 515, align: 'left' });

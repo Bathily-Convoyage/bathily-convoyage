@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +9,7 @@
 <meta property="og:description" content="Tableau de bord client pour suivre vos convoyages, consulter vos factures et gérer vos véhicules.">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👤</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
@@ -35,16 +35,16 @@ body {
   padding: 0 24px;
 }
 :root {
-  --bordeaux: #7A2E1A;
-  --bordeaux-dark: #5C2212;
-  --bordeaux-light: #F3E8E4;
+  --bordeaux: #0A4D68;
+  --bordeaux-dark: #063244;
+  --bordeaux-light: #E6F0F4;
   --cream: #FDFBF7;
   --beige: #F9F6F0;
   --gray-dark: #2D2A24;
   --gray-mid: #6B625A;
   --border-light: #E8E1D9;
   --success: #4A7C6B;
-  --warning: #E0A343;
+  --warning: #F5A623;
 }
 /* Curseur personnalisé seulement sur souris */
 @media (hover: hover) {
@@ -68,7 +68,7 @@ body {
   z-index: 100;
 }
 .topbar-logo {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.4rem;
   font-weight: 800;
   color: var(--gray-dark);
@@ -217,7 +217,7 @@ body {
   margin-bottom: 32px;
 }
 .dash-hello {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.8rem;
   font-weight: 700;
   margin-bottom: 4px;
@@ -257,7 +257,7 @@ body {
   margin-bottom: 12px;
 }
 .stat-val {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 2rem;
   font-weight: 700;
   line-height: 1;
@@ -296,7 +296,7 @@ body {
   margin-bottom: 20px;
 }
 .sec-h {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   font-weight: 600;
 }
@@ -363,7 +363,7 @@ body {
   margin-bottom: 4px;
 }
 .mc-route {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.1rem;
   font-weight: 500;
   margin-bottom: 6px;
@@ -498,7 +498,7 @@ body {
   margin-bottom: 12px;
 }
 .vehi-name {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 4px;
@@ -574,7 +574,7 @@ body {
 }
 .fact-date { font-size: 0.7rem; color: var(--gray-mid); }
 .fact-montant {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   font-weight: 600;
   margin-left: auto;
@@ -775,7 +775,7 @@ body {
   color: var(--gray-mid);
 }
 .modal-h {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 8px;
@@ -835,7 +835,7 @@ body {
   <div style="background:rgba(255,255,255,0.85);border:1px solid rgba(255,255,255,0.4);border-radius:28px;padding:36px;max-width:480px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,0.12);backdrop-filter:blur(10px);">
     <!-- Brand / Header -->
     <div style="text-align:center;margin-bottom:24px;">
-      <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#2D2A24;">Bathily-Convoyage<span style="color:#7A2E1A">.</span></div>
+      <div style="font-family:'Montserrat',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#2D2A24;">Bathily-Convoyage<span style="color:#0A4D68">.</span></div>
       <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#6B625A;margin-top:4px;">Espace Client Sécurisé</div>
     </div>
     
@@ -857,7 +857,7 @@ body {
         </div>
         <input id="loginPassword" type="password" required placeholder="••••••••" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
       </div>
-      <button type="submit" style="width:100%;background:#7A2E1A;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
+      <button type="submit" style="width:100%;background:#0A4D68;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
     </form>
 
     <!-- FORM 2: SIGNUP -->
@@ -888,7 +888,7 @@ body {
         <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Mot de passe</label>
         <input id="signupPassword" type="password" required minlength="6" placeholder="••••••••" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
       </div>
-      <button type="submit" style="width:100%;background:#7A2E1A;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-user-plus"></i> Créer mon compte</button>
+      <button type="submit" style="width:100%;background:#0A4D68;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-user-plus"></i> Créer mon compte</button>
     </form>
   </div>
 </div>
@@ -1587,7 +1587,7 @@ function renderClientMissions(containerId, missions, showAll) {
     const statusClass = mStatus === 'in_progress' ? 'status-en-cours' : mStatus === 'completed' ? 'status-termine' : 'status-planifie';
     const statusLabel = mStatus === 'in_progress' ? 'En transit' : mStatus === 'completed' ? 'Livré' : 'Planifiée';
     const pct = mStatus === 'completed' ? 100 : mStatus === 'in_progress' ? 65 : 10;
-    const strokeColor = mStatus === 'completed' ? 'var(--success)' : mStatus === 'in_progress' ? 'var(--bordeaux)' : '#E0A343';
+    const strokeColor = mStatus === 'completed' ? 'var(--success)' : mStatus === 'in_progress' ? 'var(--bordeaux)' : '#F5A623';
     const dashOffset = Math.round(138 - (pct/100)*138);
     const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '—';
     const tagMode = (m.mode_transport||'route').toLowerCase().includes('plateau') ? '<span class="mc-tag tag-plateau">Plateau</span>' : '<span class="mc-tag tag-route">Route</span>';
@@ -1617,7 +1617,7 @@ function renderClientMissions(containerId, missions, showAll) {
         <svg class="progress-circle" viewBox="0 0 52 52">
           <circle cx="26" cy="26" r="22" fill="none" stroke="#E5E7EB" stroke-width="3"/>
           <circle cx="26" cy="26" r="22" fill="none" stroke="${strokeColor}" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="${dashOffset}" stroke-linecap="round" transform="rotate(-90 26 26)"/>
-          <text x="26" y="31" text-anchor="middle" fill="#2D2A24" font-family="'Plus Jakarta Sans'" font-size="12" font-weight="600">${pct}%</text>
+          <text x="26" y="31" text-anchor="middle" fill="#2D2A24" font-family="'Montserrat'" font-size="12" font-weight="600">${pct}%</text>
         </svg>
         <div class="progress-lbl">${statusLabel}</div>
       </div>

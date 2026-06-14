@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +9,7 @@
 <meta property="og:description" content="Plateforme dédiée aux convoyeurs : missions, état des lieux, réseau social interne et suivi des gains.">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚛</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
@@ -37,16 +37,16 @@ body {
   padding: 0 24px;
 }
 :root {
-  --bordeaux: #7A2E1A;
-  --bordeaux-dark: #5C2212;
-  --bordeaux-light: #F3E8E4;
+  --bordeaux: #0A4D68;
+  --bordeaux-dark: #063244;
+  --bordeaux-light: #E6F0F4;
   --cream: #FDFBF7;
   --beige: #F9F6F0;
   --gray-dark: #2D2A24;
   --gray-mid: #6B625A;
   --border-light: #E8E1D9;
   --success: #4A7C6B;
-  --warning: #E0A343;
+  --warning: #F5A623;
 }
 /* Curseur personnalisé seulement sur souris */
 @media (hover: hover) {
@@ -70,7 +70,7 @@ body {
   z-index: 100;
 }
 .topbar-logo {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.4rem;
   font-weight: 800;
   color: var(--gray-dark);
@@ -235,7 +235,7 @@ body {
   margin-bottom: 32px;
 }
 .dash-hello {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.8rem;
   font-weight: 700;
   margin-bottom: 4px;
@@ -275,7 +275,7 @@ body {
   margin-bottom: 12px;
 }
 .stat-val {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 2rem;
   font-weight: 700;
   line-height: 1;
@@ -345,7 +345,7 @@ body {
   margin-bottom: 20px;
 }
 .sec-h {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   font-weight: 600;
 }
@@ -405,7 +405,7 @@ body {
   margin-bottom: 4px;
 }
 .mc-route {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.1rem;
   font-weight: 500;
   margin-bottom: 6px;
@@ -430,7 +430,7 @@ body {
 .tag-route { background: rgba(74,124,107,0.1); color: var(--success); }
 .mc-right { text-align: right; }
 .mc-montant {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--bordeaux);
@@ -564,7 +564,7 @@ body {
   border-bottom: 1px solid var(--border-light);
 }
 .pi-time {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1rem;
   font-weight: 600;
   color: var(--gray-mid);
@@ -879,7 +879,7 @@ body {
   text-align: center;
 }
 .ss-stat-val {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--bordeaux);
@@ -916,7 +916,7 @@ body {
   gap: 10px;
 }
 .tc-rank {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1rem;
   font-weight: 600;
   color: var(--gray-mid);
@@ -963,7 +963,7 @@ body {
   margin-bottom: 8px;
 }
 .gain-val {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.8rem;
   font-weight: 700;
   color: var(--bordeaux);
@@ -996,7 +996,7 @@ body {
   border-bottom: 1px solid var(--border-light);
 }
 .td-price {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--success);
@@ -1034,7 +1034,7 @@ body {
   color: var(--gray-mid);
 }
 .modal-h {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 8px;
@@ -1125,7 +1125,7 @@ body {
   box-shadow: 0 20px 60px rgba(0,0,0,0.08);
 }
 .profile-title {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
   font-weight: 800;
   margin-bottom: 6px;
@@ -1511,7 +1511,7 @@ body {
       <div class="dash-header"><h1 class="dash-hello">Support <em>urgence</em></h1></div>
       <div style="background:var(--bordeaux-light); border:1px solid var(--bordeaux); border-radius:24px; padding:20px; margin-bottom:32px; display:flex; align-items:center; gap:16px;">
         <i class="fas fa-phone" style="font-size:1.5rem; color:var(--bordeaux);"></i>
-        <div><div style="font-weight:700; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px;">Ligne d'urgence convoyeur</div><div style="font-family:'Plus Jakarta Sans'; font-size:1.2rem; font-weight:600;">Disponible 24h/24 · 7j/7</div></div>
+        <div><div style="font-weight:700; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px;">Ligne d'urgence convoyeur</div><div style="font-family:'Montserrat'; font-size:1.2rem; font-weight:600;">Disponible 24h/24 · 7j/7</div></div>
       </div>
       <div class="sec-title"><h2 class="sec-h">Signaler un <em>incident</em></h2></div>
       <div style="max-width:540px;">

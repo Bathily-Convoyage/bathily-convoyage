@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <title>Devenir Convoyeur — Bathily-Convoyage</title>
 <meta name="description" content="Rejoignez le réseau de convoyeurs certifiés Bathily-Convoyage. Formation complète, quiz de validation, et accès à une plateforme digitale premium.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
@@ -14,16 +14,16 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
-  --bordeaux: #7A2E1A;
-  --bordeaux-dark: #5C2212;
-  --bordeaux-light: #F3E8E4;
+  --bordeaux: #0A4D68;
+  --bordeaux-dark: #063244;
+  --bordeaux-light: #E6F0F4;
   --cream: #FDFBF7;
   --beige: #F9F6F0;
   --gray-dark: #2D2A24;
   --gray-mid: #6B625A;
   --border-light: #E8E1D9;
   --success: #4A7C6B;
-  --warning: #E0A343;
+  --warning: #F5A623;
 }
 body {
   font-family: 'Inter', sans-serif;
@@ -42,7 +42,7 @@ header {
   z-index: 100; padding: 0 32px; height: 64px;
   display: flex; align-items: center; justify-content: space-between;
 }
-.logo { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--gray-dark); text-decoration: none; letter-spacing: -0.02em; }
+.logo { font-family: 'Montserrat',sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--gray-dark); text-decoration: none; letter-spacing: -0.02em; }
 .logo span { color: var(--bordeaux); }
 .header-back { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-mid); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
 .header-back:hover { color: var(--bordeaux); }
@@ -75,7 +75,7 @@ header {
   margin-bottom: 24px;
 }
 .card-title {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.6rem; font-weight: 700; margin-bottom: 6px;
 }
 .card-title em { color: var(--bordeaux); font-style: normal; }
@@ -102,7 +102,7 @@ header {
   letter-spacing: 0.1em; padding: 5px 14px; border-radius: 40px;
   display: inline-block; margin-bottom: 20px;
 }
-.hero-formation h1 { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; }
+.hero-formation h1 { font-family: 'Montserrat',sans-serif; font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; }
 .hero-formation h1 span { opacity: 0.75; }
 .hero-formation p { font-size: 0.95rem; opacity: 0.85; margin-bottom: 32px; max-width: 520px; }
 .hero-stats-row { display: flex; gap: 32px; flex-wrap: wrap; }
@@ -151,7 +151,7 @@ header {
   font-size: 1.3rem; color: white; flex-shrink: 0;
 }
 .module-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--bordeaux); margin-bottom: 4px; }
-.module-title { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 1.3rem; font-weight: 700; }
+.module-title { font-family: 'Montserrat',sans-serif; font-size: 1.3rem; font-weight: 700; }
 .module-subtitle { font-size: 0.78rem; color: var(--gray-mid); }
 .lesson-block { margin-bottom: 24px; }
 .lesson-h { font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
@@ -179,7 +179,7 @@ header {
 .checklist li.x::before { content: '✗'; color: #e74c3c; }
 .highlight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
 .hl-card { background: var(--beige); border-radius: 14px; padding: 14px; border: 1px solid var(--border-light); }
-.hl-card .hl-num { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--bordeaux); }
+.hl-card .hl-num { font-family: 'Montserrat',sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--bordeaux); }
 .hl-card .hl-label { font-size: 0.72rem; color: var(--gray-mid); font-weight: 600; text-transform: uppercase; }
 
 /* ====== QUIZ ====== */
@@ -188,7 +188,7 @@ header {
 .quiz-score-badge { background: var(--bordeaux-light); color: var(--bordeaux); font-weight: 700; font-size: 0.75rem; padding: 5px 12px; border-radius: 40px; }
 .q-block { margin-bottom: 28px; animation: fadeIn 0.35s ease; }
 .q-num { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--bordeaux); letter-spacing: 0.1em; margin-bottom: 8px; }
-.q-text { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; line-height: 1.4; }
+.q-text { font-family: 'Montserrat',sans-serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; line-height: 1.4; }
 .q-options { display: flex; flex-direction: column; gap: 10px; }
 .q-opt {
   display: flex; align-items: center; gap: 12px;
@@ -221,7 +221,7 @@ header {
 }
 .result-circle.pass { border-color: var(--success); }
 .result-circle.fail { border-color: #e74c3c; }
-.result-score { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 2.4rem; font-weight: 800; }
+.result-score { font-family: 'Montserrat',sans-serif; font-size: 2.4rem; font-weight: 800; }
 .result-of { font-size: 0.7rem; color: var(--gray-mid); font-weight: 600; }
 .result-badge { text-align: center; margin-bottom: 20px; }
 .badge-certified {
@@ -231,7 +231,7 @@ header {
   padding: 10px 24px; font-size: 0.85rem; font-weight: 700; color: #7a5a1a;
 }
 .cooldown-box { background: rgba(231,76,60,0.06); border: 1px solid rgba(231,76,60,0.2); border-radius: 16px; padding: 20px; text-align: center; margin: 20px 0; }
-.cooldown-timer { font-family: 'Plus Jakarta Sans',sans-serif; font-size: 2rem; font-weight: 800; color: #c0392b; }
+.cooldown-timer { font-family: 'Montserrat',sans-serif; font-size: 2rem; font-weight: 800; color: #c0392b; }
 .result-answers { margin-top: 24px; }
 .ra-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-light); font-size: 0.82rem; }
 .ra-item:last-child { border-bottom: none; }

@@ -1,4 +1,4 @@
-const { createClient } = require('@supabase/supabase-js');
+﻿const { createClient } = require('@supabase/supabase-js');
 
 exports.handler = async (event, context) => {
   // CORS Headers
@@ -89,15 +89,15 @@ Corps: ${html.substring(0, 300)}...`);
         <style>
           body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #FDFBF7; color: #2D2A24; margin: 0; padding: 20px; }
           .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; border: 1px solid #E8E1D9; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
-          .header { background-color: #7A2E1A; padding: 30px; text-align: center; color: #ffffff; }
+          .header { background-color: #0A4D68; padding: 30px; text-align: center; color: #ffffff; }
           .header h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
           .content { padding: 40px 30px; line-height: 1.6; font-size: 15px; }
           .footer { background-color: #F9F6F0; padding: 20px; text-align: center; font-size: 12px; color: #6B625A; border-top: 1px solid #E8E1D9; }
-          .btn { display: inline-block; background-color: #7A2E1A; color: #ffffff !important; text-decoration: none; padding: 12px 28px; border-radius: 40px; font-weight: 700; margin-top: 20px; font-size: 14px; }
-          .highlight-box { background-color: #F3E8E4; border-left: 4px solid #7A2E1A; padding: 15px; border-radius: 8px; margin: 20px 0; }
+          .btn { display: inline-block; background-color: #0A4D68; color: #ffffff !important; text-decoration: none; padding: 12px 28px; border-radius: 40px; font-weight: 700; margin-top: 20px; font-size: 14px; }
+          .highlight-box { background-color: #E6F0F4; border-left: 4px solid #0A4D68; padding: 15px; border-radius: 8px; margin: 20px 0; }
           .meta-list { margin: 0; padding: 0; list-style: none; }
           .meta-list li { padding: 8px 0; border-bottom: 1px solid #F3F4F6; display: flex; justify-content: space-between; }
-          .meta-list li strong { color: #7A2E1A; }
+          .meta-list li strong { color: #0A4D68; }
         </style>
       </head>
       <body>
@@ -106,12 +106,12 @@ Corps: ${html.substring(0, 300)}...`);
             <h1>Bathily Convoyage.</h1>
           </div>
           <div class="content">
-            <h2 style="color: #7A2E1A; margin-top: 0;">${contentTitle}</h2>
+            <h2 style="color: #0A4D68; margin-top: 0;">${contentTitle}</h2>
             ${contentBody}
           </div>
           <div class="footer">
             © 2025 Bathily Convoyage — Convoyage automobile & moto en France.<br>
-            Besoin d'aide ? <a href="mailto:${ADMIN_EMAIL}" style="color:#7A2E1A;">Contactez-nous</a>
+            Besoin d'aide ? <a href="mailto:${ADMIN_EMAIL}" style="color:#0A4D68;">Contactez-nous</a>
           </div>
         </div>
       </body>
@@ -301,13 +301,13 @@ Corps: ${html.substring(0, 300)}...`);
           <div style="display: flex; gap: 20px; flex-wrap: wrap;">
             ${edl.signatures.convoyeur ? `
               <div style="flex: 1; min-width: 200px; border: 1px solid #E8E1D9; border-radius: 12px; padding: 10px; background: #fff; text-align: center;">
-                <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #7A2E1A; margin-bottom: 5px;">Convoyeur</div>
+                <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #0A4D68; margin-bottom: 5px;">Convoyeur</div>
                 <img src="${edl.signatures.convoyeur}" style="max-height: 80px; max-width: 100%;" alt="Signature Convoyeur" />
               </div>
             ` : ''}
             ${edl.signatures.client ? `
               <div style="flex: 1; min-width: 200px; border: 1px solid #E8E1D9; border-radius: 12px; padding: 10px; background: #fff; text-align: center;">
-                <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #7A2E1A; margin-bottom: 5px;">Client</div>
+                <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #0A4D68; margin-bottom: 5px;">Client</div>
                 <img src="${edl.signatures.client}" style="max-height: 80px; max-width: 100%;" alt="Signature Client" />
               </div>
             ` : ''}

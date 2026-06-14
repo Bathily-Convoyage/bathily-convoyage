@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +9,7 @@
 <meta property="og:description" content="Page de suivi en direct de votre mission de convoyage. Carte interactive, progression et notifications.">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -30,16 +30,16 @@ body {
   min-height: 100vh;
 }
 :root {
-  --bordeaux: #7A2E1A;
-  --bordeaux-dark: #5C2212;
-  --bordeaux-light: #F3E8E4;
+  --bordeaux: #0A4D68;
+  --bordeaux-dark: #063244;
+  --bordeaux-light: #E6F0F4;
   --cream: #FDFBF7;
   --beige: #F9F6F0;
   --gray-dark: #2D2A24;
   --gray-mid: #6B625A;
   --border-light: #E8E1D9;
   --success: #4A7C6B;
-  --warning: #E0A343;
+  --warning: #F5A623;
 }
 /* Curseur personnalisé seulement sur souris */
 @media (hover: hover) {
@@ -63,7 +63,7 @@ body {
   z-index: 200;
 }
 .topbar-logo {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   font-weight: 800;
   color: var(--gray-dark);
@@ -175,7 +175,7 @@ body {
 .status-transit { background: rgba(74,124,107,0.1); color: var(--success); }
 .status-termine { background: rgba(107,98,90,0.1); color: var(--gray-mid); }
 .sh-vehicle {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 4px;
@@ -254,7 +254,7 @@ body {
   margin-bottom: 4px;
 }
 .qs-val {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   font-weight: 600;
 }
@@ -275,12 +275,12 @@ body {
   color: var(--gray-mid);
 }
 .eta-time {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   font-weight: 700;
 }
 .eta-countdown {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--success);
@@ -581,7 +581,7 @@ body {
   cursor: pointer;
 }
 .modal-h {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 8px;
@@ -845,7 +845,7 @@ async function loadMissionDetails() {
       endMarker = L.marker(endCoords).addTo(map).bindPopup(`${cleanArr} (arrivée)`);
       
       const routePoints = [startCoords, endCoords];
-      routeLine = L.polyline(routePoints, { color: '#7A2E1A', weight: 4, opacity: 0.7 }).addTo(map);
+      routeLine = L.polyline(routePoints, { color: '#0A4D68', weight: 4, opacity: 0.7 }).addTo(map);
       
       const bounds = L.latLngBounds(startCoords, endCoords);
       map.fitBounds(bounds, { padding: [50, 50] });
@@ -883,8 +883,8 @@ let endMarker = L.marker([45.7640, 4.8357]).addTo(map).bindPopup('Lyon (arrivée
 
 // Tracé de l'itinéraire (simplifié, mais peut être amélioré avec API Directions)
 const routePoints = [[48.8566,2.3522], [48.8566,2.3522], [46.5,2.5], [45.7640,4.8357]]; // à améliorer
-routeLine = L.polyline(routePoints, { color: '#7A2E1A', weight: 4, opacity: 0.7 }).addTo(map);
-carMarker = L.marker([48.8566, 2.3522], { icon: L.divIcon({ className: 'custom-car-marker', html: '<i class="fas fa-car" style="color:#7A2E1A; font-size:24px;"></i>', iconSize: [24,24] }) }).addTo(map).bindPopup('Véhicule');
+routeLine = L.polyline(routePoints, { color: '#0A4D68', weight: 4, opacity: 0.7 }).addTo(map);
+carMarker = L.marker([48.8566, 2.3522], { icon: L.divIcon({ className: 'custom-car-marker', html: '<i class="fas fa-car" style="color:#0A4D68; font-size:24px;"></i>', iconSize: [24,24] }) }).addTo(map).bindPopup('Véhicule');
 
 // ========== SIMULATION / FIREBASE ==========
 let progress = 65;

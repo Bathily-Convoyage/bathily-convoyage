@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +9,7 @@
 <meta property="og:description" content="Devis personnalisé en 60 secondes. Double RC Pro incluse.">
 <meta property="og:image" content="https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -34,16 +34,16 @@ body {
   padding: 0 24px;
 }
 :root {
-  --bordeaux: #7A2E1A;
-  --bordeaux-dark: #5C2212;
-  --bordeaux-light: #F3E8E4;
+  --bordeaux: #0A4D68;
+  --bordeaux-dark: #063244;
+  --bordeaux-light: #E6F0F4;
   --cream: #FDFBF7;
   --beige: #F9F6F0;
   --gray-dark: #2D2A24;
   --gray-mid: #6B625A;
   --border-light: #E8E1D9;
   --success: #4A7C6B;
-  --warning: #E0A343;
+  --warning: #F5A623;
 }
 /* Header */
 header {
@@ -61,7 +61,7 @@ header {
   height: 72px;
 }
 .logo {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--gray-dark);
@@ -116,7 +116,7 @@ header {
   margin-bottom: 16px;
 }
 .hero h1 {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 2.5rem;
   font-weight: 800;
   margin-bottom: 16px;
@@ -221,7 +221,7 @@ header {
 .cfg-step.active { display: block; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .step-h {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 8px;
@@ -458,7 +458,7 @@ header {
 }
 .modal-ico { font-size: 3rem; color: var(--bordeaux); margin-bottom: 16px; }
 .modal-h {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
   margin-bottom: 8px;
 }
@@ -513,7 +513,7 @@ footer {
   gap: 48px;
 }
 .footer-logo {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.25rem;
   font-weight: 800;
   margin-bottom: 16px;
@@ -1018,18 +1018,18 @@ function updBtn(){ const total=parseInt(document.getElementById('psTotal').textC
 function goStep(n){ document.querySelectorAll('.cfg-step').forEach(s=>s.classList.remove('active')); document.querySelector(`.cfg-step[data-step="${n}"]`).classList.add('active'); for(let i=1;i<=6;i++){ const d=document.getElementById('d'+i); d.classList.remove('active','done'); if(i<n)d.classList.add('done'); else if(i===n)d.classList.add('active'); if(i<6){const l=document.getElementById('l'+i);if(l)l.classList.toggle('done',i<n);} } if(n===5){ const isMoto=(S.veh==='moto'); document.getElementById('catBlock').style.display=isMoto?'none':'block'; document.getElementById('motoBadge').style.display=isMoto?'block':'none'; } if(n>=3)document.getElementById('psRecap').style.display='block'; document.getElementById('bPrev').disabled=(n===1); const bn=document.getElementById('bNext'); if(n===6)bn.style.display='none'; else{bn.style.display=''; bn.innerHTML=(n===5)?'Finaliser <i class="fas fa-arrow-right"></i>':'Suivant <i class="fas fa-arrow-right"></i>';} S.step=n; updPrice(); document.querySelector('.config-wrapper').scrollIntoView({behavior:'smooth',block:'start'}); }
 function nextS(){
   if(S.step===1&&!S.veh){
-    Swal.fire({ title: 'Champs requis', text: 'Choisissez un véhicule', icon: 'warning', confirmButtonColor: '#7A2E1A' });
+    Swal.fire({ title: 'Champs requis', text: 'Choisissez un véhicule', icon: 'warning', confirmButtonColor: '#0A4D68' });
     return;
   }
   if(S.step===2&&!S.immat&&!S.noPlaque){
     const ok=document.getElementById('npForm').style.display==='block'&&document.getElementById('np-marque').value;
     if(!ok){
-      Swal.fire({ title: 'Champs requis', text: 'Renseignez la plaque ou le formulaire alternatif', icon: 'warning', confirmButtonColor: '#7A2E1A' });
+      Swal.fire({ title: 'Champs requis', text: 'Renseignez la plaque ou le formulaire alternatif', icon: 'warning', confirmButtonColor: '#0A4D68' });
       return;
     }
   }
   if(S.step===3&&S.dist===0){
-    Swal.fire({ title: 'Itinéraire requis', text: 'Saisissez deux villes reconnues', icon: 'warning', confirmButtonColor: '#7A2E1A' });
+    Swal.fire({ title: 'Itinéraire requis', text: 'Saisissez deux villes reconnues', icon: 'warning', confirmButtonColor: '#0A4D68' });
     return;
   }
   if(S.step<6)goStep(S.step+1);
@@ -1249,7 +1249,7 @@ function submitDevis() {
         title: 'Erreur',
         text: 'Erreur lors de la sauvegarde : ' + error.message,
         icon: 'error',
-        confirmButtonColor: '#7A2E1A'
+        confirmButtonColor: '#0A4D68'
       });
     } else {
       document.getElementById('devisRef').textContent = devisRef;
@@ -1277,7 +1277,7 @@ function submitDevis() {
       title: 'Erreur réseau',
       text: 'Le serveur de base de données est injoignable.',
       icon: 'error',
-      confirmButtonColor: '#7A2E1A'
+      confirmButtonColor: '#0A4D68'
     });
   });
 }

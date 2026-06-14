@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charte Graphique - Bathily Convoyage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            color: #2D2A24;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-bottom: 40px;
+            border-bottom: 3px solid #0A4D68;
+        }
+
+        .logo-section {
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            color: #2D2A24;
+            letter-spacing: -0.02em;
+        }
+
+        .logo span {
+            color: #F5A623;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #0A4D68;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #6B625A;
+            font-weight: 400;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 60px;
+            page-break-inside: avoid;
+        }
+
+        h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0A4D68;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #E6F0F4;
+        }
+
+        h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2D2A24;
+            margin: 30px 0 15px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: #6B625A;
+            font-size: 1rem;
+        }
+
+        /* Palette de couleurs */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .color-card {
+            border: 1px solid #E8E1D9;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .color-swatch {
+            height: 150px;
+            width: 100%;
+        }
+
+        .color-info {
+            padding: 20px;
+            background: #FDFBF7;
+        }
+
+        .color-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #2D2A24;
+            margin-bottom: 8px;
+        }
+
+        .color-hex {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            color: #6B625A;
+            margin-bottom: 8px;
+        }
+
+        .color-usage {
+            font-size: 0.9rem;
+            color: #6B625A;
+            line-height: 1.5;
+        }
+
+        /* Typographie */
+        .typo-example {
+            background: #FDFBF7;
+            border: 1px solid #E8E1D9;
+            border-radius: 16px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .font-montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .font-inter {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .typo-showcase {
+            margin: 20px 0;
+        }
+
+        .typo-title {
+            font-size: 0.9rem;
+            color: #6B625A;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .typo-sample {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .typo-alphabet {
+            font-size: 1.2rem;
+            color: #6B625A;
+            margin-bottom: 5px;
+        }
+
+        .typo-numbers {
+            font-size: 1.2rem;
+            color: #6B625A;
+        }
+
+        /* Composants */
+        .component-showcase {
+            background: #FDFBF7;
+            border: 1px solid #E8E1D9;
+            border-radius: 16px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .component-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #2D2A24;
+            margin-bottom: 15px;
+        }
+
+        .component-description {
+            font-size: 0.95rem;
+            color: #6B625A;
+            margin-bottom: 20px;
+        }
+
+        /* Boutons */
+        .btn-primary {
+            background: #F5A623;
+            color: #0A4D68;
+            padding: 14px 32px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.25s ease;
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #e09315;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(245, 166, 35, 0.5);
+        }
+
+        .btn-outline {
+            border: 2px solid #0A4D68;
+            background: transparent;
+            padding: 12px 30px;
+            border-radius: 40px;
+            color: #0A4D68;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-outline:hover {
+            background: #0A4D68;
+            color: white;
+        }
+
+        /* Badge */
+        .badge-trust {
+            display: inline-block;
+            background: #088395;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+            border: 1px solid rgba(8, 131, 149, 0.2);
+        }
+
+        /* Onglets véhicule */
+        .veh-tabs {
+            display: inline-flex;
+            background: #FDFBF7;
+            border: 1px solid #E8E1D9;
+            border-radius: 40px;
+            padding: 4px;
+        }
+
+        .veh-tab {
+            border: none;
+            background: transparent;
+            padding: 10px 20px;
+            border-radius: 36px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #6B625A;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .veh-tab.active {
+            background: #0A4D68;
+            color: #ffffff;
+        }
+
+        /* Grille d'exemples */
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        /* Logo variations */
+        .logo-variations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .logo-variant {
+            border: 1px solid #E8E1D9;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .logo-variant.dark {
+            background: #2D2A24;
+        }
+
+        .logo-variant.light {
+            background: #FDFBF7;
+        }
+
+        .logo-variant.colored {
+            background: #0A4D68;
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-text.dark {
+            color: #2D2A24;
+        }
+
+        .logo-text.light {
+            color: #FFFFFF;
+        }
+
+        .logo-text span {
+            color: #F5A623;
+        }
+
+        .variant-label {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #6B625A;
+            font-weight: 600;
+        }
+
+        .logo-variant.dark .variant-label,
+        .logo-variant.colored .variant-label {
+            color: #FFFFFF;
+        }
+
+        /* Espacement */
+        .spacing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .spacing-item {
+            border: 1px solid #E8E1D9;
+            border-radius: 12px;
+            padding: 20px;
+            background: #FDFBF7;
+        }
+
+        .spacing-label {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: #2D2A24;
+            margin-bottom: 10px;
+        }
+
+        .spacing-value {
+            font-family: 'Courier New', monospace;
+            color: #0A4D68;
+            font-size: 1.1rem;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #2D2A24;
+            color: #FDFBF7;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .code-comment {
+            color: #88C0D0;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+                padding: 20px;
+            }
+
+            .section {
+                page-break-inside: avoid;
+            }
+
+            .btn-primary,
+            .btn-outline {
+                border: 2px solid #0A4D68;
+                background: white !important;
+                color: #0A4D68 !important;
+            }
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #E8E1D9;
+        }
+
+        th {
+            background: #E6F0F4;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: #0A4D68;
+        }
+
+        tr:hover {
+            background: #FDFBF7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-section">
+                <div class="logo">BATHILY <span>CONVOYAGE</span></div>
+            </div>
+            <h1>Charte Graphique & Identité Visuelle</h1>
+            <p class="subtitle">Guide complet de l'identité de marque - Version 2.0</p>
+        </div>
+
+        <!-- Section 1: Introduction -->
+        <div class="section">
+            <h2>1. Introduction</h2>
+            <p>
+                Ce document définit les règles d'utilisation de l'identité visuelle de <strong>Bathily
+                    Convoyage</strong>
+                pour assurer une cohérence totale sur tous les supports physiques et numériques.
+            </p>
+            <p>
+                Bathily Convoyage est le leader du convoyage automobile et moto en France, offrant un service premium
+                avec suivi GPS en temps réel, double assurance et une expérience client inégalée.
+            </p>
+            <p>
+                <strong>Objectif de la charte :</strong> Garantir une identité visuelle forte, cohérente et
+                professionnelle
+                qui reflète nos valeurs de confiance, sécurité et excellence.
+            </p>
+        </div>
+
+        <!-- Section 2: Logo -->
+        <div class="section">
+            <h2>2. Logo & Identité</h2>
+
+            <h3>2.1 Logo Principal</h3>
+            <p>
+                Le logo de Bathily Convoyage utilise la typographie <strong>Montserrat</strong> en graisse 800 (Extra
+                Bold)
+                avec un espacement de lettres serré (-0.02em) pour un impact visuel maximal.
+            </p>
+
+            <div class="logo-variations">
+                <div class="logo-variant light">
+                    <div class="logo-text dark">BATHILY <span>CONVOYAGE</span></div>
+                    <div class="variant-label">Version fond clair</div>
+                </div>
+
+                <div class="logo-variant dark">
+                    <div class="logo-text light">BATHILY <span>CONVOYAGE</span></div>
+                    <div class="variant-label">Version fond sombre</div>
+                </div>
+
+                <div class="logo-variant colored">
+                    <div class="logo-text light">BATHILY <span>CONVOYAGE</span></div>
+                    <div class="variant-label">Version fond coloré</div>
+                </div>
+            </div>
+
+            <h3>2.2 Règles d'utilisation du logo</h3>
+            <ul style="margin-left: 20px; color: #6B625A;">
+                <li>Toujours utiliser la police <strong>Montserrat Extra Bold (800)</strong></li>
+                <li>Le mot "CONVOYAGE" doit toujours être en couleur accent (<strong>#F5A623</strong>)</li>
+                <li>Respecter un espace de protection minimum équivalent à la hauteur du "B"</li>
+                <li>Ne jamais déformer, incliner ou modifier les proportions du logo</li>
+                <li>Taille minimale : 120px de largeur pour le web, 30mm pour l'impression</li>
+            </ul>
+        </div>
+
+        <!-- Section 3: Palette de couleurs -->
+        <div class="section">
+            <h2>3. Palette de Couleurs</h2>
+            <p>
+                La palette de couleurs de Bathily Convoyage a été conçue pour transmettre professionnalisme,
+                confiance et modernité. Elle se compose de 4 couleurs principales.
+            </p>
+
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #0A4D68;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Bleu Brand (Primaire)</div>
+                        <div class="color-hex">#0A4D68</div>
+                        <div class="color-hex">RGB(10, 77, 104)</div>
+                        <div class="color-usage">
+                            <strong>Usage :</strong> Titres principaux, headers, éléments de marque, boutons
+                            secondaires,
+                            liens, éléments de navigation.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #088395;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Cyan GPS (Secondaire)</div>
+                        <div class="color-hex">#088395</div>
+                        <div class="color-hex">RGB(8, 131, 149)</div>
+                        <div class="color-usage">
+                            <strong>Usage :</strong> Badges de confiance, éléments de suivi GPS, indicateurs de statut,
+                            éléments de réassurance technologique.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #F5A623;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Jaune/Or (Accent)</div>
+                        <div class="color-hex">#F5A623</div>
+                        <div class="color-hex">RGB(245, 166, 35)</div>
+                        <div class="color-usage">
+                            <strong>Usage :</strong> Boutons d'appel à l'action (CTA), éléments d'attention,
+                            animations pulse, partie "CONVOYAGE" du logo.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #6B625A;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Gris Neutre (Texte)</div>
+                        <div class="color-hex">#6B625A</div>
+                        <div class="color-hex">RGB(107, 98, 90)</div>
+                        <div class="color-usage">
+                            <strong>Usage :</strong> Corps de texte, descriptions secondaires, sous-titres,
+                            textes de formulaires.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>3.1 Couleurs Complémentaires</h3>
+            <div class="color-grid">
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #FDFBF7;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Crème (Fond Principal)</div>
+                        <div class="color-hex">#FDFBF7</div>
+                        <div class="color-usage">Arrière-plan principal du site</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #F9F6F0;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Beige (Fond Secondaire)</div>
+                        <div class="color-hex">#F9F6F0</div>
+                        <div class="color-usage">Encadrés, zones de réassurance, footer</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #E8E1D9;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Sable (Bordures)</div>
+                        <div class="color-hex">#E8E1D9</div>
+                        <div class="color-usage">Lignes de séparation, bordures de cartes</div>
+                    </div>
+                </div>
+
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #2D2A24;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Anthracite (Texte Foncé)</div>
+                        <div class="color-hex">#2D2A24</div>
+                        <div class="color-usage">Titres secondaires, textes importants</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Typographie -->
+        <div class="section">
+            <h2>4. Typographie</h2>
+            <p>
+                L'identité typographique repose sur deux polices complémentaires de la bibliothèque Google Fonts,
+                choisies pour leur lisibilité et leur caractère moderne.
+            </p>
+
+            <div class="typo-example">
+                <h3>4.1 Montserrat - Police de Titrage</h3>
+                <div class="typo-showcase">
+                    <div class="typo-title">Montserrat Extra Bold (800)</div>
+                    <div class="typo-sample font-montserrat" style="font-weight: 800;">
+                        BATHILY CONVOYAGE
+                    </div>
+                    <div class="typo-alphabet font-montserrat" style="font-weight: 800;">
+                        ABCDEFGHIJKLMNOPQRSTUVWXYZ
+                    </div>
+                    <div class="typo-alphabet font-montserrat" style="font-weight: 800;">
+                        abcdefghijklmnopqrstuvwxyz
+                    </div>
+                    <div class="typo-numbers font-montserrat" style="font-weight: 800;">
+                        0123456789
+                    </div>
+                </div>
+
+                <div class="typo-showcase">
+                    <div class="typo-title">Montserrat Bold (700)</div>
+                    <div class="typo-sample font-montserrat" style="font-weight: 700; font-size: 2rem;">
+                        Convoyage Premium France
+                    </div>
+                </div>
+
+                <div class="typo-showcase">
+                    <div class="typo-title">Montserrat SemiBold (600)</div>
+                    <div class="typo-sample font-montserrat" style="font-weight: 600; font-size: 1.5rem;">
+                        Service de confiance depuis 2020
+                    </div>
+                </div>
+
+                <p style="margin-top: 20px;">
+                    <strong>Usage :</strong> Titres principaux (H1, H2, H3), Logo, Badges, Chiffres clés,
+                    Éléments de navigation importants.
+                </p>
+            </div>
+
+            <div class="typo-example">
+                <h3>4.2 Inter - Police de Corps</h3>
+                <div class="typo-showcase">
+                    <div class="typo-title">Inter Bold (700)</div>
+                    <div class="typo-sample font-inter" style="font-weight: 700; font-size: 1.5rem;">
+                        Devis gratuit en 60 secondes
+                    </div>
+                </div>
+
+                <div class="typo-showcase">
+                    <div class="typo-title">Inter SemiBold (600)</div>
+                    <div class="typo-sample font-inter" style="font-weight: 600; font-size: 1.2rem;">
+                        Suivi GPS en temps réel inclus
+                    </div>
+                </div>
+
+                <div class="typo-showcase">
+                    <div class="typo-title">Inter Medium (500)</div>
+                    <div class="typo-sample font-inter" style="font-weight: 500; font-size: 1rem;">
+                        Notre service de convoyage automobile et moto couvre toute la France avec une assurance tous
+                        risques.
+                    </div>
+                </div>
+
+                <div class="typo-showcase">
+                    <div class="typo-title">Inter Regular (400)</div>
+                    <div class="typo-sample font-inter" style="font-weight: 400; font-size: 1rem;">
+                        Bathily Convoyage vous propose un service professionnel de transport de véhicules partout en
+                        France.
+                        Nos convoyeurs certifiés prennent en charge votre voiture ou moto avec le plus grand soin.
+                    </div>
+                </div>
+
+                <p style="margin-top: 20px;">
+                    <strong>Usage :</strong> Textes courants, paragraphes, descriptions, formulaires,
+                    boutons, tableaux, éléments d'interface.
+                </p>
+            </div>
+
+            <h3>4.3 Hiérarchie Typographique</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Élément</th>
+                        <th>Police</th>
+                        <th>Taille</th>
+                        <th>Poids</th>
+                        <th>Usage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>H1</td>
+                        <td>Montserrat</td>
+                        <td>2.8rem (44.8px)</td>
+                        <td>800</td>
+                        <td>Titre principal de page</td>
+                    </tr>
+                    <tr>
+                        <td>H2</td>
+                        <td>Montserrat</td>
+                        <td>2.2rem (35.2px)</td>
+                        <td>700</td>
+                        <td>Titres de sections</td>
+                    </tr>
+                    <tr>
+                        <td>H3</td>
+                        <td>Montserrat</td>
+                        <td>1.5rem (24px)</td>
+                        <td>600</td>
+                        <td>Sous-titres</td>
+                    </tr>
+                    <tr>
+                        <td>Body</td>
+                        <td>Inter</td>
+                        <td>1rem (16px)</td>
+                        <td>400</td>
+                        <td>Texte courant</td>
+                    </tr>
+                    <tr>
+                        <td>Boutons</td>
+                        <td>Inter</td>
+                        <td>0.9-1rem</td>
+                        <td>600-700</td>
+                        <td>CTA et actions</td>
+                    </tr>
+                    <tr>
+                        <td>Small</td>
+                        <td>Inter</td>
+                        <td>0.875rem (14px)</td>
+                        <td>400-500</td>
+                        <td>Mentions légales, notes</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Section 5: Composants -->
+        <div class="section">
+            <h2>5. Composants UI</h2>
+
+            <div class="component-showcase">
+                <div class="component-title">5.1 Bouton Principal (CTA)</div>
+                <div class="component-description">
+                    Bouton jaune/or vibrant avec effet d'animation "pulse" pour maximiser le taux de conversion.
+                    Utilisé pour les actions principales (devis, réservation, contact).
+                </div>
+                <button class="btn-primary">
+                    📋 Demander un devis gratuit
+                </button>
+                <div class="code-block">
+                    &lt;button class="btn-primary"&gt;
+                    📋 Demander un devis gratuit
+                    &lt;/button&gt;
+
+                    <span class="code-comment">/* CSS */</span>
+                    .btn-primary {
+                    background: #F5A623;
+                    color: #0A4D68;
+                    padding: 14px 32px;
+                    border-radius: 40px;
+                    font-weight: 700;
+                    box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
+                    }
+                </div>
+            </div>
+
+            <div class="component-showcase">
+                <div class="component-title">5.2 Bouton Secondaire (Outline)</div>
+                <div class="component-description">
+                    Bouton avec bordure pour les actions secondaires (en savoir plus, annuler, retour).
+                </div>
+                <a href="#" class="btn-outline">En savoir plus</a>
+                <div class="code-block">
+                    &lt;a href="#" class="btn-outline"&gt;En savoir plus&lt;/a&gt;
+
+                    <span class="code-comment">/* CSS */</span>
+                    .btn-outline {
+                    border: 2px solid #0A4D68;
+                    background: transparent;
+                    padding: 12px 30px;
+                    border-radius: 40px;
+                    color: #0A4D68;
+                    font-weight: 600;
+                    }
+                </div>
+            </div>
+
+            <div class="component-showcase">
+                <div class="component-title">5.3 Badge de Confiance GPS</div>
+                <div class="component-description">
+                    Badge cyan utilisé pour valoriser les fonctionnalités de suivi en temps réel et les éléments de
+                    réassurance.
+                </div>
+                <span class="badge-trust">📍 Suivi GPS en temps réel</span>
+                <div class="code-block">
+                    &lt;span class="badge-trust"&gt;📍 Suivi GPS en temps réel&lt;/span&gt;
+
+                    <span class="code-comment">/* CSS */</span>
+                    .badge-trust {
+                    background: #088395;
+                    color: #ffffff;
+                    padding: 8px 16px;
+                    border-radius: 50px;
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    }
+                </div>
+            </div>
+
+            <div class="component-showcase">
+                <div class="component-title">5.4 Onglets de Choix de Véhicule</div>
+                <div class="component-description">
+                    Composant d'onglets moderne pour remplacer les listes déroulantes. Améliore l'UX et la conversion.
+                </div>
+                <div class="veh-tabs">
+                    <button class="veh-tab active">🚗 Auto</button>
+                    <button class="veh-tab">🏍 Moto</button>
+                </div>
+                <div class="code-block">
+                    &lt;div class="veh-tabs"&gt;
+                    &lt;button class="veh-tab active"&gt;🚗 Auto&lt;/button&gt;
+                    &lt;button class="veh-tab"&gt;🏍 Moto&lt;/button&gt;
+                    &lt;/div&gt;
+
+                    <span class="code-comment">/* CSS */</span>
+                    .veh-tab.active {
+                    background: #0A4D68;
+                    color: #ffffff;
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 6: Espacements -->
+        <div class="section">
+            <h2>6. Espacements & Grilles</h2>
+            <p>
+                Un système d'espacement cohérent garantit une mise en page harmonieuse et professionnelle.
+            </p>
+
+            <div class="spacing-grid">
+                <div class="spacing-item">
+                    <div class="spacing-label">Espacement XS</div>
+                    <div class="spacing-value">8px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">Espacement S</div>
+                    <div class="spacing-value">16px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">Espacement M</div>
+                    <div class="spacing-value">24px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">Espacement L</div>
+                    <div class="spacing-value">32px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">Espacement XL</div>
+                    <div class="spacing-value">48px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">Espacement XXL</div>
+                    <div class="spacing-value">64px</div>
+                </div>
+            </div>
+
+            <h3>6.1 Border Radius</h3>
+            <div class="spacing-grid">
+                <div class="spacing-item">
+                    <div class="spacing-label">Radius Small</div>
+                    <div class="spacing-value">12px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">Radius Medium</div>
+                    <div class="spacing-value">16px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">Radius Large</div>
+                    <div class="spacing-value">28px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">Radius Pill</div>
+                    <div class="spacing-value">40px</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 7: Iconographie -->
+        <div class="section">
+            <h2>7. Iconographie & Éléments Graphiques</h2>
+
+            <h3>7.1 Style des Icônes</h3>
+            <ul style="margin-left: 20px; color: #6B625A;">
+                <li><strong>Style :</strong> Linéaire, géométrique, moderne</li>
+                <li><strong>Épaisseur de trait :</strong> 2-2.5px</li>
+                <li><strong>Couleur principale :</strong> #0A4D68 (Bleu Brand)</li>
+                <li><strong>Couleur secondaire :</strong> #F5A623 (Accent) pour les icônes d'action</li>
+                <li><strong>Taille recommandée :</strong> 24px × 24px (interface), 48px × 48px (features)</li>
+            </ul>
+
+            <h3>7.2 Icônes Clés</h3>
+            <p>
+                Les icônes suivantes sont essentielles à l'identité de Bathily Convoyage :
+            </p>
+            <ul style="margin-left: 20px; color: #6B625A;">
+                <li>📍 <strong>Repère GPS</strong> - Suivi en temps réel</li>
+                <li>🚗 <strong>Voiture</strong> - Convoyage automobile</li>
+                <li>🏍 <strong>Moto</strong> - Convoyage moto</li>
+                <li>🛡️ <strong>Bouclier</strong> - Assurance et sécurité</li>
+                <li>📋 <strong>Formulaire</strong> - Devis et réservation</li>
+                <li>✓ <strong>Validation</strong> - Confirmation et succès</li>
+                <li>📞 <strong>Téléphone</strong> - Contact direct</li>
+            </ul>
+
+            <h3>7.3 Formes & Arrondis</h3>
+            <p>
+                Privilégier les bords arrondis pour un aspect moderne et accueillant :
+            </p>
+            <ul style="margin-left: 20px; color: #6B625A;">
+                <li>Cartes de contenu : <code>border-radius: 28px</code></li>
+                <li>Boutons : <code>border-radius: 40px</code> (pill shape)</li>
+                <li>Badges : <code>border-radius: 50px</code></li>
+                <li>Images : <code>border-radius: 16-24px</code></li>
+            </ul>
+        </div>
+
+        <!-- Section 8: Ton de la marque -->
+        <div class="section">
+            <h2>8. Ton de la Marque & Communication</h2>
+
+            <h3>8.1 Valeurs de la Marque</h3>
+            <ul style="margin-left: 20px; color: #6B625A;">
+                <li><strong>Confiance :</strong> Nous sommes le partenaire fiable pour vos véhicules de valeur</li>
+                <li><strong>Excellence :</strong> Service premium avec suivi GPS et double assurance</li>
+                <li><strong>Transparence :</strong> Prix clairs, devis instantané, aucun frais caché</li>
+                <li><strong>Proximité :</strong> Équipe humaine et réactive, disponible 7j/7</li>
+                <li><strong>Innovation :</strong> Technologie de pointe pour le suivi en temps réel</li>
+            </ul>
+
+            <h3>8.2 Style de Communication</h3>
+            <div class="component-showcase">
+                <p><strong>✅ À FAIRE :</strong></p>
+                <ul style="margin-left: 20px; color: #6B625A;">
+                    <li>Utiliser un ton professionnel mais chaleureux</li>
+                    <li>Parler de "votre véhicule", "votre convoyeur certifié"</li>
+                    <li>Mettre en avant la sécurité et la tranquillité d'esprit</li>
+                    <li>Utiliser des chiffres concrets (500+ missions, 4.9/5 étoiles)</li>
+                    <li>Valoriser le suivi GPS et l'assurance tous risques</li>
+                </ul>
+            </div>
+
+            <div class="component-showcase">
+                <p><strong>❌ À ÉVITER :</strong></p>
+                <ul style="margin-left: 20px; color: #6B625A;">
+                    <li>Jargon technique complexe</li>
+                    <li>Ton trop corporate ou distant</li>
+                    <li>Promesses exagérées ou non vérifiables</li>
+                    <li>Comparaisons négatives avec la concurrence</li>
+                    <li>Langage familier ou trop décontracté</li>
+                </ul>
+            </div>
+
+            <h3>8.3 Exemples de Messages</h3>
+            <div class="component-showcase">
+                <p style="color: #0A4D68; font-weight: 600; margin-bottom: 10px;">Titre de page d'accueil :</p>
+                <p style="font-size: 1.2rem; font-family: 'Montserrat', sans-serif; font-weight: 700; color: #2D2A24;">
+                    "Convoyage Auto & Moto partout en France"
+                </p>
+                <p style="color: #6B625A; margin-top: 10px;">
+                    Devis en 60s • Suivi GPS temps réel • Double assurance RC Pro
+                </p>
+            </div>
+
+            <div class="component-showcase">
+                <p style="color: #0A4D68; font-weight: 600; margin-bottom: 10px;">Call-to-Action :</p>
+                <p style="font-size: 1.1rem; font-weight: 600; color: #2D2A24;">
+                    "Demandez votre devis gratuit en 60 secondes"
+                </p>
+                <p style="color: #6B625A; margin-top: 10px;">
+                    "Votre convoyeur certifié prend en charge votre véhicule sous 48h"
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 9: Applications -->
+        <div class="section">
+            <h2>9. Applications & Supports</h2>
+
+            <h3>9.1 Site Web</h3>
+            <ul style="margin-left: 20px; color: #6B625A;">
+                <li>Fond principal : #FDFBF7 (Crème)</li>
+                <li>Header sticky avec backdrop-filter blur</li>
+                <li>Boutons CTA en #F5A623 avec animation pulse</li>
+                <li>Cartes avec border-radius 28px et ombre douce</li>
+                <li>Responsive mobile-first</li>
+            </ul>
+
+            <h3>9.2 Documents Imprimés</h3>
+            <ul style="margin-left: 20px; color: #6B625A;">
+                <li>Cartes de visite : Logo + coordonnées sur fond blanc</li>
+                <li>Plaquettes commerciales : Palette complète avec photos de véhicules</li>
+                <li>Bons de mission : Format A4, logo en en-tête</li>
+                <li>Factures : Sobre, logo + informations légales</li>
+            </ul>
+
+            <h3>9.3 Réseaux Sociaux</h3>
+            <ul style="margin-left: 20px; color: #6B625A;">
+                <li>Photo de profil : Logo carré sur fond #0A4D68</li>
+                <li>Bannière : Visuel de véhicule + slogan</li>
+                <li>Publications : Photos qualité professionnelle + texte court</li>
+                <li>Stories : Format vertical 9:16, logo en coin</li>
+            </ul>
+
+            <h3>9.4 E-mails</h3>
+            <ul style="margin-left: 20px; color: #6B625A;">
+                <li>Header avec logo centré</li>
+                <li>Boutons CTA en #F5A623</li>
+                <li>Footer avec coordonnées complètes</li>
+                <li>Largeur max 600px pour compatibilité mobile</li>
+            </ul>
+        </div>
+
+        <!-- Section 10: Variables CSS -->
+        <div class="section">
+            <h2>10. Variables CSS</h2>
+            <p>
+                Pour faciliter l'implémentation et garantir la cohérence, utiliser les variables CSS suivantes :
+            </p>
+
+            <div class="code-block">
+                :root {
+                <span class="code-comment">/* Couleurs principales */</span>
+                --primary: #0A4D68;
+                --secondary: #088395;
+                --accent: #F5A623;
+                --text: #6B625A;
+
+                <span class="code-comment">/* Couleurs complémentaires */</span>
+                --cream: #FDFBF7;
+                --beige: #F9F6F0;
+                --border-light: #E8E1D9;
+                --gray-dark: #2D2A24;
+
+                <span class="code-comment">/* Typographie */</span>
+                --font-title: 'Montserrat', sans-serif;
+                --font-body: 'Inter', sans-serif;
+
+                <span class="code-comment">/* Espacements */</span>
+                --spacing-xs: 8px;
+                --spacing-s: 16px;
+                --spacing-m: 24px;
+                --spacing-l: 32px;
+                --spacing-xl: 48px;
+                --spacing-xxl: 64px;
+
+                <span class="code-comment">/* Border radius */</span>
+                --radius-sm: 12px;
+                --radius-md: 16px;
+                --radius-lg: 28px;
+                --radius-pill: 40px;
+
+                <span class="code-comment">/* Ombres */</span>
+                --shadow-card: 0 8px 24px rgba(10, 77, 104, 0.12);
+                --shadow-button: 0 4px 12px rgba(245, 166, 35, 0.3);
+                }
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="section" style="border-top: 2px solid #E8E1D9; padding-top: 40px; margin-top: 80px;">
+            <p style="text-align: center; color: #6B625A; font-size: 0.9rem;">
+                <strong>Charte Graphique Bathily Convoyage - Version 2.0</strong><br>
+                Document créé le 14 juin 2026<br>
+                © 2026 Bathily Convoyage - Tous droits réservés
+            </p>
+            <p style="text-align: center; color: #6B625A; font-size: 0.85rem; margin-top: 20px;">
+                Pour toute question concernant l'utilisation de cette charte graphique,<br>
+                contactez : contact@bathily-convoyage.fr
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -8,7 +8,7 @@
 <meta property="og:title" content="État des Lieux Numérisé — Bathily Convoyage">
 <meta property="og:description" content="Outil complet d'état des lieux avec photos, schéma interactif, signatures électroniques et génération de document PDF.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style>
 * {
@@ -24,16 +24,16 @@ body {
   overflow-x: hidden;
 }
 :root {
-  --bordeaux: #7A2E1A;
-  --bordeaux-dark: #5C2212;
-  --bordeaux-light: #F3E8E4;
+  --bordeaux: #0A4D68;
+  --bordeaux-dark: #063244;
+  --bordeaux-light: #E6F0F4;
   --cream: #FDFBF7;
   --beige: #F9F6F0;
   --gray-dark: #2D2A24;
   --gray-mid: #6B625A;
   --border-light: #E8E1D9;
   --success: #4A7C6B;
-  --warning: #E0A343;
+  --warning: #F5A623;
 }
 /* Curseur personnalisé seulement sur souris */
 @media (hover: hover) {
@@ -57,7 +57,7 @@ body {
   z-index: 100;
 }
 .topbar-logo {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.3rem;
   font-weight: 800;
   color: var(--gray-dark);
@@ -196,7 +196,7 @@ body {
   background: var(--bordeaux);
 }
 .step-title {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.6rem;
   font-weight: 700;
   margin-bottom: 6px;
@@ -567,7 +567,7 @@ canvas {
 .success-final.show { display: block; }
 .sf-ico { font-size: 3rem; color: var(--success); margin-bottom: 20px; }
 .sf-h {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 1.8rem;
   font-weight: 700;
   margin-bottom: 8px;
@@ -801,7 +801,7 @@ canvas {
 <div class="modal-overlay" id="modalDommage">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal('modalDommage')"><i class="fas fa-times"></i></button>
-    <h3 class="modal-h" style="font-family:'Plus Jakarta Sans'; font-size:1.2rem;">Signaler un <em>dommage</em></h3>
+    <h3 class="modal-h" style="font-family:'Montserrat'; font-size:1.2rem;">Signaler un <em>dommage</em></h3>
     <div class="f-grp"><label>Zone</label><select id="dZone"><option>Pare-choc avant</option><option>Pare-choc arrière</option><option>Aile avant gauche</option><option>Aile avant droite</option><option>Flanc gauche</option><option>Flanc droit</option><option>Toit</option></select></div>
     <div class="f-grp"><label>Type</label><select id="dType"><option>Rayure</option><option>Enfoncement</option><option>Cassure</option></select></div>
     <div class="f-grp"><label>Description</label><textarea id="dDesc" rows="2"></textarea></div>

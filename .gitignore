@@ -13,3 +13,9 @@ dist/
 # Google service account credentials
 gsc-credentials.json
 
+# Temp/debug files
+nodejs_dir.txt
+path_info.txt
+refactor_log.txt
+
+
