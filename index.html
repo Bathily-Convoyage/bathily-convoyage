@@ -11,6 +11,8 @@
   <meta property="og:description"
     content="Devis instantané, suivi GPS, photos état des lieux. +500 missions réalisées.">
   <meta property="og:image" content="https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg">
+  <meta property="og:url" content="https://www.bathily-convoyage.fr/">
+  <meta property="og:type" content="website">
   <meta name="google-site-verification" content="gTV1bbLGPHVto_oeIkc_OkmaQi8CrndIXk15ePeUzwI" />
   <link rel="icon" type="image/svg+xml"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
@@ -1250,7 +1252,7 @@
 
   <meta name="keywords"
     content="convoyage automobile, convoyage auto, transport véhicule, convoyage moto, livraison véhicule">
-  <link rel="canonical" href="https://bathily-convoyage.github.io/bathily-convoyage/">
+  <link rel="canonical" href="https://www.bathily-convoyage.fr/">
   <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"LocalBusiness","name":"Bathily Convoyage","areaServed":"France","serviceType":["Convoyage automobile","Convoyage moto"]}
 </script>
@@ -2061,10 +2063,19 @@
     }, { threshold: 0.15 });
     document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
+    // ========== SUPABASE SINGLETON ==========
+    var _supabaseClient = null;
+    function getSupabase() {
+      if (!_supabaseClient) {
+        _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      }
+      return _supabaseClient;
+    }
+
     // ----- Supabase Sync Packs Config -----
     async function loadPacksConfig() {
       try {
-        const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        const client = getSupabase();
         const { data, error } = await client.from('system_settings').select('*');
         if (error || !data) return;
 

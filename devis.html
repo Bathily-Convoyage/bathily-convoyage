@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -1227,7 +1227,9 @@ function submitDevis() {
   };
 
   const client = getSupabase();
-  const devisRef = 'BC-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+  const ts = Date.now().toString(36).toUpperCase();
+  const rand = Math.floor(100 + Math.random() * 900);
+  const devisRef = 'BC-' + new Date().getFullYear() + '-' + ts.slice(-3) + rand;
 
   client.from('devis').insert([{
     reference: devisRef,
@@ -1410,18 +1412,22 @@ if (paramMode === 'route' || paramMode === 'plateau') {
 
 async function loadPacksConfig() {
   try {
-    const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    const client = getSupabase();
     const { data, error } = await client.from('system_settings').select('*');
     if(error || !data) return;
 
-    const labels = { starter: 'Starter' };
-    const prices = { starter: 0 };
+    const labels = { starter: 'Starter', serenite: 'Sérénité', excellence: 'Excellence' };
+    // Valeurs par défaut pour serenite et excellence (conservées si DB renvoie null/undefined)
+    const prices = { starter: 0, serenite: 49, excellence: 129 };
 
     data.forEach(setting => {
       if (setting.key.startsWith('pack_')) {
         const p = setting.value;
         const type = setting.key.replace('pack_', ''); // 'starter', 'serenite', 'excellence'
-        prices[type] = p.price || 0;
+        // Conserver la valeur par défaut si le DB renvoie null ou undefined
+        if (p.price !== undefined && p.price !== null) {
+          prices[type] = p.price;
+        }
         
         const cardEl = document.querySelector(`.pck-card[onclick*="'${type}'"]`);
         if (cardEl) {
@@ -1457,7 +1463,10 @@ loadPacksConfig();
 
 setTimeout(()=>{ updPrice(); },100);
 function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
-window.addEventListener('scroll',()=>document.getElementById('hdr')?.classList.toggle('scrolled',scrollY>50));
+window.addEventListener('scroll', () => {
+  const hdr = document.querySelector('header');
+  if (hdr) hdr.classList.toggle('scrolled', scrollY > 50);
+});
 document.getElementById('mDate').min = new Date().toISOString().split('T')[0];
 const revealObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); }); }, { threshold: 0.15 });
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));

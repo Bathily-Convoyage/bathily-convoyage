@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Disallow: /dashboard-admin.html
+Disallow: /dashboard-client.html
+Disallow: /dashboard-convoyeur.html
+Disallow: /bon-de-mission.html
+Disallow: /etat-des-lieux.html
+Disallow: /gps-emitter.html
+
+Sitemap: https://www.bathily-convoyage.fr/sitemap.xml
