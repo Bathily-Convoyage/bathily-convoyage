@@ -57,19 +57,17 @@ CREATE POLICY "Suppression convoyeurs bloquee"
 -- -------------------------------------------------------
 CREATE OR REPLACE VIEW public.convoyeurs_public AS
 SELECT
-  id,
   prenom,
-  nom,
   ville,
-  statut,
-  note_moyenne,
-  nombre_missions,
-  grade,
+  zone,
+  niveau,
   disponible,
   zones,
-  type_permis
-FROM public.convoyeurs
-WHERE statut != 'inactif';
+  note_moyenne,
+  grade,
+  taux_auto,
+  taux_moto
+FROM public.convoyeurs;
 
 -- Permettre la lecture de la vue publique
 GRANT SELECT ON public.convoyeurs_public TO anon, authenticated;

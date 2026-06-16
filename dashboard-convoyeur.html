@@ -2355,44 +2355,77 @@
     }
 
     async function initConvoyeurProfile() {
-      // Check session
-      const saved = sessionStorage.getItem('conv_profile');
-      if (saved) {
-        try {
-          _currentConvoyeurData = JSON.parse(saved);
-          applyProfile(_currentConvoyeurData);
+      const client = getSupabaseConv();
+
+      // Vérifier si une session Supabase Auth existe déjà
+      const { data: { session } } = await client.auth.getSession();
+      if (session) {
+        const { data: profile } = await client
+          .from('convoyeurs')
+          .select('*')
+          .eq('auth_user_id', session.user.id)
+          .maybeSingle();
+        if (profile) {
+          _currentConvoyeurData = profile;
+          applyProfile(profile);
           document.getElementById('convProfileOverlay').classList.add('hidden');
+          loadMissions();
           return;
-        } catch (e) { sessionStorage.removeItem('conv_profile'); }
+        }
       }
 
-      // Load from Supabase
-      const client = getSupabaseConv();
-      const { data, error } = await client.from('convoyeurs_public').select('*').order('nom', { ascending: true });
-
+      // Afficher le formulaire de connexion email/password
       const list = document.getElementById('profileList');
-      if (error || !data || data.length === 0) {
-        list.innerHTML = `<div class="profile-loading" style="color:var(--bordeaux);">
-      <i class="fas fa-exclamation-triangle"></i> Aucun profil disponible.<br>
-      <small>Demandez à l'admin d'ajouter votre profil.</small>
+      list.innerHTML = `
+    <div style="padding:16px;">
+      <div style="margin-bottom:12px;font-size:0.85rem;color:var(--gray-mid);">Connectez-vous avec votre email et mot de passe.</div>
+      <input type="email" id="convLoginEmail" placeholder="votre@email.fr"
+        style="width:100%;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:12px;font-size:0.85rem;margin-bottom:10px;outline:none;font-family:'Inter',sans-serif;">
+      <input type="password" id="convLoginPassword" placeholder="Mot de passe"
+        style="width:100%;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:12px;font-size:0.85rem;margin-bottom:14px;outline:none;font-family:'Inter',sans-serif;">
+      <button onclick="handleConvoyeurLogin()"
+        style="width:100%;padding:12px;background:var(--bordeaux);color:white;border:none;border-radius:12px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;">
+        <i class="fas fa-unlock-alt"></i> Se connecter
+      </button>
     </div>`;
+    }
+
+    async function handleConvoyeurLogin() {
+      const email = document.getElementById('convLoginEmail')?.value.trim();
+      const password = document.getElementById('convLoginPassword')?.value;
+      if (!email || !password) {
+        Swal.fire('Champs requis', 'Veuillez saisir votre email et mot de passe.', 'warning');
         return;
       }
 
-      window.allConvoyeurs = data;
+      Swal.fire({ title: 'Connexion...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
-      list.innerHTML = data.map((c, idx) => {
-        const initials = ((c.prenom || '')[0] || '') + ((c.nom || '')[0] || '');
-        return `
-    <div class="profile-card" onclick="selectProfileByIndex(${idx})">
-      <div class="profile-ava">${initials.toUpperCase() || '?'}</div>
-      <div>
-        <div class="profile-info-name">${c.prenom} ${c.nom}</div>
-        <div class="profile-info-sub">${c.zone || 'Nationale'} · ${c.niveau || 'Standard'}</div>
-      </div>
-      <i class="fas fa-chevron-right" style="margin-left:auto;color:var(--gray-mid);font-size:0.7rem;"></i>
-    </div>`;
-      }).join('');
+      const client = getSupabaseConv();
+      const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
+
+      if (authError) {
+        Swal.fire('Échec de connexion', 'Email ou mot de passe incorrect.', 'error');
+        return;
+      }
+
+      // Récupérer le profil convoyeur lié
+      const { data: profile, error: profileError } = await client
+        .from('convoyeurs')
+        .select('*')
+        .eq('auth_user_id', authData.user.id)
+        .maybeSingle();
+
+      if (profileError || !profile) {
+        Swal.fire('Profil introuvable', 'Votre compte existe mais aucun profil convoyeur n\'y est lié. Contactez l\'administrateur.', 'error');
+        await client.auth.signOut();
+        return;
+      }
+
+      _currentConvoyeurData = profile;
+      applyProfile(profile);
+      document.getElementById('convProfileOverlay').classList.add('hidden');
+      Swal.fire({ title: 'Connecté !', text: `Bienvenue, ${profile.prenom}.`, icon: 'success', timer: 2000, showConfirmButton: false });
+      loadMissions();
     }
 
     function selectProfile(jsonStrOrObj) {
@@ -2405,81 +2438,6 @@
       loadMissions();
     }
 
-    async function hashPassword(pwd) {
-      const msgBuffer = new TextEncoder().encode(pwd);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    async function selectProfileByIndex(idx) {
-      if (window.allConvoyeurs && window.allConvoyeurs[idx]) {
-        const c = window.allConvoyeurs[idx];
-
-        const { value: pwd } = await Swal.fire({
-          title: 'Connexion sécurisée',
-          text: `Entrez le mot de passe pour ${c.prenom} ${c.nom}`,
-          input: 'password',
-          inputPlaceholder: 'Votre mot de passe',
-          showCancelButton: true,
-          confirmButtonColor: 'var(--bordeaux)',
-          cancelButtonText: 'Annuler',
-          confirmButtonText: 'Se connecter',
-          allowOutsideClick: false,
-          preConfirm: (val) => {
-            if (!val) {
-              Swal.showValidationMessage('Veuillez saisir votre mot de passe');
-            }
-            return val;
-          }
-        });
-
-        if (pwd) {
-          Swal.fire({
-            title: 'Vérification...',
-            didOpen: () => Swal.showLoading(),
-            allowOutsideClick: false
-          });
-
-          try {
-            const client = getSupabaseConv();
-            const { data: cand, error } = await client
-              .from('convoyeurs_candidats')
-              .select('mot_de_passe')
-              .eq('email', c.email)
-              .maybeSingle();
-
-            if (error) {
-              Swal.fire('Erreur', 'Impossible de se connecter : ' + error.message, 'error');
-              return;
-            }
-
-            const hashedPassword = await hashPassword(pwd);
-            if (!cand || !cand.mot_de_passe) {
-              Swal.fire('Échec de connexion', 'Aucun profil sécurisé trouvé. Contactez l\'administrateur.', 'error');
-              return;
-            }
-            const expectedHash = cand.mot_de_passe;
-
-            if (hashedPassword === expectedHash) {
-              selectProfile(c);
-              Swal.fire({
-                title: 'Connecté !',
-                text: `Bienvenue, ${c.prenom}.`,
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false
-              });
-            } else {
-              Swal.fire('Échec de connexion', 'Mot de passe incorrect.', 'error');
-            }
-          } catch (err) {
-            console.error(err);
-            Swal.fire('Erreur', 'Une erreur est survenue lors de la connexion.', 'error');
-          }
-        }
-      }
-    }
 
     function applyProfile(c) {
       const name = `${c.prenom} ${c.nom}`.trim();
@@ -2544,7 +2502,9 @@
       }
     }
 
-    function convLogout() {
+    async function convLogout() {
+      const client = getSupabaseConv();
+      await client.auth.signOut();
       sessionStorage.removeItem('conv_profile');
       _currentConvoyeurData = null;
       window.location.reload();
