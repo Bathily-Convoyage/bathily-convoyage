@@ -2368,7 +2368,7 @@
 
       // Load from Supabase
       const client = getSupabaseConv();
-      const { data, error } = await client.from('convoyeurs').select('*').order('nom', { ascending: true });
+      const { data, error } = await client.from('convoyeurs_public').select('*').order('nom', { ascending: true });
 
       const list = document.getElementById('profileList');
       if (error || !data || data.length === 0) {
