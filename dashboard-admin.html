@@ -3366,16 +3366,36 @@
     async function approveCandidature(id, email, nom) {
       const result = await Swal.fire({ title: `Approuver ${nom} ?`, text: `Un email sera envoyé à ${email}.`, icon: 'question', showCancelButton: true, confirmButtonText: 'Approuver' });
       if (!result.isConfirmed) return;
-      Swal.fire({ title: 'Mise à jour...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-      const sb = getSupabase();
-      await sb.from('convoyeurs_candidats').update({ statut: 'approved' }).eq('id', id);
-      // Créer un compte convoyeur dans la table convoyeurs
-      const candidat = _allCandidatures.find(c => c.id === id);
-      if (candidat) {
-        await sb.from('convoyeurs').insert([{ prenom: candidat.prenom, nom: candidat.nom, email: candidat.email, telephone: candidat.telephone, zone: candidat.ville, niveau: 'Standard', disponible: true }]);
+      Swal.fire({ title: 'Création du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+      try {
+        const response = await fetch('/.netlify/functions/approve-convoyeur', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ candidat_id: id })
+        });
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.error || 'Erreur serveur');
+
+        Swal.fire({
+          title: 'Convoyeur approuvé !',
+          html: `Compte créé pour <b>${nom}</b>.<br><br>
+            Mot de passe temporaire :<br>
+            <code style="background:#f5f5f5;padding:6px 12px;border-radius:8px;font-size:1.1em;letter-spacing:2px;">${result.temp_password}</code><br><br>
+            <small style="color:#888;">Communiquez ce mot de passe au convoyeur. Il pourra le changer depuis son dashboard.</small>`,
+          icon: 'success',
+          confirmButtonText: 'Copier le mot de passe',
+          showCancelButton: true,
+          cancelButtonText: 'Fermer'
+        }).then(r => {
+          if (r.isConfirmed) navigator.clipboard.writeText(result.temp_password).catch(() => {});
+        });
+
+        loadCandidatures(); loadConvoyeurs();
+      } catch (err) {
+        Swal.fire('Erreur', err.message, 'error');
       }
-      Swal.fire({ title: 'Candidature approuvée !', icon: 'success' });
-      loadCandidatures(); loadConvoyeurs();
     }
 
     async function rejectCandidature(id, nom) {
