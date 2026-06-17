@@ -25,7 +25,8 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { trigger, id, notes } = JSON.parse(event.body);
+    const parsedBody = JSON.parse(event.body);
+    const { trigger, id, notes, payment_url } = parsedBody;
 
     if (!trigger || !id) {
       return {
@@ -425,6 +426,42 @@ Corps: ${html.substring(0, 300)}...`);
       await sendEmail({ to: emailTo, subject: `Bathily Convoyage - Confirmation de paiement ${mission.reference}`, html: clientHtml });
       await sendEmail({ to: ADMIN_EMAIL, subject: `[ADMIN] Paiement reçu pour la mission ${mission.reference}`, html: adminHtml });
       resultData = { success: true, message: 'Emails paiement validé envoyés.' };
+    }
+
+    // ==========================================
+    // 6. ÉVÉNEMENT : DEVIS CONFIRMÉ + LIEN PAIEMENT
+    // ==========================================
+    else if (trigger === 'devis_confirmed') {
+      const paymentUrl = payment_url;
+
+      const { data: devis, error } = await supabase
+        .from('devis')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error || !devis) throw new Error(`Devis introuvable: ${error?.message}`);
+
+      const clientEmail = devis.client_email;
+      const clientPrenom = devis.client_prenom || 'Client';
+
+      const clientHtml = wrapEmailLayout(
+        "Votre devis a été validé — Procédez au paiement",
+        `<p>Bonjour ${clientPrenom},</p>
+         <p>Bonne nouvelle ! Votre devis de convoyage a été étudié et validé par notre équipe. Vous pouvez maintenant procéder au paiement sécurisé pour confirmer votre mission.</p>
+         <div class="highlight-box">
+           <strong>Référence :</strong> ${devis.reference}<br>
+           <strong>Trajet :</strong> ${devis.depart} → ${devis.arrivee}<br>
+           <strong>Montant HT :</strong> ${devis.total_ht} €
+         </div>
+         <p style="text-align: center;">
+           <a href="${paymentUrl}" class="btn">Payer maintenant</a>
+         </p>
+         <p style="font-size:12px;color:#6B625A;text-align:center">Ce lien est sécurisé et expirera après utilisation.</p>`
+      );
+
+      await sendEmail({ to: clientEmail, subject: `Bathily Convoyage - Votre devis ${devis.reference} est prêt`, html: clientHtml });
+      resultData = { success: true, message: 'Email lien paiement envoyé.' };
     }
 
     return {

@@ -3277,10 +3277,50 @@
           date_mission: new Date().toISOString().split('T')[0]
         };
         const sb = getSupabase();
-        const { error: insError } = await sb.from('missions').insert([missionData]);
+        const { data: newMission, error: insError } = await sb.from('missions').insert([missionData]).select().single();
         if (insError) { Swal.fire('Erreur', insError.message, 'error'); return; }
         await sb.from('devis').update({ status: 'confirmed' }).eq('id', id);
-        Swal.fire('Publié !', 'L\'offre est maintenant disponible.', 'success');
+
+        // Générer le lien de paiement Stripe
+        Swal.fire({ title: 'Génération du lien Stripe...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        try {
+          const stripeRes = await fetch('/.netlify/functions/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              missionId: newMission.id,
+              successUrl: 'https://www.bathily-convoyage.fr/dashboard-client.html',
+              cancelUrl: 'https://www.bathily-convoyage.fr/devis.html'
+            })
+          });
+          const stripeData = await stripeRes.json();
+          if (!stripeRes.ok) throw new Error(stripeData.error || 'Erreur Stripe');
+
+          // Envoyer l'email avec le lien de paiement au client
+          const clientEmail = devis.client_email || detail.coordonnees?.email;
+          if (clientEmail) {
+            fetch('/.netlify/functions/send-email', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ trigger: 'devis_confirmed', id: id, payment_url: stripeData.url })
+            }).catch(err => console.warn('Email envoi échoué:', err));
+          }
+
+          Swal.fire({
+            title: 'Devis validé !',
+            html: `Mission créée et lien de paiement généré.<br><br>
+              <a href="${stripeData.url}" target="_blank" style="word-break:break-all;font-size:0.85em">${stripeData.url}</a><br><br>
+              <small>Le lien a été envoyé par email au client.</small>`,
+            icon: 'success',
+            confirmButtonText: 'Copier le lien',
+            showCancelButton: true,
+            cancelButtonText: 'Fermer'
+          }).then(r => {
+            if (r.isConfirmed) navigator.clipboard.writeText(stripeData.url).catch(() => {});
+          });
+        } catch (stripeErr) {
+          Swal.fire('Mission créée', `La mission a été créée mais le lien Stripe a échoué : ${stripeErr.message}`, 'warning');
+        }
         loadDevis(); loadMissions();
       });
     }
