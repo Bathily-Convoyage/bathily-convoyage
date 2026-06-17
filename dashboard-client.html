@@ -1819,11 +1819,23 @@
       sessionStorage.setItem('client_user', JSON.stringify(_clientUser));
       sessionStorage.setItem('client_name', _clientName);
 
-      const { data: missions } = await client
+      // Chercher par client_id ET par client_email pour couvrir tous les cas
+      const { data: missionsByClientId } = await client
         .from('missions')
         .select('*')
         .eq('client_id', _clientUser.id)
         .order('created_at', { ascending: false });
+
+      const { data: missionsByEmail } = await client
+        .from('missions')
+        .select('*')
+        .eq('client_email', _clientUser.email)
+        .order('created_at', { ascending: false });
+
+      // Fusionner sans doublons
+      const allMissionsMap = new Map();
+      [...(missionsByClientId || []), ...(missionsByEmail || [])].forEach(m => allMissionsMap.set(m.id, m));
+      const missions = Array.from(allMissionsMap.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
       document.getElementById('clientLoginOverlay').style.display = 'none';
       initClientDashboard(missions || []);
@@ -2161,11 +2173,14 @@
         _clientUser = JSON.parse(savedUser);
         _clientName = `${_clientUser.prenom} ${_clientUser.nom}`;
         document.getElementById('clientLoginOverlay').style.display = 'none';
-        getSBCli().from('missions')
-          .select('*')
-          .eq('client_id', _clientUser.id)
-          .order('created_at', { ascending: false })
-          .then(({ data }) => initClientDashboard(data || []));
+        Promise.all([
+          getSBCli().from('missions').select('*').eq('client_id', _clientUser.id).order('created_at', { ascending: false }),
+          getSBCli().from('missions').select('*').eq('client_email', _clientUser.email).order('created_at', { ascending: false })
+        ]).then(([r1, r2]) => {
+          const map = new Map();
+          [...(r1.data || []), ...(r2.data || [])].forEach(m => map.set(m.id, m));
+          initClientDashboard(Array.from(map.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+        });
       } catch (e) {
         console.warn("Session client_user invalide", e);
       }
