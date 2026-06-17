@@ -88,20 +88,52 @@ exports.handler = async (event, context) => {
       };
     }
 
-    console.log(`✅ Mission ${reference} marquée comme payée (status: paid).`);
+    console.log(`✅ Mission ${reference} marquée comme payée (status: confirmed).`);
+
+    // Récupérer la mission pour avoir les infos client
+    const { data: mission } = await supabase.from('missions').select('*').eq('id', missionId).single();
+
+    // Créer le compte client Supabase Auth si pas déjà existant
+    let tempPassword = null;
+    if (mission && mission.client_email) {
+      try {
+        // Vérifier si l'utilisateur auth existe déjà
+        const { data: existingUsers } = await supabase.auth.admin.listUsers();
+        const alreadyExists = existingUsers?.users?.some(u => u.email === mission.client_email);
+
+        if (!alreadyExists) {
+          // Générer un mot de passe temporaire
+          tempPassword = Math.random().toString(36).slice(2, 8).toUpperCase() + Math.random().toString(36).slice(2, 5) + '!';
+          const { data: newAuthUser, error: authError } = await supabase.auth.admin.createUser({
+            email: mission.client_email,
+            password: tempPassword,
+            email_confirm: true
+          });
+          if (authError) {
+            console.warn('⚠️ Erreur création compte auth client:', authError.message);
+          } else {
+            // Lier auth_user_id dans la table clients
+            await supabase.from('clients').update({ auth_user_id: newAuthUser.user.id }).eq('email', mission.client_email);
+            console.log(`✅ Compte client créé pour ${mission.client_email}`);
+          }
+        } else {
+          console.log(`ℹ️ Compte client déjà existant pour ${mission.client_email}`);
+        }
+      } catch (authErr) {
+        console.error('❌ Erreur création compte client:', authErr.message);
+      }
+    }
 
     // Déclencher l'e-mail automatique de succès de paiement
     try {
       const siteUrl = process.env.URL || 'https://bathily-convoyage.fr';
-      console.log(`📨 Déclenchement de la notification d'e-mail de paiement à : ${siteUrl}/.netlify/functions/send-email`);
       const emailResponse = await fetch(`${siteUrl}/.netlify/functions/send-email`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           trigger: 'payment_success',
-          id: missionId
+          id: missionId,
+          temp_password: tempPassword
         })
       });
       if (emailResponse.ok) {

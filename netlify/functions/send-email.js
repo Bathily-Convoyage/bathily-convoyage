@@ -26,7 +26,7 @@ exports.handler = async (event, context) => {
 
   try {
     const parsedBody = JSON.parse(event.body);
-    const { trigger, id, notes, payment_url } = parsedBody;
+    const { trigger, id, notes, payment_url, temp_password } = parsedBody;
 
     if (!trigger || !id) {
       return {
@@ -388,6 +388,7 @@ Corps: ${html.substring(0, 300)}...`);
         "Votre paiement a été validé ! 🎉",
         `<p>Bonjour ${mission.client_nom.split(' ')[0] || ''},</p>
          <p>Nous vous remercions pour votre règlement. Votre paiement a bien été traité avec succès et votre mission est désormais confirmée.</p>
+         ${temp_password ? `<div class="highlight-box"><strong>Vos identifiants de connexion :</strong><br>Email : ${mission.client_email}<br>Mot de passe temporaire : <strong>${temp_password}</strong><br><small>Modifiez-le depuis votre espace client.</small></div>` : ''}
          <div class="highlight-box">
            <strong>Référence Mission :</strong> ${mission.reference}<br>
            <strong>Montant payé :</strong> ${priceTtc.toFixed(2)} € TTC (TVA 20% incluse)
