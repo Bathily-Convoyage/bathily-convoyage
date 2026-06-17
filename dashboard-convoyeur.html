@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 
 <head>
@@ -2721,12 +2721,14 @@
       const badge = document.getElementById('assignedMissionsBadge');
       if (!container) return;
 
+      const convoyeurId = _currentConvoyeurData?.id;
       const currentConvoyeur = getConvoyeurName();
 
-      client.from('missions')
-        .select('*')
-        .eq('convoyeur_nom', currentConvoyeur)
-        .order('created_at', { ascending: false })
+      const missionsQuery = convoyeurId
+        ? client.from('missions').select('*').eq('convoyeur_id', convoyeurId).order('created_at', { ascending: false })
+        : client.from('missions').select('*').eq('convoyeur_nom', currentConvoyeur).order('created_at', { ascending: false });
+
+      missionsQuery
         .then(({ data, error }) => {
           if (error) {
             console.error("Erreur missions assignees :", error);
