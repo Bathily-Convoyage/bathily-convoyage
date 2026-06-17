@@ -3347,7 +3347,10 @@
       });
       if (remValue === undefined) return;
       const sb = getSupabase();
-      await sb.from('missions').update({ convoyeur_nom: convoyeurNom, remuneration_convoyeur: remValue, marge: price - remValue, status: 'planned' }).eq('id', missionId);
+      // Récupérer convoyeur_id depuis la candidature
+      const { data: cand } = await sb.from('candidatures').select('convoyeur_id').eq('id', candidatureId).maybeSingle();
+      const convoyeurId = cand?.convoyeur_id || null;
+      await sb.from('missions').update({ convoyeur_nom: convoyeurNom, convoyeur_id: convoyeurId, remuneration_convoyeur: remValue, marge: price - remValue, status: 'planned' }).eq('id', missionId);
       await sb.from('candidatures').update({ status: 'accepted' }).eq('id', candidatureId);
       await sb.from('candidatures').update({ status: 'refused' }).eq('mission_id', missionId).neq('id', candidatureId);
       Swal.fire('Mission assignée !', '', 'success');
