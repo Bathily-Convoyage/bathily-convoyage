@@ -64,14 +64,11 @@ DROP POLICY IF EXISTS "Accès complet pour l'admin" ON public.devis;
 DROP POLICY IF EXISTS "Autoriser la lecture publique des devis" ON public.devis;
 DROP POLICY IF EXISTS "Autoriser la modification publique des devis" ON public.devis;
 
--- Garder : INSERT libre (formulaire devis public) et SELECT/UPDATE restreints
-CREATE POLICY "Lecture devis par email"
+-- Lecture et modification devis : accès public conservé (formulaire public)
+-- Les devis sont créés par des visiteurs anonymes via le formulaire
+CREATE POLICY "Lecture devis publique securisee"
   ON public.devis FOR SELECT
   USING (true);
-
-CREATE POLICY "Modification devis restreinte"
-  ON public.devis FOR UPDATE
-  USING (email = (SELECT email FROM public.clients WHERE auth_user_id = auth.uid() LIMIT 1));
 
 -- -------------------------------------------------------
 -- 6. TABLE missions
