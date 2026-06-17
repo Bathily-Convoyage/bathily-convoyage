@@ -77,7 +77,7 @@ exports.handler = async (event, context) => {
     // Mettre à jour le statut du paiement dans Supabase en 'paid'
     const { error: updateError } = await supabase
       .from('missions')
-      .update({ paiement_statut: 'paid' })
+      .update({ paiement_statut: 'paid', status: 'confirmed' })
       .eq('id', missionId);
 
     if (updateError) {
