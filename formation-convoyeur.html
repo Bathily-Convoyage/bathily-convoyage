@@ -1,11 +1,11 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Devenir Convoyeur â€” Bathily-Convoyage</title>
-<meta name="description" content="Rejoignez le rÃ©seau de convoyeurs certifiÃ©s Bathily-Convoyage. Formation complÃ¨te, quiz de validation, et accÃ¨s Ã  une plateforme digitale premium.">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>ğŸš—</text></svg>">
+<title>Devenir Convoyeur — Bathily-Convoyage</title>
+<meta name="description" content="Rejoignez le réseau de convoyeurs certifiés Bathily-Convoyage. Formation complète, quiz de validation, et accès à une plateforme digitale premium.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>??</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -175,8 +175,8 @@ header {
 }
 .checklist { list-style: none; padding: 0; margin: 10px 0; }
 .checklist li { padding: 6px 0; font-size: 0.84rem; display: flex; align-items: flex-start; gap: 10px; color: var(--gray-dark); }
-.checklist li::before { content: 'âœ“'; color: var(--success); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-.checklist li.x::before { content: 'âœ—'; color: #e74c3c; }
+.checklist li::before { content: '?'; color: var(--success); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.checklist li.x::before { content: '?'; color: #e74c3c; }
 .highlight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
 .hl-card { background: var(--beige); border-radius: 14px; padding: 14px; border: 1px solid var(--border-light); }
 .hl-card .hl-num { font-family: 'Montserrat',sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--bordeaux); }
@@ -291,7 +291,7 @@ header {
 
 <!-- Barre de progression globale -->
 <div class="global-progress">
-  <span class="gp-label" id="gpLabel">Ã‰tape 1 / 7</span>
+  <span class="gp-label" id="gpLabel">Étape 1 / 7</span>
   <div class="gp-bar"><div class="gp-fill" id="gpFill" style="width:14%"></div></div>
   <div class="gp-steps">
     <div class="gp-step active" id="gs1">1</div>
@@ -309,30 +309,30 @@ header {
   <!-- ======== PAGE 0 : WELCOME ======== -->
   <div class="step-page active" id="page0">
     <div class="hero-formation">
-      <div class="hero-badge-white">ğŸš— Programme CertifiÃ© Bathily-Convoyage</div>
-      <h1>Devenez convoyeur <span>certifiÃ©</span></h1>
-      <p>Rejoignez notre rÃ©seau de professionnels du convoyage automobile en France. Formation complÃ¨te, missions rÃ©guliÃ¨res et rÃ©munÃ©ration attractive.</p>
+      <div class="hero-badge-white">?? Programme Certifié Bathily-Convoyage</div>
+      <h1>Devenez convoyeur <span>certifié</span></h1>
+      <p>Rejoignez notre réseau de professionnels du convoyage automobile en France. Formation complète, missions régulières et rémunération attractive.</p>
       <div class="hero-stats-row">
-        <div class="h-stat"><strong>0,47â‚¬</strong><small>/ km moyen</small></div>
-        <div class="h-stat"><strong>24-48h</strong><small>DÃ©lai validation</small></div>
-        <div class="h-stat"><strong>France</strong><small>EntiÃ¨re</small></div>
+        <div class="h-stat"><strong>0,47€</strong><small>/ km moyen</small></div>
+        <div class="h-stat"><strong>24-48h</strong><small>Délai validation</small></div>
+        <div class="h-stat"><strong>France</strong><small>Entière</small></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Parcours d'<em>intÃ©gration</em></div>
-      <div class="card-sub">4 modules de formation + quiz de validation. DurÃ©e estimÃ©e : 20â€“30 minutes.</div>
+      <div class="card-title">Parcours d'<em>intégration</em></div>
+      <div class="card-sub">4 modules de formation + quiz de validation. Durée estimée : 20–30 minutes.</div>
       <div class="modules-preview">
-        <div class="mod-prev"><i class="fas fa-gavel"></i><div class="mod-prev-text"><strong>Module 1</strong><small>Cadre lÃ©gal & SIV</small></div></div>
-        <div class="mod-prev"><i class="fas fa-camera"></i><div class="mod-prev-text"><strong>Module 2</strong><small>Ã‰tat des lieux</small></div></div>
-        <div class="mod-prev"><i class="fas fa-handshake"></i><div class="mod-prev-text"><strong>Module 3</strong><small>ProcÃ©dures Bathily-Convoyage</small></div></div>
-        <div class="mod-prev"><i class="fas fa-shield-alt"></i><div class="mod-prev-text"><strong>Module 4</strong><small>SÃ©curitÃ© routiÃ¨re</small></div></div>
+        <div class="mod-prev"><i class="fas fa-gavel"></i><div class="mod-prev-text"><strong>Module 1</strong><small>Cadre légal & SIV</small></div></div>
+        <div class="mod-prev"><i class="fas fa-camera"></i><div class="mod-prev-text"><strong>Module 2</strong><small>État des lieux</small></div></div>
+        <div class="mod-prev"><i class="fas fa-handshake"></i><div class="mod-prev-text"><strong>Module 3</strong><small>Procédures Bathily-Convoyage</small></div></div>
+        <div class="mod-prev"><i class="fas fa-shield-alt"></i><div class="mod-prev-text"><strong>Module 4</strong><small>Sécurité routière</small></div></div>
       </div>
       <div style="margin-top:24px; padding:16px; background:var(--beige); border-radius:14px; font-size:0.8rem; color:var(--gray-mid);">
-        <strong style="color:var(--gray-dark); display:block; margin-bottom:4px;">PrÃ©requis obligatoires :</strong>
+        <strong style="color:var(--gray-dark); display:block; margin-bottom:4px;">Prérequis obligatoires :</strong>
         <span><i class="fas fa-check" style="color:var(--success); margin-right:6px;"></i>Permis B valide depuis <strong>minimum 3 ans</strong></span><br>
-        <span style="margin-top:4px; display:block;"><i class="fas fa-check" style="color:var(--success); margin-right:6px;"></i>RÃ©sidence en France</span><br>
-        <span style="margin-top:4px; display:block;"><i class="fas fa-check" style="color:var(--success); margin-right:6px;"></i>Score minimum au quiz : <strong>80%</strong> (10/12 bonnes rÃ©ponses)</span>
+        <span style="margin-top:4px; display:block;"><i class="fas fa-check" style="color:var(--success); margin-right:6px;"></i>Résidence en France</span><br>
+        <span style="margin-top:4px; display:block;"><i class="fas fa-check" style="color:var(--success); margin-right:6px;"></i>Score minimum au quiz : <strong>80%</strong> (10/12 bonnes réponses)</span>
       </div>
     </div>
 
@@ -345,33 +345,33 @@ header {
   <div class="step-page" id="page1">
     <div class="card">
       <div class="card-title">Vos <em>informations</em></div>
-      <div class="card-sub">ComplÃ©tez votre profil avant d'accÃ©der Ã  la formation. Ces donnÃ©es resteront confidentielles.</div>
+      <div class="card-sub">Complétez votre profil avant d'accéder à la formation. Ces données resteront confidentielles.</div>
 
       <div class="f-grid">
-        <div class="f-grp"><label>PrÃ©nom *</label><input type="text" id="f_prenom" placeholder="Jean" required></div>
+        <div class="f-grp"><label>Prénom *</label><input type="text" id="f_prenom" placeholder="Jean" required></div>
         <div class="f-grp"><label>Nom *</label><input type="text" id="f_nom" placeholder="Dupont" required></div>
         <div class="f-grp"><label>Email *</label><input type="email" id="f_email" placeholder="jean.dupont@email.com" required></div>
-        <div class="f-grp"><label>TÃ©lÃ©phone *</label><input type="tel" id="f_tel" placeholder="06 12 34 56 78" required></div>
+        <div class="f-grp"><label>Téléphone *</label><input type="tel" id="f_tel" placeholder="06 12 34 56 78" required></div>
         <div class="f-grp"><label>Date de naissance *</label><input type="date" id="f_naissance" required></div>
         <div class="f-grp"><label>Code postal / Ville *</label><input type="text" id="f_ville" placeholder="75001 Paris" required></div>
-        <div class="f-grp full"><label>Mot de passe *</label><input type="password" id="f_password" placeholder="Minimum 8 caractÃ¨res" minlength="8" required></div>
+        <div class="f-grp full"><label>Mot de passe *</label><input type="password" id="f_password" placeholder="Minimum 8 caractères" minlength="8" required></div>
         <div class="f-grp full">
           <label>Vos permis de conduire *</label>
           <div class="permis-row">
-            <div class="permis-chip selected" data-permis="B" onclick="togglePermis(this)">ğŸš— Permis B</div>
-            <div class="permis-chip" data-permis="A" onclick="togglePermis(this)">ğŸï¸ Permis A (moto)</div>
-            <div class="permis-chip" data-permis="A2" onclick="togglePermis(this)">ğŸ›µ Permis A2</div>
-            <div class="permis-chip" data-permis="C" onclick="togglePermis(this)">ğŸš› Permis C (poids lourd)</div>
-            <div class="permis-chip" data-permis="BE" onclick="togglePermis(this)">ğŸš Permis BE (remorque)</div>
+            <div class="permis-chip selected" data-permis="B" onclick="togglePermis(this)">?? Permis B</div>
+            <div class="permis-chip" data-permis="A" onclick="togglePermis(this)">??? Permis A (moto)</div>
+            <div class="permis-chip" data-permis="A2" onclick="togglePermis(this)">?? Permis A2</div>
+            <div class="permis-chip" data-permis="C" onclick="togglePermis(this)">?? Permis C (poids lourd)</div>
+            <div class="permis-chip" data-permis="BE" onclick="togglePermis(this)">?? Permis BE (remorque)</div>
           </div>
-          <p class="required-note">* Le permis B est obligatoire et doit Ãªtre obtenu depuis au moins 3 ans.</p>
+          <p class="required-note">* Le permis B est obligatoire et doit être obtenu depuis au moins 3 ans.</p>
         </div>
-        <div class="f-grp"><label>AnnÃ©e d'obtention Permis B *</label><input type="number" id="f_annee_permis" placeholder="2018" min="1970" max="2025" required></div>
-        <div class="f-grp"><label>ExpÃ©rience convoyage</label>
+        <div class="f-grp"><label>Année d'obtention Permis B *</label><input type="number" id="f_annee_permis" placeholder="2018" min="1970" max="2025" required></div>
+        <div class="f-grp"><label>Expérience convoyage</label>
           <select id="f_experience">
-            <option value="aucune">Aucune (dÃ©butant)</option>
+            <option value="aucune">Aucune (débutant)</option>
             <option value="moins1an">Moins d'1 an</option>
-            <option value="1a3ans">1 Ã  3 ans</option>
+            <option value="1a3ans">1 à 3 ans</option>
             <option value="plus3ans">Plus de 3 ans</option>
           </select>
         </div>
@@ -380,7 +380,7 @@ header {
 
     <div class="btn-row">
       <button class="btn-secondary" onclick="goPage(0)"><i class="fas fa-arrow-left"></i> Retour</button>
-      <button class="btn-primary" onclick="validatePage1()">AccÃ©der Ã  la formation <i class="fas fa-arrow-right"></i></button>
+      <button class="btn-primary" onclick="validatePage1()">Accéder à la formation <i class="fas fa-arrow-right"></i></button>
     </div>
   </div>
 
@@ -390,53 +390,53 @@ header {
       <div class="module-header">
         <div class="module-ico"><i class="fas fa-gavel"></i></div>
         <div>
-          <div class="module-label">Module 1 â€” Cadre LÃ©gal</div>
-          <div class="module-title">Le MÃ©tier de Convoyeur & la Loi</div>
+          <div class="module-label">Module 1 — Cadre Légal</div>
+          <div class="module-title">Le Métier de Convoyeur & la Loi</div>
           <div class="module-subtitle">Comprendre vos droits, obligations et protections</div>
         </div>
       </div>
 
       <div class="lesson-block">
         <div class="lesson-h"><i class="fas fa-book-open"></i> Qu'est-ce que le convoyage automobile ?</div>
-        <p class="lesson-p">Le convoyage automobile consiste Ã  <strong>dÃ©placer le vÃ©hicule d'un client d'un point A Ã  un point B</strong>, en son nom et pour son compte. Le convoyeur agit en tant que mandataire : il conduit lÃ©galement un vÃ©hicule qui ne lui appartient pas.</p>
-        <p class="lesson-p">C'est une activitÃ© de prestation de services rÃ©glementÃ©e, exercÃ©e de maniÃ¨re professionnelle et dÃ©clarÃ©e.</p>
-        <div class="info-box"><strong>Ã€ retenir</strong> Un convoyeur n'est pas un chauffeur VTC ni un transporteur. Il dÃ©place le vÃ©hicule du client en tant que son reprÃ©sentant lÃ©gal momentanÃ©.</div>
+        <p class="lesson-p">Le convoyage automobile consiste à <strong>déplacer le véhicule d'un client d'un point A à un point B</strong>, en son nom et pour son compte. Le convoyeur agit en tant que mandataire : il conduit légalement un véhicule qui ne lui appartient pas.</p>
+        <p class="lesson-p">C'est une activité de prestation de services réglementée, exercée de manière professionnelle et déclarée.</p>
+        <div class="info-box"><strong>À retenir</strong> Un convoyeur n'est pas un chauffeur VTC ni un transporteur. Il déplace le véhicule du client en tant que son représentant légal momentané.</div>
       </div>
 
       <div class="lesson-block">
-        <div class="lesson-h"><i class="fas fa-id-card"></i> Le Mandat SIV (SystÃ¨me d'Immatriculation des VÃ©hicules)</div>
-        <p class="lesson-p">Le <strong>mandat SIV</strong> est le document lÃ©gal qui vous autorise Ã  conduire le vÃ©hicule d'un tiers sur la voie publique. Il est Ã©tabli par le client et remis au convoyeur avant chaque mission.</p>
+        <div class="lesson-h"><i class="fas fa-id-card"></i> Le Mandat SIV (Système d'Immatriculation des Véhicules)</div>
+        <p class="lesson-p">Le <strong>mandat SIV</strong> est le document légal qui vous autorise à conduire le véhicule d'un tiers sur la voie publique. Il est établi par le client et remis au convoyeur avant chaque mission.</p>
         <div class="highlight-grid">
-          <div class="hl-card"><div class="hl-num">âœ“</div><div class="hl-label">Ce qu'il autorise</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Conduire le vÃ©hicule, prÃ©senter les documents en cas de contrÃ´le</p></div>
-          <div class="hl-card"><div class="hl-num">âœ—</div><div class="hl-label">Ce qu'il n'autorise pas</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Modifier le vÃ©hicule, transporter des passagers, sous-traiter la mission</p></div>
+          <div class="hl-card"><div class="hl-num">?</div><div class="hl-label">Ce qu'il autorise</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Conduire le véhicule, présenter les documents en cas de contrôle</p></div>
+          <div class="hl-card"><div class="hl-num">?</div><div class="hl-label">Ce qu'il n'autorise pas</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Modifier le véhicule, transporter des passagers, sous-traiter la mission</p></div>
         </div>
-        <div class="warning-box"><strong>âš ï¸ Important</strong> Sans mandat SIV valide, vous conduisez illÃ©galement un vÃ©hicule qui ne vous appartient pas. Ne dÃ©marrez jamais une mission sans ce document.</div>
+        <div class="warning-box"><strong>?? Important</strong> Sans mandat SIV valide, vous conduisez illégalement un véhicule qui ne vous appartient pas. Ne démarrez jamais une mission sans ce document.</div>
       </div>
 
       <div class="lesson-block">
-        <div class="lesson-h"><i class="fas fa-shield-alt"></i> Assurance RC Pro : votre responsabilitÃ©</div>
-        <p class="lesson-p">Chaque convoyeur est responsable de disposer de sa <strong>propre assurance RC Professionnelle</strong> en cours de validitÃ© avant de commencer toute mission. Bathily-Convoyage dispose de sa propre assurance RC Pro en tant qu'entreprise, mais celle-ci ne couvre pas les convoyeurs Ã  titre individuel.</p>
-        <div class="warning-box"><strong>âš ï¸ Obligation absolue</strong> Vous devez Ãªtre titulaire d'une RC Pro individuelle valide couvrant l'activitÃ© de convoyage. Sans cette assurance, vous ne pouvez pas effectuer de mission pour Bathily-Convoyage.</div>
+        <div class="lesson-h"><i class="fas fa-shield-alt"></i> Assurance RC Pro : votre responsabilité</div>
+        <p class="lesson-p">Chaque convoyeur est responsable de disposer de sa <strong>propre assurance RC Professionnelle</strong> en cours de validité avant de commencer toute mission. Bathily-Convoyage dispose de sa propre assurance RC Pro en tant qu'entreprise, mais celle-ci ne couvre pas les convoyeurs à titre individuel.</p>
+        <div class="warning-box"><strong>?? Obligation absolue</strong> Vous devez être titulaire d'une RC Pro individuelle valide couvrant l'activité de convoyage. Sans cette assurance, vous ne pouvez pas effectuer de mission pour Bathily-Convoyage.</div>
         <ul class="checklist">
           <li>Fournir une attestation RC Pro valide lors de votre inscription</li>
-          <li>Renouveler et transmettre votre attestation Ã  chaque Ã©chÃ©ance</li>
-          <li>VÃ©rifier que votre contrat couvre bien l'activitÃ© de convoyage automobile</li>
+          <li>Renouveler et transmettre votre attestation à chaque échéance</li>
+          <li>Vérifier que votre contrat couvre bien l'activité de convoyage automobile</li>
         </ul>
         <ul class="checklist">
-          <li class="x">L'assurance de Bathily-Convoyage ne couvre pas votre responsabilitÃ© personnelle</li>
-          <li class="x">Les infractions et amendes restent Ã  votre charge</li>
-          <li class="x">Les dommages mÃ©caniques antÃ©rieurs Ã  la mission ne sont couverts par personne</li>
+          <li class="x">L'assurance de Bathily-Convoyage ne couvre pas votre responsabilité personnelle</li>
+          <li class="x">Les infractions et amendes restent à votre charge</li>
+          <li class="x">Les dommages mécaniques antérieurs à la mission ne sont couverts par personne</li>
         </ul>
-        <div class="success-box"><strong>âœ“ Conseil</strong> Renseignez-vous auprÃ¨s de votre assureur ou d'un courtier spÃ©cialisÃ© pour obtenir une RC Pro adaptÃ©e au convoyage automobile. Conservez toujours votre attestation lors de chaque mission.</div>
+        <div class="success-box"><strong>? Conseil</strong> Renseignez-vous auprès de votre assureur ou d'un courtier spécialisé pour obtenir une RC Pro adaptée au convoyage automobile. Conservez toujours votre attestation lors de chaque mission.</div>
       </div>
 
       <div class="lesson-block">
-        <div class="lesson-h"><i class="fas fa-balance-scale"></i> Vos responsabilitÃ©s civile et pÃ©nale</div>
-        <p class="lesson-p">En tant que convoyeur, vous Ãªtes <strong>civilement et pÃ©nalement responsable</strong> de votre conduite et du vÃ©hicule confiÃ© pendant toute la durÃ©e de la mission.</p>
+        <div class="lesson-h"><i class="fas fa-balance-scale"></i> Vos responsabilités civile et pénale</div>
+        <p class="lesson-p">En tant que convoyeur, vous êtes <strong>civilement et pénalement responsable</strong> de votre conduite et du véhicule confié pendant toute la durée de la mission.</p>
         <ul class="checklist">
           <li>Respecter le Code de la route en toutes circonstances</li>
-          <li>Traiter le vÃ©hicule avec le mÃªme soin que s'il vous appartenait</li>
-          <li>Signaler immÃ©diatement tout incident Ã  Bathily-Convoyage</li>
+          <li>Traiter le véhicule avec le même soin que s'il vous appartenait</li>
+          <li>Signaler immédiatement tout incident à Bathily-Convoyage</li>
           <li>Ne jamais conduire sous l'emprise d'alcool ou de substances</li>
         </ul>
       </div>
@@ -454,49 +454,49 @@ header {
       <div class="module-header">
         <div class="module-ico" style="background:#2980b9"><i class="fas fa-camera"></i></div>
         <div>
-          <div class="module-label">Module 2 â€” Ã‰tat des Lieux</div>
-          <div class="module-title">Photographier, Documenter, ProtÃ©ger</div>
-          <div class="module-subtitle">Votre meilleure protection juridique avant et aprÃ¨s chaque mission</div>
+          <div class="module-label">Module 2 — État des Lieux</div>
+          <div class="module-title">Photographier, Documenter, Protéger</div>
+          <div class="module-subtitle">Votre meilleure protection juridique avant et après chaque mission</div>
         </div>
       </div>
 
       <div class="lesson-block">
-        <div class="lesson-h"><i class="fas fa-exclamation-triangle"></i> Pourquoi l'Ã©tat des lieux est crucial</div>
-        <p class="lesson-p">L'Ã©tat des lieux est le document qui <strong>protÃ¨ge Ã  la fois le client et le convoyeur</strong>. Il Ã©tablit de maniÃ¨re incontestable l'Ã©tat du vÃ©hicule au moment de la prise en charge et de la livraison.</p>
-        <div class="warning-box"><strong>âš ï¸ Sans Ã©tat des lieux rigoureux</strong>, vous pouvez Ãªtre tenu responsable de dommages prÃ©existants que vous n'avez pas causÃ©s. C'est votre principale protection lÃ©gale.</div>
+        <div class="lesson-h"><i class="fas fa-exclamation-triangle"></i> Pourquoi l'état des lieux est crucial</div>
+        <p class="lesson-p">L'état des lieux est le document qui <strong>protège à la fois le client et le convoyeur</strong>. Il établit de manière incontestable l'état du véhicule au moment de la prise en charge et de la livraison.</p>
+        <div class="warning-box"><strong>?? Sans état des lieux rigoureux</strong>, vous pouvez être tenu responsable de dommages préexistants que vous n'avez pas causés. C'est votre principale protection légale.</div>
       </div>
 
       <div class="lesson-block">
         <div class="lesson-h"><i class="fas fa-camera-retro"></i> Le protocole Bathily-Convoyage : 20 photos obligatoires</div>
-        <p class="lesson-p">Avant chaque dÃ©part, vous devez photographier le vÃ©hicule selon le protocole Bathily-Convoyage standard :</p>
+        <p class="lesson-p">Avant chaque départ, vous devez photographier le véhicule selon le protocole Bathily-Convoyage standard :</p>
         <div class="highlight-grid">
-          <div class="hl-card"><div class="hl-num">4</div><div class="hl-label">Vues gÃ©nÃ©rales</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Avant, arriÃ¨re, cÃ´tÃ© gauche, cÃ´tÃ© droit</p></div>
-          <div class="hl-card"><div class="hl-num">4</div><div class="hl-label">Angles</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Les 4 coins du vÃ©hicule</p></div>
-          <div class="hl-card"><div class="hl-num">4</div><div class="hl-label">IntÃ©rieur</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Tableau de bord, siÃ¨ges, coffre, kilomÃ©trage</p></div>
-          <div class="hl-card"><div class="hl-num">8+</div><div class="hl-label">DÃ©tails & anomalies</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Tout dommage existant, rayures, impacts, bosses</p></div>
+          <div class="hl-card"><div class="hl-num">4</div><div class="hl-label">Vues générales</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Avant, arrière, côté gauche, côté droit</p></div>
+          <div class="hl-card"><div class="hl-num">4</div><div class="hl-label">Angles</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Les 4 coins du véhicule</p></div>
+          <div class="hl-card"><div class="hl-num">4</div><div class="hl-label">Intérieur</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Tableau de bord, sièges, coffre, kilométrage</p></div>
+          <div class="hl-card"><div class="hl-num">8+</div><div class="hl-label">Détails & anomalies</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Tout dommage existant, rayures, impacts, bosses</p></div>
         </div>
-        <div class="info-box"><strong>Conseil Pro</strong> Photographiez en pleine lumiÃ¨re. En cas de dommage existant, approchez-vous Ã  moins de 30 cm pour un dÃ©tail net. Le kilomÃ©trage et les jauges de carburant sont obligatoires.</div>
+        <div class="info-box"><strong>Conseil Pro</strong> Photographiez en pleine lumière. En cas de dommage existant, approchez-vous à moins de 30 cm pour un détail net. Le kilométrage et les jauges de carburant sont obligatoires.</div>
       </div>
 
       <div class="lesson-block">
         <div class="lesson-h"><i class="fas fa-pen-alt"></i> Comment noter les dommages existants</div>
-        <p class="lesson-p">Si vous constatez un dommage avant la mission, notez-le <strong>prÃ©cisÃ©ment</strong> :</p>
+        <p class="lesson-p">Si vous constatez un dommage avant la mission, notez-le <strong>précisément</strong> :</p>
         <ul class="checklist">
-          <li>Localisation exacte (ex : "aile avant gauche", "pare-choc arriÃ¨re droit")</li>
-          <li>Nature du dommage (rayure lÃ©gÃ¨re, impact de grÃªle, bosse, fissure)</li>
+          <li>Localisation exacte (ex : "aile avant gauche", "pare-choc arrière droit")</li>
+          <li>Nature du dommage (rayure légère, impact de grêle, bosse, fissure)</li>
           <li>Dimensions approximatives si possible</li>
           <li>Faites valider par le client avec sa signature</li>
         </ul>
-        <div class="success-box"><strong>âœ“ RÃ¨gle d'or</strong> En cas de doute, photographiez. Il vaut mieux avoir 30 photos que regretter l'absence de la 21Ã¨me.</div>
+        <div class="success-box"><strong>? Règle d'or</strong> En cas de doute, photographiez. Il vaut mieux avoir 30 photos que regretter l'absence de la 21ème.</div>
       </div>
 
       <div class="lesson-block">
         <div class="lesson-h"><i class="fas fa-signature"></i> La signature contradictoire</div>
-        <p class="lesson-p">L'Ã©tat des lieux doit Ãªtre <strong>signÃ© par les deux parties</strong> : le client (ou son reprÃ©sentant) et vous, le convoyeur.</p>
+        <p class="lesson-p">L'état des lieux doit être <strong>signé par les deux parties</strong> : le client (ou son représentant) et vous, le convoyeur.</p>
         <ul class="checklist">
-          <li><strong>Au dÃ©part :</strong> client + convoyeur signent l'Ã©tat des lieux initial</li>
-          <li><strong>Ã€ l'arrivÃ©e :</strong> destinataire + convoyeur signent l'Ã©tat des lieux de sortie</li>
-          <li>Si le destinataire refuse de signer, contactez immÃ©diatement Bathily-Convoyage</li>
+          <li><strong>Au départ :</strong> client + convoyeur signent l'état des lieux initial</li>
+          <li><strong>À l'arrivée :</strong> destinataire + convoyeur signent l'état des lieux de sortie</li>
+          <li>Si le destinataire refuse de signer, contactez immédiatement Bathily-Convoyage</li>
         </ul>
       </div>
     </div>
@@ -513,59 +513,59 @@ header {
       <div class="module-header">
         <div class="module-ico" style="background:var(--success)"><i class="fas fa-handshake"></i></div>
         <div>
-          <div class="module-label">Module 3 â€” ProcÃ©dures Bathily-Convoyage</div>
-          <div class="module-title">De la Mission Ã  la Livraison</div>
+          <div class="module-label">Module 3 — Procédures Bathily-Convoyage</div>
+          <div class="module-title">De la Mission à la Livraison</div>
           <div class="module-subtitle">Protocoles, communication client et utilisation de la plateforme</div>
         </div>
       </div>
 
       <div class="lesson-block">
-        <div class="lesson-h"><i class="fas fa-list-check"></i> DÃ©roulement complet d'une mission</div>
+        <div class="lesson-h"><i class="fas fa-list-check"></i> Déroulement complet d'une mission</div>
         <div class="steps-timeline" style="margin-top:16px">
-          <div class="tl-item"><div class="tl-dot tl-dot-1">1</div><div class="tl-content"><h4>Acceptation et confirmation</h4><p>Vous acceptez la mission sur la plateforme. VÃ©rifiez les dÃ©tails : adresse, date, type de vÃ©hicule, distance.</p></div></div>
-          <div class="tl-item"><div class="tl-dot tl-dot-2">2</div><div class="tl-content"><h4>Prise en charge du vÃ©hicule</h4><p>RÃ©cupÃ©rez le mandat SIV, les clÃ©s et les documents. Effectuez l'Ã©tat des lieux complet et activez le GPS.</p></div></div>
-          <div class="tl-item"><div class="tl-dot tl-dot-3">3</div><div class="tl-content"><h4>Transport et suivi GPS</h4><p>Le suivi GPS Bathily-Convoyage doit rester actif pendant TOUTE la mission. Ne l'Ã©teignez pas.</p></div></div>
-          <div class="tl-item"><div class="tl-dot tl-dot-1">4</div><div class="tl-content"><h4>Livraison et remise</h4><p>Effectuez l'Ã©tat des lieux de sortie avec le destinataire. Faites signer et remettez les clÃ©s + documents.</p></div></div>
-          <div class="tl-item"><div class="tl-dot tl-dot-2">5</div><div class="tl-content"><h4>Validation et rÃ©munÃ©ration</h4><p>Validez la mission dans l'application. La rÃ©munÃ©ration est traitÃ©e sous 48h.</p></div></div>
+          <div class="tl-item"><div class="tl-dot tl-dot-1">1</div><div class="tl-content"><h4>Acceptation et confirmation</h4><p>Vous acceptez la mission sur la plateforme. Vérifiez les détails : adresse, date, type de véhicule, distance.</p></div></div>
+          <div class="tl-item"><div class="tl-dot tl-dot-2">2</div><div class="tl-content"><h4>Prise en charge du véhicule</h4><p>Récupérez le mandat SIV, les clés et les documents. Effectuez l'état des lieux complet et activez le GPS.</p></div></div>
+          <div class="tl-item"><div class="tl-dot tl-dot-3">3</div><div class="tl-content"><h4>Transport et suivi GPS</h4><p>Le suivi GPS Bathily-Convoyage doit rester actif pendant TOUTE la mission. Ne l'éteignez pas.</p></div></div>
+          <div class="tl-item"><div class="tl-dot tl-dot-1">4</div><div class="tl-content"><h4>Livraison et remise</h4><p>Effectuez l'état des lieux de sortie avec le destinataire. Faites signer et remettez les clés + documents.</p></div></div>
+          <div class="tl-item"><div class="tl-dot tl-dot-2">5</div><div class="tl-content"><h4>Validation et rémunération</h4><p>Validez la mission dans l'application. La rémunération est traitée sous 48h.</p></div></div>
         </div>
       </div>
 
       <div class="lesson-block">
         <div class="lesson-h"><i class="fas fa-comments"></i> Communication avec le client</div>
-        <p class="lesson-p">La relation client est un Ã©lÃ©ment clÃ© de votre rÃ©putation chez Bathily-Convoyage.</p>
+        <p class="lesson-p">La relation client est un élément clé de votre réputation chez Bathily-Convoyage.</p>
         <ul class="checklist">
-          <li>Soyez ponctuel : prÃ©venez avec <strong>au moins 30 min d'avance</strong> si vous avez du retard</li>
+          <li>Soyez ponctuel : prévenez avec <strong>au moins 30 min d'avance</strong> si vous avez du retard</li>
           <li>Ton professionnel et courtois en toutes circonstances</li>
-          <li>Ne donnez jamais votre numÃ©ro personnel : utilisez la messagerie Bathily-Convoyage</li>
-          <li>En cas de problÃ¨me, informez d'abord Bathily-Convoyage, puis le client</li>
+          <li>Ne donnez jamais votre numéro personnel : utilisez la messagerie Bathily-Convoyage</li>
+          <li>En cas de problème, informez d'abord Bathily-Convoyage, puis le client</li>
         </ul>
         <ul class="checklist">
           <li class="x">Pas de discussions sur vos tarifs personnels avec le client</li>
-          <li class="x">Ne faites aucune promesse de dÃ©lai que vous ne pouvez garantir</li>
+          <li class="x">Ne faites aucune promesse de délai que vous ne pouvez garantir</li>
         </ul>
       </div>
 
       <div class="lesson-block">
         <div class="lesson-h"><i class="fas fa-map-marker-alt"></i> Le GPS : obligatoire, pas optionnel</div>
-        <p class="lesson-p">Le suivi GPS en temps rÃ©el est une <strong>obligation contractuelle</strong> chez Bathily-Convoyage, pas une option. Il protÃ¨ge le client, le convoyeur et l'entreprise.</p>
-        <div class="warning-box"><strong>âš ï¸ GPS Ã©teint = mission invalidÃ©e</strong> Si votre GPS est coupÃ© pendant plus de 15 minutes sans raison valable (tunnel, zone blanche), la mission peut Ãªtre contestÃ©e et votre rÃ©munÃ©ration retenue.</div>
+        <p class="lesson-p">Le suivi GPS en temps réel est une <strong>obligation contractuelle</strong> chez Bathily-Convoyage, pas une option. Il protège le client, le convoyeur et l'entreprise.</p>
+        <div class="warning-box"><strong>?? GPS éteint = mission invalidée</strong> Si votre GPS est coupé pendant plus de 15 minutes sans raison valable (tunnel, zone blanche), la mission peut être contestée et votre rémunération retenue.</div>
       </div>
 
       <div class="lesson-block">
         <div class="lesson-h"><i class="fas fa-exclamation-circle"></i> En cas d'incident</div>
-        <p class="lesson-p">Accident, panne, problÃ¨me avec le client... voici la procÃ©dure en 3 Ã©tapes :</p>
+        <p class="lesson-p">Accident, panne, problème avec le client... voici la procédure en 3 étapes :</p>
         <div style="display:grid; gap:10px; margin-top:10px;">
           <div style="background:var(--beige); border-radius:12px; padding:14px; display:flex; gap:12px; align-items:flex-start;">
             <span style="font-weight:800; color:var(--bordeaux); font-size:1.1rem; flex-shrink:0;">1.</span>
-            <div><strong style="display:block; margin-bottom:3px;">SÃ©curiser</strong><span style="font-size:0.8rem; color:var(--gray-mid);">Mettez-vous en sÃ©curitÃ©, activez les feux de dÃ©tresse, appelez le 15/17/18 si nÃ©cessaire.</span></div>
+            <div><strong style="display:block; margin-bottom:3px;">Sécuriser</strong><span style="font-size:0.8rem; color:var(--gray-mid);">Mettez-vous en sécurité, activez les feux de détresse, appelez le 15/17/18 si nécessaire.</span></div>
           </div>
           <div style="background:var(--beige); border-radius:12px; padding:14px; display:flex; gap:12px; align-items:flex-start;">
             <span style="font-weight:800; color:var(--bordeaux); font-size:1.1rem; flex-shrink:0;">2.</span>
-            <div><strong style="display:block; margin-bottom:3px;">Contacter Bathily-Convoyage immÃ©diatement</strong><span style="font-size:0.8rem; color:var(--gray-mid);">Appelez la coordination Bathily-Convoyage AVANT d'informer le client. Nous gÃ©rons la communication.</span></div>
+            <div><strong style="display:block; margin-bottom:3px;">Contacter Bathily-Convoyage immédiatement</strong><span style="font-size:0.8rem; color:var(--gray-mid);">Appelez la coordination Bathily-Convoyage AVANT d'informer le client. Nous gérons la communication.</span></div>
           </div>
           <div style="background:var(--beige); border-radius:12px; padding:14px; display:flex; gap:12px; align-items:flex-start;">
             <span style="font-weight:800; color:var(--bordeaux); font-size:1.1rem; flex-shrink:0;">3.</span>
-            <div><strong style="display:block; margin-bottom:3px;">Documenter</strong><span style="font-size:0.8rem; color:var(--gray-mid);">Photographiez, rÃ©digez un constat si nÃ©cessaire, conservez tous les justificatifs.</span></div>
+            <div><strong style="display:block; margin-bottom:3px;">Documenter</strong><span style="font-size:0.8rem; color:var(--gray-mid);">Photographiez, rédigez un constat si nécessaire, conservez tous les justificatifs.</span></div>
           </div>
         </div>
       </div>
@@ -583,60 +583,60 @@ header {
       <div class="module-header">
         <div class="module-ico" style="background:var(--warning)"><i class="fas fa-road"></i></div>
         <div>
-          <div class="module-label">Module 4 â€” SÃ©curitÃ© & Bonnes Pratiques</div>
+          <div class="module-label">Module 4 — Sécurité & Bonnes Pratiques</div>
           <div class="module-title">Conduire Comme un Professionnel</div>
-          <div class="module-subtitle">SÃ©curitÃ© routiÃ¨re, vÃ©hicules spÃ©ciaux, interdictions formelles</div>
+          <div class="module-subtitle">Sécurité routière, véhicules spéciaux, interdictions formelles</div>
         </div>
       </div>
 
       <div class="lesson-block">
         <div class="lesson-h"><i class="fas fa-clock"></i> Temps de conduite & pauses obligatoires</div>
-        <p class="lesson-p">La fatigue au volant est la premiÃ¨re cause d'accident sur autoroute. En tant que professionnel, vous devez respecter :</p>
+        <p class="lesson-p">La fatigue au volant est la première cause d'accident sur autoroute. En tant que professionnel, vous devez respecter :</p>
         <div class="highlight-grid">
-          <div class="hl-card"><div class="hl-num">2h</div><div class="hl-label">Max consÃ©cutif</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Pause de 15 min obligatoire toutes les 2h</p></div>
-          <div class="hl-card"><div class="hl-num">4h30</div><div class="hl-label">Max par jour</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">DurÃ©e journaliÃ¨re maximale recommandÃ©e</p></div>
+          <div class="hl-card"><div class="hl-num">2h</div><div class="hl-label">Max consécutif</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Pause de 15 min obligatoire toutes les 2h</p></div>
+          <div class="hl-card"><div class="hl-num">4h30</div><div class="hl-label">Max par jour</div><p style="font-size:0.78rem; margin-top:4px; color:var(--gray-mid);">Durée journalière maximale recommandée</p></div>
         </div>
-        <div class="info-box"><strong>Conseil</strong> Lors de vos pauses, Ã©loignez-vous du vÃ©hicule en le verrouillant. Ne laissez jamais les clÃ©s Ã  l'intÃ©rieur, mÃªme 5 minutes.</div>
+        <div class="info-box"><strong>Conseil</strong> Lors de vos pauses, éloignez-vous du véhicule en le verrouillant. Ne laissez jamais les clés à l'intérieur, même 5 minutes.</div>
       </div>
 
       <div class="lesson-block">
-        <div class="lesson-h"><i class="fas fa-check-double"></i> ContrÃ´le prÃ©-dÃ©part du vÃ©hicule</div>
-        <p class="lesson-p">Avant de dÃ©marrer, effectuez un tour du propriÃ©taire systÃ©matique :</p>
+        <div class="lesson-h"><i class="fas fa-check-double"></i> Contrôle pré-départ du véhicule</div>
+        <p class="lesson-p">Avant de démarrer, effectuez un tour du propriétaire systématique :</p>
         <ul class="checklist">
-          <li>Niveau d'huile, eau, lave-glace (vÃ©rification visuelle)</li>
-          <li>Ã‰tat des pneus (gonflage visuel, aucune crevaison)</li>
+          <li>Niveau d'huile, eau, lave-glace (vérification visuelle)</li>
+          <li>État des pneus (gonflage visuel, aucune crevaison)</li>
           <li>Fonctionnement des feux (phares, clignotants, feux stop)</li>
-          <li>KilomÃ©trage notÃ© dans l'Ã©tat des lieux</li>
-          <li>Carburant suffisant pour atteindre la destination (ou premiÃ¨re station)</li>
+          <li>Kilométrage noté dans l'état des lieux</li>
+          <li>Carburant suffisant pour atteindre la destination (ou première station)</li>
         </ul>
-        <div class="warning-box"><strong>âš ï¸ Anomalie dÃ©tectÃ©e ?</strong> Si vous constatez un problÃ¨me mÃ©canique grave (fumÃ©e, odeur, tÃ©moin critique), ne dÃ©marrez JAMAIS. Signalez-le Ã  Bathily-Convoyage immÃ©diatement.</div>
+        <div class="warning-box"><strong>?? Anomalie détectée ?</strong> Si vous constatez un problème mécanique grave (fumée, odeur, témoin critique), ne démarrez JAMAIS. Signalez-le à Bathily-Convoyage immédiatement.</div>
       </div>
 
       <div class="lesson-block">
-        <div class="lesson-h"><i class="fas fa-gem"></i> VÃ©hicules de valeur, luxe et collection</div>
-        <p class="lesson-p">Certaines missions concernent des vÃ©hicules de haute valeur (supÃ©rieure Ã  50 000â‚¬), des voitures de collection ou des motos haut de gamme. Des rÃ¨gles spÃ©cifiques s'appliquent :</p>
+        <div class="lesson-h"><i class="fas fa-gem"></i> Véhicules de valeur, luxe et collection</div>
+        <p class="lesson-p">Certaines missions concernent des véhicules de haute valeur (supérieure à 50 000€), des voitures de collection ou des motos haut de gamme. Des règles spécifiques s'appliquent :</p>
         <ul class="checklist">
           <li>Conduire encore plus prudemment que d'habitude</li>
-          <li>Ne pas dÃ©passer 110 km/h sur autoroute avec un vÃ©hicule de collection</li>
-          <li>Ã‰viter les routes endommagÃ©es ou les dos d'Ã¢ne agressifs</li>
-          <li>Ne jamais laisser seul un vÃ©hicule de valeur dans un endroit non sÃ©curisÃ©</li>
-          <li>Photos supplÃ©mentaires obligatoires pour les vÃ©hicules > 30 000â‚¬</li>
+          <li>Ne pas dépasser 110 km/h sur autoroute avec un véhicule de collection</li>
+          <li>Éviter les routes endommagées ou les dos d'âne agressifs</li>
+          <li>Ne jamais laisser seul un véhicule de valeur dans un endroit non sécurisé</li>
+          <li>Photos supplémentaires obligatoires pour les véhicules > 30 000€</li>
         </ul>
       </div>
 
       <div class="lesson-block">
         <div class="lesson-h"><i class="fas fa-ban"></i> Interdictions formelles</div>
-        <p class="lesson-p">Le non-respect de ces rÃ¨gles entraÃ®ne la rÃ©siliation immÃ©diate de votre compte et peut engager votre responsabilitÃ© :</p>
+        <p class="lesson-p">Le non-respect de ces règles entraîne la résiliation immédiate de votre compte et peut engager votre responsabilité :</p>
         <ul class="checklist">
-          <li class="x">Transporter des passagers dans le vÃ©hicule convoyÃ©</li>
-          <li class="x">Utiliser le vÃ©hicule Ã  des fins personnelles (dÃ©tour, courses)</li>
-          <li class="x">Conduire sous l'emprise d'alcool, mÃ©dicaments ou drogues</li>
-          <li class="x">Sous-traiter ou dÃ©lÃ©guer la mission sans accord de Bathily-Convoyage</li>
-          <li class="x">Fumer dans le vÃ©hicule</li>
-          <li class="x">Ã‰teindre le GPS pendant la mission</li>
+          <li class="x">Transporter des passagers dans le véhicule convoyé</li>
+          <li class="x">Utiliser le véhicule à des fins personnelles (détour, courses)</li>
+          <li class="x">Conduire sous l'emprise d'alcool, médicaments ou drogues</li>
+          <li class="x">Sous-traiter ou déléguer la mission sans accord de Bathily-Convoyage</li>
+          <li class="x">Fumer dans le véhicule</li>
+          <li class="x">Éteindre le GPS pendant la mission</li>
           <li class="x">Facturer directement le client</li>
         </ul>
-        <div class="success-box"><strong>âœ“ FÃ©licitations !</strong> Vous avez terminÃ© les 4 modules de formation. Vous Ãªtes maintenant prÃªt(e) pour le quiz de validation.</div>
+        <div class="success-box"><strong>? Félicitations !</strong> Vous avez terminé les 4 modules de formation. Vous êtes maintenant prêt(e) pour le quiz de validation.</div>
       </div>
     </div>
 
@@ -652,7 +652,7 @@ header {
       <div class="quiz-header">
         <div>
           <div class="card-title" style="font-size:1.3rem; margin-bottom:2px;">Quiz de <em>validation</em></div>
-          <div style="font-size:0.78rem; color:var(--gray-mid);">12 questions â€” Score minimum 80% (10/12)</div>
+          <div style="font-size:0.78rem; color:var(--gray-mid);">12 questions — Score minimum 80% (10/12)</div>
         </div>
         <div class="quiz-score-badge" id="livreScore">0 / 12</div>
       </div>
@@ -685,20 +685,20 @@ header {
   <!-- ======== PAGE 8 : CONFIRMATION ======== -->
   <div class="step-page" id="page8">
     <div class="card" style="text-align:center;">
-      <div class="confirm-icon">ğŸ‰</div>
-      <div class="card-title" style="text-align:center;">Candidature <em>envoyÃ©e !</em></div>
-      <p style="color:var(--gray-mid); font-size:0.875rem; margin-bottom:28px;">Votre dossier est en cours d'examen par notre Ã©quipe. Vous recevrez une rÃ©ponse dans les <strong>24 Ã  48 heures</strong>.</p>
+      <div class="confirm-icon">??</div>
+      <div class="card-title" style="text-align:center;">Candidature <em>envoyée !</em></div>
+      <p style="color:var(--gray-mid); font-size:0.875rem; margin-bottom:28px;">Votre dossier est en cours d'examen par notre équipe. Vous recevrez une réponse dans les <strong>24 à 48 heures</strong>.</p>
       <div class="steps-timeline" style="text-align:left;">
-        <div class="tl-item"><div class="tl-dot tl-dot-1"><i class="fas fa-check"></i></div><div class="tl-content"><h4>Formation complÃ©tÃ©e</h4><p>Vous avez rÃ©ussi le quiz avec un score validant.</p></div></div>
-        <div class="tl-item"><div class="tl-dot tl-dot-2">2</div><div class="tl-content"><h4>Examen par Bathily-Convoyage</h4><p>Notre Ã©quipe examine votre profil et votre score (24-48h).</p></div></div>
-        <div class="tl-item"><div class="tl-dot tl-dot-3">3</div><div class="tl-content"><h4>Email de confirmation</h4><p>Si votre candidature est acceptÃ©e, vous recevez vos accÃ¨s par email.</p></div></div>
+        <div class="tl-item"><div class="tl-dot tl-dot-1"><i class="fas fa-check"></i></div><div class="tl-content"><h4>Formation complétée</h4><p>Vous avez réussi le quiz avec un score validant.</p></div></div>
+        <div class="tl-item"><div class="tl-dot tl-dot-2">2</div><div class="tl-content"><h4>Examen par Bathily-Convoyage</h4><p>Notre équipe examine votre profil et votre score (24-48h).</p></div></div>
+        <div class="tl-item"><div class="tl-dot tl-dot-3">3</div><div class="tl-content"><h4>Email de confirmation</h4><p>Si votre candidature est acceptée, vous recevez vos accès par email.</p></div></div>
       </div>
       <div style="margin-top:24px; padding:16px; background:var(--bordeaux-light); border-radius:14px; font-size:0.8rem; color:var(--bordeaux-dark);">
-        <i class="fas fa-envelope"></i> Un email de confirmation vient d'Ãªtre envoyÃ© Ã  <strong id="confirmEmail"></strong>
+        <i class="fas fa-envelope"></i> Un email de confirmation vient d'être envoyé à <strong id="confirmEmail"></strong>
       </div>
     </div>
     <div class="btn-row right">
-      <a href="index.html" class="btn-primary" style="text-decoration:none;"><i class="fas fa-home"></i> Retour Ã  l'accueil</a>
+      <a href="index.html" class="btn-primary" style="text-decoration:none;"><i class="fas fa-home"></i> Retour à l'accueil</a>
     </div>
   </div>
 
@@ -716,76 +716,76 @@ let formData = {};
 // ====== QUIZ DATA ======
 const QUESTIONS = [
   {
-    q: "Le mandat SIV vous autorise Ã  faire quoi prÃ©cisÃ©ment ?",
-    opts: ["Conduire le vÃ©hicule d'un client sur voie publique en son nom", "Modifier les papiers d'immatriculation du vÃ©hicule", "Vendre le vÃ©hicule au nom du propriÃ©taire si nÃ©cessaire", "Immatriculer dÃ©finitivement le vÃ©hicule Ã  votre nom"],
+    q: "Le mandat SIV vous autorise à faire quoi précisément ?",
+    opts: ["Conduire le véhicule d'un client sur voie publique en son nom", "Modifier les papiers d'immatriculation du véhicule", "Vendre le véhicule au nom du propriétaire si nécessaire", "Immatriculer définitivement le véhicule à votre nom"],
     correct: 0,
-    expl: "Le mandat SIV est le document lÃ©gal qui vous autorise uniquement Ã  conduire le vÃ©hicule d'un tiers sur voie publique, en agissant en tant que son reprÃ©sentant momentanÃ©."
+    expl: "Le mandat SIV est le document légal qui vous autorise uniquement à conduire le véhicule d'un tiers sur voie publique, en agissant en tant que son représentant momentané."
   },
   {
-    q: "Combien de photos minimum doivent Ãªtre prises lors de l'Ã©tat des lieux Bathily ?",
-    opts: ["5 photos (4 cÃ´tÃ©s + tableau de bord)", "10 photos selon les points principaux", "20 photos selon le protocole Bathily", "Autant que vous le jugez nÃ©cessaire, sans minimum"],
+    q: "Combien de photos minimum doivent être prises lors de l'état des lieux Bathily ?",
+    opts: ["5 photos (4 côtés + tableau de bord)", "10 photos selon les points principaux", "20 photos selon le protocole Bathily", "Autant que vous le jugez nécessaire, sans minimum"],
     correct: 2,
-    expl: "Le protocole Bathily impose un minimum de 20 photos : 4 vues gÃ©nÃ©rales, 4 angles, 4 photos intÃ©rieur et 8 photos de dÃ©tails et anomalies Ã©ventuelles."
+    expl: "Le protocole Bathily impose un minimum de 20 photos : 4 vues générales, 4 angles, 4 photos intérieur et 8 photos de détails et anomalies éventuelles."
   },
   {
-    q: "Vous constatez une rayure sur l'aile avant gauche avant de dÃ©marrer. Que faites-vous ?",
-    opts: ["Vous ignorez, c'est une rayure mineure", "Vous notez la rayure dans l'Ã©tat des lieux, la photographiez et faites valider par le client", "Vous refusez la mission immÃ©diatement", "Vous appelez la police pour constater"],
+    q: "Vous constatez une rayure sur l'aile avant gauche avant de démarrer. Que faites-vous ?",
+    opts: ["Vous ignorez, c'est une rayure mineure", "Vous notez la rayure dans l'état des lieux, la photographiez et faites valider par le client", "Vous refusez la mission immédiatement", "Vous appelez la police pour constater"],
     correct: 1,
-    expl: "Tout dommage existant doit Ãªtre documentÃ© dans l'Ã©tat des lieux et photographiÃ© avant la mission. C'est votre protection contre toute contestation ultÃ©rieure."
+    expl: "Tout dommage existant doit être documenté dans l'état des lieux et photographié avant la mission. C'est votre protection contre toute contestation ultérieure."
   },
   {
     q: "La double RC Pro Bathily couvre laquelle de ces situations ?",
-    opts: ["Le vol du vÃ©hicule pendant la mission", "Les dommages mÃ©caniques dus Ã  l'usure", "Les dommages causÃ©s Ã  un tiers lors d'un accident dont vous Ãªtes responsable", "Les amendes de stationnement pendant la mission"],
+    opts: ["Le vol du véhicule pendant la mission", "Les dommages mécaniques dus à l'usure", "Les dommages causés à un tiers lors d'un accident dont vous êtes responsable", "Les amendes de stationnement pendant la mission"],
     correct: 2,
-    expl: "La RC Pro Bathily couvre les dommages causÃ©s Ã  des tiers lors d'accidents dont vous Ãªtes responsable. Le vol, les dommages mÃ©caniques et les amendes ne sont pas couverts."
+    expl: "La RC Pro Bathily couvre les dommages causés à des tiers lors d'accidents dont vous êtes responsable. Le vol, les dommages mécaniques et les amendes ne sont pas couverts."
   },
   {
-    q: "Pendant la mission, votre voiture tombe en panne. Quelle est la premiÃ¨re action Ã  effectuer ?",
-    opts: ["Appeler un dÃ©panneur de votre choix et faire rÃ©parer immÃ©diatement", "Contacter immÃ©diatement la coordination Bathily AVANT toute autre action", "Appeler directement le client pour l'informer", "Attendre que quelqu'un s'arrÃªte pour vous aider"],
+    q: "Pendant la mission, votre voiture tombe en panne. Quelle est la première action à effectuer ?",
+    opts: ["Appeler un dépanneur de votre choix et faire réparer immédiatement", "Contacter immédiatement la coordination Bathily AVANT toute autre action", "Appeler directement le client pour l'informer", "Attendre que quelqu'un s'arrête pour vous aider"],
     correct: 1,
-    expl: "En cas de panne, vous devez d'abord sÃ©curiser votre position (feux de dÃ©tresse) puis contacter Bathily immÃ©diatement. Bathily gÃ¨re ensuite la communication avec le client et organise l'assistance."
+    expl: "En cas de panne, vous devez d'abord sécuriser votre position (feux de détresse) puis contacter Bathily immédiatement. Bathily gère ensuite la communication avec le client et organise l'assistance."
   },
   {
     q: "Le suivi GPS Bathily pendant une mission est-il obligatoire ?",
-    opts: ["RecommandÃ© mais pas obligatoire", "Uniquement pour les missions de plus de 200 km", "Obligatoire et doit rester actif pendant toute la durÃ©e de la mission", "Uniquement pour les vÃ©hicules de luxe"],
+    opts: ["Recommandé mais pas obligatoire", "Uniquement pour les missions de plus de 200 km", "Obligatoire et doit rester actif pendant toute la durée de la mission", "Uniquement pour les véhicules de luxe"],
     correct: 2,
-    expl: "Le suivi GPS est une obligation contractuelle absolue chez Bathily. Il doit rester actif du dÃ©but Ã  la fin de chaque mission, sans exception."
+    expl: "Le suivi GPS est une obligation contractuelle absolue chez Bathily. Il doit rester actif du début à la fin de chaque mission, sans exception."
   },
   {
-    q: "Ã€ la livraison, avant de remettre les clÃ©s au destinataire, vous devez obligatoirement :",
-    opts: ["Remettre les clÃ©s rapidement, l'Ã©tat des lieux de sortie n'est pas nÃ©cessaire", "Effectuer un Ã©tat des lieux de sortie et faire signer le destinataire", "Envoyer un SMS de confirmation Ã  l'administrateur Bathily", "Nettoyer le vÃ©hicule intÃ©rieur et extÃ©rieur avant remise"],
+    q: "À la livraison, avant de remettre les clés au destinataire, vous devez obligatoirement :",
+    opts: ["Remettre les clés rapidement, l'état des lieux de sortie n'est pas nécessaire", "Effectuer un état des lieux de sortie et faire signer le destinataire", "Envoyer un SMS de confirmation à l'administrateur Bathily", "Nettoyer le véhicule intérieur et extérieur avant remise"],
     correct: 1,
-    expl: "Un Ã©tat des lieux de sortie signÃ© par le destinataire est obligatoire. Il certifie que le vÃ©hicule a Ã©tÃ© livrÃ© dans le mÃªme Ã©tat qu'Ã  la prise en charge."
+    expl: "Un état des lieux de sortie signé par le destinataire est obligatoire. Il certifie que le véhicule a été livré dans le même état qu'à la prise en charge."
   },
   {
     q: "Lequel de ces actes est formellement interdit en tant que convoyeur Bathily ?",
-    opts: ["S'arrÃªter dans une station service pour faire le plein", "Appeler Bathily en cas de problÃ¨me", "Transporter un ami dans le vÃ©hicule convoyÃ©", "Faire une pause de 15 minutes toutes les 2 heures"],
+    opts: ["S'arrêter dans une station service pour faire le plein", "Appeler Bathily en cas de problème", "Transporter un ami dans le véhicule convoyé", "Faire une pause de 15 minutes toutes les 2 heures"],
     correct: 2,
-    expl: "Transporter des passagers dans le vÃ©hicule convoyÃ© est formellement interdit. Cela engagerait votre responsabilitÃ© civile et pÃ©nale et constitue une rupture de contrat immÃ©diate."
+    expl: "Transporter des passagers dans le véhicule convoyé est formellement interdit. Cela engagerait votre responsabilité civile et pénale et constitue une rupture de contrat immédiate."
   },
   {
     q: "En cas d'accident de la route, dans quel ordre effectuez-vous ces actions ?",
-    opts: ["Appeler le client, puis Bathily, puis les secours", "Continuer la route si les dommages semblent mineurs", "SÃ©curiser la zone, appeler les secours si nÃ©cessaire, puis contacter Bathily immÃ©diatement", "RÃ©parer vous-mÃªme si possible et continuer sans prÃ©venir"],
+    opts: ["Appeler le client, puis Bathily, puis les secours", "Continuer la route si les dommages semblent mineurs", "Sécuriser la zone, appeler les secours si nécessaire, puis contacter Bathily immédiatement", "Réparer vous-même si possible et continuer sans prévenir"],
     correct: 2,
-    expl: "La prioritÃ© est toujours la sÃ©curitÃ© humaine. Ensuite, contactez Bathily avant d'informer le client. Bathily gÃ¨re la communication et l'assistance selon les procÃ©dures Ã©tablies."
+    expl: "La priorité est toujours la sécurité humaine. Ensuite, contactez Bathily avant d'informer le client. Bathily gère la communication et l'assistance selon les procédures établies."
   },
   {
-    q: "Comment votre rÃ©munÃ©ration est-elle calculÃ©e chez Bathily Convoyage ?",
-    opts: ["Forfait fixe peu importe la distance ou le vÃ©hicule", "Au kilomÃ¨tre parcouru selon les barÃ¨mes Bathily", "Selon vos propres tarifs que vous nÃ©gociez avec le client", "En liquide uniquement, remis Ã  la livraison"],
+    q: "Comment votre rémunération est-elle calculée chez Bathily Convoyage ?",
+    opts: ["Forfait fixe peu importe la distance ou le véhicule", "Au kilomètre parcouru selon les barèmes Bathily", "Selon vos propres tarifs que vous négociez avec le client", "En liquide uniquement, remis à la livraison"],
     correct: 1,
-    expl: "La rÃ©munÃ©ration est calculÃ©e au kilomÃ¨tre selon les barÃ¨mes Bathily (0,40â‚¬/km moto, 0,47â‚¬/km auto en moyenne). Des majorations s'appliquent pour les vÃ©hicules sur plateau."
+    expl: "La rémunération est calculée au kilomètre selon les barèmes Bathily (0,40€/km moto, 0,47€/km auto en moyenne). Des majorations s'appliquent pour les véhicules sur plateau."
   },
   {
-    q: "Vous constatez une anomalie mÃ©canique grave sur le vÃ©hicule avant de dÃ©marrer. Que faites-vous ?",
-    opts: ["Vous dÃ©marrez quand mÃªme, c'est le problÃ¨me du propriÃ©taire", "Vous faites rÃ©parer Ã  vos frais pour maintenir le dÃ©lai", "Vous signalez l'anomalie Ã  Bathily AVANT de dÃ©marrer et attendez les instructions", "Vous annulez la mission sans prÃ©venir personne"],
+    q: "Vous constatez une anomalie mécanique grave sur le véhicule avant de démarrer. Que faites-vous ?",
+    opts: ["Vous démarrez quand même, c'est le problème du propriétaire", "Vous faites réparer à vos frais pour maintenir le délai", "Vous signalez l'anomalie à Bathily AVANT de démarrer et attendez les instructions", "Vous annulez la mission sans prévenir personne"],
     correct: 2,
-    expl: "Ne dÃ©marrez jamais avec un vÃ©hicule prÃ©sentant une anomalie mÃ©canique grave. Signalez-le immÃ©diatement Ã  Bathily qui prendra les dÃ©cisions appropriÃ©es."
+    expl: "Ne démarrez jamais avec un véhicule présentant une anomalie mécanique grave. Signalez-le immédiatement à Bathily qui prendra les décisions appropriées."
   },
   {
-    q: "Quelle est la durÃ©e maximale de conduite consÃ©cutive recommandÃ©e avant une pause ?",
-    opts: ["6 heures consÃ©cutives maximum, puis 1h de pause", "2 heures consÃ©cutives, puis pause de 15 minutes minimum", "Conduire jusqu'Ã  destination sans s'arrÃªter pour respecter les dÃ©lais", "30 minutes maximum avec pause de 5 minutes"],
+    q: "Quelle est la durée maximale de conduite consécutive recommandée avant une pause ?",
+    opts: ["6 heures consécutives maximum, puis 1h de pause", "2 heures consécutives, puis pause de 15 minutes minimum", "Conduire jusqu'à destination sans s'arrêter pour respecter les délais", "30 minutes maximum avec pause de 5 minutes"],
     correct: 1,
-    expl: "La rÃ¨gle de sÃ©curitÃ© Bathily recommande une pause de 15 minutes minimum toutes les 2 heures de conduite, avec un maximum de 4h30 de conduite par jour."
+    expl: "La règle de sécurité Bathily recommande une pause de 15 minutes minimum toutes les 2 heures de conduite, avec un maximum de 4h30 de conduite par jour."
   }
 ];
 
@@ -806,13 +806,13 @@ function goPage(n) {
 }
 
 function updateProgress() {
-  const labels = ['Bienvenue', 'Inscription', 'Module 1', 'Module 2', 'Module 3', 'Module 4', 'Quiz', 'âœ“'];
+  const labels = ['Bienvenue', 'Inscription', 'Module 1', 'Module 2', 'Module 3', 'Module 4', 'Quiz', '?'];
   const stepMap = {0:1, 1:2, 2:3, 3:4, 4:5, 5:6, 6:7, 7:7, 8:8};
   const step = stepMap[currentPage] || 1;
   const pct = Math.round((step / 7) * 100);
 
   document.getElementById('gpFill').style.width = pct + '%';
-  document.getElementById('gpLabel').textContent = `Ã‰tape ${step} / 7`;
+  document.getElementById('gpLabel').textContent = `Étape ${step} / 7`;
 
   for (let i = 1; i <= 7; i++) {
     const el = document.getElementById('gs' + i);
@@ -860,7 +860,7 @@ function validatePage1() {
   if (anneePerm && currentYear - anneePerm < 3) {
     Swal.fire({
       title: 'Permis insuffisant',
-      text: 'Votre permis B doit avoir Ã©tÃ© obtenu depuis au moins 3 ans pour rejoindre Bathily.',
+      text: 'Votre permis B doit avoir été obtenu depuis au moins 3 ans pour rejoindre Bathily.',
       icon: 'warning',
       confirmButtonColor: 'var(--bordeaux)'
     });
@@ -871,7 +871,7 @@ function validatePage1() {
   if (pwd.length < 8) {
     Swal.fire({
       title: 'Mot de passe trop court',
-      text: 'Votre mot de passe doit contenir au moins 8 caractÃ¨res.',
+      text: 'Votre mot de passe doit contenir au moins 8 caractères.',
       icon: 'warning',
       confirmButtonColor: 'var(--bordeaux)'
     });
@@ -937,7 +937,7 @@ function renderQuestion() {
 
   document.getElementById('quizCounter').textContent = `Question ${currentQ + 1} / ${QUESTIONS.length}`;
   document.getElementById('btnQuizNext').disabled = true;
-  document.getElementById('btnQuizNext').innerHTML = currentQ < QUESTIONS.length - 1 ? 'Suivant <i class="fas fa-arrow-right"></i>' : 'Voir mes rÃ©sultats <i class="fas fa-trophy"></i>';
+  document.getElementById('btnQuizNext').innerHTML = currentQ < QUESTIONS.length - 1 ? 'Suivant <i class="fas fa-arrow-right"></i>' : 'Voir mes résultats <i class="fas fa-trophy"></i>';
   document.getElementById('btnQuizPrev').style.display = currentQ > 0 ? 'flex' : 'none';
 }
 
@@ -957,7 +957,7 @@ function selectAnswer(idx) {
   if (isCorrect) quizScore++;
 
   feedback.className = `q-feedback show ${isCorrect ? 'good' : 'bad'}`;
-  feedback.innerHTML = `<strong>${isCorrect ? 'âœ“ Correct !' : 'âœ— Incorrect.'}</strong> ${q.expl}`;
+  feedback.innerHTML = `<strong>${isCorrect ? '? Correct !' : '? Incorrect.'}</strong> ${q.expl}`;
 
   document.getElementById('livreScore').textContent = `${quizScore} / 12`;
   document.getElementById('btnQuizNext').disabled = false;
@@ -1003,30 +1003,30 @@ function showResults() {
   circle.classList.add(passed ? 'pass' : 'fail');
 
   if (passed) {
-    badgeEl.innerHTML = `<div class="badge-certified"><i class="fas fa-medal"></i> Formation Bathily ValidÃ©e â€” ${quizScore}/12 (${Math.round(quizScore/12*100)}%)</div>`;
-    msgEl.innerHTML = `<p style="color:var(--gray-mid); font-size:0.875rem; margin-bottom:16px;">FÃ©licitations ! Vous avez atteint le score requis. Votre candidature va Ãªtre transmise Ã  notre Ã©quipe pour validation manuelle.</p>`;
+    badgeEl.innerHTML = `<div class="badge-certified"><i class="fas fa-medal"></i> Formation Bathily Validée — ${quizScore}/12 (${Math.round(quizScore/12*100)}%)</div>`;
+    msgEl.innerHTML = `<p style="color:var(--gray-mid); font-size:0.875rem; margin-bottom:16px;">Félicitations ! Vous avez atteint le score requis. Votre candidature va être transmise à notre équipe pour validation manuelle.</p>`;
     coolEl.innerHTML = '';
     btnsEl.innerHTML = `<button class="btn-primary" onclick="submitCandidature()"><i class="fas fa-paper-plane"></i> Envoyer ma candidature</button>`;
   } else {
     const pct = Math.round(quizScore/12*100);
     const cooldownEnd = new Date(Date.now() + 24*60*60*1000);
-    badgeEl.innerHTML = `<div style="color:#c0392b; font-weight:700; font-size:0.9rem;"><i class="fas fa-times-circle"></i> Score insuffisant â€” ${quizScore}/12 (${pct}%)</div>`;
-    msgEl.innerHTML = `<p style="color:var(--gray-mid); font-size:0.875rem;">Il vous manquait ${10 - quizScore} bonne${10-quizScore>1?'s':''} rÃ©ponse${10-quizScore>1?'s':''}. Relisez les modules concernÃ©s et rÃ©essayez dans 24h.</p>`;
-    coolEl.innerHTML = `<div class="cooldown-box"><div style="font-size:0.8rem; color:var(--gray-mid); margin-bottom:8px;">Prochain essai disponible dans</div><div class="cooldown-timer" id="coolTimer">24:00:00</div><div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">Le ${cooldownEnd.toLocaleDateString('fr-FR')} Ã  ${cooldownEnd.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}</div></div>`;
+    badgeEl.innerHTML = `<div style="color:#c0392b; font-weight:700; font-size:0.9rem;"><i class="fas fa-times-circle"></i> Score insuffisant — ${quizScore}/12 (${pct}%)</div>`;
+    msgEl.innerHTML = `<p style="color:var(--gray-mid); font-size:0.875rem;">Il vous manquait ${10 - quizScore} bonne${10-quizScore>1?'s':''} réponse${10-quizScore>1?'s':''}. Relisez les modules concernés et réessayez dans 24h.</p>`;
+    coolEl.innerHTML = `<div class="cooldown-box"><div style="font-size:0.8rem; color:var(--gray-mid); margin-bottom:8px;">Prochain essai disponible dans</div><div class="cooldown-timer" id="coolTimer">24:00:00</div><div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">Le ${cooldownEnd.toLocaleDateString('fr-FR')} à ${cooldownEnd.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}</div></div>`;
     startCooldownTimer();
     btnsEl.innerHTML = `<button class="btn-secondary" onclick="goPage(2)"><i class="fas fa-book-open"></i> Revoir la formation</button>`;
   }
 
   // Show answer review
   const letters = ['A','B','C','D'];
-  answersEl.innerHTML = `<div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid); margin-bottom:12px;">RÃ©capitulatif de vos rÃ©ponses</div>` +
+  answersEl.innerHTML = `<div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid); margin-bottom:12px;">Récapitulatif de vos réponses</div>` +
     QUESTIONS.map((q, i) => {
       const a = quizAnswers[i];
       if (!a) return '';
       const ok = a.isCorrect;
       return `<div class="ra-item">
-        <div class="ra-icon ${ok?'ok':'ko'}">${ok?'âœ“':'âœ—'}</div>
-        <div style="flex:1;"><div style="font-weight:600; font-size:0.8rem; margin-bottom:2px;">${i+1}. ${q.q.substring(0,60)}...</div><div style="font-size:0.72rem; color:${ok?'var(--success)':'#c0392b'};">${ok?'Bonne rÃ©ponse':'Mauvaise rÃ©ponse â€” ' + q.opts[q.correct]}</div></div>
+        <div class="ra-icon ${ok?'ok':'ko'}">${ok?'?':'?'}</div>
+        <div style="flex:1;"><div style="font-weight:600; font-size:0.8rem; margin-bottom:2px;">${i+1}. ${q.q.substring(0,60)}...</div><div style="font-size:0.72rem; color:${ok?'var(--success)':'#c0392b'};">${ok?'Bonne réponse':'Mauvaise réponse — ' + q.opts[q.correct]}</div></div>
       </div>`;
     }).join('');
 }
@@ -1060,11 +1060,11 @@ async function submitCandidature() {
 
     if (existing) {
       if (existing.statut === 'approved') {
-        Swal.fire({ title: 'Compte existant', text: 'Un compte approuvÃ© existe dÃ©jÃ  avec cet email. Connectez-vous Ã  l\'espace convoyeur.', icon: 'info', confirmButtonColor: 'var(--bordeaux)' });
+        Swal.fire({ title: 'Compte existant', text: 'Un compte approuvé existe déjà avec cet email. Connectez-vous à l\'espace convoyeur.', icon: 'info', confirmButtonColor: 'var(--bordeaux)' });
         return;
       }
       if (existing.statut === 'pending') {
-        Swal.fire({ title: 'Candidature dÃ©jÃ  envoyÃ©e', text: 'Votre candidature est dÃ©jÃ  en cours d\'examen. Patience !', icon: 'info', confirmButtonColor: 'var(--bordeaux)' });
+        Swal.fire({ title: 'Candidature déjà envoyée', text: 'Votre candidature est déjà en cours d\'examen. Patience !', icon: 'info', confirmButtonColor: 'var(--bordeaux)' });
         return;
       }
     }
@@ -1093,7 +1093,7 @@ async function submitCandidature() {
     goPage(8);
     Swal.close();
 
-    // DÃ©clenchement de l'envoi d'e-mail
+    // Déclenchement de l'envoi d'e-mail
     if (newCand && newCand.id) {
       fetch('/.netlify/functions/send-email', {
         method: 'POST',
@@ -1103,7 +1103,7 @@ async function submitCandidature() {
     }
 
   } catch (err) {
-    Swal.fire({ title: 'Erreur', text: err.message || 'Une erreur est survenue. Veuillez rÃ©essayer.', icon: 'error', confirmButtonColor: 'var(--bordeaux)' });
+    Swal.fire({ title: 'Erreur', text: err.message || 'Une erreur est survenue. Veuillez réessayer.', icon: 'error', confirmButtonColor: 'var(--bordeaux)' });
   }
 }
 

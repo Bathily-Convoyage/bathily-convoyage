@@ -1,4 +1,4 @@
-Ôªø<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -7,11 +7,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#FDFBF7">
-<meta name="description" content="Interface GPS pour convoyeurs Bathily ‚Äî partagez votre position en temps r√©el avec le client et le dispatch.">
-<title>GPS Mission ‚Äî Bathily Convoyage</title>
+<meta name="description" content="Interface GPS pour convoyeurs Bathily ó partagez votre position en temps rÈel avec le client et le dispatch.">
+<title>GPS Mission ó Bathily Convoyage</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>üìç</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>??</text></svg>">
 
 <!-- Firebase SDK -->
 <script type="module">
@@ -68,7 +68,7 @@ body {
   --success: #4A7C6B;
   --warning: #F5A623;
 }
-/* Curseur personnalis√© seulement sur souris */
+/* Curseur personnalisÈ seulement sur souris */
 @media (hover: hover) {
   .cur{position:fixed;width:8px;height:8px;background:var(--bordeaux);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
   .cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(122,46,26,.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
@@ -569,8 +569,8 @@ body {
 <div class="perm-overlay" id="permOverlay">
   <div class="perm-ico"><i class="fas fa-location-arrow"></i></div>
   <div class="perm-title">Autorisation GPS requise</div>
-  <p class="perm-sub" id="permMsg">Pour partager votre position en temps r√©el avec le client et le dispatch Bathily, vous devez autoriser l'acc√®s √† votre g√©olocalisation.</p>
-  <button class="perm-btn" onclick="requestPermission()"><i class="fas fa-check"></i> Autoriser la g√©olocalisation</button>
+  <p class="perm-sub" id="permMsg">Pour partager votre position en temps rÈel avec le client et le dispatch Bathily, vous devez autoriser l'accËs ‡ votre gÈolocalisation.</p>
+  <button class="perm-btn" onclick="requestPermission()"><i class="fas fa-check"></i> Autoriser la gÈolocalisation</button>
 </div>
 
 <div class="topbar">
@@ -580,15 +580,15 @@ body {
 
 <div class="main">
   <div class="mission-card">
-    <div class="mc-ref" id="mRef">Mission ¬∑ BC-2025-0847</div>
-    <div class="mc-route" id="mRoute">Paris <em>‚Üí</em> Lyon</div>
-    <div class="mc-meta" id="mMeta">BMW S√©rie 3 ¬∑ IJ-789-KL ¬∑ M. Bathily</div>
+    <div class="mc-ref" id="mRef">Mission ∑ BC-2025-0847</div>
+    <div class="mc-route" id="mRoute">Paris <em>?</em> Lyon</div>
+    <div class="mc-meta" id="mMeta">BMW SÈrie 3 ∑ IJ-789-KL ∑ M. Bathily</div>
   </div>
 
   <div class="gps-btn-wrap">
     <button class="gps-main-btn idle" id="gpsBtn" onclick="toggleGPS()">
       <i class="fas fa-location-arrow" id="gpsBtnIco"></i>
-      <span id="gpsBtnLabel">D√©marrer</span>
+      <span id="gpsBtnLabel">DÈmarrer</span>
     </button>
     <div class="gps-btn-sub" id="gpsBtnSub">Appuyer pour partager votre position</div>
   </div>
@@ -604,35 +604,35 @@ body {
   </div>
 
   <div class="gps-stats">
-    <div class="gps-stat"><div class="gs-lbl">Positions envoy√©es</div><div class="gs-val" id="statCount">0</div><div class="gs-sub">Cette session</div></div>
-    <div class="gps-stat"><div class="gs-lbl">Derni√®re mise √† jour</div><div class="gs-val" id="statLast" style="font-size:0.9rem">‚Äî</div><div class="gs-sub" id="statAgo">En attente</div></div>
-    <div class="gps-stat"><div class="gs-lbl">Pr√©cision GPS</div><div class="gs-val" id="statAcc">‚Äî<em> m</em></div><div class="gs-sub" id="statAccLbl">‚Äî</div></div>
-    <div class="gps-stat"><div class="gs-lbl">Vitesse</div><div class="gs-val" id="statSpeed">‚Äî<em> km/h</em></div><div class="gs-sub" id="statSpeedSub">‚Äî</div></div>
+    <div class="gps-stat"><div class="gs-lbl">Positions envoyÈes</div><div class="gs-val" id="statCount">0</div><div class="gs-sub">Cette session</div></div>
+    <div class="gps-stat"><div class="gs-lbl">DerniËre mise ‡ jour</div><div class="gs-val" id="statLast" style="font-size:0.9rem">ó</div><div class="gs-sub" id="statAgo">En attente</div></div>
+    <div class="gps-stat"><div class="gs-lbl">PrÈcision GPS</div><div class="gs-val" id="statAcc">ó<em> m</em></div><div class="gs-sub" id="statAccLbl">ó</div></div>
+    <div class="gps-stat"><div class="gs-lbl">Vitesse</div><div class="gs-val" id="statSpeed">ó<em> km/h</em></div><div class="gs-sub" id="statSpeedSub">ó</div></div>
   </div>
 
   <div class="pos-card">
-    <div class="pos-row"><span class="pos-lbl">Latitude</span><span class="pos-val accent" id="posLat">‚Äî</span></div>
-    <div class="pos-row"><span class="pos-lbl">Longitude</span><span class="pos-val accent" id="posLng">‚Äî</span></div>
-    <div class="pos-row"><span class="pos-lbl">Altitude</span><span class="pos-val" id="posAlt">‚Äî</span></div>
-    <div class="pos-row"><span class="pos-lbl">Cap</span><span class="pos-val" id="posHead">‚Äî</span></div>
-    <div class="pos-row"><span class="pos-lbl">Donn√©es envoy√©es vers</span><span class="pos-val" id="posFirebase" style="font-size:0.7rem; color:var(--gray-mid)">missions/BC-2025-0847/gps</span></div>
+    <div class="pos-row"><span class="pos-lbl">Latitude</span><span class="pos-val accent" id="posLat">ó</span></div>
+    <div class="pos-row"><span class="pos-lbl">Longitude</span><span class="pos-val accent" id="posLng">ó</span></div>
+    <div class="pos-row"><span class="pos-lbl">Altitude</span><span class="pos-val" id="posAlt">ó</span></div>
+    <div class="pos-row"><span class="pos-lbl">Cap</span><span class="pos-val" id="posHead">ó</span></div>
+    <div class="pos-row"><span class="pos-lbl">DonnÈes envoyÈes vers</span><span class="pos-val" id="posFirebase" style="font-size:0.7rem; color:var(--gray-mid)">missions/BC-2025-0847/gps</span></div>
   </div>
 
   <div class="controls">
     <button class="ctrl-btn ctrl-ghost" onclick="openModal()"><i class="fas fa-edit"></i> Changer mission</button>
     <button class="ctrl-btn ctrl-ghost" onclick="window.location.href='bon-de-mission.html'"><i class="fas fa-file"></i> Bon mission</button>
-    <button class="ctrl-btn ctrl-green" id="arriveBtn" onclick="signalArrivee()" style="display:none"><i class="fas fa-flag-checkered"></i> Signaler l'arriv√©e</button>
+    <button class="ctrl-btn ctrl-green" id="arriveBtn" onclick="signalArrivee()" style="display:none"><i class="fas fa-flag-checkered"></i> Signaler l'arrivÈe</button>
   </div>
 
   <div class="done-banner" id="doneBanner">
     <i class="fas fa-check-circle"></i>
-    <p><strong>Arriv√©e signal√©e !</strong> Le client et le dispatch ont √©t√© notifi√©s. GPS arr√™t√© automatiquement.</p>
+    <p><strong>ArrivÈe signalÈe !</strong> Le client et le dispatch ont ÈtÈ notifiÈs. GPS arrÍtÈ automatiquement.</p>
   </div>
 
   <div class="log-card">
     <div class="log-title">Journal GPS <button class="log-clear" onclick="clearLog()">Effacer</button></div>
     <div class="log-list" id="logList">
-      <div class="log-item"><span class="log-time">--:--</span><i class="fas fa-info-circle log-ico info"></i><span>En attente de d√©marrage‚Ä¶</span></div>
+      <div class="log-item"><span class="log-time">--:--</span><i class="fas fa-info-circle log-ico info"></i><span>En attente de dÈmarrageÖ</span></div>
     </div>
   </div>
 </div>
@@ -642,8 +642,8 @@ body {
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
     <h3 class="modal-h">Saisir la <em>mission</em></h3>
-    <div class="f-grp"><label>R√©f√©rence mission</label><input type="text" id="inputRef" value="BC-2025-0847"></div>
-    <div class="f-grp"><label>Trajet</label><input type="text" id="inputRoute" value="Paris ‚Üí Lyon"></div>
+    <div class="f-grp"><label>RÈfÈrence mission</label><input type="text" id="inputRef" value="BC-2025-0847"></div>
+    <div class="f-grp"><label>Trajet</label><input type="text" id="inputRoute" value="Paris ? Lyon"></div>
     <div class="modal-btns">
       <button class="btn-red" onclick="saveMission()">Confirmer</button>
       <button class="btn-outline" onclick="closeModal()">Annuler</button>
@@ -664,7 +664,7 @@ if(window.matchMedia('(hover: hover)').matches) {
 const STATE = {
   active: false,
   missionRef: 'BC-2025-0847',
-  missionRoute: 'Paris ‚Üí Lyon',
+  missionRoute: 'Paris ? Lyon',
   intervalSec: 10,
   watchId: null,
   intervalId: null,
@@ -677,14 +677,14 @@ const STATE = {
 // ========== INIT ==========
 document.addEventListener('firebase-ready', () => {
   STATE.firebaseOk = true;
-  log('info', 'Firebase connect√© ‚Äî pr√™t √† envoyer');
+  log('info', 'Firebase connectÈ ó prÍt ‡ envoyer');
 });
 setTimeout(() => {
   if(!STATE.firebaseOk && typeof window._db !== 'undefined') {
     STATE.firebaseOk = true;
-    log('info', 'Firebase connect√© ‚Äî pr√™t √† envoyer');
+    log('info', 'Firebase connectÈ ó prÍt ‡ envoyer');
   } else if(!STATE.firebaseOk) {
-    log('warn', 'Firebase non configur√© ‚Äî mode d√©mo uniquement');
+    log('warn', 'Firebase non configurÈ ó mode dÈmo uniquement');
   }
 }, 500);
 
@@ -698,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (paramRef) {
     STATE.missionRef = paramRef;
     const refEl = document.getElementById('mRef');
-    if (refEl) refEl.textContent = 'Mission ¬∑ ' + paramRef;
+    if (refEl) refEl.textContent = 'Mission ∑ ' + paramRef;
     
     // Update data path indicator in UI
     const pathEl = document.getElementById('posFirebase');
@@ -707,12 +707,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (paramRoute) {
     STATE.missionRoute = paramRoute;
     const routeEl = document.getElementById('mRoute');
-    if (routeEl) routeEl.innerHTML = paramRoute.replace('‚ûî', '<em>‚Üí</em>');
+    if (routeEl) routeEl.innerHTML = paramRoute.replace('?', '<em>?</em>');
   }
   if (paramVehicle) {
     const metaEl = document.getElementById('mMeta');
     if (metaEl) {
-      metaEl.textContent = paramVehicle + ' ¬∑ M. Bathily';
+      metaEl.textContent = paramVehicle + ' ∑ M. Bathily';
     }
   }
 
@@ -721,25 +721,25 @@ document.addEventListener('DOMContentLoaded', () => {
       if(r.state === 'granted') document.getElementById('permOverlay').classList.add('hidden');
     }).catch(() => {});
   }
-  log('info', 'Syst√®me GPS Bathily initialis√©');
+  log('info', 'SystËme GPS Bathily initialisÈ');
   setInterval(updateAgo, 1000);
 });
 
 // ========== PERMISSION ==========
 function requestPermission() {
   if(!navigator.geolocation) {
-    document.getElementById('permMsg').textContent = 'La g√©olocalisation n\'est pas support√©e.';
+    document.getElementById('permMsg').textContent = 'La gÈolocalisation n\'est pas supportÈe.';
     return;
   }
   navigator.geolocation.getCurrentPosition(
     pos => {
       document.getElementById('permOverlay').classList.add('hidden');
-      log('ok', 'Acc√®s GPS autoris√©');
+      log('ok', 'AccËs GPS autorisÈ');
       updatePosDisplay(pos);
     },
     err => {
-      log('err', 'Permission refus√©e : ' + err.message);
-      document.getElementById('permMsg').textContent = 'Permission refus√©e. Allez dans les param√®tres de votre navigateur pour autoriser la g√©olocalisation.';
+      log('err', 'Permission refusÈe : ' + err.message);
+      document.getElementById('permMsg').textContent = 'Permission refusÈe. Allez dans les paramËtres de votre navigateur pour autoriser la gÈolocalisation.';
     },
     {enableHighAccuracy: true, timeout: 10000}
   );
@@ -753,12 +753,12 @@ function toggleGPS() {
 
 function startGPS() {
   if(!navigator.geolocation) {
-    log('err', 'G√©olocalisation non support√©e');
+    log('err', 'GÈolocalisation non supportÈe');
     return;
   }
   STATE.active = true;
   updateUI();
-  log('ok', 'D√©marrage du partage GPS‚Ä¶');
+  log('ok', 'DÈmarrage du partage GPSÖ');
   navigator.geolocation.getCurrentPosition(
     pos => { STATE.lastPos = pos; sendPosition(pos); updatePosDisplay(pos); },
     err => handleGeoError(err),
@@ -786,7 +786,7 @@ function stopGPS() {
   if(STATE.intervalId) clearInterval(STATE.intervalId);
   if(STATE.watchId) navigator.geolocation.clearWatch(STATE.watchId);
   updateUI();
-  log('info', 'Partage GPS arr√™t√©');
+  log('info', 'Partage GPS arrÍtÈ');
   if(STATE.firebaseOk && window._db && window._ref && window._set) {
     const statusRef = window._ref(window._db, `missions/${STATE.missionRef}/gps/status`);
     window._set(statusRef, 'offline').catch(() => {});
@@ -815,12 +815,12 @@ function sendPosition(pos) {
   if(STATE.firebaseOk && window._db && window._ref && window._set) {
     const posRef = window._ref(window._db, `missions/${STATE.missionRef}/gps/current`);
     window._set(posRef, data)
-      .then(() => log('ok', `Position envoy√©e ‚Äî ${data.lat.toFixed(5)}, ${data.lng.toFixed(5)} ¬∑ Pr√©cision ${data.accuracy}m`))
+      .then(() => log('ok', `Position envoyÈe ó ${data.lat.toFixed(5)}, ${data.lng.toFixed(5)} ∑ PrÈcision ${data.accuracy}m`))
       .catch(err => { updateBadge(false); log('err', 'Erreur Firebase : ' + err.message); });
     const histRef = window._ref(window._db, `missions/${STATE.missionRef}/gps/history/${pos.timestamp}`);
     window._set(histRef, data).catch(() => {});
   } else {
-    log('info', `[D√âMO] Position ‚Äî ${data.lat.toFixed(5)}, ${data.lng.toFixed(5)} ¬∑ Pr√©cision ${data.accuracy}m`);
+    log('info', `[D…MO] Position ó ${data.lat.toFixed(5)}, ${data.lng.toFixed(5)} ∑ PrÈcision ${data.accuracy}m`);
   }
 }
 
@@ -828,16 +828,16 @@ function sendPosition(pos) {
 function updatePosDisplay(pos) {
   if(!pos) return;
   const c = pos.coords;
-  document.getElementById('posLat').textContent = c.latitude.toFixed(6) + '¬∞';
-  document.getElementById('posLng').textContent = c.longitude.toFixed(6) + '¬∞';
-  document.getElementById('posAlt').textContent = c.altitude ? Math.round(c.altitude) + ' m' : '‚Äî';
-  document.getElementById('posHead').textContent = c.heading ? Math.round(c.heading) + '¬∞' : '‚Äî';
+  document.getElementById('posLat').textContent = c.latitude.toFixed(6) + '∞';
+  document.getElementById('posLng').textContent = c.longitude.toFixed(6) + '∞';
+  document.getElementById('posAlt').textContent = c.altitude ? Math.round(c.altitude) + ' m' : 'ó';
+  document.getElementById('posHead').textContent = c.heading ? Math.round(c.heading) + '∞' : 'ó';
   const acc = Math.round(c.accuracy);
   document.getElementById('statAcc').innerHTML = acc + '<em> m</em>';
-  document.getElementById('statAccLbl').textContent = acc < 10 ? 'üü¢ Excellente' : acc < 30 ? 'üü° Bonne' : acc < 100 ? 'üü† Correcte' : 'üî¥ Faible';
+  document.getElementById('statAccLbl').textContent = acc < 10 ? '?? Excellente' : acc < 30 ? '?? Bonne' : acc < 100 ? '?? Correcte' : '?? Faible';
   const spd = c.speed ? Math.round(c.speed * 3.6) : 0;
   document.getElementById('statSpeed').innerHTML = spd + '<em> km/h</em>';
-  document.getElementById('statSpeedSub').textContent = spd === 0 ? '√Ä l\'arr√™t' : spd < 50 ? 'En ville' : spd < 110 ? 'Route' : 'Autoroute';
+  document.getElementById('statSpeedSub').textContent = spd === 0 ? '¿ l\'arrÍt' : spd < 50 ? 'En ville' : spd < 110 ? 'Route' : 'Autoroute';
 }
 
 function updateUI() {
@@ -849,11 +849,11 @@ function updateUI() {
     btn.className = 'gps-main-btn active';
     ico.className = 'fas fa-broadcast-tower';
     lbl.textContent = 'En direct';
-    sub.textContent = 'Position partag√©e avec le client';
+    sub.textContent = 'Position partagÈe avec le client';
   } else {
     btn.className = 'gps-main-btn idle';
     ico.className = 'fas fa-location-arrow';
-    lbl.textContent = 'D√©marrer';
+    lbl.textContent = 'DÈmarrer';
     sub.textContent = 'Appuyer pour partager votre position';
     updateBadge(false);
   }
@@ -871,10 +871,10 @@ function updateAgo() {
   document.getElementById('statAgo').textContent = sec < 60 ? `Il y a ${sec}s` : `Il y a ${Math.round(sec/60)}min`;
 }
 
-// ========== SIGNALER ARRIV√âE ==========
+// ========== SIGNALER ARRIV…E ==========
 function signalArrivee() {
   if(!STATE.lastPos) { alert('Aucune position GPS disponible.'); return; }
-  if(!confirm('Confirmer l\'arriv√©e √† destination ?\n\nLe client et le dispatch seront notifi√©s.')) return;
+  if(!confirm('Confirmer l\'arrivÈe ‡ destination ?\n\nLe client et le dispatch seront notifiÈs.')) return;
   if(STATE.firebaseOk && window._db && window._ref && window._set) {
     const currentRef = window._ref(window._db, `missions/${STATE.missionRef}/gps/current`);
     window._set(currentRef, {
@@ -888,11 +888,11 @@ function signalArrivee() {
   stopGPS();
   document.getElementById('arriveBtn').style.display = 'none';
   document.getElementById('doneBanner').classList.add('show');
-  log('ok', 'üèÅ Arriv√©e signal√©e ‚Äî mission termin√©e');
+  log('ok', '?? ArrivÈe signalÈe ó mission terminÈe');
 }
 
 function handleGeoError(err) {
-  const msgs = {1:'Permission refus√©e',2:'Position indisponible',3:'D√©lai d√©pass√©'};
+  const msgs = {1:'Permission refusÈe',2:'Position indisponible',3:'DÈlai dÈpassÈ'};
   log('err', 'GPS : ' + (msgs[err.code] || err.message));
   updateBadge(false);
 }
@@ -912,7 +912,7 @@ function setInterval2(sec, btn) {
       );
     }, sec * 1000);
   }
-  log('info', `Intervalle r√©gl√© √† ${sec}s`);
+  log('info', `Intervalle rÈglÈ ‡ ${sec}s`);
 }
 
 // ========== LOG ==========
@@ -926,7 +926,7 @@ function log(type, msg) {
   list.insertBefore(item, list.firstChild);
   while(list.children.length > 30) list.removeChild(list.lastChild);
 }
-function clearLog() { document.getElementById('logList').innerHTML = '<div class="log-item"><span class="log-time">--:--</span><i class="fas fa-info-circle log-ico info"></i><span>Journal vid√©</span></div>'; }
+function clearLog() { document.getElementById('logList').innerHTML = '<div class="log-item"><span class="log-time">--:--</span><i class="fas fa-info-circle log-ico info"></i><span>Journal vidÈ</span></div>'; }
 function escapeHtml(str) { return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
 
 // ========== MODAL MISSION ==========
@@ -935,10 +935,10 @@ function closeModal() { document.getElementById('modal').classList.remove('open'
 function saveMission() {
   STATE.missionRef = document.getElementById('inputRef').value.trim() || STATE.missionRef;
   STATE.missionRoute = document.getElementById('inputRoute').value.trim() || STATE.missionRoute;
-  document.getElementById('mRef').textContent = 'Mission ¬∑ ' + STATE.missionRef;
-  document.getElementById('mRoute').innerHTML = STATE.missionRoute.replace('‚Üí', '<em>‚Üí</em>');
+  document.getElementById('mRef').textContent = 'Mission ∑ ' + STATE.missionRef;
+  document.getElementById('mRoute').innerHTML = STATE.missionRoute.replace('?', '<em>?</em>');
   document.getElementById('posFirebase').textContent = `missions/${STATE.missionRef}/gps`;
-  log('info', `Mission mise √† jour : ${STATE.missionRef}`);
+  log('info', `Mission mise ‡ jour : ${STATE.missionRef}`);
   closeModal();
 }
 
@@ -952,7 +952,7 @@ async function keepAwake() {
     try {
       wakeLock = await navigator.wakeLock.request('screen');
       wakeLock.addEventListener('release', () => { wakeLock = null; });
-      log('info', '√âcran maintenu allum√©');
+      log('info', '…cran maintenu allumÈ');
     } catch(e) {}
   }
 }
