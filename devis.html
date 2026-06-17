@@ -674,7 +674,22 @@ footer {
           <button class="np-btn" id="npBtn" onclick="toggleNP()" style="background:none; border:none; color:var(--bordeaux); font-weight:600; cursor:pointer; margin-bottom:12px;"><i class="fas fa-lock-open"></i> Je ne souhaite pas communiquer ma plaque</button>
           <div class="np-form" id="npForm" style="display:none; background:#F9FAFB; border-radius:20px; padding:16px; margin-bottom:16px;">
             <div class="np-note">Ces informations sont nécessaires pour organiser votre transport.</div>
-            <div class="f-row"><div class="f-grp"><label>Marque</label><input type="text" id="np-marque" placeholder="Ex : BMW"></div><div class="f-grp"><label>Modèle</label><input type="text" id="np-modele" placeholder="Ex : Série 5"></div></div>
+            <div class="f-row">
+              <div class="f-grp">
+                <label>Marque</label>
+                <select id="np-marque-select" style="width:100%; padding:12px 16px; border:1px solid var(--border-light); border-radius:16px; font-size:1rem; background:#fff; cursor:pointer;">
+                  <option value="">Choisir une marque</option>
+                </select>
+                <input type="hidden" id="np-marque" name="marque">
+              </div>
+              <div class="f-grp">
+                <label>Modèle</label>
+                <select id="np-modele-select" disabled style="width:100%; padding:12px 16px; border:1px solid var(--border-light); border-radius:16px; font-size:1rem; background:#fff; cursor:pointer;">
+                  <option value="">Choisir un modèle</option>
+                </select>
+                <input type="hidden" id="np-modele" name="modele">
+              </div>
+            </div>
             <div class="f-row"><div class="f-grp"><label>Année</label><input type="number" id="np-annee" placeholder="2022"></div><div class="f-grp"><label>Carburant</label><select id="np-carbu"><option>Essence</option><option>Diesel</option><option>Hybride</option><option>Électrique</option></select></div></div>
             <div class="f-grp"><label>Valeur estimée</label><select id="np-valeur"><option>Moins de 10 000 €</option><option>10 000 – 30 000 €</option><option>30 000 – 60 000 €</option><option>Plus de 60 000 €</option></select></div>
           </div>
@@ -1471,6 +1486,98 @@ window.addEventListener('scroll', () => {
 document.getElementById('mDate').min = new Date().toISOString().split('T')[0];
 const revealObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); }); }, { threshold: 0.15 });
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ========== AUTOCOMPLÉTION VÉHICULES (BASE JSON) ==========
+(function() {
+  let vehiculesDB = null;
+
+  async function loadVehiculesDB() {
+    if (vehiculesDB) return vehiculesDB;
+    try {
+      const response = await fetch('data/vehicules-fr.json');
+      vehiculesDB = await response.json();
+      return vehiculesDB;
+    } catch (err) {
+      console.error('Erreur chargement base véhicules:', err);
+      return null;
+    }
+  }
+
+  async function populateMarques() {
+    const db = await loadVehiculesDB();
+    if (!db) return;
+
+    const marqueSelect = document.getElementById('np-marque-select');
+    if (!marqueSelect) return;
+
+    marqueSelect.innerHTML = '<option value="">Choisir une marque</option>';
+    
+    db.marques.sort((a, b) => a.nom.localeCompare(b.nom)).forEach(marque => {
+      const option = document.createElement('option');
+      option.value = marque.nom;
+      option.textContent = marque.nom;
+      marqueSelect.appendChild(option);
+    });
+  }
+
+  async function populateModeles(marqueNom) {
+    const db = await loadVehiculesDB();
+    if (!db) return;
+
+    const modeleSelect = document.getElementById('np-modele-select');
+    const modeleHidden = document.getElementById('np-modele');
+    if (!modeleSelect) return;
+
+    modeleSelect.innerHTML = '<option value="">Choisir un modèle</option>';
+    
+    if (!marqueNom) {
+      modeleSelect.disabled = true;
+      if (modeleHidden) modeleHidden.value = '';
+      return;
+    }
+
+    const marque = db.marques.find(m => m.nom === marqueNom);
+    if (marque && marque.modeles) {
+      marque.modeles.sort().forEach(modele => {
+        const option = document.createElement('option');
+        option.value = modele;
+        option.textContent = modele;
+        modeleSelect.appendChild(option);
+      });
+      modeleSelect.disabled = false;
+    }
+    
+    if (modeleHidden) modeleHidden.value = '';
+  }
+
+  function initVehiculeAutocomplete() {
+    populateMarques();
+
+    const marqueSelect = document.getElementById('np-marque-select');
+    const modeleSelect = document.getElementById('np-modele-select');
+    const marqueHidden = document.getElementById('np-marque');
+    const modeleHidden = document.getElementById('np-modele');
+    
+    if (marqueSelect) {
+      marqueSelect.addEventListener('change', (e) => {
+        populateModeles(e.target.value);
+        if (marqueHidden) marqueHidden.value = e.target.value;
+      });
+    }
+    
+    if (modeleSelect) {
+      modeleSelect.addEventListener('change', (e) => {
+        if (modeleHidden) modeleHidden.value = e.target.value;
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initVehiculeAutocomplete);
+  } else {
+    initVehiculeAutocomplete();
+  }
+})();
 </script>
 </body>
 </html>

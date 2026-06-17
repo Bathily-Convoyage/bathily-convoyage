@@ -1,0 +1,124 @@
+{
+  "marques": [
+    {
+      "nom": "Renault",
+      "modeles": ["Clio", "Captur", "Mégane", "Scénic", "Duster", "Talisman", "Arkana", "Kadjar", "Zoe", "Twingo", "Kangoo", "Master", "Trafic"]
+    },
+    {
+      "nom": "Peugeot",
+      "modeles": ["208", "2008", "308", "3008", "508", "5008", "Rifter", "Traveller", "Boxer", "Expert", "408"]
+    },
+    {
+      "nom": "Citroën",
+      "modeles": ["C3", "C3 Aircross", "C4", "C4 Cactus", "C5 Aircross", "Berlingo", "Spacetourer", "Jumper", "Jumpy", "AMI"]
+    },
+    {
+      "nom": "Dacia",
+      "modeles": ["Sandero", "Duster", "Jogger", "Spring", "Lodgy", "Dokker"]
+    },
+    {
+      "nom": "Volkswagen",
+      "modeles": ["Polo", "Golf", "Tiguan", "T-Roc", "T-Cross", "Passat", "Arteon", "ID.3", "ID.4", "ID.5", "Touran", "Sharan", "Caddy", "Transporter"]
+    },
+    {
+      "nom": "BMW",
+      "modeles": ["Série 1", "Série 2", "Série 3", "Série 4", "Série 5", "Série 7", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "iX", "i4", "iX3"]
+    },
+    {
+      "nom": "Mercedes",
+      "modeles": ["Classe A", "Classe B", "Classe C", "Classe E", "Classe S", "GLA", "GLB", "GLC", "GLE", "GLS", "EQA", "EQB", "EQC", "Vito", "Sprinter"]
+    },
+    {
+      "nom": "Audi",
+      "modeles": ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q4", "Q5", "Q7", "Q8", "e-tron", "e-tron GT"]
+    },
+    {
+      "nom": "Toyota",
+      "modeles": ["Aygo", "Yaris", "Corolla", "C-HR", "RAV4", "Highlander", "Camry", "Prius", "Land Cruiser", "Hilux", "Proace", "bZ4X"]
+    },
+    {
+      "nom": "Ford",
+      "modeles": ["Fiesta", "Focus", "Puma", "Kuga", "Explorer", "Mustang", "Transit", "Transit Custom", "Ranger"]
+    },
+    {
+      "nom": "Hyundai",
+      "modeles": ["i10", "i20", "i30", "Bayon", "Kona", "Tucson", "Santa Fe", "Ioniq 5", "Ioniq 6"]
+    },
+    {
+      "nom": "Kia",
+      "modeles": ["Picanto", "Rio", "Stonic", "Ceed", "Sportage", "Sorento", "EV6", "Niro"]
+    },
+    {
+      "nom": "Opel",
+      "modeles": ["Corsa", "Astra", "Mokka", "Grandland", "Crossland", "Zafira", "Combo", "Vivaro", "Movano"]
+    },
+    {
+      "nom": "Fiat",
+      "modeles": ["500", "500X", "500L", "Panda", "Tipo", "Doblo", "Fiorino", "Ducato"]
+    },
+    {
+      "nom": "Nissan",
+      "modeles": ["Micra", "Juke", "Qashqai", "X-Trail", "Ariya", "Leaf", "Navara", "NV200"]
+    },
+    {
+      "nom": "Seat",
+      "modeles": ["Ibiza", "Arona", "Leon", "Ateca", "Tarraco"]
+    },
+    {
+      "nom": "Skoda",
+      "modeles": ["Fabia", "Scala", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Enyaq"]
+    },
+    {
+      "nom": "Honda",
+      "modeles": ["Jazz", "Civic", "HR-V", "CR-V", "e", "ZR-V"]
+    },
+    {
+      "nom": "Mazda",
+      "modeles": ["2", "3", "6", "CX-3", "CX-30", "CX-5", "CX-60", "MX-30", "MX-5"]
+    },
+    {
+      "nom": "Mitsubishi",
+      "modeles": ["Space Star", "ASX", "Eclipse Cross", "Outlander", "L200"]
+    },
+    {
+      "nom": "Suzuki",
+      "modeles": ["Swift", "Baleno", "Ignis", "Vitara", "S-Cross", "Across", "Jimny"]
+    },
+    {
+      "nom": "Mini",
+      "modeles": ["3 portes", "5 portes", "Clubman", "Countryman", "Cabrio", "Electric"]
+    },
+    {
+      "nom": "Tesla",
+      "modeles": ["Model 3", "Model Y", "Model S", "Model X", "Cybertruck"]
+    },
+    {
+      "nom": "Porsche",
+      "modeles": ["911", "718", "Taycan", "Panamera", "Macan", "Cayenne"]
+    },
+    {
+      "nom": "Jeep",
+      "modeles": ["Renegade", "Compass", "Cherokee", "Grand Cherokee", "Wrangler", "Avenger"]
+    },
+    {
+      "nom": "Land Rover",
+      "modeles": ["Defender", "Discovery", "Discovery Sport", "Range Rover", "Range Rover Sport", "Range Rover Velar", "Range Rover Evoque"]
+    },
+    {
+      "nom": "Jaguar",
+      "modeles": ["XE", "XF", "F-Pace", "E-Pace", "I-Pace", "F-Type"]
+    },
+    {
+      "nom": "Alfa Romeo",
+      "modeles": ["Tonale", "Stelvio", "Giulia"]
+    },
+    {
+      "nom": "Lexus",
+      "modeles": ["UX", "NX", "RX", "RZ", "IS", "ES", "LS"]
+    },
+    {
+      "nom": "Volvo",
+      "modeles": ["XC40", "XC60", "XC90", "C40", "S60", "S90", "V60", "V90", "EX30", "EX90"]
+    }
+  ]
+}
