@@ -1570,7 +1570,7 @@
   <script>
     // ========== DEVIATION/CDN FALLBACKS ==========
     if (typeof supabase === 'undefined') {
-      alert("?? Erreur de chargement : Le module de base de donn�es (Supabase) n'a pas pu �tre charg�.\n\nCela est g�n�ralement d� � un bloqueur de publicit� (comme uBlock Origin, AdBlock) ou un bloqueur de scripts sur votre navigateur.\n\nVeuillez d�sactiver votre bloqueur de publicit� pour ce site ou essayer en mode Navigation Priv�e sans extensions pour vous connecter.");
+      alert("⭐ Erreur de chargement : Le module de base de donn�es (Supabase) n'a pas pu �tre charg�.\n\nCela est g�n�ralement d� � un bloqueur de publicit� (comme uBlock Origin, AdBlock) ou un bloqueur de scripts sur votre navigateur.\n\nVeuillez d�sactiver votre bloqueur de publicit� pour ce site ou essayer en mode Navigation Priv�e sans extensions pour vous connecter.");
     }
 
     if (typeof Swal === 'undefined') {
@@ -1593,7 +1593,7 @@
     let _sbCli = null;
     function getSBCli() {
       if (typeof supabase === 'undefined') {
-        alert("?? Base de donn�es inaccessible. Veuillez d�sactiver votre bloqueur de publicit�.");
+        alert("⭐ Base de donn�es inaccessible. Veuillez d�sactiver votre bloqueur de publicit�.");
         throw new Error("Supabase non d�fini");
       }
       if (!_sbCli) _sbCli = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
@@ -1710,14 +1710,14 @@
           });
 
           Swal.fire({
-            title: 'E-mail envoy� ! ??',
+            title: 'E-mail envoy� ! ⭐',
             text: 'Un e-mail contenant les instructions de r�initialisation a �t� envoy� (simul� en d�veloppement).',
             icon: 'success',
             confirmButtonColor: 'var(--bordeaux)'
           });
         } catch (e) {
           Swal.fire({
-            title: 'E-mail envoy� ! ??',
+            title: 'E-mail envoy� ! ⭐',
             text: 'Un e-mail contenant les instructions de r�initialisation a �t� simul� avec succ�s.',
             icon: 'success',
             confirmButtonColor: 'var(--bordeaux)'
@@ -1901,7 +1901,7 @@
       document.getElementById('clientLoginOverlay').style.display = 'none';
       initClientDashboard([]);
 
-      Swal.fire({ title: 'Compte cr�� ! ??', text: `Bienvenue sur votre espace, ${prenom}.`, icon: 'success', timer: 2500, showConfirmButton: false });
+      Swal.fire({ title: 'Compte cr�� ! ⭐', text: `Bienvenue sur votre espace, ${prenom}.`, icon: 'success', timer: 2500, showConfirmButton: false });
     }
 
     async function uploadDocumentClient(fileInputId, docType) {
@@ -2429,7 +2429,7 @@
     const paymentStatus = urlParams.get('payment_status');
     if (paymentStatus === 'success') {
       Swal.fire({
-        title: 'Paiement valid� ! ??',
+        title: 'Paiement valid� ! ⭐',
         text: 'Votre r�glement a �t� trait� avec succ�s. La mission est maintenant pr�te � d�marrer.',
         icon: 'success',
         confirmButtonColor: 'var(--bordeaux)'
@@ -2711,7 +2711,7 @@
         Swal.fire('Erreur', error.message, 'error');
       } else {
         if (document.getElementById('supportMessage')) document.getElementById('supportMessage').value = '';
-        Swal.fire({ title: 'Message envoy� ! ??', text: 'Notre �quipe vous r�pondra sous 24h.', icon: 'success', confirmButtonColor: 'var(--bordeaux)' });
+        Swal.fire({ title: 'Message envoy� ! ⭐', text: 'Notre �quipe vous r�pondra sous 24h.', icon: 'success', confirmButtonColor: 'var(--bordeaux)' });
       }
     }
 

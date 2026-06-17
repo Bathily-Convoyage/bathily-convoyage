@@ -6,10 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Panel Admin â€” Bathily Convoyage</title>
   <meta name="description"
-    content="Administration complÃ¨te de Bathily Convoyage : gestion des missions, clients, convoyeurs, tarifs, rÃ©munÃ©rations et facturation.">
+    content="Administration complète de Bathily Convoyage : gestion des missions, clients, convoyeurs, tarifs, rémunérations et facturation.">
   <meta property="og:title" content="Panel Admin â€” Bathily Convoyage">
   <meta property="og:description"
-    content="Interface d'administration pour gÃ©rer les convoyages, les utilisateurs et les paramÃ¨tres financiers.">
+    content="Interface d'administration pour gérer les convoyages, les utilisateurs et les paramètres financiers.">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚗%3C/text%3E%3C/svg%3E">
   <link
@@ -22,7 +22,7 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   <style>
-    /* ========== VOTRE STYLE EXISTANT (non modifiÃ©) ========== */
+    /* ========== VOTRE STYLE EXISTANT (non modifié) ========== */
     * {
       margin: 0;
       padding: 0;
@@ -1067,7 +1067,7 @@
       display: block;
     }
 
-    /* Auth overlay (modifiÃ© pour Supabase) */
+    /* Auth overlay (modifié pour Supabase) */
     #authOverlay {
       position: fixed;
       inset: 0;
@@ -1421,7 +1421,7 @@
   <div id="authOverlay">
     <div class="auth-box">
       <div class="auth-logo">Bathily-Convoyage<span>.</span></div>
-      <div class="auth-sub">AccÃ¨s administrateur sÃ©curisÃ©</div>
+      <div class="auth-sub">Accès administrateur sécurisé</div>
       <input type="email" id="adminEmailInput" class="auth-input" placeholder="Email admin" autocomplete="email">
       <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Mot de passe"
         autocomplete="current-password">
@@ -1448,7 +1448,7 @@
         <span class="user-name" id="adminName">Admin</span>
       </div>
       <button class="topbar-logout" type="button" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>
-        DÃ©connexion</button>
+        Déconnexion</button>
     </div>
   </div>
 
@@ -1468,14 +1468,14 @@
         <div class="nav-item" data-tab="convoyeurs"><i class="fas fa-truck"></i> Convoyeurs</div>
         <div class="nav-item" data-tab="candidatures"><i class="fas fa-user-plus"></i> Candidatures <span
             class="nav-badge pulsing" id="candidaturesBadge" style="display:none">0</span></div>
-        <div class="nav-item" data-tab="reseau-admin"><i class="fas fa-comments"></i> RÃ©seau (ModÃ©ration)</div>
+        <div class="nav-item" data-tab="reseau-admin"><i class="fas fa-comments"></i> Réseau (Modération)</div>
       </div>
       <div class="nav-section">
-        <div class="nav-section-lbl">ParamÃ¨tres</div>
+        <div class="nav-section-lbl">Paramètres</div>
         <div class="nav-item" data-tab="tarifs-config"><i class="fas fa-euro-sign"></i> Tarifs & Prix</div>
-        <div class="nav-item" data-tab="remuneration"><i class="fas fa-hand-holding-usd"></i> RÃ©munÃ©rations</div>
+        <div class="nav-item" data-tab="remuneration"><i class="fas fa-hand-holding-usd"></i> Rémunérations</div>
         <div class="nav-item" data-tab="packs-config"><i class="fas fa-box"></i> Packs & Options</div>
-        <div class="nav-item" data-tab="systeme"><i class="fas fa-cog"></i> SystÃ¨me</div>
+        <div class="nav-item" data-tab="systeme"><i class="fas fa-cog"></i> Système</div>
       </div>
       <div class="nav-section">
         <div class="nav-section-lbl">Finances</div>
@@ -1542,7 +1542,7 @@
             <div class="mini-ico"><i class="fas fa-exclamation-triangle"></i></div>
             <div>
               <div class="mini-val">1</div>
-              <div class="mini-lbl">Incident signalÃ©</div>
+              <div class="mini-lbl">Incident signalé</div>
             </div>
           </div>
           <div class="mini-card" data-nav="facturation">
@@ -1561,14 +1561,14 @@
           </div>
         </div>
         <div class="sec-title">
-          <h2 class="sec-h">Missions <em>rÃ©centes</em></h2>
+          <h2 class="sec-h">Missions <em>récentes</em></h2>
           <div class="sec-actions"><button class="btn-red" data-nav="missions"><i class="fas fa-eye"></i> Voir
               tout</button></div>
         </div>
         <table class="data-table">
           <thead>
             <tr>
-              <th>RÃ©f.</th>
+              <th>Réf.</th>
               <th>Client</th>
               <th>Trajet</th>
               <th>Convoyeur</th>
@@ -1598,8 +1598,8 @@
               style="padding:8px 14px; border:1px solid var(--border-light); border-radius:40px; font-size:0.75rem; font-weight:600; background:#F9FAFB; outline:none;">
               <option value="all">Tous les statuts</option>
               <option value="pending">En attente</option>
-              <option value="approved">ApprouvÃ©s</option>
-              <option value="rejected">RefusÃ©s</option>
+              <option value="approved">Approuvés</option>
+              <option value="rejected">Refusés</option>
             </select>
             <button class="btn-outline" id="refreshCandidaturesBtn"><i class="fas fa-sync"></i> Actualiser</button>
           </div>
@@ -1616,41 +1616,41 @@
         </div>
         <div class="sec-title">
           <h2 class="sec-h">Toutes les <em>missions</em></h2>
-          <div class="sec-actions"><button class="btn-red" id="createMissionBtn"><i class="fas fa-plus"></i> CrÃ©er une
+          <div class="sec-actions"><button class="btn-red" id="createMissionBtn"><i class="fas fa-plus"></i> Créer une
               mission</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div>
         </div>
         <div class="filter-bar">
           <span class="filter-label"><i class="fas fa-filter"></i> Filtres</span>
           <select id="filter-status">
             <option value="">Tous les statuts</option>
-            <option value="available">Sur le marchÃ©</option>
-            <option value="planned">PlanifiÃ©e</option>
+            <option value="available">Sur le marché</option>
+            <option value="planned">Planifiée</option>
             <option value="in_progress">En cours</option>
-            <option value="completed">TerminÃ©e</option>
-            <option value="cancelled">AnnulÃ©e</option>
+            <option value="completed">Terminée</option>
+            <option value="cancelled">Annulée</option>
           </select>
           <select id="filter-mode">
             <option value="">Tous les modes</option>
             <option value="route">Route</option>
             <option value="plateau">Plateau</option>
           </select>
-          <input type="text" id="filter-search" placeholder="RÃ©fÃ©rence, client, convoyeurâ€¦"
+          <input type="text" id="filter-search" placeholder="Référence, client, convoyeurâ€¦"
             style="min-width:200px; border-radius:40px;">
           <button class="btn-outline" id="resetFiltersBtn" style="padding:6px 14px; font-size:0.6rem;"><i
-              class="fas fa-times"></i> RÃ©initialiser</button>
+              class="fas fa-times"></i> Réinitialiser</button>
           <span class="auto-refresh-badge"><span class="auto-refresh-dot"></span> Auto-refresh 30s</span>
         </div>
         <table class="data-table">
           <thead>
             <tr>
-              <th>RÃ©f.</th>
+              <th>Réf.</th>
               <th>Client</th>
               <th>Trajet</th>
               <th>Convoyeur</th>
               <th>Mode</th>
               <th>Pack</th>
               <th>Montant HT</th>
-              <th>RÃ©m. convoyeur</th>
+              <th>Rém. convoyeur</th>
               <th>Marge</th>
               <th>Paiement</th>
               <th>Statut</th>
@@ -1668,17 +1668,17 @@
           <h1 class="dash-hello">Devis <em>en attente</em></h1>
         </div>
         <div class="alert alert-warn" id="devisAlertBanner"><i class="fas fa-clock"></i> 4 devis en attente de
-          confirmation â€” rÃ©ponse requise sous 2h</div>
+          confirmation â€” réponse requise sous 2h</div>
         <table class="data-table">
           <thead>
             <tr>
-              <th>RÃ©f.</th>
+              <th>Réf.</th>
               <th>Client</th>
               <th>Trajet</th>
               <th>Type</th>
               <th>Pack</th>
-              <th>Montant estimÃ©</th>
-              <th>ReÃ§u le</th>
+              <th>Montant estimé</th>
+              <th>Reçu le</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -1692,7 +1692,7 @@
           <h1 class="dash-hello">Base <em>clients</em></h1>
         </div>
         <div class="sec-title">
-          <h2 class="sec-h" id="clientsCountHeader">0 clients <em>enregistrÃ©s</em></h2>
+          <h2 class="sec-h" id="clientsCountHeader">0 clients <em>enregistrés</em></h2>
           <div class="sec-actions"><button class="btn-red" id="newClientBtn"><i class="fas fa-plus"></i>
               Ajouter</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div>
         </div>
@@ -1703,9 +1703,9 @@
             <tr>
               <th>Client</th>
               <th>Email</th>
-              <th>TÃ©lÃ©phone</th>
-              <th>SociÃ©tÃ©</th>
-              <th>CrÃ©Ã© le</th>
+              <th>Téléphone</th>
+              <th>Société</th>
+              <th>Créé le</th>
               <th>Statut</th>
               <th>Actions</th>
             </tr>
@@ -1724,7 +1724,7 @@
           <h1 class="dash-hello">Gestion <em>convoyeurs</em></h1>
         </div>
         <div class="sec-title">
-          <h2 class="sec-h" id="convoyeursCount">Convoyeurs <em>certifiÃ©s</em></h2>
+          <h2 class="sec-h" id="convoyeursCount">Convoyeurs <em>certifiés</em></h2>
           <div class="sec-actions"><button class="btn-red" id="addConvoyeurBtn"><i class="fas fa-plus"></i>
               Ajouter</button></div>
         </div>
@@ -1751,11 +1751,11 @@
         </table>
       </div>
 
-      <!-- RÃ©seau (ModÃ©ration) -->
+      <!-- Réseau (Modération) -->
       <div class="tab-content" id="tab-reseau-admin">
         <div class="dash-header">
-          <h1 class="dash-hello">RÃ©seau <em>(ModÃ©ration)</em></h1>
-          <div class="dash-date">CommunautÃ© Bathily Â· <span style="color:var(--bordeaux)">Vue Administrateur</span>
+          <h1 class="dash-hello">Réseau <em>(Modération)</em></h1>
+          <div class="dash-date">Communauté Bathily Â· <span style="color:var(--bordeaux)">Vue Administrateur</span>
           </div>
         </div>
         <div class="social-layout">
@@ -1771,14 +1771,14 @@
                           a 2h Â· Lyon</span></div>
                     </div>
                   </div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c"
-                    onclick="Swal.fire('SuccÃ¨s', 'Post supprimÃ© (simulation)', 'success')"><i
+                    onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i
                       class="fas fa-trash"></i></button>
                 </div>
-                <div class="post-body">Astuce du jour : pour les longs trajets en Ã©tÃ©, vÃ©rifiez toujours la pression des
-                  pneus avant le dÃ©part â€” surtout pour les Tesla qui chauffent plus vite en mode auto-pilote. J'ai Ã©vitÃ©
+                <div class="post-body">Astuce du jour : pour les longs trajets en été, vérifiez toujours la pression des
+                  pneus avant le départ â€” surtout pour les Tesla qui chauffent plus vite en mode auto-pilote. J'ai évité
                   un incident hier sur l'A7. ðŸš—âš¡</div>
                 <div class="post-tags"><span class="post-tag">#conseil</span><span
-                    class="post-tag">#sÃ©curitÃ©</span><span class="post-tag">#EV</span></div>
+                    class="post-tag">#sécurité</span><span class="post-tag">#EV</span></div>
                 <div class="post-actions">
                   <div style="display:flex;gap:20px"><button class="post-action liked"><i class="fas fa-heart"></i>
                       14</button><button class="post-action" onclick="toggleComments(this)"><i
@@ -1795,14 +1795,14 @@
                           a 5h Â· Bordeaux</span></div>
                     </div>
                   </div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c"
-                    onclick="Swal.fire('SuccÃ¨s', 'Post supprimÃ© (simulation)', 'success')"><i
+                    onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i
                       class="fas fa-trash"></i></button>
                 </div>
-                <div class="post-body">Mission terminÃ©e ! Paris â†’ Bordeaux avec une R1250GS. Trajet impeccable, client
-                  ravi, 5 Ã©toiles dÃ©crochÃ©es. La clÃ© : l'Ã©tat des lieux en photos bien fait dÃ¨s le dÃ©part, Ã§a Ã©vite tout
+                <div class="post-body">Mission terminée ! Paris â†’ Bordeaux avec une R1250GS. Trajet impeccable, client
+                  ravi, 5 étoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout
                   litige. Merci Bathily pour la logistique au top. ðŸï¸</div>
                 <div class="post-tags"><span class="post-tag">#moto</span><span class="post-tag">#mission</span><span
-                    class="post-tag">#5Ã©toiles</span></div>
+                    class="post-tag">#5étoiles</span></div>
                 <div class="post-actions">
                   <div style="display:flex;gap:20px"><button class="post-action"><i class="fas fa-heart"></i>
                       22</button><button class="post-action" onclick="toggleComments(this)"><i
@@ -1819,12 +1819,12 @@
                           Â· Marseille</span></div>
                     </div>
                   </div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c"
-                    onclick="Swal.fire('SuccÃ¨s', 'Post supprimÃ© (simulation)', 'success')"><i
+                    onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i
                       class="fas fa-trash"></i></button>
                 </div>
-                <div class="post-body">Question Ã  la communautÃ© : quelqu'un a-t-il une bonne adresse pour se restaurer
+                <div class="post-body">Question Ã  la communauté : quelqu'un a-t-il une bonne adresse pour se restaurer
                   sur l'A9 entre Montpellier et Marseille ? J'ai une mission demain matin et je cherche un spot propre
-                  pour la pause dÃ©jeuner.</div>
+                  pour la pause déjeuner.</div>
                 <div class="post-tags"><span class="post-tag">#routeA9</span><span class="post-tag">#conseil</span>
                 </div>
                 <div class="post-actions">
@@ -1837,19 +1837,19 @@
           </div>
           <div class="social-sidebar">
             <div class="ss-card">
-              <div class="ss-title">Actions ModÃ©rateur</div>
+              <div class="ss-title">Actions Modérateur</div>
               <div style="font-size:0.75rem; color:var(--gray-mid); margin-bottom:12px; line-height:1.5;">En tant
-                qu'administrateur, vous pouvez voir tous les messages publiÃ©s par les convoyeurs et les supprimer si
+                qu'administrateur, vous pouvez voir tous les messages publiés par les convoyeurs et les supprimer si
                 besoin.</div>
               <button class="btn-red" style="width:100%"
-                onclick="Swal.fire('Annonce Globale', 'La publication globale est en cours de dÃ©veloppement.', 'info')"><i
+                onclick="Swal.fire('Annonce Globale', 'La publication globale est en cours de développement.', 'info')"><i
                   class="fas fa-bullhorn"></i> Publier une annonce</button>
             </div>
             <div class="ss-card">
               <div class="ss-title">Hashtags populaires</div>
               <div class="zone-tags">
                 <span class="zone-tag">#conseil</span>
-                <span class="zone-tag">#sÃ©curitÃ©</span>
+                <span class="zone-tag">#sécurité</span>
                 <span class="zone-tag">#EV</span>
                 <span class="zone-tag">#moto</span>
               </div>
@@ -1864,7 +1864,7 @@
           <h1 class="dash-hello">Tarifs & <em>Prix</em></h1>
         </div>
         <div class="alert alert-warn"><i class="fas fa-exclamation-triangle"></i> Toute modification s'applique
-          immÃ©diatement aux nouveaux devis. Les devis en cours ne sont pas affectÃ©s.</div>
+          immédiatement aux nouveaux devis. Les devis en cours ne sont pas affectés.</div>
         <div class="config-card">
           <div class="config-card-header"><span class="config-card-title"><i class="fas fa-road"></i> Convoyage
               routier</span><span class="config-card-tag">Tarif client</span></div>
@@ -1925,7 +1925,7 @@
         </div>
         <div class="config-card">
           <div class="config-card-header"><span class="config-card-title"><i class="fas fa-sliders-h"></i> Options &
-              SupplÃ©ments</span><span class="config-card-tag">Tarif client</span></div>
+              Suppléments</span><span class="config-card-tag">Tarif client</span></div>
           <div class="config-grid">
             <div class="config-item"><label>Option Urgence</label>
               <div class="editable-num"><input class="num-input" type="number" value="30" step="1" id="optUrgence"><span
@@ -1940,16 +1940,16 @@
         </div>
       </div>
 
-      <!-- RÃ©munÃ©rations convoyeurs -->
+      <!-- Rémunérations convoyeurs -->
       <div class="tab-content" id="tab-remuneration">
         <div class="dash-header">
-          <h1 class="dash-hello">RÃ©munÃ©rations <em>convoyeurs</em></h1>
+          <h1 class="dash-hello">Rémunérations <em>convoyeurs</em></h1>
         </div>
-        <div class="alert alert-info"><i class="fas fa-info-circle"></i> Ces paramÃ¨tres dÃ©finissent la structure de
-          rÃ©munÃ©ration par dÃ©faut.</div>
+        <div class="alert alert-info"><i class="fas fa-info-circle"></i> Ces paramètres définissent la structure de
+          rémunération par défaut.</div>
         <div class="config-card">
           <div class="config-card-header"><span class="config-card-title">Taux de base convoyeurs</span><span
-              class="config-card-tag">RÃ©munÃ©ration</span></div>
+              class="config-card-tag">Rémunération</span></div>
           <div class="config-grid">
             <div class="config-item"><label>Taux auto standard (â‚¬/km)</label>
               <div class="editable-num"><input class="num-input" type="number" value="0.47" step="0.01"
@@ -1975,7 +1975,7 @@
               <div class="editable-num"><input class="num-input" type="number" value="60" step="5" id="remMin"><span
                   class="num-unit">â‚¬</span><button class="save-inline" data-config="remMin">Enreg.</button></div>
             </div>
-            <div class="config-item"><label>ComplÃ©ment plateau / mission</label>
+            <div class="config-item"><label>Complément plateau / mission</label>
               <div class="editable-num"><input class="num-input" type="number" value="40" step="5" id="remPlateau"><span
                   class="num-unit">â‚¬ fixe</span><button class="save-inline" data-config="remPlateau">Enreg.</button>
               </div>
@@ -2004,23 +2004,23 @@
               <div class="editable-num"><input class="num-input" type="number" value="120" step="5" id="prime20"><span
                   class="num-unit">â‚¬/mois</span><button class="save-inline" data-config="prime20">Enreg.</button></div>
             </div>
-            <div class="config-item"><label>IndemnitÃ© carburant</label>
+            <div class="config-item"><label>Indemnité carburant</label>
               <div class="editable-num"><input class="num-input" type="number" value="0.08" step="0.01"
                   id="indCarb"><span class="num-unit">â‚¬/km retour</span><button class="save-inline"
                   data-config="indCarb">Enreg.</button></div>
             </div>
-            <div class="config-item"><label>IndemnitÃ© repas / jour</label>
+            <div class="config-item"><label>Indemnité repas / jour</label>
               <div class="editable-num"><input class="num-input" type="number" value="15" step="1" id="indRepas"><span
                   class="num-unit">â‚¬/jour</span><button class="save-inline" data-config="indRepas">Enreg.</button></div>
             </div>
           </div>
         </div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Simulateur de rÃ©munÃ©ration</span><span
+          <div class="config-card-header"><span class="config-card-title">Simulateur de rémunération</span><span
               class="config-card-tag">Outil</span></div>
           <div class="f-row" style="gap:16px;">
             <div class="f-grp"><label>Distance (km)</label><input type="number" id="simKm" value="470"></div>
-            <div class="f-grp"><label>Type vÃ©hicule</label><select id="simType">
+            <div class="f-grp"><label>Type véhicule</label><select id="simType">
                 <option value="auto">Automobile</option>
                 <option value="moto">Moto</option>
               </select></div>
@@ -2033,12 +2033,12 @@
             style="background:var(--bordeaux-light); border-radius:20px; padding:20px; display:flex; gap:32px; flex-wrap:wrap; margin-top:16px;">
             <div>
               <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid);">
-                RÃ©munÃ©ration convoyeur</div>
+                Rémunération convoyeur</div>
               <div style="font-size:1.8rem; font-weight:700; color:var(--bordeaux)" id="simResultRem">220â‚¬</div>
             </div>
             <div>
               <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid);">Tarif
-                client estimÃ©</div>
+                client estimé</div>
               <div style="font-size:1.8rem; font-weight:700; color:var(--bordeaux)" id="simResultTarif">470â‚¬</div>
             </div>
             <div>
@@ -2060,19 +2060,19 @@
               class="config-card-tag" id="tag_pack_starter">Inclus</span></div>
           <div class="f-grp"><label>Nom du pack</label><input type="text" id="name_pack_starter" value="Starter"></div>
           <div class="f-grp"><label>Prestations incluses (une par ligne)</label><textarea id="features_pack_starter"
-              rows="4">Logistique de convoyage standard&#10;Double assurance RC Pro&#10;Identification SIV&#10;Ã‰tat des lieux numÃ©risÃ© (20 photos)&#10;Suivi GPS basique</textarea>
+              rows="4">Logistique de convoyage standard&#10;Double assurance RC Pro&#10;Identification SIV&#10;Ã‰tat des lieux numérisé (20 photos)&#10;Suivi GPS basique</textarea>
           </div><button class="btn-red" data-pack="pack_starter"><i class="fas fa-save"></i> Sauvegarder</button>
         </div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Pack SÃ©rÃ©nitÃ©</span><span
+          <div class="config-card-header"><span class="config-card-title">Pack Sérénité</span><span
               class="config-card-tag" id="tag_pack_serenite">+49â‚¬ HT</span></div>
           <div class="f-row">
-            <div class="f-grp"><label>Nom</label><input type="text" id="name_pack_serenite" value="SÃ©rÃ©nitÃ©"></div>
+            <div class="f-grp"><label>Nom</label><input type="text" id="name_pack_serenite" value="Sérénité"></div>
             <div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" id="price_pack_serenite"
                 value="49" step="1" style="font-size:1rem; width:100px"> â‚¬</div>
           </div>
           <div class="f-grp"><label>Prestations incluses</label><textarea id="features_pack_serenite"
-              rows="3">Nettoyage extÃ©rieur haute pression&#10;Mise Ã  niveau carburant / charge&#10;Check-list digitale par email</textarea>
+              rows="3">Nettoyage extérieur haute pression&#10;Mise Ã  niveau carburant / charge&#10;Check-list digitale par email</textarea>
           </div><button class="btn-red" data-pack="pack_serenite"><i class="fas fa-save"></i> Sauvegarder</button>
         </div>
         <div class="config-card">
@@ -2084,7 +2084,7 @@
                 value="129" step="1" style="font-size:1rem; width:100px"> â‚¬</div>
           </div>
           <div class="f-grp"><label>Prestations incluses</label><textarea id="features_pack_excellence"
-              rows="3">PrÃ©paration esthÃ©tique complÃ¨te&#10;Full Energy â€” 100% charge / plein&#10;Cadeau premium personnalisÃ©</textarea>
+              rows="3">Préparation esthétique complète&#10;Full Energy â€” 100% charge / plein&#10;Cadeau premium personnalisé</textarea>
           </div><button class="btn-red" data-pack="pack_excellence"><i class="fas fa-save"></i> Sauvegarder</button>
         </div>
       </div>
@@ -2106,13 +2106,13 @@
             </div>
           </div>
 
-          <!-- Carte PayÃ©es (Cliquable) -->
+          <!-- Carte Payées (Cliquable) -->
           <div class="mini-card" style="cursor: pointer; transition: background 0.2s;" onclick="filterFactures('paid')"
             onmouseover="this.style.background='#f0ebe1'" onmouseout="this.style.background='white'">
             <div class="mini-ico"><i class="fas fa-check-circle" style="color:var(--success)"></i></div>
             <div>
               <div class="mini-val" id="factureKpiPaid">0</div>
-              <div class="mini-lbl">Factures payÃ©es</div>
+              <div class="mini-lbl">Factures payées</div>
             </div>
           </div>
 
@@ -2127,7 +2127,7 @@
             </div>
           </div>
 
-          <!-- Bouton pour tout rÃ©afficher -->
+          <!-- Bouton pour tout réafficher -->
           <div class="mini-card" style="cursor: pointer; justify-content: center; transition: background 0.2s;"
             onclick="filterFactures('all')" onmouseover="this.style.background='#f0ebe1'"
             onmouseout="this.style.background='white'">
@@ -2139,8 +2139,8 @@
         <!-- FIN DU BLOC MIS Ã€ JOUR -->
 
         <div class="sec-title">
-          <h2 class="sec-h">Factures <em>rÃ©centes</em></h2>
-          <div class="sec-actions"><button class="btn-red"><i class="fas fa-plus"></i> CrÃ©er</button><button
+          <h2 class="sec-h">Factures <em>récentes</em></h2>
+          <div class="sec-actions"><button class="btn-red"><i class="fas fa-plus"></i> Créer</button><button
               class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div>
         </div>
         <table class="data-table">
@@ -2179,7 +2179,7 @@
           <div class="stat-card">
             <div class="stat-ico"><i class="fas fa-check-circle"></i></div>
             <div class="stat-val" id="kpi-completed">â€”</div>
-            <div class="stat-lbl">Missions terminÃ©es</div>
+            <div class="stat-lbl">Missions terminées</div>
           </div>
           <div class="stat-card">
             <div class="stat-ico"><i class="fas fa-euro-sign"></i></div>
@@ -2206,7 +2206,7 @@
         </div>
         <div class="sep"></div>
         <div class="sec-title">
-          <h2 class="sec-h">RÃ©partition <em>par mode</em></h2>
+          <h2 class="sec-h">Répartition <em>par mode</em></h2>
         </div>
         <div class="config-grid" style="margin-top:16px" id="analyticsDistrib">
           <div class="config-card" style="text-align:center">
@@ -2222,15 +2222,15 @@
           <div class="config-card" style="text-align:center">
             <div style="font-size:2.5rem; font-weight:700; color:var(--success)" id="kpi-available">â€”</div>
             <div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Missions
-              sur le marchÃ©</div>
+              sur le marché</div>
           </div>
         </div>
       </div>
 
-      <!-- SystÃ¨me -->
+      <!-- Système -->
       <div class="tab-content" id="tab-systeme">
         <div class="dash-header">
-          <h1 class="dash-hello">ParamÃ¨tres <em>systÃ¨me</em></h1>
+          <h1 class="dash-hello">Paramètres <em>système</em></h1>
         </div>
         <div class="config-card">
           <div class="config-card-header"><span class="config-card-title">Informations entreprise</span></div>
@@ -2241,7 +2241,7 @@
           <div class="f-row">
             <div class="f-grp"><label>Email contact</label><input type="email" value="contact@bathily-convoyage.fr">
             </div>
-            <div class="f-grp"><label>TÃ©lÃ©phone urgence</label><input type="tel" value="+33 X XX XX XX XX"></div>
+            <div class="f-grp"><label>Téléphone urgence</label><input type="tel" value="+33 X XX XX XX XX"></div>
           </div>
           <div class="f-grp"><label>TVA applicable</label>
             <div class="editable-num"><input class="num-input" type="number" value="20" step="1"
@@ -2250,14 +2250,14 @@
           </div><button class="btn-red" style="margin-top:12px"><i class="fas fa-save"></i> Sauvegarder</button>
         </div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">FonctionnalitÃ©s actives</span></div>
+          <div class="config-card-header"><span class="config-card-title">Fonctionnalités actives</span></div>
           <div class="toggle-wrap">
             <div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span
               class="toggle-lbl">Configurateur Smart Quote en ligne</span>
           </div>
           <div class="toggle-wrap">
             <div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span
-              class="toggle-lbl">RÃ©seau social convoyeurs</span>
+              class="toggle-lbl">Réseau social convoyeurs</span>
           </div>
           <div class="toggle-wrap">
             <div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span
@@ -2284,23 +2284,23 @@
   <div class="modal-overlay" id="modalMission">
     <div class="modal-box"><button class="modal-close" onclick="closeModal('modalMission')"><i
           class="fas fa-times"></i></button>
-      <h3 class="modal-h">CrÃ©er une <em>mission</em></h3>
+      <h3 class="modal-h">Créer une <em>mission</em></h3>
       <p class="modal-sub">Saisie manuelle d'une nouvelle mission</p>
       <div class="f-row">
         <div class="f-grp"><label>Client</label><input type="text" id="manual-client" placeholder="Nom ou email client">
         </div>
         <div class="f-grp"><label>Convoyeur</label><select id="manual-convoyeur">
-            <option value="">MarchÃ© (aucun convoyeur assignÃ©)</option>
+            <option value="">Marché (aucun convoyeur assigné)</option>
           </select></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Ville de dÃ©part</label><input type="text" id="manual-depart" placeholder="Paris">
+        <div class="f-grp"><label>Ville de départ</label><input type="text" id="manual-depart" placeholder="Paris">
         </div>
-        <div class="f-grp"><label>Ville d'arrivÃ©e</label><input type="text" id="manual-arrivee" placeholder="Lyon">
+        <div class="f-grp"><label>Ville d'arrivée</label><input type="text" id="manual-arrivee" placeholder="Lyon">
         </div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Type vÃ©hicule</label><select id="manual-vehicule">
+        <div class="f-grp"><label>Type véhicule</label><select id="manual-vehicule">
             <option value="Automobile">Automobile</option>
             <option value="Moto">Moto</option>
           </select></div>
@@ -2312,24 +2312,24 @@
       <div class="f-row">
         <div class="f-grp"><label>Pack</label><select id="manual-pack">
             <option value="starter">Starter</option>
-            <option value="sÃ©rÃ©nitÃ©">SÃ©rÃ©nitÃ©</option>
+            <option value="sérénité">Sérénité</option>
             <option value="excellence">Excellence</option>
           </select></div>
-        <div class="f-grp"><label>Date souhaitÃ©e</label><input type="date" id="manual-date"></div>
+        <div class="f-grp"><label>Date souhaitée</label><input type="date" id="manual-date"></div>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Montant Client HT (â‚¬)</label><input type="number" id="manual-price" placeholder="340">
         </div>
-        <div class="f-grp"><label>RÃ©munÃ©ration Convoyeur (â‚¬)</label><input type="number" id="manual-remuneration"
+        <div class="f-grp"><label>Rémunération Convoyeur (â‚¬)</label><input type="number" id="manual-remuneration"
             placeholder="Laisser vide pour calcul auto"></div>
       </div>
       <div
         style="margin-bottom: 15px; background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">Marge
-          brute estimÃ©e :</span><strong id="manual-marge-val"
+          brute estimée :</span><strong id="manual-marge-val"
           style="font-size: 1.15rem; color: var(--success);">0â‚¬</strong>
       </div>
-      <div class="modal-btns"><button class="btn-red" id="createMissionManualBtn"><i class="fas fa-plus"></i> CrÃ©er la
+      <div class="modal-btns"><button class="btn-red" id="createMissionManualBtn"><i class="fas fa-plus"></i> Créer la
           mission</button><button class="btn-outline" onclick="closeModal('modalMission')">Annuler</button></div>
     </div>
   </div>
@@ -2341,19 +2341,19 @@
       <input type="hidden" id="client-id">
 
       <div class="f-row">
-        <div class="f-grp"><label>PrÃ©nom</label><input type="text" id="clientPrenom"></div>
+        <div class="f-grp"><label>Prénom</label><input type="text" id="clientPrenom"></div>
         <div class="f-grp"><label>Nom</label><input type="text" id="clientNom"></div>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Email</label><input type="email" id="clientEmail"></div>
-        <div class="f-grp"><label>TÃ©lÃ©phone</label><input type="tel" id="clientTel"></div>
+        <div class="f-grp"><label>Téléphone</label><input type="tel" id="clientTel"></div>
       </div>
 
       <div style="border-top: 1px solid var(--border-light); margin: 15px 0; padding-top: 10px;"><strong
           style="font-size: 0.7rem; color: var(--bordeaux); text-transform: uppercase;">Facturation &
           Entreprise</strong></div>
 
-      <div class="f-grp"><label>SociÃ©tÃ© / Nom de l'entreprise</label><input type="text" id="clientSociete"></div>
+      <div class="f-grp"><label>Société / Nom de l'entreprise</label><input type="text" id="clientSociete"></div>
       <div class="f-row">
         <div class="f-grp"><label>SIRET</label><input type="text" id="clientSiret" placeholder="Ex: 123 456 789 00012">
         </div>
@@ -2367,7 +2367,7 @@
       </div>
 
       <div class="f-grp"><label>Notes internes (visibles uniquement par l'admin)</label><textarea id="clientNotes"
-          rows="2" placeholder="Remarques particuliÃ¨res, client VIP, etc..."></textarea></div>
+          rows="2" placeholder="Remarques particulières, client VIP, etc..."></textarea></div>
 
       <div class="modal-btns">
         <button class="btn-red" id="saveClientBtn"><i class="fas fa-save"></i> Enregistrer</button>
@@ -2380,12 +2380,12 @@
           class="fas fa-times"></i></button>
       <h3 class="modal-h">Nouveau <em>convoyeur</em></h3>
       <div class="f-row">
-        <div class="f-grp"><label>PrÃ©nom</label><input type="text" id="conv-prenom"></div>
+        <div class="f-grp"><label>Prénom</label><input type="text" id="conv-prenom"></div>
         <div class="f-grp"><label>Nom</label><input type="text" id="conv-nom"></div>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Email</label><input type="email" id="conv-email"></div>
-        <div class="f-grp"><label>TÃ©lÃ©phone</label><input type="tel" id="conv-phone"></div>
+        <div class="f-grp"><label>Téléphone</label><input type="tel" id="conv-phone"></div>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Taux auto (â‚¬/km)</label><input type="number" id="conv-taux-auto" value="0.47"
@@ -2394,7 +2394,7 @@
             step="0.01"></div>
       </div>
       <div class="f-grp"><label>Zone d'intervention</label><input type="text" id="conv-zone"
-          placeholder="IDF, RhÃ´ne-Alpesâ€¦"></div>
+          placeholder="IDF, Rhône-Alpesâ€¦"></div>
       <div class="f-grp"><label>Niveau</label><select id="conv-niveau">
           <option value="Standard">Standard</option>
           <option value="Senior">Senior</option>
@@ -2407,16 +2407,16 @@
   <div class="modal-overlay" id="modalMissionDetails">
     <div class="modal-box" style="max-width:700px;"><button class="modal-close"
         onclick="closeModal('modalMissionDetails')"><i class="fas fa-times"></i></button>
-      <h3 class="modal-h">DÃ©tails de la <em>mission</em></h3><input type="hidden" id="md-id">
+      <h3 class="modal-h">Détails de la <em>mission</em></h3><input type="hidden" id="md-id">
       <div class="f-row">
-        <div class="f-grp"><label>RÃ©fÃ©rence</label><input type="text" id="md-ref" readonly
+        <div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly
             style="background:#f5f5f5; cursor:not-allowed;"></div>
         <div class="f-grp"><label>Statut</label><select id="md-status">
-            <option value="available">Sur le marchÃ©</option>
-            <option value="planned">PlanifiÃ©e</option>
+            <option value="available">Sur le marché</option>
+            <option value="planned">Planifiée</option>
             <option value="in_progress">En cours</option>
-            <option value="completed">TerminÃ©e</option>
-            <option value="cancelled">AnnulÃ©e</option>
+            <option value="completed">Terminée</option>
+            <option value="cancelled">Annulée</option>
           </select></div>
       </div>
       <div class="f-row">
@@ -2424,24 +2424,24 @@
         <div class="f-grp"><label>Email Client</label><input type="email" id="md-client-email"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>DÃ©part</label><input type="text" id="md-depart"></div>
-        <div class="f-grp"><label>ArrivÃ©e</label><input type="text" id="md-arrivee"></div>
+        <div class="f-grp"><label>Départ</label><input type="text" id="md-depart"></div>
+        <div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee"></div>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Montant HT (â‚¬)</label><input type="number" id="md-price"></div>
-        <div class="f-grp"><label>RÃ©munÃ©ration Convoyeur (â‚¬)</label><input type="number" id="md-rem"></div>
+        <div class="f-grp"><label>Rémunération Convoyeur (â‚¬)</label><input type="number" id="md-rem"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>VÃ©hicule</label><input type="text" id="md-vehicule"></div>
+        <div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule"></div>
         <div class="f-grp"><label>Paiement Statut</label><select id="md-pay-status">
             <option value="pending">En attente</option>
-            <option value="paid">PayÃ©</option>
+            <option value="paid">Payé</option>
           </select></div>
       </div>
       <div
         style="margin-bottom: 15px; background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">Marge
-          brute estimÃ©e :</span><strong id="md-marge" style="font-size: 1.15rem; color: var(--success);">0â‚¬</strong>
+          brute estimée :</span><strong id="md-marge" style="font-size: 1.15rem; color: var(--success);">0â‚¬</strong>
       </div>
       <div class="modal-btns"><button class="btn-red" id="saveMissionDetailsBtn"><i class="fas fa-save"></i>
           Sauvegarder</button><button class="btn-outline" onclick="closeModal('modalMissionDetails')">Annuler</button>
@@ -2452,16 +2452,16 @@
   <script>
 
     document.addEventListener('DOMContentLoaded', () => {
-      // SÃ©lectionne tous les Ã©lÃ©ments agissant comme des toggles
+      // Sélectionne tous les éléments agissant comme des toggles
       const toggles = document.querySelectorAll('[role="switch"], .toggle-btn');
 
       toggles.forEach(toggle => {
-        // SÃ©curitÃ© : s'assure qu'un Ã©tat initial existe pour Ã©viter les bugs au premier clic
+        // Sécurité : s'assure qu'un état initial existe pour éviter les bugs au premier clic
         if (!toggle.hasAttribute('aria-checked')) {
           toggle.setAttribute('aria-checked', 'false');
         }
 
-        // Appliquer le style de transition fluide au dÃ©marrage (effet premium)
+        // Appliquer le style de transition fluide au démarrage (effet premium)
         toggle.style.transition = 'background-color 0.2s ease, box-shadow 0.2s ease';
 
         // Gestion du clic
@@ -2469,27 +2469,27 @@
           const isChecked = this.getAttribute('aria-checked') === 'true';
           const nextState = !isChecked;
 
-          // Inverse l'Ã©tat ARIA
+          // Inverse l'état ARIA
           this.setAttribute('aria-checked', nextState);
 
           // Application stricte des couleurs de la charte v2.0
           if (nextState) {
-            // Ã‰tat ActivÃ© : Bleu Brand ou Jaune/Or selon l'importance de l'action
+            // Ã‰tat Activé : Bleu Brand ou Jaune/Or selon l'importance de l'action
             this.style.backgroundColor = 'var(--primary, #0A4D68)';
             this.style.boxShadow = '0 4px 12px rgba(10, 77, 104, 0.2)';
           } else {
-            // Ã‰tat DÃ©sactivÃ© : Gris neutre / Sable discret
-            this.style.backgroundColor = '#E8E1D9'; // Sable (Bordures/SÃ©parations)
+            // Ã‰tat Désactivé : Gris neutre / Sable discret
+            this.style.backgroundColor = '#E8E1D9'; // Sable (Bordures/Séparations)
             this.style.boxShadow = 'none';
           }
 
-          console.log(`Toggle ID: ${this.id || 'Inconnu'} changÃ© vers : ${nextState}`);
+          console.log(`Toggle ID: ${this.id || 'Inconnu'} changé vers : ${nextState}`);
         });
 
-        // Support du clavier pour la navigation (Tab + Espace/EntrÃ©e)
+        // Support du clavier pour la navigation (Tab + Espace/Entrée)
         toggle.addEventListener('keydown', function (e) {
           if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault(); // Ã‰vite le dÃ©filement de page avec la touche Espace
+            e.preventDefault(); // Ã‰vite le défilement de page avec la touche Espace
             this.click();
           }
         });
@@ -2525,7 +2525,7 @@
       try {
         const { data, error } = await sb.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        // VÃ©rifier que l'utilisateur a le rÃ´le admin dans la table clients
+        // Vérifier que l'utilisateur a le rôle admin dans la table clients
         const { data: profile, error: profileError } = await sb
           .from('clients')
           .select('role, prenom, nom')
@@ -2567,7 +2567,7 @@
       if (!sb) return false;
       const { data: { session } } = await sb.auth.getSession();
       if (!session) return false;
-      // VÃ©rifier le rÃ´le admin dans la table clients
+      // Vérifier le rôle admin dans la table clients
       const { data: profile } = await sb
         .from('clients')
         .select('role, prenom, nom')
@@ -2585,7 +2585,7 @@
     }
 
 
-    // ========== FONCTIONS D'AFFICHAGE (inchangÃ©es pour l'essentiel) ==========
+    // ========== FONCTIONS D'AFFICHAGE (inchangées pour l'essentiel) ==========
     function formatDate(dateStr) {
       if (!dateStr) return 'â€”';
       const d = new Date(dateStr);
@@ -2614,7 +2614,7 @@
       const { data: missions, error } = await client.from('missions').select('montant_ht, date_mission, created_at');
       if (error) return;
       const monthlyCA = {};
-      const monthNames = ['Jan', 'FÃ©v', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'AoÃ»', 'Sep', 'Oct', 'Nov', 'DÃ©c'];
+      const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
       missions?.forEach(m => {
         const dateStr = m.date_mission || m.created_at;
         if (!dateStr || !m.montant_ht) return;
@@ -2644,7 +2644,7 @@
       }
       _allClientsData = data || [];
       const countHeader = document.getElementById('clientsCountHeader');
-      if (countHeader) countHeader.innerHTML = `${_allClientsData.length} clients <em>enregistrÃ©s</em>`;
+      if (countHeader) countHeader.innerHTML = `${_allClientsData.length} clients <em>enregistrés</em>`;
       renderClientsTable(_allClientsData);
     }
 
@@ -2652,7 +2652,7 @@
       const tbody = document.getElementById('clientsTableBody');
       if (!tbody) return;
       if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Aucun client trouvÃ©.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Aucun client trouvé.</td></tr>';
         return;
       }
       tbody.innerHTML = data.map(c => {
@@ -2692,7 +2692,7 @@
       const telephone = document.getElementById('clientTel').value.trim();
       const societe = document.getElementById('clientSociete').value.trim();
       if (!prenom || !nom || !email) {
-        Swal.fire('Champs requis', 'PrÃ©nom, nom et email sont obligatoires.', 'warning');
+        Swal.fire('Champs requis', 'Prénom, nom et email sont obligatoires.', 'warning');
         return;
       }
       Swal.fire({ title: 'Enregistrement...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
@@ -2701,14 +2701,14 @@
       if (id) {
         ({ error } = await sb.from('clients').update({ prenom, nom, email, telephone, societe }).eq('id', id));
       } else {
-        // GÃ©nÃ©ration d'un mot de passe temporaire sÃ©curisÃ©
+        // Génération d'un mot de passe temporaire sécurisé
         const tempPassword = 'Bathily2025!' + Math.random().toString(36).slice(2, 7);
         const { data: authData, error: authError } = await sb.auth.signUp({ email, password: tempPassword });
         if (authError) {
-          Swal.fire('Erreur', 'Impossible de crÃ©er l\'utilisateur auth : ' + authError.message, 'error');
+          Swal.fire('Erreur', 'Impossible de créer l\'utilisateur auth : ' + authError.message, 'error');
           return;
         }
-        // On n'enregistre PAS le mot de passe en base. L'auth est gÃ©rÃ©e par Supabase Auth.
+        // On n'enregistre PAS le mot de passe en base. L'auth est gérée par Supabase Auth.
         const { error: insertError } = await sb.from('clients').insert([{ prenom, nom, email, telephone, societe, role: 'client' }]);
         error = insertError;
         if (!error) {
@@ -2719,7 +2719,7 @@
         Swal.fire('Erreur', 'Impossible de sauvegarder le client : ' + error.message, 'error');
       } else {
         closeModal('modalClient');
-        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: id ? 'Client mis Ã  jour !' : 'Client crÃ©Ã© !', timer: 2000 });
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: id ? 'Client mis Ã  jour !' : 'Client créé !', timer: 2000 });
         loadClients();
       }
     }// On attache la fonction Ã  "window" pour qu'elle soit visible par le HTML
@@ -2737,28 +2737,28 @@
             <!-- Cartes de stats rapides -->
             <div style="display:flex; gap:10px; margin-bottom:20px;">
                 <div style="flex:1; background:var(--beige); padding:12px; border-radius:12px; border: 1px solid var(--border-light);">
-                    <div style="color:var(--gray-mid); font-size:0.65rem; font-weight:bold; text-transform:uppercase;">ActivitÃ©</div>
+                    <div style="color:var(--gray-mid); font-size:0.65rem; font-weight:bold; text-transform:uppercase;">Activité</div>
                     <div style="font-size:1.2rem; font-weight:800; color:var(--bordeaux);">${totalMissions} missions</div>
                 </div>
                 <div style="flex:1; background:rgba(74,124,107,0.1); padding:12px; border-radius:12px; border: 1px solid rgba(74,124,107,0.2);">
-                    <div style="color:var(--success); font-size:0.65rem; font-weight:bold; text-transform:uppercase;">CA GÃ©nÃ©rÃ© (HT)</div>
+                    <div style="color:var(--success); font-size:0.65rem; font-weight:bold; text-transform:uppercase;">CA Généré (HT)</div>
                     <div style="font-size:1.2rem; font-weight:800; color:var(--success);">${caTotal.toFixed(2)} â‚¬</div>
                 </div>
             </div>
 
-            <!-- CoordonnÃ©es -->
+            <!-- Coordonnées -->
             <div style="margin-bottom:15px;">
                 <strong style="color:var(--bordeaux); font-size:0.75rem; text-transform:uppercase;"><i class="fas fa-address-card"></i> Contact & Adresse</strong><br>
                 <b>Email :</b> <a href="mailto:${c.email || ''}" style="color:#2980b9;">${c.email || 'â€”'}</a><br>
-                <b>TÃ©lÃ©phone :</b> ${c.telephone || 'â€”'}<br>
-                <b>Adresse :</b> ${c.adresse || 'Non renseignÃ©e'}<br>
+                <b>Téléphone :</b> ${c.telephone || 'â€”'}<br>
+                <b>Adresse :</b> ${c.adresse || 'Non renseignée'}<br>
                 <b>Ville :</b> ${c.code_postal || ''} ${c.ville || ''}
             </div>
 
             <!-- Entreprise -->
             <div style="margin-bottom:15px; padding-top:15px; border-top:1px solid var(--border-light);">
                 <strong style="color:var(--bordeaux); font-size:0.75rem; text-transform:uppercase;"><i class="fas fa-building"></i> Entreprise / Facturation</strong><br>
-                <b>SociÃ©tÃ© :</b> ${c.societe || 'Particulier'}<br>
+                <b>Société :</b> ${c.societe || 'Particulier'}<br>
                 <b>SIRET :</b> ${c.siret || 'â€”'}<br>
                 <b>TVA Intra :</b> ${c.tva_intra || 'â€”'}
             </div>
@@ -2823,7 +2823,7 @@
       const notes_admin = document.getElementById('clientNotes').value.trim();
 
       if (!prenom || !nom || !email) {
-        Swal.fire('Champs requis', 'PrÃ©nom, nom et email sont obligatoires.', 'warning');
+        Swal.fire('Champs requis', 'Prénom, nom et email sont obligatoires.', 'warning');
         return;
       }
 
@@ -2839,14 +2839,14 @@
         const tempPassword = 'Bathily2025!' + Math.random().toString(36).slice(2, 7);
         const { error: authError } = await sb.auth.signUp({ email, password: tempPassword });
         if (authError) {
-          Swal.fire('Erreur', 'Impossible de crÃ©er le compte : ' + authError.message, 'error');
+          Swal.fire('Erreur', 'Impossible de créer le compte : ' + authError.message, 'error');
           return;
         }
         payload.role = 'client';
         ({ error } = await sb.from('clients').insert([payload]));
 
         if (!error) {
-          Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: `Client crÃ©Ã©. Mdp temp: ${tempPassword}`, timer: 10000 });
+          Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: `Client créé. Mdp temp: ${tempPassword}`, timer: 10000 });
         }
       }
 
@@ -2854,7 +2854,7 @@
         Swal.fire('Erreur', 'Impossible de sauvegarder le client : ' + error.message, 'error');
       } else {
         closeModal('modalClient');
-        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: id ? 'Client mis Ã  jour !' : 'Client crÃ©Ã© !', timer: 2000 });
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: id ? 'Client mis Ã  jour !' : 'Client créé !', timer: 2000 });
         loadClients();
       }
     };
@@ -2869,7 +2869,7 @@
       }
       _convoyeursList = data || [];
       const countEl = document.getElementById('convoyeursCount');
-      if (countEl) countEl.innerHTML = `${_convoyeursList.length} convoyeur${_convoyeursList.length !== 1 ? 's' : ''} <em>enregistrÃ©${_convoyeursList.length !== 1 ? 's' : ''}</em>`;
+      if (countEl) countEl.innerHTML = `${_convoyeursList.length} convoyeur${_convoyeursList.length !== 1 ? 's' : ''} <em>enregistré${_convoyeursList.length !== 1 ? 's' : ''}</em>`;
       renderConvoyeursTable(_convoyeursList);
       populateConvoyeursSelect();
     }
@@ -2903,11 +2903,11 @@
     function populateConvoyeursSelect() {
       const select = document.getElementById('manual-convoyeur');
       if (!select) return;
-      select.innerHTML = '<option value="">MarchÃ© (aucun convoyeur assignÃ©)</option>' + _convoyeursList.map(c => `<option value="${c.prenom} ${c.nom}">${c.prenom} ${c.nom}</option>`).join('');
+      select.innerHTML = '<option value="">Marché (aucun convoyeur assigné)</option>' + _convoyeursList.map(c => `<option value="${c.prenom} ${c.nom}">${c.prenom} ${c.nom}</option>`).join('');
     }
 
     function getConvoyeursList() {
-      // Retourne la liste mÃ©moire (propre)
+      // Retourne la liste mémoire (propre)
       return _convoyeursList.map(c => ({
         name: `${c.prenom} ${c.nom}`.trim(),
         autoRate: parseFloat(c.taux_auto) || 0.47,
@@ -2925,7 +2925,7 @@
       const zone = document.getElementById('conv-zone').value.trim() || 'Nationale';
       const niveau = document.getElementById('conv-niveau').value;
       if (!prenom || !nom) {
-        Swal.fire('Champs requis', 'Veuillez saisir le prÃ©nom et le nom.', 'warning');
+        Swal.fire('Champs requis', 'Veuillez saisir le prénom et le nom.', 'warning');
         return;
       }
       const sb = getSupabase();
@@ -2940,17 +2940,17 @@
       document.getElementById('conv-email').value = '';
       document.getElementById('conv-phone').value = '';
       document.getElementById('conv-zone').value = '';
-      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convoyeur ajoutÃ©', timer: 2000 });
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convoyeur ajouté', timer: 2000 });
       loadConvoyeurs();
     }
 
     async function deleteConvoyeur(id) {
-      const result = await Swal.fire({ title: 'Supprimer ce convoyeur ?', text: 'Action irrÃ©versible.', icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--bordeaux)', confirmButtonText: 'Supprimer' });
+      const result = await Swal.fire({ title: 'Supprimer ce convoyeur ?', text: 'Action irréversible.', icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--bordeaux)', confirmButtonText: 'Supprimer' });
       if (!result.isConfirmed) return;
       const sb = getSupabase();
       const { error } = await sb.from('convoyeurs').delete().eq('id', id);
       if (error) Swal.fire('Erreur', error.message, 'error');
-      else { Swal.fire({ toast: true, icon: 'success', title: 'SupprimÃ©', timer: 2000 }); loadConvoyeurs(); }
+      else { Swal.fire({ toast: true, icon: 'success', title: 'Supprimé', timer: 2000 }); loadConvoyeurs(); }
     }
 
     async function editConvoyeur(id) {
@@ -2958,7 +2958,7 @@
       if (!c) return;
       const { value: form } = await Swal.fire({
         title: `Modifier ${c.prenom} ${c.nom}`,
-        html: `<div style="text-align:left"><div><label>PrÃ©nom</label><input id="ec-prenom" class="swal2-input" value="${c.prenom || ''}"></div><div><label>Nom</label><input id="ec-nom" class="swal2-input" value="${c.nom || ''}"></div><div><label>Taux auto (â‚¬/km)</label><input id="ec-auto" type="number" step="0.01" class="swal2-input" value="${c.taux_auto || 0.47}"></div><div><label>Taux moto (â‚¬/km)</label><input id="ec-moto" type="number" step="0.01" class="swal2-input" value="${c.taux_moto || 0.40}"></div><div><label>Zone</label><input id="ec-zone" class="swal2-input" value="${c.zone || ''}"></div><div><label>Niveau</label><select id="ec-niveau" class="swal2-input"><option value="Standard" ${c.niveau === 'Standard' ? 'selected' : ''}>Standard</option><option value="Senior" ${c.niveau === 'Senior' ? 'selected' : ''}>Senior</option></select></div></div>`,
+        html: `<div style="text-align:left"><div><label>Prénom</label><input id="ec-prenom" class="swal2-input" value="${c.prenom || ''}"></div><div><label>Nom</label><input id="ec-nom" class="swal2-input" value="${c.nom || ''}"></div><div><label>Taux auto (â‚¬/km)</label><input id="ec-auto" type="number" step="0.01" class="swal2-input" value="${c.taux_auto || 0.47}"></div><div><label>Taux moto (â‚¬/km)</label><input id="ec-moto" type="number" step="0.01" class="swal2-input" value="${c.taux_moto || 0.40}"></div><div><label>Zone</label><input id="ec-zone" class="swal2-input" value="${c.zone || ''}"></div><div><label>Niveau</label><select id="ec-niveau" class="swal2-input"><option value="Standard" ${c.niveau === 'Standard' ? 'selected' : ''}>Standard</option><option value="Senior" ${c.niveau === 'Senior' ? 'selected' : ''}>Senior</option></select></div></div>`,
         showCancelButton: true, confirmButtonText: 'Sauvegarder', preConfirm: () => ({
           prenom: document.getElementById('ec-prenom').value.trim(),
           nom: document.getElementById('ec-nom').value.trim(),
@@ -3008,14 +3008,14 @@
       if (!missions.length) { tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;">Aucune mission.</td></tr>'; return; }
       tbody.innerHTML = missions.map(m => {
         const status = m.statut || m.status || 'planned';
-        let statusClass = 'sp-att', statusText = 'PlanifiÃ©e';
-        if (status === 'available') { statusClass = 'sp-att'; statusText = 'Sur le marchÃ©'; }
+        let statusClass = 'sp-att', statusText = 'Planifiée';
+        if (status === 'available') { statusClass = 'sp-att'; statusText = 'Sur le marché'; }
         else if (status === 'in_progress') { statusClass = 'sp-cours'; statusText = 'En cours'; }
-        else if (status === 'completed') { statusClass = 'sp-ok'; statusText = 'TerminÃ©e'; }
-        else if (status === 'cancelled') { statusClass = 'sp-err'; statusText = 'AnnulÃ©e'; }
+        else if (status === 'completed') { statusClass = 'sp-ok'; statusText = 'Terminée'; }
+        else if (status === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
         const payStatus = m.paiement_statut || 'pending';
         const payClass = payStatus === 'paid' ? 'sp-ok' : 'sp-err';
-        const payText = payStatus === 'paid' ? 'PayÃ©' : 'En attente';
+        const payText = payStatus === 'paid' ? 'Payé' : 'En attente';
         const dateStr = formatDate(m.date_mission || m.created_at);
         let actionsHtml = '';
         if (status === 'available') {
@@ -3046,14 +3046,14 @@
       const tbody = document.getElementById('recentMissionsTableBody');
       if (!tbody) return;
       const recent = missions.slice(0, 3);
-      if (!recent.length) { tbody.innerHTML = '<tr><td colspan="8">Aucune mission rÃ©cente.</td></tr>'; return; }
+      if (!recent.length) { tbody.innerHTML = '<tr><td colspan="8">Aucune mission récente.</td></tr>'; return; }
       tbody.innerHTML = recent.map(m => {
         const st = m.statut || m.status || 'planned';
-        let statusClass = 'sp-att', statusLabel = 'PlanifiÃ©e';
-        if (st === 'available') { statusClass = 'sp-att'; statusLabel = 'Sur le marchÃ©'; }
+        let statusClass = 'sp-att', statusLabel = 'Planifiée';
+        if (st === 'available') { statusClass = 'sp-att'; statusLabel = 'Sur le marché'; }
         else if (st === 'in_progress') { statusClass = 'sp-cours'; statusLabel = 'En cours'; }
-        else if (st === 'completed') { statusClass = 'sp-ok'; statusLabel = 'TerminÃ©e'; }
-        else if (st === 'cancelled') { statusClass = 'sp-err'; statusLabel = 'AnnulÃ©e'; }
+        else if (st === 'completed') { statusClass = 'sp-ok'; statusLabel = 'Terminée'; }
+        else if (st === 'cancelled') { statusClass = 'sp-err'; statusLabel = 'Annulée'; }
         return `<tr onclick="showMissionDetails('${m.id}')" class="clickable-row"><td>${m.reference || 'â€”'}</td><td>${m.client_nom || 'Client'}</td><td>${m.depart || 'â€”'} â†’ ${m.arrivee || 'â€”'}</td><td>${m.convoyeur_nom || 'â€”'}</td><td style="text-transform:capitalize">${m.pack || 'starter'}</td><td class="td-price">${m.montant_ht || 0}â‚¬</td><td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusLabel}</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation();showTab('missions', document.querySelector('.nav-item[data-tab=\'missions\']'))"><i class="fas fa-eye"></i></button></td></tr>`;
       }).join('');
     }
@@ -3113,7 +3113,7 @@
       tbody.innerHTML = facturesList.map(m => {
         const payStatus = m.paiement_statut || 'pending';
         const statusClass = payStatus === 'paid' ? 'sp-ok' : 'sp-att';
-        const statusLabel = payStatus === 'paid' ? 'PayÃ©e' : 'En attente';
+        const statusLabel = payStatus === 'paid' ? 'Payée' : 'En attente';
         const dateStr = formatDate(m.date_mission || m.created_at);
         const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-', '') : m.id.slice(0, 8).toUpperCase()}`;
         const priceHt = parseFloat(m.montant_ht) || 0;
@@ -3130,7 +3130,7 @@
                 <td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusLabel}</span></td>
                 <td>${dateStr}</td>
                 <td class="td-actions">
-                    <button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation(); downloadInvoicePdf('${m.id}')" title="TÃ©lÃ©charger le PDF"><i class="fas fa-download"></i></button>
+                    <button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation(); downloadInvoicePdf('${m.id}')" title="Télécharger le PDF"><i class="fas fa-download"></i></button>
                 </td>
             </tr>`;
       }).join('');
@@ -3154,7 +3154,7 @@
       _allDevisData = data || [];
       const pendingCount = _allDevisData.length;
       const alertBanner = document.getElementById('devisAlertBanner');
-      if (alertBanner) alertBanner.innerHTML = `<i class="fas fa-clock"></i> ${pendingCount} devis en attente de confirmation â€” rÃ©ponse requise sous 2h`;
+      if (alertBanner) alertBanner.innerHTML = `<i class="fas fa-clock"></i> ${pendingCount} devis en attente de confirmation â€” réponse requise sous 2h`;
       const navBadge = document.getElementById('devisNavBadge');
       if (navBadge) navBadge.textContent = pendingCount;
       const tbody = document.getElementById('devisTableBody');
@@ -3176,7 +3176,7 @@
       const detail = devis.details || {};
       const coord = detail.coordonnees || {};
       const dateStr = devis.created_at ? new Date(devis.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'â€”';
-      Swal.fire({ title: 'DÃ©tails du Devis', html: `<div style="text-align:left"><b>RÃ©fÃ©rence:</b> ${devis.reference}<br><b>Date:</b> ${dateStr}<hr><b>Client:</b> ${coord.prenom || devis.client_prenom || ''} ${coord.nom || devis.client_nom || ''}<br><b>Email:</b> ${coord.email || devis.client_email || 'â€”'}<br><b>TÃ©l:</b> ${coord.telephone || 'â€”'}<br><hr><b>Trajet:</b> ${detail.dep || devis.depart || ''} â†’ ${detail.arr || devis.arrivee || ''}<br><b>VÃ©hicule:</b> ${devis.vehicule || 'Auto'}<br><b>Mode:</b> ${detail.mode === 'plateau' ? 'Plateau' : 'Route'}<br><b>Pack:</b> ${detail.pack || 'Starter'}<br><b>Options:</b> Urgence: ${detail.opts?.urgence ? 'Oui' : 'Non'}, Gardiennage: ${detail.opts?.gardiennage ? 'Oui' : 'Non'}<br><b>Total HT:</b> ${devis.total_ht || 0}â‚¬</div>`, width: 500, showCloseButton: true, showConfirmButton: false });
+      Swal.fire({ title: 'Détails du Devis', html: `<div style="text-align:left"><b>Référence:</b> ${devis.reference}<br><b>Date:</b> ${dateStr}<hr><b>Client:</b> ${coord.prenom || devis.client_prenom || ''} ${coord.nom || devis.client_nom || ''}<br><b>Email:</b> ${coord.email || devis.client_email || 'â€”'}<br><b>Tél:</b> ${coord.telephone || 'â€”'}<br><hr><b>Trajet:</b> ${detail.dep || devis.depart || ''} â†’ ${detail.arr || devis.arrivee || ''}<br><b>Véhicule:</b> ${devis.vehicule || 'Auto'}<br><b>Mode:</b> ${detail.mode === 'plateau' ? 'Plateau' : 'Route'}<br><b>Pack:</b> ${detail.pack || 'Starter'}<br><b>Options:</b> Urgence: ${detail.opts?.urgence ? 'Oui' : 'Non'}, Gardiennage: ${detail.opts?.gardiennage ? 'Oui' : 'Non'}<br><b>Total HT:</b> ${devis.total_ht || 0}â‚¬</div>`, width: 500, showCloseButton: true, showConfirmButton: false });
     }
 
     function editDevisPrice(id) {
@@ -3186,13 +3186,13 @@
         if (res.isConfirmed) {
           await getSupabase().from('devis').update({ total_ht: parseFloat(res.value) }).eq('id', id);
           loadDevis();
-          Swal.fire('SuccÃ¨s', 'Montant mis Ã  jour.', 'success');
+          Swal.fire('Succès', 'Montant mis Ã  jour.', 'success');
         }
       });
     }
 
     function refuseDevis(id) {
-      Swal.fire({ title: 'Refuser ce devis ?', text: 'Action irrÃ©versible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Oui, refuser' }).then(async res => {
+      Swal.fire({ title: 'Refuser ce devis ?', text: 'Action irréversible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Oui, refuser' }).then(async res => {
         if (res.isConfirmed) {
           await getSupabase().from('devis').update({ status: 'refused' }).eq('id', id);
           loadDevis();
@@ -3209,12 +3209,12 @@
       const isMoto = (devis.vehicule || '').toLowerCase().includes('moto');
       let recommendedRem;
       if (mode === 'plateau') {
-        // Pour un plateau : rÃ©munÃ©ration km estimÃ©e + complÃ©ment plateau fixe (40â‚¬)
+        // Pour un plateau : rémunération km estimée + complément plateau fixe (40â‚¬)
         // On estime la distance depuis le prix plateau, puis on applique le taux km
         const clientKmRate = isMoto ? 0.85 : 1.0;
         const estimatedKm = Math.round(totalHt / clientKmRate) || 350;
         const kmRate = isMoto ? 0.40 : 0.47;
-        recommendedRem = Math.round(estimatedKm * kmRate) + 40; // +40â‚¬ complÃ©ment plateau
+        recommendedRem = Math.round(estimatedKm * kmRate) + 40; // +40â‚¬ complément plateau
         if (recommendedRem < 80) recommendedRem = 80;
       } else {
         // Pour la route : prix client / taux client â‰ˆ km, puis Ã— taux convoyeur
@@ -3224,7 +3224,7 @@
         recommendedRem = Math.round(estimatedKm * kmRate);
         if (recommendedRem < 60) recommendedRem = 60;
       }
-      // RÃ©cupÃ©rer ou crÃ©er le client
+      // Récupérer ou créer le client
       const clientEmail = devis.client_email || detail.coordonnees?.email;
       let clientId = null;
       if (clientEmail) {
@@ -3232,7 +3232,7 @@
         if (existing) {
           clientId = existing.id;
         } else {
-          // CrÃ©ation automatique du client
+          // Création automatique du client
           const prenom = devis.client_prenom || detail.coordonnees?.prenom || 'Inconnu';
           const nom = devis.client_nom || detail.coordonnees?.nom || 'Client';
           const tel = detail.coordonnees?.telephone || '';
@@ -3242,7 +3242,7 @@
       }
       Swal.fire({
         title: 'Valider et Publier le Devis',
-        html: `<div style="text-align:left"><p><strong>Trajet:</strong> ${devis.depart} â†’ ${devis.arrivee}<br><strong>VÃ©hicule:</strong> ${devis.vehicule || 'Auto'} (${mode || 'route'})</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label>Prix Client (â‚¬ HT)</label><input id="swal-client-price" type="number" value="${totalHt}" style="width:100%"></div><div><label>RÃ©munÃ©ration Convoyeur (â‚¬)</label><input id="swal-driver-rem" type="number" value="${recommendedRem}" style="width:100%"></div></div><div style="background:var(--bordeaux-light);padding:12px;border-radius:12px;margin-top:12px"><strong>Marge estimÃ©e:</strong> <span id="swal-margin-preview">${totalHt - recommendedRem}</span>â‚¬</div></div>`,
+        html: `<div style="text-align:left"><p><strong>Trajet:</strong> ${devis.depart} â†’ ${devis.arrivee}<br><strong>Véhicule:</strong> ${devis.vehicule || 'Auto'} (${mode || 'route'})</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label>Prix Client (â‚¬ HT)</label><input id="swal-client-price" type="number" value="${totalHt}" style="width:100%"></div><div><label>Rémunération Convoyeur (â‚¬)</label><input id="swal-driver-rem" type="number" value="${recommendedRem}" style="width:100%"></div></div><div style="background:var(--bordeaux-light);padding:12px;border-radius:12px;margin-top:12px"><strong>Marge estimée:</strong> <span id="swal-margin-preview">${totalHt - recommendedRem}</span>â‚¬</div></div>`,
         showCancelButton: true, confirmButtonText: 'Valider et Publier', preConfirm: () => ({ clientPrice: parseFloat(document.getElementById('swal-client-price').value), driverRem: parseFloat(document.getElementById('swal-driver-rem').value) }),
         didOpen: () => {
           const updateMargin = () => {
@@ -3256,7 +3256,7 @@
       }).then(async result => {
         if (!result.isConfirmed) return;
         const { clientPrice, driverRem } = result.value;
-        // Conservation de la rÃ©fÃ©rence BC- telle quelle (sans remplacement)
+        // Conservation de la référence BC- telle quelle (sans remplacement)
         const missionRef = devis.reference || `BC-${Date.now().toString(36).toUpperCase()}`;
         const missionData = {
           reference: missionRef,
@@ -3280,8 +3280,8 @@
         if (insError) { Swal.fire('Erreur', insError.message, 'error'); return; }
         await sb.from('devis').update({ status: 'confirmed' }).eq('id', id);
 
-        // GÃ©nÃ©rer le lien de paiement Stripe
-        Swal.fire({ title: 'GÃ©nÃ©ration du lien Stripe...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        // Générer le lien de paiement Stripe
+        Swal.fire({ title: 'Génération du lien Stripe...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
         try {
           const stripeRes = await fetch('/.netlify/functions/create-checkout-session', {
             method: 'POST',
@@ -3302,14 +3302,14 @@
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ trigger: 'devis_confirmed', id: id, payment_url: stripeData.url })
-            }).catch(err => console.warn('Email envoi Ã©chouÃ©:', err));
+            }).catch(err => console.warn('Email envoi échoué:', err));
           }
 
           Swal.fire({
-            title: 'Devis validÃ© !',
-            html: `Mission crÃ©Ã©e et lien de paiement gÃ©nÃ©rÃ©.<br><br>
+            title: 'Devis validé !',
+            html: `Mission créée et lien de paiement généré.<br><br>
               <a href="${stripeData.url}" target="_blank" style="word-break:break-all;font-size:0.85em">${stripeData.url}</a><br><br>
-              <small>Le lien a Ã©tÃ© envoyÃ© par email au client.</small>`,
+              <small>Le lien a été envoyé par email au client.</small>`,
             icon: 'success',
             confirmButtonText: 'Copier le lien',
             showCancelButton: true,
@@ -3318,13 +3318,13 @@
             if (r.isConfirmed) navigator.clipboard.writeText(stripeData.url).catch(() => {});
           });
         } catch (stripeErr) {
-          Swal.fire('Mission crÃ©Ã©e', `La mission a Ã©tÃ© crÃ©Ã©e mais le lien Stripe a Ã©chouÃ© : ${stripeErr.message}`, 'warning');
+          Swal.fire('Mission créée', `La mission a été créée mais le lien Stripe a échoué : ${stripeErr.message}`, 'warning');
         }
         loadDevis(); loadMissions();
       });
     }
 
-    // ========== ASSIGNATION CONVOYEUR (corrigÃ©e) ==========
+    // ========== ASSIGNATION CONVOYEUR (corrigée) ==========
     async function assignConvoyeur(missionId, convoyeurNom, candidatureId) {
       const mission = _allMissions.find(m => m.id === missionId);
       if (!mission) return;
@@ -3341,18 +3341,18 @@
       if (!finalRem || finalRem === 0) finalRem = recommendedRem;
       const { value: remValue } = await Swal.fire({
         title: `Affecter ${convoyeurNom}`,
-        html: `<div><label>RÃ©munÃ©ration (â‚¬)</label><input id="rem-assign" type="number" value="${finalRem}" step="1"></div><div style="margin-top:12px">Marge: ${price - finalRem}â‚¬</div>`,
+        html: `<div><label>Rémunération (â‚¬)</label><input id="rem-assign" type="number" value="${finalRem}" step="1"></div><div style="margin-top:12px">Marge: ${price - finalRem}â‚¬</div>`,
         input: 'number', inputValue: finalRem, showCancelButton: true, confirmButtonText: 'Confirmer', preConfirm: (val) => parseFloat(val) || 0
       });
       if (remValue === undefined) return;
       const sb = getSupabase();
-      // RÃ©cupÃ©rer convoyeur_id depuis la candidature
+      // Récupérer convoyeur_id depuis la candidature
       const { data: cand } = await sb.from('candidatures').select('convoyeur_id').eq('id', candidatureId).maybeSingle();
       const convoyeurId = cand?.convoyeur_id || null;
       await sb.from('missions').update({ convoyeur_nom: convoyeurNom, convoyeur_id: convoyeurId, remuneration_convoyeur: remValue, marge: price - remValue, status: 'planned' }).eq('id', missionId);
       await sb.from('candidatures').update({ status: 'accepted' }).eq('id', candidatureId);
       await sb.from('candidatures').update({ status: 'refused' }).eq('mission_id', missionId).neq('id', candidatureId);
-      Swal.fire('Mission assignÃ©e !', '', 'success');
+      Swal.fire('Mission assignée !', '', 'success');
       loadMissions();
     }
 
@@ -3361,7 +3361,7 @@
       if (!m) return;
       Swal.fire({
         title: 'Modifier les tarifs',
-        html: `<div><label>Prix Client HT (â‚¬)</label><input id="edit-client-price" type="number" value="${m.montant_ht || 0}"></div><div><label>RÃ©munÃ©ration Convoyeur (â‚¬)</label><input id="edit-driver-rem" type="number" value="${m.remuneration_convoyeur || 0}"></div>`,
+        html: `<div><label>Prix Client HT (â‚¬)</label><input id="edit-client-price" type="number" value="${m.montant_ht || 0}"></div><div><label>Rémunération Convoyeur (â‚¬)</label><input id="edit-driver-rem" type="number" value="${m.remuneration_convoyeur || 0}"></div>`,
         showCancelButton: true, confirmButtonText: 'Sauvegarder', preConfirm: () => ({ client: parseFloat(document.getElementById('edit-client-price').value), driver: parseFloat(document.getElementById('edit-driver-rem').value) })
       }).then(async res => {
         if (res.isConfirmed) {
@@ -3389,10 +3389,10 @@
       const container = document.getElementById('candidaturesList');
       if (!container) return;
       if (!list.length) { container.innerHTML = '<div style="text-align:center;padding:40px">Aucune candidature.</div>'; return; }
-      const statusStyle = { pending: { bg: 'rgba(224,163,67,0.12)', color: '#7a5a0d', label: 'En attente' }, approved: { bg: 'rgba(74,124,107,0.1)', color: 'var(--success)', label: 'ApprouvÃ©' }, rejected: { bg: 'rgba(231,76,60,0.08)', color: '#c0392b', label: 'RefusÃ©' } };
+      const statusStyle = { pending: { bg: 'rgba(224,163,67,0.12)', color: '#7a5a0d', label: 'En attente' }, approved: { bg: 'rgba(74,124,107,0.1)', color: 'var(--success)', label: 'Approuvé' }, rejected: { bg: 'rgba(231,76,60,0.08)', color: '#c0392b', label: 'Refusé' } };
       container.innerHTML = list.map(c => {
         const st = statusStyle[c.statut] || statusStyle.pending;
-        const score = c.score_quiz ?? 'â€”';
+        const score = c.score_quiz ⭐ 'â€”';
         const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : 'â€”';
         return `<div style="background:white;border-radius:20px;padding:20px;margin-bottom:12px;border:1px solid var(--border-light)">
       <div style="display:flex;gap:16px;flex-wrap:wrap">
@@ -3406,9 +3406,9 @@
     }
 
     async function approveCandidature(id, email, nom) {
-      const result = await Swal.fire({ title: `Approuver ${nom} ?`, text: `Un email sera envoyÃ© Ã  ${email}.`, icon: 'question', showCancelButton: true, confirmButtonText: 'Approuver' });
+      const result = await Swal.fire({ title: `Approuver ${nom} ?`, text: `Un email sera envoyé Ã  ${email}.`, icon: 'question', showCancelButton: true, confirmButtonText: 'Approuver' });
       if (!result.isConfirmed) return;
-      Swal.fire({ title: 'CrÃ©ation du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      Swal.fire({ title: 'Création du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
       try {
         const response = await fetch('/.netlify/functions/approve-convoyeur', {
@@ -3421,8 +3421,8 @@
         if (!response.ok) throw new Error(result.error || 'Erreur serveur');
 
         Swal.fire({
-          title: 'Convoyeur approuvÃ© !',
-          html: `Compte crÃ©Ã© pour <b>${nom}</b>.<br><br>
+          title: 'Convoyeur approuvé !',
+          html: `Compte créé pour <b>${nom}</b>.<br><br>
             Mot de passe temporaire :<br>
             <code style="background:#f5f5f5;padding:6px 12px;border-radius:8px;font-size:1.1em;letter-spacing:2px;">${result.temp_password}</code><br><br>
             <small style="color:#888;">Communiquez ce mot de passe au convoyeur. Il pourra le changer depuis son dashboard.</small>`,
@@ -3444,7 +3444,7 @@
       const result = await Swal.fire({ title: `Refuser ${nom} ?`, input: 'textarea', inputLabel: 'Motif (optionnel)', showCancelButton: true, confirmButtonText: 'Refuser' });
       if (!result.isConfirmed) return;
       await getSupabase().from('convoyeurs_candidats').update({ statut: 'rejected', notes_admin: result.value || '' }).eq('id', id);
-      Swal.fire('RefusÃ©', '', 'info');
+      Swal.fire('Refusé', '', 'info');
       loadCandidatures();
     }
 
@@ -3488,7 +3488,7 @@
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
       const sb = getSupabase();
       await sb.from('system_settings').upsert({ key: packId, value: valueObj });
-      btn.innerHTML = '<i class="fas fa-check"></i> SauvegardÃ©';
+      btn.innerHTML = '<i class="fas fa-check"></i> Sauvegardé';
       setTimeout(() => { btn.innerHTML = '<i class="fas fa-save"></i> Sauvegarder'; }, 2000);
       const tagEl = document.getElementById(`tag_${packId}`);
       if (tagEl) tagEl.textContent = price > 0 ? `+${price}â‚¬ HT` : 'Inclus';
@@ -3538,7 +3538,7 @@
         const key = d.getMonth();
         monthly[key] = (monthly[key] || 0) + parseFloat(m.montant_ht);
       });
-      const monthNames = ['Jan', 'FÃ©v', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'AoÃ»', 'Sep', 'Oct', 'Nov', 'DÃ©c'];
+      const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
       const chartData = Object.keys(monthly).map(k => ({ lbl: monthNames[parseInt(k)], val: Math.round(monthly[k]), current: parseInt(k) === new Date().getMonth() }));
       buildChart('analyticsChart', chartData);
     }
@@ -3640,7 +3640,7 @@
       const price = parseFloat(document.getElementById('manual-price').value) || 0;
       const remInput = document.getElementById('manual-remuneration').value.trim();
       if (!clientNom || !depart || !arrivee || !dateStr) {
-        Swal.fire('Erreur', 'Remplissez client, dÃ©part, arrivÃ©e et date.', 'error');
+        Swal.fire('Erreur', 'Remplissez client, départ, arrivée et date.', 'error');
         return;
       }
       let rem = remInput ? parseFloat(remInput) : null;
@@ -3670,7 +3670,7 @@
       const sb = getSupabase();
       const { error } = await sb.from('missions').insert([missionData]);
       if (error) Swal.fire('Erreur', error.message, 'error');
-      else { closeModal('modalMission'); Swal.fire('SuccÃ¨s !', '', 'success'); loadMissions(); }
+      else { closeModal('modalMission'); Swal.fire('Succès !', '', 'success'); loadMissions(); }
     }
 
     // ========== RESEAU COMMENTAIRES ==========
@@ -3680,7 +3680,7 @@
       if (commentsSection) {
         commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
       } else {
-        const html = `<div class="post-comments-section" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border-light);"><div class="comments-list"><div class="comment-item" style="display:flex; gap:10px; margin-bottom:12px;"><div class="post-ava" style="width:28px; height:28px; font-size:0.6rem; background:rgba(41,128,185,0.1);">AB</div><div style="flex:1; background:#F9FAFB; padding:10px; border-radius:16px;">Alexandre B. : Super conseil !</div></div></div><div class="comment-composer" style="display:flex; gap:10px; margin-top:12px;"><div class="post-ava" style="width:28px; height:28px; background:var(--bordeaux-light);">ADMIN</div><input type="text" placeholder="RÃ©pondre..." style="flex:1; border:1px solid var(--border-light); border-radius:20px; padding:0 10px;"><button class="btn-sm btn-sm-ghost" onclick="submitInlineComment(this)"><i class="fas fa-paper-plane"></i></button></div></div>`;
+        const html = `<div class="post-comments-section" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border-light);"><div class="comments-list"><div class="comment-item" style="display:flex; gap:10px; margin-bottom:12px;"><div class="post-ava" style="width:28px; height:28px; font-size:0.6rem; background:rgba(41,128,185,0.1);">AB</div><div style="flex:1; background:#F9FAFB; padding:10px; border-radius:16px;">Alexandre B. : Super conseil !</div></div></div><div class="comment-composer" style="display:flex; gap:10px; margin-top:12px;"><div class="post-ava" style="width:28px; height:28px; background:var(--bordeaux-light);">ADMIN</div><input type="text" placeholder="Répondre..." style="flex:1; border:1px solid var(--border-light); border-radius:20px; padding:0 10px;"><button class="btn-sm btn-sm-ghost" onclick="submitInlineComment(this)"><i class="fas fa-paper-plane"></i></button></div></div>`;
         postCard.insertAdjacentHTML('beforeend', html);
       }
     }
@@ -3720,14 +3720,14 @@
 
     // ========== MISE Ã€ JOUR DES BADGES DYNAMIQUES ==========
     function updateDynamicBadges() {
-      // Badge notifications topbar : nombre de devis en attente (_allDevisData dÃ©jÃ  filtrÃ© sur pending)
+      // Badge notifications topbar : nombre de devis en attente (_allDevisData déjÃ  filtré sur pending)
       const pendingDevis = _allDevisData.length;
       const topBadge = document.getElementById('topbarNotifBadge');
       if (topBadge) {
         topBadge.textContent = pendingDevis;
         topBadge.style.display = pendingDevis > 0 ? 'flex' : 'none';
       }
-      // Badge missions sidebar : nombre rÃ©el total de missions (_allMissions.length)
+      // Badge missions sidebar : nombre réel total de missions (_allMissions.length)
       const totalMissions = _allMissions.length;
       const missionsBadge = document.getElementById('missionsNavBadge');
       if (missionsBadge) {
@@ -3739,7 +3739,7 @@
     // ========== INITIALISATION APRÃˆS AUTH ==========
     async function initDashboard() {
       document.getElementById('dashDate').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      // Ã‰couteurs d'Ã©vÃ©nements
+      // Ã‰couteurs d'événements
       document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
           const tab = item.getAttribute('data-tab');
@@ -3784,7 +3784,7 @@
       document.getElementById('manual-remuneration')?.addEventListener('input', updateManualMissionMargin);
       document.getElementById('manual-vehicule')?.addEventListener('change', updateManualMissionMargin);
       document.getElementById('manual-mode')?.addEventListener('change', updateManualMissionMargin);
-      // Chargement initial des donnÃ©es
+      // Chargement initial des données
       await loadClients();
       await loadConvoyeurs();
       await loadMissions();
@@ -3798,7 +3798,7 @@
       // Auto-refresh toutes les 30s
       if (autoRefreshInterval) clearInterval(autoRefreshInterval);
       autoRefreshInterval = setInterval(async () => { await loadMissions(true); await loadDevis(); updateDynamicBadges(); }, 30000);
-      // Curseur personnalisÃ© (dÃ©sactivÃ© sur modales)
+      // Curseur personnalisé (désactivé sur modales)
       if (window.matchMedia('(hover: hover)').matches) {
         const cur = document.getElementById('cur'), cring = document.getElementById('cring');
         let mx = 0, my = 0, rx = 0, ry = 0;
@@ -3826,8 +3826,8 @@
       const loginBtn = document.getElementById('loginBtn');
       if (loginBtn) {
         loginBtn.onclick = async function (e) {
-          e.preventDefault(); // EmpÃªche la page de clignoter ou recharger
-          console.log("1. Bouton cliquÃ© !");
+          e.preventDefault(); // Empêche la page de clignoter ou recharger
+          console.log("1. Bouton cliqué !");
 
           const email = document.getElementById('adminEmailInput').value.trim();
           const password = document.getElementById('adminPasswordInput').value;
@@ -3858,7 +3858,7 @@
             return;
           }
 
-          console.log("3. VÃ©rification des droits Administrateur...");
+          console.log("3. Vérification des droits Administrateur...");
           const { data: profile } = await sb.from('clients')
             .select('role')
             .eq('email', email)
@@ -3870,12 +3870,12 @@
             await sb.auth.signOut();
             if (authError) {
               authError.style.display = 'block';
-              authError.textContent = "AccÃ¨s refusÃ© : vous n'Ãªtes pas administrateur.";
+              authError.textContent = "Accès refusé : vous n'êtes pas administrateur.";
             }
             return;
           }
 
-          console.log("4. SuccÃ¨s ! Ouverture du panel...");
+          console.log("4. Succès ! Ouverture du panel...");
           sessionStorage.setItem('admin_auth', 'ok');
 
           // On cache la modale de connexion et on affiche le dashboard
@@ -3889,7 +3889,7 @@
           const dashLayout = document.querySelector('.dash-layout');
           if (dashLayout) dashLayout.style.display = 'flex';
 
-          // On lance le chargement des donnÃ©es
+          // On lance le chargement des données
           initDashboard();
         };
       }
