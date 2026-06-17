@@ -59,9 +59,9 @@
 
     const style = document.createElement('style');
     style.textContent = `
-      .lang-switcher { position: relative; display: inline-flex; align-items: center; }
-      .lang-btn { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; transition: background 0.2s; white-space: nowrap; }
-      .lang-btn:hover { background: rgba(255,255,255,0.22); }
+      .lang-switcher { position: relative; display: inline-flex; align-items: center; margin-left: 16px; }
+      .lang-btn { display: flex; align-items: center; gap: 5px; background: #0a4d68; border: 1px solid #0a4d68; color: #fff; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; transition: all 0.2s; white-space: nowrap; box-shadow: 0 2px 8px rgba(10,77,104,0.25); }
+      .lang-btn:hover { background: #073d54; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(10,77,104,0.35); }
       .lang-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); overflow: hidden; z-index: 9999; min-width: 160px; border: 1px solid #e8e1d9; }
       .lang-dropdown.open { display: block; }
       .lang-option { display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; font-size: 14px; color: #2d2a24; font-family: inherit; transition: background 0.15s; border: none; background: none; width: 100%; text-align: left; }
