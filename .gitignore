@@ -21,4 +21,15 @@ refactor_log.txt
 # Sensitive credentials/docs
 identifiants.md
 
+# Backup files
+*.backup_*
+*.backup
+*.backup*
 
+# Fix scripts (temporary)
+fix-*.ps1
+fix_*.py
+restore*.ps1
+
+# Temp files
+*.tmp
