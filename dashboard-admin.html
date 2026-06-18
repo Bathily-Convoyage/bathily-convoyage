@@ -2978,9 +2978,8 @@ Cadeau premium personnalisé</textarea>
         } else {
           actionsHtml = `<div class="td-actions">${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i></button>` : ''}${status !== 'completed' && status !== 'cancelled' ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}<button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button><button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button></div>`;
         }
-        rows += `<tr><td>${m.reference}</td><td>${m.client_nom}</td><td>${m.convoyeur_nom || '-'}</td><td>${m.vehicule}</td><td>${m.trajet}</td><td>${formatDate(m.date_mission)}</td><td>${m.montant_ht?.toLocaleString?.('fr-FR') || m.montant_ht}€</td><td><span class="${payClass}">${payText}</span></td><td><span class="${statusClass}">${statusText}</span></td><td><div class="td-actions">${actionsHtml}</div></td></tr>`;
-      });
-      tbody.innerHTML = rows;
+        return `<tr><td>${m.reference}</td><td>${m.client_nom}</td><td>${m.convoyeur_nom || '-'}</td><td>${m.vehicule}</td><td>${m.trajet}</td><td>${formatDate(m.date_mission)}</td><td>${m.montant_ht?.toLocaleString?.('fr-FR') || m.montant_ht}€</td><td><span class="${payClass}">${payText}</span></td><td><span class="${statusClass}">${statusText}</span></td><td><div class="td-actions">${actionsHtml}</div></td></tr>`;
+      }).join('');
     }
 
     // Chargement initial
