@@ -2358,6 +2358,8 @@ Cadeau premium personnalisé</textarea>
   <script>
 
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 DOMContentLoaded triggered');
+      
       // Sélectionne tous les éléments agissant comme des toggles
       const toggles = document.querySelectorAll('[role="switch"], .toggle-btn');
 
@@ -2403,8 +2405,11 @@ Cadeau premium personnalisé</textarea>
 
       // ========== AUTH BUTTONS ==========
       const loginBtn = document.getElementById('loginBtn');
+      console.log('🔍 loginBtn found:', !!loginBtn);
       if (loginBtn) {
+        console.log('✅ Attaching click listener to loginBtn');
         loginBtn.addEventListener('click', async () => {
+          console.log('🖱️ Login button clicked!');
           const email = document.getElementById('adminEmailInput').value.trim();
           const password = document.getElementById('adminPasswordInput').value;
           if (!email || !password) {
