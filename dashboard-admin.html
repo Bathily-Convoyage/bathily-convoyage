@@ -1,4 +1,4 @@
-﻿﻿<html lang="fr">
+﻿<html lang="fr">
 
 <head>
   <meta charset="UTF-8">
@@ -2400,9 +2400,51 @@ Cadeau premium personnalisé</textarea>
           }
         });
       });
+
+      // ========== AUTH BUTTONS ==========
+      const loginBtn = document.getElementById('loginBtn');
+      if (loginBtn) {
+        loginBtn.addEventListener('click', async () => {
+          const email = document.getElementById('adminEmailInput').value.trim();
+          const password = document.getElementById('adminPasswordInput').value;
+          if (!email || !password) {
+            Swal.fire('Champs requis', 'Veuillez saisir email et mot de passe.', 'warning');
+            return;
+          }
+          const success = await signInWithEmail(email, password);
+          if (success) {
+            document.getElementById('authOverlay').classList.add('hidden');
+            document.querySelector('.topbar').style.display = 'flex';
+            document.querySelector('.dash-layout').style.display = 'flex';
+            loadAllData();
+          }
+        });
+      }
+
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', signOut);
+      }
+
+      // Check existing session
+      checkAdminSession().then(isAuthenticated => {
+        if (isAuthenticated) {
+          document.getElementById('authOverlay').classList.add('hidden');
+          document.querySelector('.topbar').style.display = 'flex';
+          document.querySelector('.dash-layout').style.display = 'flex';
+          loadAllData();
+        }
+      });
     });
 
     // ========== INITIALISATION GLOBALE ==========
+    async function loadAllData() {
+      loadClients();
+      loadConvoyeurs();
+      loadMissions();
+      buildCaChart();
+    }
+
     let _supabaseClient = null;
     let _allMissions = [];
     let _allClientsData = [];
