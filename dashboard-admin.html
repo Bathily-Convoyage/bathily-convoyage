@@ -1,4 +1,4 @@
-﻿﻿<html lang="fr">
+﻿<html lang="fr">
 
 <head>
   <meta charset="UTF-8">
@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/supabase-config.js"></script>
+  <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -2358,8 +2358,48 @@ Cadeau premium personnalisé</textarea>
   <script>
 
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 DOMContentLoaded triggered');
+      
       // Sélectionne tous les éléments agissant comme des toggles
       const toggles = document.querySelectorAll('[role="switch"], .toggle-btn');
+      
+      // ========== AUTH BUTTONS ==========
+      const loginBtn = document.getElementById('loginBtn');
+      console.log('🔍 loginBtn found:', !!loginBtn);
+      if (loginBtn) {
+        console.log('✅ Attaching click listener to loginBtn');
+        loginBtn.addEventListener('click', async () => {
+          console.log('🖱️ Login button clicked!');
+          const email = document.getElementById('adminEmailInput').value.trim();
+          const password = document.getElementById('adminPasswordInput').value;
+          if (!email || !password) {
+            Swal.fire('Champs requis', 'Veuillez saisir email et mot de passe.', 'warning');
+            return;
+          }
+          const success = await signInWithEmail(email, password);
+          if (success) {
+            document.getElementById('authOverlay').classList.add('hidden');
+            document.querySelector('.topbar').style.display = 'flex';
+            document.querySelector('.dash-layout').style.display = 'flex';
+            loadAllData();
+          }
+        });
+      }
+
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', signOut);
+      }
+
+      // Check existing session
+      checkAdminSession().then(isAuthenticated => {
+        if (isAuthenticated) {
+          document.getElementById('authOverlay').classList.add('hidden');
+          document.querySelector('.topbar').style.display = 'flex';
+          document.querySelector('.dash-layout').style.display = 'flex';
+          loadAllData();
+        }
+      });
 
       toggles.forEach(toggle => {
         // Sécurité : s'assure qu'un état initial existe pour éviter les bugs au premier clic
@@ -2423,6 +2463,14 @@ Cadeau premium personnalisé</textarea>
       return _supabaseClient;
     }
 
+
+    // ========== INITIALISATION GLOBALE ==========
+    async function loadAllData() {
+      loadClients();
+      loadConvoyeurs();
+      loadMissions();
+      buildCaChart();
+    }
 
     // ========== AUTHENTIFICATION SUPABASE (admin) ==========
     async function signInWithEmail(email, password) {
@@ -2928,4 +2976,17 @@ Cadeau premium personnalisé</textarea>
           const cand = m._candidatures || [];
           actionsHtml = `<div style="display:flex;flex-direction:column;gap:4px;">${cand.map(c => `<button class="btn-sm btn-sm-green" onclick="assignConvoyeur('${m.id}', '${c.convoyeur_nom}', '${c.id}')"><i class="fas fa-user-check"></i> Assigner ${c.convoyeur_nom}</button>`).join('')}<button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i> Tarifs</button><a class="btn-sm btn-sm-ghost" href="bon-de-mission.html?id=${m.id}" target="_blank">Bon</a></div>`;
         } else {
-          actionsHtml = `<div class="td-actions">${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i></button>` : ''}${status !== 'completed' && status !== 'cancelled' ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}<button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button><button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></
+          actionsHtml = `<div class="td-actions">${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i></button>` : ''}${status !== 'completed' && status !== 'cancelled' ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}<button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button><button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button></div>`;
+        }
+        rows += `<tr><td>${m.reference}</td><td>${m.client_nom}</td><td>${m.convoyeur_nom || '-'}</td><td>${m.vehicule}</td><td>${m.trajet}</td><td>${formatDate(m.date_mission)}</td><td>${m.montant_ht?.toLocaleString?.('fr-FR') || m.montant_ht}€</td><td><span class="${payClass}">${payText}</span></td><td><span class="${statusClass}">${statusText}</span></td><td><div class="td-actions">${actionsHtml}</div></td></tr>`;
+      });
+      tbody.innerHTML = rows;
+    }
+
+    // Chargement initial
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 Dashboard Admin chargé');
+    });
+  </script>
+</body>
+</html>
