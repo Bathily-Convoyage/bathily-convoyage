@@ -1,6 +1,6 @@
 [build]
-  publish = "dist"
-  command = "npm run build"
+  publish = "."
+  command = "echo 'Site statique - pas de build nécessaire'"
 
 [functions]
   directory = "netlify/functions"
@@ -10,6 +10,13 @@
   to = "https://bathily-convoyage.fr/:splat"
   status = 301
   force = true
+
+# Redirection pour les routes sans extension .html
+[[redirects]]
+  from = "/*"
+  to = "/:splat.html"
+  status = 200
+  conditions = {Path = {exists = false}}
 
 [[headers]]
   for = "/*.html"
