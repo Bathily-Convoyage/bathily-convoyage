@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+﻿
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Devis personnalisé — Bathily Convoyage</title>
+<title>Devis personnalisé — Bathily convoyage</title>
 <meta name="description" content="Finalisez votre devis de convoyage auto ou moto. Récupérez les données déjà saisies, complétez vos coordonnées et obtenez une confirmation sous 2h.">
 <meta property="og:title" content="Bathily Convoyage — Finalisation du devis">
 <meta property="og:description" content="Devis personnalisé en 60 secondes. Double RC Pro incluse.">
@@ -333,7 +333,7 @@ header {
   background: var(--bordeaux);
   border-color: var(--bordeaux);
 }
-.opt-item.chk .opt-check::after {
+.opt-item.chk .opt-check::afêter {
   content: '✓';
   color: white;
   font-size: 12px;
@@ -597,13 +597,13 @@ footer {
   .f-row, .f-row3 { grid-template-columns: 1fr; }
 }
 </style>
-<script src="/js/lang-switcher.js" defer></script>
+<script src="/js/lang-switcher.js" defer="None"></script>
 </head>
 <body>
 
 <header>
   <div class="container header-inner">
-    <a href="index.html" class="logo">Bathily-Convoyage<span>.</span></a>
+    <a href="index.html" class="logo">Bathily-convoyage<span>.</span></a>
     <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</div>
     <div class="nav-links">
       <a href="index.html">Accueil</a>
@@ -642,7 +642,7 @@ footer {
           <div class="s-item"><div class="s-num active" id="d1">01</div><div class="s-lbl">Véhicule</div><div class="s-line" id="l1"></div></div>
           <div class="s-item"><div class="s-num" id="d2">02</div><div class="s-lbl">SIV</div><div class="s-line" id="l2"></div></div>
           <div class="s-item"><div class="s-num" id="d3">03</div><div class="s-lbl">Trajet</div><div class="s-line" id="l3"></div></div>
-          <div class="s-item"><div class="s-num" id="d4">04</div><div class="s-lbl">Transport</div><div class="s-line" id="l4"></div></div>
+          <div class="s-item"><div class="s-num" id="d4">04</div><div class="s-lbl">transport</div><div class="s-line" id="l4"></div></div>
           <div class="s-item"><div class="s-num" id="d5">05</div><div class="s-lbl">Packs</div><div class="s-line" id="l5"></div></div>
           <div class="s-item"><div class="s-num" id="d6">06</div><div class="s-lbl">Contact</div></div>
         </div>
@@ -670,7 +670,7 @@ footer {
               </button>
             </div>
           </div>
-          <div class="siv-box" id="sivBox" style="display:none; background:#F9FAFB; border-radius:16px; padding:16px; margin-bottom:16px;"><div class="siv-lbl"><i class="fas fa-check-circle"></i> Véhicule identifié</div><div id="sivName" style="font-weight:600"></div><div class="siv-specs" style="display:flex; gap:12px; margin-top:8px;"><div><div class="siv-spec-lbl">Année</div><div class="siv-spec-val" id="sivYear">—</div></div><div><div class="siv-spec-lbl">Énergie</div><div class="siv-spec-val" id="sivEnergy">—</div></div><div><div class="siv-spec-lbl">Puissance</div><div class="siv-spec-val" id="sivPower">—</div></div></div></div>
+          <div class="siv-box" id="sivBox" style="display:none; background:#F9FAFB; border-radius:16px; padding:16px; margin-bottom:16px;"><div class="siv-lbl"><i class="fas fa-check-circle"></i> Véhicule identifié</div><div id="sivName" style="font-weight:600"></div><div class="siv-specs" style="display:flex; gap:12px; margin-top:8px;"><div><div class="siv-spec-lbl">Année</div><div class="siv-spec-val" id="sivYear">—</div></div><div><div class="siv-spec-lbl">Éénergie</div><div class="siv-spec-val" id="sivEnergy">—</div></div><div><div class="siv-spec-lbl">Puissance</div><div class="siv-spec-val" id="sivPower">—</div></div></div></div>
           <button class="np-btn" id="npBtn" onclick="toggleNP()" style="background:none; border:none; color:var(--bordeaux); font-weight:600; cursor:pointer; margin-bottom:12px;"><i class="fas fa-lock-open"></i> Je ne souhaite pas communiquer ma plaque</button>
           <div class="np-form" id="npForm" style="display:none; background:#F9FAFB; border-radius:20px; padding:16px; margin-bottom:16px;">
             <div class="np-note">Ces informations sont nécessaires pour organiser votre transport.</div>
@@ -684,13 +684,13 @@ footer {
               </div>
               <div class="f-grp">
                 <label>Modèle</label>
-                <select id="np-modele-select" disabled style="width:100%; padding:12px 16px; border:1px solid var(--border-light); border-radius:16px; font-size:1rem; background:#fff; cursor:pointer;">
+                <select id="np-modele-select" disabled="None" style="width:100%; padding:12px 16px; border:1px solid var(--border-light); border-radius:16px; font-size:1rem; background:#fff; cursor:pointer;">
                   <option value="">Choisir un modèle</option>
                 </select>
                 <input type="hidden" id="np-modele" name="modele">
               </div>
             </div>
-            <div class="f-row"><div class="f-grp"><label>Année</label><input type="number" id="np-annee" placeholder="2022"></div><div class="f-grp"><label>Carburant</label><select id="np-carbu"><option>Essence</option><option>Diesel</option><option>Hybride</option><option>Électrique</option></select></div></div>
+            <div class="f-row"><div class="f-grp"><label>Année</label><input type="number" id="np-annee" placeholder="2022"></div><div class="f-grp"><label>Carburant</label><select id="np-carbu"><option>Essence</option><option>Diesel</option><option>hybride</option><option>Électrique</option></select></div></div>
             <div class="f-grp"><label>Valeur estimée</label><select id="np-valeur"><option>Moins de 10 000 €</option><option>10 000 – 30 000 €</option><option>30 000 – 60 000 €</option><option>Plus de 60 000 €</option></select></div>
           </div>
           <div class="f-grp"><label>Date souhaitée</label><input type="date" id="mDate"></div>
@@ -712,7 +712,7 @@ footer {
       <div id="arriveeSuggests" class="suggest-box"></div>
     </div>
   </div>
-  <div class="f-grp"><label>Distance calculée</label><input type="text" id="distAff" value="— km" readonly></div>
+  <div class="f-grp"><label>Distance calculée</label><input type="text" id="distAff" value="— km" readonly="None"></div>
   <div class="f-grp">
     <label>Adresse complète de départ</label>
     <input type="text" id="addrDep" placeholder="Numéro, rue, code postal" autocomplete="off" oninput="debounceGeocodeAddress(this, 'addrDepSuggests')">
@@ -729,7 +729,7 @@ footer {
           <h3 class="step-h">Mode de transport</h3>
           <p class="step-p">Choisissez la solution adaptée</p>
           <div class="t-modes">
-            <div class="t-mode sel" onclick="selMode(this,'route')"><div class="t-mode-ico"><i class="fas fa-road"></i></div><h4>Par la route</h4><div class="t-mode-price">1€ / km</div><div class="t-mode-sub">Min. 120€ HT</div><ul class="t-mode-feats"><li>Convoyeur certifié SIV</li><li>Suivi GPS temps réel</li></ul></div>
+            <div class="t-mode sel" onclick="selMode(this,'route')"><div class="t-mode-ico"><i class="fas fa-road"></i></div><h4>Par la route</h4><div class="t-mode-price">1€ / km</div><div class="t-mode-sub">Min. 120€ HT</div><ul class="t-mode-feats"><li>convoyeur certifié SIV</li><li>Suivi GPS temps réel</li></ul></div>
             <div class="t-mode" onclick="selMode(this,'plateau')"><div class="t-mode-ico"><i class="fas fa-truck"></i></div><h4>Par plateau</h4><div class="t-mode-price">Forfait zone</div><div class="t-mode-sub">350€ à 1100€ HT</div><ul class="t-mode-feats"><li>Protection totale</li><li>Idéal motos & collection</li></ul></div>
           </div>
         </div>
@@ -757,18 +757,18 @@ footer {
         <!-- step 6 -->
         <div class="cfg-step" data-step="6">
           <h3 class="step-h">Vos coordonnées</h3>
-          <p class="step-p">Dernière étape — recevez votre devis confirmé</p>
+          <p class="step-p">Dernière éÉtape — recevez votre devis confirmé</p>
           <div class="f-row"><div class="f-grp"><label>Prénom *</label><input type="text" id="cli-prenom"><div class="field-err" id="err-prenom">Champ requis</div></div><div class="f-grp"><label>Nom *</label><input type="text" id="cli-nom"><div class="field-err" id="err-nom">Champ requis</div></div></div>
           <div class="f-row"><div class="f-grp"><label>Email *</label><input type="email" id="cli-email"><div class="field-err" id="err-email">Email invalide</div></div><div class="f-grp"><label>Téléphone *</label><input type="tel" id="cli-tel"><div class="field-err" id="err-tel">10 chiffres min.</div></div></div>
           <div class="f-grp"><label>Société (optionnel)</label><input type="text" id="cli-societe"></div>
-          <div class="f-grp"><label>Informations complémentaires</label><textarea id="cli-notes" rows="3"></textarea></div>
+          <div class="f-grp"><label>informations complémentaires</label><textarea id="cli-notes" rows="3"></textarea></div>
           <div class="f-grp"><label>Comment nous avez-vous connus ?</label><select id="cli-source"><option>Google</option><option>Bouche à oreille</option><option>Réseaux sociaux</option><option>Autre</option></select></div>
-          <div class="checkbox-row" id="cbPrivacy" onclick="this.classList.toggle('chk');updBtn()" style="display:flex; align-items:center; gap:12px; cursor:pointer;"><div class="cb-box" style="width:18px;height:18px;border:1px solid #D1D5DB; border-radius:6px;"></div><div class="cb-label">J'accepte la <a href="mentions-legales.html#privacy" target="_blank" style="color:var(--bordeaux);text-decoration:underline;">politique de confidentialité</a> *</div></div>
-          <div class="field-err" id="err-privacy">Veuillez accepter la politique</div>
+          <div class="checkbox-row" id="cbPrivacy" onclick="this.classList.toggle('chk');updBtn()" style="display:flex; align-items:center; gap:12px; cursor:pointer;"><div class="cb-box" style="width:18px;height:18px;border:1px solid #D1D5DB; border-radius:6px;"></div><div class="cb-label">J'accepâte la <a href="mentions-legales.html#privacy" target="_blank" style="color:var(--bordeaux);text-decoration:underline;">politique de confidentialité</a> *</div></div>
+          <div class="field-err" id="err-privacy">Veuillez accepâter la politique</div>
         </div>
 
         <div class="sn">
-          <button class="btn-nav btn-prev" id="bPrev" disabled onclick="prevS()"><i class="fas fa-arrow-left"></i> Précédent</button>
+          <button class="btn-nav btn-prev" id="bPrev" disabled="None" onclick="prevS()"><i class="fas fa-arrow-left"></i> Précédent</button>
           <button class="btn-nav btn-next" id="bNext" onclick="nextS()">Suivant <i class="fas fa-arrow-right"></i></button>
         </div>
       </div>
@@ -800,7 +800,7 @@ footer {
           <div class="ps-recap-title">Récapitulatif</div>
           <div class="ps-line"><span>Type</span><span id="recType">—</span></div>
           <div class="ps-line"><span>Distance</span><span id="recDist">—</span></div>
-          <div class="ps-line"><span>Transport</span><span id="recMode">—</span></div>
+          <div class="ps-line"><span>transport</span><span id="recMode">—</span></div>
           <div class="ps-line"><span>Date</span><span id="recDate">—</span></div>
         </div>
         <button class="btn-validate" id="bVal" onclick="submitDevis()">Valider mon devis <i class="fas fa-check"></i></button>
@@ -814,12 +814,12 @@ footer {
 <footer>
   <div class="container">
     <div class="footer-grid">
-      <div class="footer-about"><div class="footer-logo">Bathily-Convoyage<span>.</span></div><p>La solution digitale de convoyage automobile & moto avec suivi en temps réel en France.</p></div>
+      <div class="footer-about"><div class="footer-logo">Bathily-convoyage<span>.</span></div><p>La solution digitale de convoyage automobile & moto avec suivi en temps réel en France.</p></div>
       <div class="footer-links"><h4>Navigation</h4><a href="index.html">Accueil</a><a href="index.html#services">Services</a><a href="index.html#tarifs">Tarifs</a><a href="devis.html">Devis</a><a href="contact.html">Contact</a></div>
       <div class="footer-links"><h4>Espaces</h4><a href="dashboard-client.html">Espace client</a><a href="dashboard-convoyeur.html">Espace convoyeur</a><a href="dashboard-admin.html">Espace admin</a></div>
       <div class="footer-links"><h4>Contact</h4><a href="mailto:contact@bathily-convoyage.fr">contact@bathily-convoyage.fr</a><span>France entière</span></div>
     </div>
-    <div class="footer-bottom">© 2025 Bathily Convoyage — Tous droits réservés — <a href="mentions-legales.html" style="color:inherit;text-decoration:underline;">Mentions Légales & CGV/CGU</a></div>
+    <div class="footer-bottom">© 2025 Bathily convoyage — Tous droits réservés — <a href="mentions-legales.html" style="color:inherit;text-decoration:underline;">Mentions Légales & CGV/CGU</a></div>
   </div>
 </footer>
 
@@ -827,7 +827,7 @@ footer {
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
     <div class="modal-ico"><i class="fas fa-check-circle"></i></div>
-    <h3 class="modal-h">Devis <em>pris en compte !</em></h3>
+    <h3 class="modal-h">Devis <em>pris en compâte !</em></h3>
     <p class="modal-sub">Merci pour votre confiance. Un conseiller vous contactera sous 2h.</p>
     <div class="modal-ref"><div><div class="modal-ref-lbl">Référence</div><div class="modal-ref-val" id="devisRef">BC-2025-XXXX</div></div><i class="fas fa-clipboard" style="cursor:pointer" onclick="copyRef()"></i></div>
     <div class="modal-steps"><div class="modal-step"><i class="fas fa-envelope"></i> Confirmation email</div><div class="modal-step"><i class="fas fa-phone"></i> Appel sous 2h</div><div class="modal-step"><i class="fas fa-file-contract"></i> Devis définitif</div></div>
@@ -835,8 +835,8 @@ footer {
     <!-- Register Invitation Box if not logged in -->
     <div id="registerInvitationBox" style="display:none; margin-top:20px; padding:16px; background:var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius:16px; text-align:center;">
       <div style="font-weight:700; color:var(--bordeaux); font-size:0.85rem; margin-bottom:6px;"><i class="fas fa-user-plus"></i> Suivez votre devis en temps réel !</div>
-      <p style="font-size:0.75rem; color:var(--gray-mid); margin-bottom:12px;">Créez votre compte client en quelques secondes pour accéder à votre tableau de bord.</p>
-      <a href="dashboard-client.html?signup=true" class="btn-sm btn-sm-red" style="font-size:0.7rem; padding:8px 16px; text-decoration:none; display:inline-block; border-radius:40px; background:var(--bordeaux); color:white; font-weight:700;"><i class="fas fa-magic"></i> Créer mon compte</a>
+      <p style="font-size:0.75rem; color:var(--gray-mid); margin-bottom:12px;">Créez votre compâte client en quelques secondes pour accéder à votre tableau de bord.</p>
+      <a href="dashboard-client.html?signup=true" class="btn-sm btn-sm-red" style="font-size:0.7rem; padding:8px 16px; text-decoration:none; display:inline-block; border-radius:40px; background:var(--bordeaux); color:white; font-weight:700;"><i class="fas fa-magic"></i> Créer mon compâte</a>
     </div>
 
     <div class="modal-btns" style="margin-top:20px;"><a href="index.html" class="btn-primary">Accueil</a><button class="btn-secondary" onclick="resetAndNewDevis()">Nouveau devis</button></div>
@@ -910,7 +910,7 @@ async function lookupDevisLicensePlate() {
       const carName = `${data.marque} ${data.modele || ''}`.trim();
       if (nameEl) nameEl.textContent = carName;
       if (yearEl) yearEl.textContent = data.annee || '—';
-      if (energyEl) energyEl.textContent = data.energie || '—';
+      if (energyEl) energyEl.textContent = data.eénergie || '—';
       if (powerEl) powerEl.textContent = data.puissance ? `${data.puissance} CV` : '—';
 
       if (box) box.style.display = 'block';
@@ -921,7 +921,7 @@ async function lookupDevisLicensePlate() {
         marque: data.marque,
         modele: data.modele,
         annee: data.annee,
-        energie: data.energie,
+        eénergie: data.eénergie,
         puissance: data.puissance,
         couleur: data.couleur || ''
       };
@@ -936,7 +936,7 @@ async function lookupDevisLicensePlate() {
 
       Swal.fire({
         title: 'Véhicule identifié ! 🚗',
-        html: `<strong>Marque :</strong> ${data.marque}<br><strong>Modèle :</strong> ${data.modele || '—'}<br><strong>Énergie :</strong> ${data.energie || '—'}`,
+        html: `<strong>Marque :</strong> ${data.marque}<br><strong>Modèle :</strong> ${data.modele || '—'}<br><strong>Éénergie :</strong> ${data.eénergie || '—'}`,
         icon: 'success',
         confirmButtonColor: 'var(--bordeaux)'
       });

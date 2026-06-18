@@ -1,20 +1,16 @@
-﻿ï»¿<!DOCTYPE html>
+﻿ï»¿
 <html lang="fr">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Espace Convoyeur â€” Bathily Convoyage</title>
-  <meta name="description"
-    content="Espace réservé aux convoyeurs Bathily : gérez vos missions, état des lieux, planning, gains et échangez avec la Communauté.">
+  <title>Espace convoyeur â€” Bathily convoyage</title>
+  <meta name="description" content="Espace réservé aux convoyeurs Bathily : gérez vos émissions, état des lieux, planning, gains et échangez avec la Communauté.">
   <meta property="og:title" content="Espace Convoyeur â€” Bathily Convoyage">
-  <meta property="og:description"
-    content="Plateforme dédiée aux convoyeurs : missions, état des lieux, Réseau social interne et suivi des gains.">
+  <meta property="og:description" content="Plateforme dédiée aux convoyeurs : émissions, état des lieux, Réseau social interne et suivi des gains.">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚗%3C/text%3E%3C/svg%3E">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
@@ -319,8 +315,8 @@
       color: var(--gray-mid);
     }
 
-    /* Stats cards */
-    .stats-row {
+    /* Sétats cards */
+    .sétats-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 20px;
@@ -467,14 +463,14 @@
     }
 
     /* Missions list */
-    .missions-list {
+    .émissions-list {
       display: flex;
       flex-direction: column;
       gap: 12px;
       margin-bottom: 32px;
     }
 
-    .mission-card {
+    .émission-card {
       background: white;
       border-radius: 24px;
       padding: 24px;
@@ -482,7 +478,7 @@
       transition: all 0.3s;
     }
 
-    .mission-card:hover {
+    .émission-card:hover {
       border-color: var(--bordeaux-light);
       transform: translateY(-2px);
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
@@ -1169,7 +1165,7 @@
       font-size: 0.8rem;
     }
 
-    .tc-missions {
+    .tc-émissions {
       font-size: 0.6rem;
       color: var(--gray-mid);
     }
@@ -1374,7 +1370,7 @@
         padding: 24px;
       }
 
-      .stats-row {
+      .sétats-row {
         grid-template-columns: 1fr 1fr;
       }
 
@@ -1388,7 +1384,7 @@
     }
 
     @media (max-width: 600px) {
-      .stats-row {
+      .sétats-row {
         grid-template-columns: 1fr;
       }
 
@@ -1535,7 +1531,7 @@
   <!-- PROFILE SELECT OVERLAY -->
   <div id="convProfileOverlay">
     <div class="profile-box">
-      <div class="profile-title">Espace <span>Convoyeur</span></div>
+      <div class="profile-title">Espace <span>convoyeur</span></div>
       <div class="profile-sub">Sélectionnez votre profil pour continuer</div>
       <div class="profile-list" id="profileList">
         <div class="profile-loading"><i class="fas fa-spinner fa-spin"></i> Chargement des profils...</div>
@@ -1547,19 +1543,18 @@
 
 
   <div class="topbar">
-    <a href="index.html" class="topbar-logo">Bathily-Convoyage<span>.</span></a>
-    <span class="topbar-center">Espace Convoyeur</span>
+    <a href="index.html" class="topbar-logo">Bathily-convoyage<span>.</span></a>
+    <span class="topbar-center">Espace convoyeur</span>
     <div class="topbar-right">
       <div class="topbar-notif" role="button" tabindex="0" aria-label="Notifications"><i class="fas fa-bell"></i>
         <div class="notif-badge">3</div>
       </div>
-      <div class="topbar-user" role="button" tabindex="0" aria-label="Mon compte">
+      <div class="topbar-user" role="button" tabindex="0" aria-label="Mon compâte">
         <div class="user-avatar" id="convAvatar">MB</div>
         <span class="user-name" id="convNom">M. Bathily</span>
         <div class="status-dot" title="Disponible"></div>
       </div>
-      <button class="topbar-logout" type="button" onclick="convLogout()" title="Changer de profil"><i
-          class="fas fa-sign-out-alt"></i></button>
+      <button class="topbar-logout" type="button" onclick="convLogout()" title="Changer de profil"><i class="fas fa-sign-out-alt"></i></button>
     </div>
   </div>
 
@@ -1567,14 +1562,11 @@
     <nav class="dash-nav">
       <div class="nav-section">
         <div class="nav-section-lbl">Mission</div>
-        <div class="nav-item active" onclick="showTab('accueil',this)" role="button" tabindex="0"><i
-            class="fas fa-home"></i> Tableau de bord</div>
-        <div class="nav-item" onclick="showTab('missions',this)" role="button" tabindex="0"><i class="fas fa-route"></i>
-          Mes missions <span class="nav-badge" id="assignedMissionsBadge">0</span></div>
-        <div class="nav-item" onclick="showTab('market',this)" role="button" tabindex="0"><i
-            class="fas fa-handshake"></i> Marché des missions</div>
-        <div class="nav-item" onclick="showTab('planning',this)" role="button" tabindex="0"><i
-            class="fas fa-calendar-day"></i> Planning</div>
+        <div class="nav-item active" onclick="showTab('accueil',this)" role="button" tabindex="0"><i class="fas fa-home"></i> Tableau de bord</div>
+        <div class="nav-item" onclick="showTab('émissions',this)" role="button" tabindex="0"><i class="fas fa-route"></i>
+          Mes émissions <span class="nav-badge" id="assignedMissionsBadge">0</span></div>
+        <div class="nav-item" onclick="showTab('market',this)" role="button" tabindex="0"><i class="fas fa-handshake"></i> Marché des émissions</div>
+        <div class="nav-item" onclick="showTab('planning',this)" role="button" tabindex="0"><i class="fas fa-calendar-day"></i> Planning</div>
         <div class="nav-item" onclick="showTab('edl',this)" role="button" tabindex="0"><i class="fas fa-camera"></i>
           Ã‰tat des lieux</div>
       </div>
@@ -1584,13 +1576,11 @@
           Réseau convoyeurs <span class="nav-badge">12</span></div>
       </div>
       <div class="nav-section">
-        <div class="nav-section-lbl">Compte</div>
-        <div class="nav-item" onclick="showTab('gains',this)" role="button" tabindex="0"><i
-            class="fas fa-euro-sign"></i> Mes gains</div>
+        <div class="nav-section-lbl">Compâte</div>
+        <div class="nav-item" onclick="showTab('gains',this)" role="button" tabindex="0"><i class="fas fa-euro-sign"></i> Mes gains</div>
         <div class="nav-item" onclick="showTab('profil',this)" role="button" tabindex="0"><i class="fas fa-user"></i>
           Mon profil</div>
-        <div class="nav-item" onclick="showTab('support',this)" role="button" tabindex="0"><i
-            class="fas fa-headset"></i> Support urgence</div>
+        <div class="nav-item" onclick="showTab('support',this)" role="button" tabindex="0"><i class="fas fa-headset"></i> Support urgence</div>
       </div>
     </nav>
 
@@ -1604,7 +1594,7 @@
             <div id="dashGradeDisplay" style="margin-top:8px;"></div>
           </div>
         </div>
-        <div class="stats-row">
+        <div class="sétats-row">
           <div class="stat-card">
             <div class="stat-ico"><i class="fas fa-route"></i></div>
             <div class="stat-val">2</div>
@@ -1633,15 +1623,13 @@
         <div class="sec-title">
           <h2 class="sec-h">Mission <em>en cours</em></h2>
         </div>
-        <div class="missions-list" id="accueilMissionEnCours">
-          <div class="mission-card">
+        <div class="émissions-list" id="accueilMissionEnCours">
+          <div class="émission-card">
             <div class="mc-top">
               <div>
-                <div class="mc-ref">BC-2025-0847 <span class="status-pill sp-cours" style="margin-left:8px"><span
-                      class="sp-dot"></span> En transit</span></div>
+                <div class="mc-ref">BC-2025-0847 <span class="status-pill sp-cours" style="margin-left:8px"><span class="sp-dot"></span> En transit</span></div>
                 <div class="mc-route">Paris <em>â†’</em> Lyon</div>
-                <div class="mc-meta"><span class="mc-tag tag-auto">BMW Série 3</span><span
-                    class="mc-tag tag-route">Route · 470 km</span><span class="mc-date"><i class="fas fa-calendar"></i>
+                <div class="mc-meta"><span class="mc-tag tag-auto">BMW Série 3</span><span class="mc-tag tag-route">Route · 470 km</span><span class="mc-date"><i class="fas fa-calendar"></i>
                     Aujourd'hui · Départ 09:00</span></div>
               </div>
               <div class="mc-right">
@@ -1656,10 +1644,8 @@
               </div>
               <div class="mc-actions">
                 <button type="button" class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> GPS</button>
-                <button type="button" class="btn-sm btn-sm-ghost" onclick="openModal('modalEdl')"><i
-                    class="fas fa-camera"></i> EDL</button>
-                <button type="button" class="btn-sm btn-sm-green" onclick="openModal('modalTerminer')"><i
-                    class="fas fa-check"></i> Terminer</button>
+                <button type="button" class="btn-sm btn-sm-ghost" onclick="openModal('modalEdl')"><i class="fas fa-camera"></i> EDL</button>
+                <button type="button" class="btn-sm btn-sm-green" onclick="openModal('modalTerminer')"><i class="fas fa-check"></i> Terminer</button>
               </div>
             </div>
           </div>
@@ -1689,7 +1675,7 @@
             <div class="pi-time">17:00</div>
             <div class="pi-bar" style="background:var(--gray-mid)"></div>
             <div class="pi-info">
-              <div class="pi-title">Briefing mission #BC-2025-0851</div>
+              <div class="pi-title">Briefing émission #BC-2025-0851</div>
               <div class="pi-sub">Bordeaux â†’ Nice · Renault Clio · 15 mai</div>
             </div><span class="status-pill sp-planifie"><span class="sp-dot"></span> Prépa</span>
           </div>
@@ -1697,14 +1683,14 @@
       </div>
 
       <!-- MISSIONS -->
-      <div class="tab-content" id="tab-missions">
+      <div class="tab-content" id="tab-émissions">
         <div class="dash-header">
-          <h1 class="dash-hello">Mes <em>missions</em></h1>
+          <h1 class="dash-hello">Mes <em>émissions</em></h1>
         </div>
         <div class="sec-title">
           <h2 class="sec-h">Missions <em>assignées</em></h2>
         </div>
-        <div class="missions-list" id="assignedMissionsList">
+        <div class="émissions-list" id="assignedMissionsList">
           <!-- Chargé dynamiquement depuis Supabase -->
         </div>
         <div class="sec-title">
@@ -1749,12 +1735,12 @@
       <!-- MARKET -->
       <div class="tab-content" id="tab-market">
         <div class="dash-header">
-          <h1 class="dash-hello">Marché des <em>missions</em></h1>
+          <h1 class="dash-hello">Marché des <em>émissions</em></h1>
         </div>
         <div class="sec-title">
           <h2 class="sec-h">Missions <em>disponibles</em></h2>
         </div>
-        <div class="missions-list" id="marketMissionsList">
+        <div class="émissions-list" id="marketMissionsList">
           <!-- Chargé dynamiquement depuis Supabase -->
         </div>
       </div>
@@ -1814,26 +1800,16 @@
           <p style="font-size:0.7rem; color:var(--gray-mid); margin-bottom:16px;">10 photos requises : extérieur (avant,
             arrière, côtés, dessus) + intérieur (tableau de bord, sièges, coffre)</p>
           <div class="edl-grid">
-            <div class="photo-slot filled" onclick="photoClick(this)" role="button" tabindex="0"><i
-                class="fas fa-check-circle"></i><span>Avant</span></div>
-            <div class="photo-slot filled" onclick="photoClick(this)" role="button" tabindex="0"><i
-                class="fas fa-check-circle"></i><span>Arrière</span></div>
-            <div class="photo-slot filled" onclick="photoClick(this)" role="button" tabindex="0"><i
-                class="fas fa-check-circle"></i><span>Côté G</span></div>
-            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i
-                class="fas fa-camera"></i><span>Côté D</span></div>
-            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i
-                class="fas fa-camera"></i><span>Dessus</span></div>
-            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i
-                class="fas fa-camera"></i><span>Tableau de bord</span></div>
-            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i
-                class="fas fa-camera"></i><span>Siège AV G</span></div>
-            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i
-                class="fas fa-camera"></i><span>Siège AV D</span></div>
-            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i
-                class="fas fa-camera"></i><span>Sièges AR</span></div>
-            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i
-                class="fas fa-camera"></i><span>Coffre</span></div>
+            <div class="photo-slot filled" onclick="photoClick(this)" role="button" tabindex="0"><i class="fas fa-check-circle"></i><span>Avant</span></div>
+            <div class="photo-slot filled" onclick="photoClick(this)" role="button" tabindex="0"><i class="fas fa-check-circle"></i><span>Arrière</span></div>
+            <div class="photo-slot filled" onclick="photoClick(this)" role="button" tabindex="0"><i class="fas fa-check-circle"></i><span>Côté G</span></div>
+            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i class="fas fa-camera"></i><span>Côté D</span></div>
+            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i class="fas fa-camera"></i><span>Dessus</span></div>
+            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i class="fas fa-camera"></i><span>Tableau de bord</span></div>
+            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i class="fas fa-camera"></i><span>Siège AV G</span></div>
+            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i class="fas fa-camera"></i><span>Siège AV D</span></div>
+            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i class="fas fa-camera"></i><span>Sièges AR</span></div>
+            <div class="photo-slot" onclick="photoClick(this)" role="button" tabindex="0"><i class="fas fa-camera"></i><span>Coffre</span></div>
           </div>
           <div style="font-size:0.7rem; font-weight:600; color:var(--gray-mid); margin-bottom:12px;">3 / 10 photos
             prises</div>
@@ -1844,7 +1820,7 @@
                 <option>Moyen</option>
                 <option>Mauvais</option>
               </select></div>
-            <div class="f-grp"><label>Niveau carburant / charge</label><select>
+            <div class="f-grp"><label>niveau carburant / charge</label><select>
                 <option>100% â€” Plein</option>
                 <option>75%</option>
                 <option>50%</option>
@@ -1852,8 +1828,7 @@
                 <option>Réserve</option>
               </select></div>
           </div>
-          <div class="f-grp"><label>Observations et anomalies constatées</label><textarea rows="3"
-              placeholder="Rayures, bosses, dommages existants, remarques particulièresâ€¦"></textarea></div>
+          <div class="f-grp"><label>Observations et anomalies constatées</label><textarea rows="3" placeholder="Rayures, bosses, dommages existants, remarques particulièresâ€¦"></textarea></div>
           <div class="edl-h" style="margin-top:20px;"><i class="fas fa-signature"></i> Signature du client</div>
           <div class="sig-wrap">
             <div class="sig-label">Signez ici pour valider l'état des lieux de départ</div>
@@ -1874,7 +1849,7 @@
       <div class="tab-content" id="tab-reseau">
         <div class="dash-header">
           <h1 class="dash-hello">Réseau <em>convoyeurs</em></h1>
-          <div class="dash-date">Communauté Bathily · <span style="color:var(--bordeaux)">&#128308; 38 membres actifs</span>
+          <div class="dash-date">Communauté Bathily · <span style="color:var(--bordeaux)">🔴 38 membres actifs</span>
           </div>
         </div>
         <div class="social-layout">
@@ -1882,9 +1857,7 @@
             <div class="social-composer">
               <div class="composer-top">
                 <div class="composer-ava">MB</div>
-                <textarea class="composer-input"
-                  placeholder="Partagez une expérience, un conseil, un bon plan sur la routeâ€¦"
-                  id="postInput"></textarea>
+                <textarea class="composer-input" placeholder="Partagez une expérience, un conseil, un bon plan sur la routeâ€¦" id="postInput"></textarea>
               </div>
               <div class="composer-bottom">
                 <div class="composer-opts">
@@ -1902,76 +1875,61 @@
                   <div class="post-ava" style="background:rgba(41,128,185,0.15); color:#2980b9;">KD</div>
                   <div>
                     <div class="post-name">Karim Diallo</div>
-                    <div class="post-meta"><span class="post-role">Convoyeur Senior</span><span class="post-time">Il y a
+                    <div class="post-meta"><span class="post-role">convoyeur senior</span><span class="post-time">Il y a
                         2h · Lyon</span></div>
                   </div>
                 </div>
                 <div class="post-body">Astuce du jour : pour les longs trajets en été, vérifiez toujours la pression des
                   pneus avant le départ â€” surtout pour les Tesla qui chauffent plus vite en mode auto-pilote. J'ai évité
                   un incident hier sur l'A7. ðŸš—âš¡</div>
-                <div class="post-tags"><span class="post-tag">#conseil</span><span
-                    class="post-tag">#sécurité</span><span class="post-tag">#EV</span></div>
-                <div class="post-actions"><button class="post-action liked" onclick="toggleLike(this)"><i
-                      class="fas fa-heart"></i> 14</button><button class="post-action" onclick="toggleComments(this)"><i
-                      class="fas fa-comment"></i> 3 commentaires</button><button class="post-action"><i
-                      class="fas fa-share"></i> Partager</button></div>
+                <div class="post-tags"><span class="post-tag">#conseil</span><span class="post-tag">#sécurité</span><span class="post-tag">#EV</span></div>
+                <div class="post-actions"><button class="post-action liked" onclick="toggleLike(this)"><i class="fas fa-heart"></i> 14</button><button class="post-action" onclick="toggleComments(this)"><i class="fas fa-comment"></i> 3 commentaires</button><button class="post-action"><i class="fas fa-share"></i> Partager</button></div>
               </div>
               <div class="post-card">
                 <div class="post-header">
                   <div class="post-ava" style="background:rgba(74,124,107,0.15); color:var(--success);">SF</div>
                   <div>
                     <div class="post-name">Sophie Fontaine</div>
-                    <div class="post-meta"><span class="post-role">Convoyeur · Moto</span><span class="post-time">Il y a
+                    <div class="post-meta"><span class="post-role">convoyeur · Moto</span><span class="post-time">Il y a
                         5h · Bordeaux</span></div>
                   </div>
                 </div>
                 <div class="post-body">Mission terminée ! Paris â†’ Bordeaux avec une R1250GS. Trajet impeccable, client
-                  ravi, 5 étoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout
+                  ravi, 5 éétoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout
                   litige. Merci Bathily pour la logistique au top. ðŸï¸</div>
-                <div class="post-tags"><span class="post-tag">#moto</span><span class="post-tag">#mission</span><span
-                    class="post-tag">#5étoiles</span></div>
-                <div class="post-actions"><button class="post-action" onclick="toggleLike(this)"><i
-                      class="fas fa-heart"></i> 22</button><button class="post-action" onclick="toggleComments(this)"><i
-                      class="fas fa-comment"></i> 7 commentaires</button><button class="post-action"><i
-                      class="fas fa-share"></i> Partager</button></div>
+                <div class="post-tags"><span class="post-tag">#moto</span><span class="post-tag">#émission</span><span class="post-tag">#5éétoiles</span></div>
+                <div class="post-actions"><button class="post-action" onclick="toggleLike(this)"><i class="fas fa-heart"></i> 22</button><button class="post-action" onclick="toggleComments(this)"><i class="fas fa-comment"></i> 7 commentaires</button><button class="post-action"><i class="fas fa-share"></i> Partager</button></div>
               </div>
               <div class="post-card">
                 <div class="post-header">
                   <div class="post-ava" style="background:rgba(142,68,173,0.15); color:#8e44ad;">AT</div>
                   <div>
                     <div class="post-name">Antoine Tardieu</div>
-                    <div class="post-meta"><span class="post-role">Convoyeur · SUV</span><span class="post-time">Hier ·
+                    <div class="post-meta"><span class="post-role">convoyeur · SUV</span><span class="post-time">Hier ·
                         Marseille</span></div>
                   </div>
                 </div>
                 <div class="post-body">Question Ã  la Communauté : quelqu'un a-t-il une bonne adresse pour se restaurer
-                  sur l'A9 entre Montpellier et Marseille ? J'ai une mission demain matin et je cherche un spot propre
+                  sur l'A9 entre Montpellier et Marseille ? J'ai une émission demain matin et je cherche un spot propre
                   pour la pause déjeuner.</div>
                 <div class="post-tags"><span class="post-tag">#routeA9</span><span class="post-tag">#conseil</span>
                 </div>
-                <div class="post-actions"><button class="post-action" onclick="toggleLike(this)"><i
-                      class="fas fa-heart"></i> 6</button><button class="post-action" onclick="toggleComments(this)"><i
-                      class="fas fa-comment"></i> 11 commentaires</button><button class="post-action"><i
-                      class="fas fa-share"></i> Partager</button></div>
+                <div class="post-actions"><button class="post-action" onclick="toggleLike(this)"><i class="fas fa-heart"></i> 6</button><button class="post-action" onclick="toggleComments(this)"><i class="fas fa-comment"></i> 11 commentaires</button><button class="post-action"><i class="fas fa-share"></i> Partager</button></div>
               </div>
               <div class="post-card">
                 <div class="post-header">
                   <div class="post-ava" style="background:rgba(230,126,34,0.15); color:#e67e22;">LM</div>
                   <div>
                     <div class="post-name">Léa Martin</div>
-                    <div class="post-meta"><span class="post-role">Convoyeur Junior</span><span class="post-time">Il y a
+                    <div class="post-meta"><span class="post-role">convoyeur Junior</span><span class="post-time">Il y a
                         2 jours · Paris</span></div>
                   </div>
                 </div>
-                <div class="post-body">Ma première mission solo terminée ! Paris â†’ Strasbourg avec une Audi A4. J'étais
+                <div class="post-body">Ma première émission solo terminée ! Paris â†’ Strasbourg avec une Audi A4. J'étais
                   stressée au départ mais le protocole EDL et le suivi GPS m'ont beaucoup aidée. Merci Ã  Karim et Sophie
                   pour leurs conseils ðŸ™</div>
-                <div class="post-tags"><span class="post-tag">#premièremission</span><span
-                    class="post-tag">#merci</span></div>
-                <div class="post-actions"><button class="post-action" onclick="toggleLike(this)"><i
-                      class="fas fa-heart"></i> 31</button><button class="post-action" onclick="toggleComments(this)"><i
-                      class="fas fa-comment"></i> 9 commentaires</button><button class="post-action"><i
-                      class="fas fa-share"></i> Partager</button></div>
+                <div class="post-tags"><span class="post-tag">#premièreémission</span><span class="post-tag">#merci</span></div>
+                <div class="post-actions"><button class="post-action" onclick="toggleLike(this)"><i class="fas fa-heart"></i> 31</button><button class="post-action" onclick="toggleComments(this)"><i class="fas fa-comment"></i> 9 commentaires</button><button class="post-action"><i class="fas fa-share"></i> Partager</button></div>
               </div>
             </div>
           </div>
@@ -1992,9 +1950,7 @@
                   <div class="ss-stat-lbl">Note</div>
                 </div>
               </div>
-              <div class="zone-tags"><span class="zone-tag">ÃŽle-de-France</span><span
-                  class="zone-tag">Rhône-Alpes</span><span class="zone-tag">PACA</span><span
-                  class="zone-tag">Nationale</span></div>
+              <div class="zone-tags"><span class="zone-tag">ÃŽle-de-France</span><span class="zone-tag">Rhône-Alpes</span><span class="zone-tag">PACA</span><span class="zone-tag">Nationale</span></div>
             </div>
             <div class="ss-card">
               <div class="ss-title">Top convoyeurs du mois</div>
@@ -2004,7 +1960,7 @@
                   <div class="tc-ava" style="background:rgba(230,126,34,0.15);color:#e67e22;">KD</div>
                   <div class="tc-info">
                     <div class="tc-name">Karim Diallo</div>
-                    <div class="tc-missions">18 missions · <span class="tc-star">â˜…</span> 5.0</div>
+                    <div class="tc-émissions">18 émissions · <span class="tc-star">â˜…</span> 5.0</div>
                   </div>
                 </div>
                 <div class="tc-item">
@@ -2012,7 +1968,7 @@
                   <div class="tc-ava" style="background:rgba(74,124,107,0.15);color:var(--success);">SF</div>
                   <div class="tc-info">
                     <div class="tc-name">Sophie Fontaine</div>
-                    <div class="tc-missions">15 missions · <span class="tc-star">â˜…</span> 4.9</div>
+                    <div class="tc-émissions">15 émissions · <span class="tc-star">â˜…</span> 4.9</div>
                   </div>
                 </div>
                 <div class="tc-item">
@@ -2020,7 +1976,7 @@
                   <div class="tc-ava" style="background:var(--bordeaux-light);color:var(--bordeaux);">MB</div>
                   <div class="tc-info">
                     <div class="tc-name">M. Bathily</div>
-                    <div class="tc-missions">12 missions · <span class="tc-star">â˜…</span> 4.9</div>
+                    <div class="tc-émissions">12 émissions · <span class="tc-star">â˜…</span> 4.9</div>
                   </div>
                 </div>
                 <div class="tc-item">
@@ -2028,7 +1984,7 @@
                   <div class="tc-ava" style="background:rgba(142,68,173,0.15);color:#8e44ad;">AT</div>
                   <div class="tc-info">
                     <div class="tc-name">Antoine Tardieu</div>
-                    <div class="tc-missions">11 missions · <span class="tc-star">â˜…</span> 4.8</div>
+                    <div class="tc-émissions">11 émissions · <span class="tc-star">â˜…</span> 4.8</div>
                   </div>
                 </div>
                 <div class="tc-item">
@@ -2036,20 +1992,14 @@
                   <div class="tc-ava" style="background:rgba(230,126,34,0.1);color:#e67e22;">LM</div>
                   <div class="tc-info">
                     <div class="tc-name">Léa Martin</div>
-                    <div class="tc-missions">9 missions · <span class="tc-star">â˜…</span> 4.7</div>
+                    <div class="tc-émissions">9 émissions · <span class="tc-star">â˜…</span> 4.7</div>
                   </div>
                 </div>
               </div>
             </div>
             <div class="ss-card">
               <div class="ss-title">Hashtags populaires</div>
-              <div class="zone-tags"><span class="zone-tag"
-                  style="background:rgba(41,128,185,0.08);color:#2980b9;">#conseil</span><span class="zone-tag"
-                  style="background:rgba(41,128,185,0.08);color:#2980b9;">#sécurité</span><span class="zone-tag"
-                  style="background:rgba(41,128,185,0.08);color:#2980b9;">#EV</span><span class="zone-tag"
-                  style="background:rgba(41,128,185,0.08);color:#2980b9;">#moto</span><span class="zone-tag"
-                  style="background:rgba(41,128,185,0.08);color:#2980b9;">#route</span><span class="zone-tag"
-                  style="background:rgba(41,128,185,0.08);color:#2980b9;">#5étoiles</span></div>
+              <div class="zone-tags"><span class="zone-tag" style="background:rgba(41,128,185,0.08);color:#2980b9;">#conseil</span><span class="zone-tag" style="background:rgba(41,128,185,0.08);color:#2980b9;">#sécurité</span><span class="zone-tag" style="background:rgba(41,128,185,0.08);color:#2980b9;">#EV</span><span class="zone-tag" style="background:rgba(41,128,185,0.08);color:#2980b9;">#moto</span><span class="zone-tag" style="background:rgba(41,128,185,0.08);color:#2980b9;">#route</span><span class="zone-tag" style="background:rgba(41,128,185,0.08);color:#2980b9;">#5éétoiles</span></div>
             </div>
           </div>
         </div>
@@ -2064,17 +2014,17 @@
           <div class="gain-card">
             <div class="gain-period">Ce mois (mai 2025)</div>
             <div class="gain-val">3<em> 200â‚¬</em></div>
-            <div class="gain-nb">12 missions · Moy. 267â‚¬</div>
+            <div class="gain-nb">12 émissions · Moy. 267â‚¬</div>
           </div>
           <div class="gain-card">
             <div class="gain-period">Mois dernier (avr. 2025)</div>
             <div class="gain-val">2<em> 860â‚¬</em></div>
-            <div class="gain-nb">11 missions · Moy. 260â‚¬</div>
+            <div class="gain-nb">11 émissions · Moy. 260â‚¬</div>
           </div>
           <div class="gain-card">
             <div class="gain-period">Total 2025</div>
             <div class="gain-val">14<em> 200â‚¬</em></div>
-            <div class="gain-nb">47 missions · Moy. 302â‚¬</div>
+            <div class="gain-nb">47 émissions · Moy. 302â‚¬</div>
           </div>
         </div>
         <div class="sec-title">
@@ -2126,8 +2076,7 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:640px;">
           <div class="f-grp"><label>Prénom</label><input type="text" id="convPrenom" value=""></div>
           <div class="f-grp"><label>Nom</label><input type="text" id="convNomInput" value=""></div>
-          <div class="f-grp"><label>Email</label><input type="email" id="convEmail" value="" disabled
-              style="opacity: 0.7; cursor: not-allowed;"></div>
+          <div class="f-grp"><label>Email</label><input type="email" id="convEmail" value="" disabled="None" style="opacity: 0.7; cursor: not-allowed;"></div>
           <div class="f-grp"><label>Téléphone</label><input type="tel" id="convTel" value=""></div>
 
           <div class="sec-title" style="grid-column:span 2; margin-top: 20px;">
@@ -2146,59 +2095,43 @@
           </div>
 
           <div class="sec-title" style="grid-column:span 2; margin-top: 20px;">
-            <h2 class="sec-h">Informations <em>professionnelles</em></h2>
+            <h2 class="sec-h">informations <em>professionnelles</em></h2>
           </div>
           <div class="f-grp"><label>SIRET</label><input type="text" id="convSiret" value=""></div>
           <div class="f-grp"><label>IBAN</label><input type="text" id="convIban" value=""></div>
           <div class="f-grp"><label>NÂ° de Permis de conduire</label><input type="text" id="convNumPermis" value="">
           </div>
-          <div class="f-grp"><label>Type de Permis</label><input type="text" id="convTypePermis" value=""
-              placeholder="ex: B, A2..."></div>
+          <div class="f-grp"><label>Type de Permis</label><input type="text" id="convTypePermis" value="" placeholder="ex: B, A2..."></div>
           <div class="sec-title" style="grid-column:span 2; margin-top: 20px;">
             <h2 class="sec-h">Disponibilités & <em>Rayon d'action</em></h2>
           </div>
 
           <div class="f-grp" style="grid-column:span 2">
             <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-              <input type="checkbox" id="convDisponibleCheckbox"
-                style="width:20px; height:20px; accent-color:var(--bordeaux);">
-              <span style="font-weight:700; color:var(--bordeaux);">Je suis disponible pour recevoir des missions</span>
+              <input type="checkbox" id="convDisponibleCheckbox" style="width:20px; height:20px; accent-color:var(--bordeaux);">
+              <span style="font-weight:700; color:var(--bordeaux);">Je suis disponible pour recevoir des émissions</span>
             </label>
             <div style="font-size:0.75rem; color:var(--gray-mid); margin-top:4px;">Cochez cette case pour apparaÃ®tre
               dans les recherches de l'administrateur.</div>
           </div>
 
           <div class="f-grp" style="grid-column:span 2">
-            <label>Zones géographiques couvertes</label>
+            <label>zones géographiques couvertes</label>
             <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px;" id="convZonesContainer">
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="ÃŽle-de-France"> ÃŽle-de-France</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="PACA"> PACA</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="Auvergne-Rhône-Alpes"> Auvergne-Rhône-Alpes</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="Nouvelle-Aquitaine"> Nouvelle-Aquitaine</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="Occitanie"> Occitanie</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="Hauts-de-France"> Hauts-de-France</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="Grand Est"> Grand Est</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="Bretagne"> Bretagne</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="Pays de la Loire"> Pays de la Loire</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="Normandie"> Normandie</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="Bourgogne-Franche-Comté"> Bourgogne-Franche-Comté</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="Centre-Val de Loire"> Centre-Val de Loire</label>
-              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck"
-                  value="Corse"> Corse</label>
-              <label style="display:flex; align-items:center; gap:6px; font-weight:700;"><input type="checkbox"
-                  name="convZoneCheck" value="Toute la France"> Toute la France</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="ÃŽle-de-France"> ÃŽle-de-France</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="PACA"> PACA</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Auvergne-Rhône-Alpes"> Auvergne-Rhône-Alpes</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Nouvelle-Aquitaine"> Nouvelle-Aquitaine</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Occitanie"> Occitanie</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Hauts-de-France"> Hauts-de-France</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Grand Est"> Grand Est</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Bretagne"> Bretagne</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Pays de la Loire"> pays de la Loire</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Normandie"> Normandie</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Bourgogne-Franche-Comté"> Bourgogne-Franche-Comté</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Centre-Val de Loire"> Centre-Val de Loire</label>
+              <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="convZoneCheck" value="Corse"> Corse</label>
+              <label style="display:flex; align-items:center; gap:6px; font-weight:700;"><input type="checkbox" name="convZoneCheck" value="Toute la France"> Toute la France</label>
             </div>
           </div>
 
@@ -2212,20 +2145,17 @@
             <div id="permisLink" style="font-size:0.8rem; margin-top:5px; color:var(--bordeaux);"></div>
           </div>
           <div class="f-grp" style="grid-column:span 2">
-            <label>Attestation d'Assurance RC Pro <span
-                style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
+            <label>Attestation d'Assurance RC Pro <span style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
             <input type="file" id="uploadAssurance" accept=".pdf,.jpg,.jpeg,.png">
             <div id="assuranceLink" style="font-size:0.8rem; margin-top:5px; color:var(--bordeaux);"></div>
           </div>
           <div class="f-grp" style="grid-column:span 2">
-            <label>KBIS ou Avis de situation <span
-                style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
+            <label>KBIS ou Avis de situation <span style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
             <input type="file" id="uploadKbisConv" accept=".pdf,.jpg,.jpeg,.png">
             <div id="kbisConvLink" style="font-size:0.8rem; margin-top:5px; color:var(--bordeaux);"></div>
           </div>
           <div class="f-grp" style="grid-column:span 2">
-            <label>Pièce d'identité (CNI / Passeport) <span
-                style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
+            <label>Pièce d'identité (CNI / Passeport) <span style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
             <input type="file" id="uploadCniConv" accept=".pdf,.jpg,.jpeg,.png">
             <div id="cniConvLink" style="font-size:0.8rem; margin-top:5px; color:var(--bordeaux);"></div>
           </div>
@@ -2239,21 +2169,19 @@
         <div class="dash-header">
           <h1 class="dash-hello">Support <em>urgence</em></h1>
         </div>
-        <div
-          style="background:var(--bordeaux-light); border:1px solid var(--bordeaux); border-radius:24px; padding:20px; margin-bottom:32px; display:flex; align-items:center; gap:16px;">
+        <div style="background:var(--bordeaux-light); border:1px solid var(--bordeaux); border-radius:24px; padding:20px; margin-bottom:32px; display:flex; align-items:center; gap:16px;">
           <i class="fas fa-phone" style="font-size:1.5rem; color:var(--bordeaux);"></i>
           <div>
             <div style="font-weight:700; font-size:0.75rem; text-transform:uppercase; margin-bottom:4px;">Ligne
               d'urgence convoyeur</div>
-            <div style="font-family:'Montserrat'; font-size:1.2rem; font-weight:600;">Disponible 24h/24 · 7j/7</div>
+            <div style="font-family:'Montserrat'; font-size:1.2rem; font-weight:600;">disponible 24h/24 · 7j/7</div>
           </div>
         </div>
         <div class="sec-title">
           <h2 class="sec-h">Signaler un <em>incident</em></h2>
         </div>
         <div style="max-width:540px;">
-          <div class="f-grp"><label>Mission concernée</label><input type="text" id="sigMission"
-              placeholder="BC-2025-XXXX"></div>
+          <div class="f-grp"><label>Mission concernée</label><input type="text" id="sigMission" placeholder="BC-2025-XXXX"></div>
           <div class="f-grp"><label>Type d'incident</label><select id="sigType">
               <option>Problème technique véhicule</option>
               <option>Problème d'itinéraire</option>
@@ -2262,13 +2190,12 @@
               <option>Panne</option>
               <option>Autre</option>
             </select></div>
-          <div class="f-grp"><label>Niveau d'urgence</label><select id="sigUrgence">
+          <div class="f-grp"><label>niveau d'urgence</label><select id="sigUrgence">
               <option>Normal</option>
               <option>Urgent</option>
               <option>Critique â€” Intervention immédiate</option>
             </select></div>
-          <div class="f-grp"><label>Description de l'incident</label><textarea id="sigDesc" rows="4"
-              placeholder="Décrivez la situation précisémentâ€¦"></textarea></div>
+          <div class="f-grp"><label>Description de l'incident</label><textarea id="sigDesc" rows="4" placeholder="Décrivez la situation précisémentâ€¦"></textarea></div>
           <button type="button" class="btn-red" onclick="envoyerSignalement()"><i class="fas fa-paper-plane"></i>
             Envoyer le signalement</button>
         </div>
@@ -2278,30 +2205,22 @@
 
   <!-- MODALS -->
   <div class="modal-overlay" id="modalMissionDetails">
-    <div class="modal-box" style="max-width:700px;"><button class="modal-close"
-        onclick="closeModal('modalMissionDetails')"><i class="fas fa-times"></i></button>
-      <h3 class="modal-h">Détails de la <em>mission</em></h3>
+    <div class="modal-box" style="max-width:700px;"><button class="modal-close" onclick="closeModal('modalMissionDetails')"><i class="fas fa-times"></i></button>
+      <h3 class="modal-h">Détails de la <em>émission</em></h3>
       <div class="f-row">
-        <div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly
-            style="background:#f5f5f5; cursor:not-allowed;"></div>
-        <div class="f-grp"><label>Statut</label><input type="text" id="md-status" readonly
-            style="background:#f5f5f5; cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly="None" style="background:#f5f5f5; cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Statut</label><input type="text" id="md-status" readonly="None" style="background:#f5f5f5; cursor:not-allowed;"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Départ</label><input type="text" id="md-depart" readonly
-            style="background:#f5f5f5; cursor:not-allowed;"></div>
-        <div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee" readonly
-            style="background:#f5f5f5; cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Départ</label><input type="text" id="md-depart" readonly="None" style="background:#f5f5f5; cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee" readonly="None" style="background:#f5f5f5; cursor:not-allowed;"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule" readonly
-            style="background:#f5f5f5; cursor:not-allowed;"></div>
-        <div class="f-grp"><label>Rémunération (â‚¬)</label><input type="number" id="md-rem" readonly
-            style="background:#f5f5f5; cursor:not-allowed; font-weight:bold; color:var(--success);"></div>
+        <div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule" readonly="None" style="background:#f5f5f5; cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Rémunération (â‚¬)</label><input type="number" id="md-rem" readonly="None" style="background:#f5f5f5; cursor:not-allowed; font-weight:bold; color:var(--success);"></div>
       </div>
       <div class="modal-btns">
-        <div id="md-action-container" style="display:inline-block; margin-right: 10px;"></div><button
-          class="btn-outline" onclick="closeModal('modalMissionDetails')">Fermer</button>
+        <div id="md-action-container" style="display:inline-block; margin-right: 10px;"></div><button class="btn-outline" onclick="closeModal('modalMissionDetails')">Fermer</button>
       </div>
     </div>
   </div>
@@ -2312,8 +2231,7 @@
       <h3 class="modal-h">Ã‰tat des <em>lieux</em></h3>
       <p class="modal-sub">Accès rapide Ã  l'onglet état des lieux complet</p>
       <div class="modal-btns">
-        <button class="btn-red" onclick="closeModal('modalEdl'); window.location.href='etat-des-lieux.html';"><i
-            class="fas fa-camera"></i> Ouvrir l'EDL complet</button>
+        <button class="btn-red" onclick="closeModal('modalEdl'); window.location.href='etat-des-lieux.html';"><i class="fas fa-camera"></i> ouvrir l'EDL complet</button>
         <button class="btn-outline" onclick="closeModal('modalEdl')">Fermer</button>
       </div>
     </div>
@@ -2322,17 +2240,15 @@
   <div class="modal-overlay" id="modalTerminer">
     <div class="modal-box">
       <button class="modal-close" onclick="closeModal('modalTerminer')"><i class="fas fa-times"></i></button>
-      <h3 class="modal-h">Terminer la <em>mission</em></h3>
+      <h3 class="modal-h">Terminer la <em>émission</em></h3>
       <p class="modal-sub">BC-2025-0847 · Paris â†’ Lyon · BMW Série 3</p>
       <div class="f-grp"><label>Ã‰tat de livraison</label><select>
           <option>Livrée avec succès</option>
           <option>Livrée avec réserves</option>
           <option>Incident signalé</option>
         </select></div>
-      <div class="f-grp"><label>Commentaire de fin de mission</label><textarea rows="3"
-          placeholder="Déroulement, observations particulièresâ€¦"></textarea></div>
-      <div
-        style="background:var(--bordeaux-light); border:1px solid var(--bordeaux); border-radius:16px; padding:12px; margin-bottom:16px; font-size:0.75rem; color:var(--gray-mid);">
+      <div class="f-grp"><label>Commentaire de fin de émission</label><textarea rows="3" placeholder="Déroulement, observations particulièresâ€¦"></textarea></div>
+      <div style="background:var(--bordeaux-light); border:1px solid var(--bordeaux); border-radius:16px; padding:12px; margin-bottom:16px; font-size:0.75rem; color:var(--gray-mid);">
         <i class="fas fa-info-circle" style="color:var(--bordeaux); margin-right:8px;"></i>
         En validant, vous confirmez que l'état des lieux de livraison (10 photos) a été réalisé et signé par le client.
       </div>
@@ -2415,7 +2331,7 @@
         .maybeSingle();
 
       if (profileError || !profile) {
-        Swal.fire('Profil introuvable', 'Votre compte existe mais aucun profil convoyeur n\'y est lié. Contactez l\'administrateur.', 'error');
+        Swal.fire('Profil introuvable', 'Votre compâte existe mais aucun profil convoyeur n\'y est lié. Contactez l\'administrateur.', 'error');
         await client.auth.signOut();
         return;
       }
@@ -2618,7 +2534,7 @@
       document.getElementById('tab-' + id).classList.add('active');
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       if (el) el.classList.add('active');
-      if (id === 'missions') {
+      if (id === 'émissions') {
         loadMissions();
       } else if (id === 'market') {
         loadMarketMissions();
@@ -2690,7 +2606,7 @@
       const txt = document.getElementById('postInput').value.trim();
       if (!txt) return;
 
-      // Extraction des vraies informations du profil connecté
+      // Extréaction des vraies informations du profil connecté
       const nom = _currentConvoyeurData ? `${_currentConvoyeurData.prenom} ${_currentConvoyeurData.nom}` : 'M. Bathily';
       const initiales = _currentConvoyeurData ? (_currentConvoyeurData.prenom[0] + _currentConvoyeurData.nom[0]).toUpperCase() : 'MB';
 
@@ -2723,15 +2639,15 @@
       const convoyeurId = _currentConvoyeurData?.id;
       const currentConvoyeur = getConvoyeurName();
 
-      const missionsQuery = convoyeurId
-        ? client.from('missions').select('*').eq('convoyeur_id', convoyeurId).order('created_at', { ascending: false })
-        : client.from('missions').select('*').eq('convoyeur_nom', currentConvoyeur).order('created_at', { ascending: false });
+      const émissionsQuery = convoyeurId
+        ? client.from('émissions').select('*').eq('convoyeur_id', convoyeurId).order('created_at', { ascending: false })
+        : client.from('émissions').select('*').eq('convoyeur_nom', currentConvoyeur).order('created_at', { ascending: false });
 
-      missionsQuery
+      émissionsQuery
         .then(({ data, error }) => {
           if (error) {
-            console.error("Erreur missions assignees :", error);
-            container.innerHTML = `<div style="color:var(--bordeaux); text-align:center; padding:20px;">Erreur de chargement des missions : ${error.message}</div>`;
+            console.error("Erreur émissions assignees :", error);
+            container.innerHTML = `<div style="color:var(--bordeaux); text-align:center; padding:20px;">Erreur de chargement des émissions : ${error.message}</div>`;
             return;
           }
 
@@ -2741,17 +2657,17 @@
           }
 
           if (!data || data.length === 0) {
-            container.innerHTML = `<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune mission ne vous est assignée actuellement.</div>`;
+            container.innerHTML = `<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune émission ne vous est assignée actuellement.</div>`;
             const accueilContainer = document.getElementById('accueilMissionEnCours');
-            if (accueilContainer) accueilContainer.innerHTML = '<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune mission en cours.</div>';
+            if (accueilContainer) accueilContainer.innerHTML = '<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune émission en cours.</div>';
             return;
           }
 
           container.innerHTML = '';
           data.forEach(m => {
             let dateStr = 'â€”';
-            if (m.date_mission) {
-              const dateObj = new Date(m.date_mission);
+            if (m.date_émission) {
+              const dateObj = new Date(m.date_émission);
               dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
             }
 
@@ -2765,12 +2681,12 @@
             if (m.status === 'planned') {
               actionsHtml = `
             <button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i> Démarrer</button>
-            <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?mission_id=${m.id}&type=depart'"><i class="fas fa-camera"></i> EDL Départ</button>
+            <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?émission_id=${m.id}&type=depart'"><i class="fas fa-camera"></i> EDL Départ</button>
           `;
             } else if (m.status === 'in_progress') {
               actionsHtml = `
             <button class="btn-sm btn-sm-red" onclick="window.location.href='gps-emitter.html'"><i class="fas fa-map-marker-alt"></i> GPS</button>
-            <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?mission_id=${m.id}&type=arrivee'"><i class="fas fa-flag-checkered"></i> EDL Arrivée</button>
+            <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?émission_id=${m.id}&type=arrivee'"><i class="fas fa-flag-checkered"></i> EDL Arrivée</button>
             <button class="btn-sm btn-sm-green" onclick="confirmDelivery('${m.id}')"><i class="fas fa-check"></i> Terminer</button>
           `;
             } else {
@@ -2778,7 +2694,7 @@
             }
 
             const card = document.createElement('div');
-            card.className = 'mission-card clickable-card';
+            card.className = 'émission-card clickable-card';
             card.onclick = (e) => {
               if (e.target.closest('button') || e.target.closest('a')) return;
               showMissionDetails(encodeURIComponent(JSON.stringify(m)));
@@ -2800,14 +2716,14 @@
             container.appendChild(card);
           });
 
-          // Populate Accueil with the first active mission
+          // Populate Accueil with the first active émission
           const accueilContainer = document.getElementById('accueilMissionEnCours');
           if (accueilContainer) {
             const inProgress = data.find(m => m.status === 'in_progress' || m.status === 'planned');
             if (inProgress) {
               let dateStr = 'â€”';
-              if (inProgress.date_mission) {
-                const dateObj = new Date(inProgress.date_mission);
+              if (inProgress.date_émission) {
+                const dateObj = new Date(inProgress.date_émission);
                 dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
               }
 
@@ -2819,12 +2735,12 @@
               if (inProgress.status === 'planned') {
                 actionsHtml = `
               <button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${inProgress.id}', 'in_progress')"><i class="fas fa-play"></i> Démarrer</button>
-              <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?mission_id=${inProgress.id}&type=depart'"><i class="fas fa-camera"></i> EDL Départ</button>
+              <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?émission_id=${inProgress.id}&type=depart'"><i class="fas fa-camera"></i> EDL Départ</button>
             `;
               } else if (inProgress.status === 'in_progress') {
                 actionsHtml = `
               <button class="btn-sm btn-sm-red" onclick="window.location.href='gps-emitter.html'"><i class="fas fa-map-marker-alt"></i> GPS</button>
-              <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?mission_id=${inProgress.id}&type=arrivee'"><i class="fas fa-flag-checkered"></i> EDL Arrivée</button>
+              <button class="btn-sm btn-sm-ghost" onclick="window.location.href='etat-des-lieux.html?émission_id=${inProgress.id}&type=arrivee'"><i class="fas fa-flag-checkered"></i> EDL Arrivée</button>
               <button class="btn-sm btn-sm-green" onclick="confirmDelivery('${inProgress.id}')"><i class="fas fa-check"></i> Terminer</button>
             `;
               }
@@ -2847,7 +2763,7 @@
             </div>
           `;
             } else {
-              accueilContainer.innerHTML = '<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune mission en cours.</div>';
+              accueilContainer.innerHTML = '<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune émission en cours.</div>';
             }
           }
         });
@@ -2877,20 +2793,20 @@
 
       if (newStatus === 'in_progress') {
         // Vérifier le statut de paiement en temps réel avant d'autoriser le démarrage
-        client.from('missions')
+        client.from('émissions')
           .select('paiement_statut, reference')
           .eq('id', id)
           .single()
           .then(({ data, error }) => {
             if (error || !data) {
-              Swal.fire('Erreur', 'Impossible de vérifier le statut de paiement pour cette mission.', 'error');
+              Swal.fire('Erreur', 'Impossible de vérifier le statut de paiement pour cette émission.', 'error');
               return;
             }
 
             if ((data.paiement_statut || 'pending') !== 'paid') {
               Swal.fire({
                 title: 'Démarrage bloqué',
-                html: `Le paiement de la mission <strong>${data.reference || ''}</strong> n'a pas encore été validé.<br><br>Le démarrage est bloqué. Veuillez contacter l'administrateur.`,
+                html: `Le paiement de la émission <strong>${data.reference || ''}</strong> n'a pas encore été validé.<br><br>Le démarrage est bloqué. Veuillez contacter l'administrateur.`,
                 icon: 'warning',
                 confirmButtonColor: 'var(--bordeaux)'
               });
@@ -2906,7 +2822,7 @@
     }
 
     function proceedWithUpdate(client, id, newStatus) {
-      client.from('missions')
+      client.from('émissions')
         .update({ status: newStatus })
         .eq('id', id)
         .select()
@@ -2914,7 +2830,7 @@
           if (error) {
             Swal.fire('Erreur', 'Impossible de mettre Ã  jour le statut : ' + error.message, 'error');
           } else {
-            Swal.fire('Statut mis Ã  jour !', 'Le statut de la mission a bien été modifié.', 'success');
+            Swal.fire('Statut mis Ã  jour !', 'Le statut de la émission a bien été modifié.', 'success');
             loadMissions();
           }
         });
@@ -2934,28 +2850,28 @@
           const appliedMissions = {};
           if (apps) {
             apps.forEach(app => {
-              appliedMissions[app.mission_id] = app.status;
+              appliedMissions[app.émission_id] = app.status;
             });
           }
 
-          client.from('missions')
+          client.from('émissions')
             .select('*')
             .eq('status', 'available')
             .order('created_at', { ascending: false })
-            .then(({ data: missions, error: misError }) => {
+            .then(({ data: émissions, error: misError }) => {
               if (misError) {
-                console.error("Erreur market missions :", misError);
+                console.error("Erreur market émissions :", misError);
                 container.innerHTML = `<div style="color:var(--bordeaux); text-align:center; padding:20px;">Erreur de chargement : ${misError.message}</div>`;
                 return;
               }
 
-              if (!missions || missions.length === 0) {
-                container.innerHTML = `<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune offre de mission n'est disponible sur le marché actuellement.</div>`;
+              if (!émissions || émissions.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:var(--gray-mid); padding:20px;">Aucune offre de émission n'est disponible sur le marché actuellement.</div>`;
                 return;
               }
 
               container.innerHTML = '';
-              missions.forEach(m => {
+              émissions.forEach(m => {
                 const hasAppliedStatus = appliedMissions[m.id];
                 let rem = m.remuneration_convoyeur;
                 if (rem === null || rem === undefined || rem === 0) {
@@ -2978,13 +2894,13 @@
                 }
 
                 let dateStr = 'â€”';
-                if (m.date_mission) {
-                  const dateObj = new Date(m.date_mission);
+                if (m.date_émission) {
+                  const dateObj = new Date(m.date_émission);
                   dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
                 }
 
                 const card = document.createElement('div');
-                card.className = 'mission-card clickable-card';
+                card.className = 'émission-card clickable-card';
                 card.onclick = (e) => {
                   if (e.target.closest('button') || e.target.closest('a')) return;
                   m._hasAppliedStatus = hasAppliedStatus;
@@ -3010,13 +2926,13 @@
         });
     }
 
-    function applyForMission(missionId) {
+    function applyForMission(émissionId) {
       const client = getSupabase();
       const currentConvoyeur = getConvoyeurName();
 
       client.from('candidatures')
         .insert([{
-          mission_id: missionId,
+          émission_id: émissionId,
           convoyeur_nom: currentConvoyeur,
           status: 'pending'
         }])
@@ -3025,7 +2941,7 @@
           if (error) {
             Swal.fire('Erreur', 'Impossible de postuler : ' + error.message, 'error');
           } else {
-            Swal.fire('Candidature envoyée !', 'Votre intérêt pour cette mission a bien été transmis Ã  l\'administrateur.', 'success');
+            Swal.fire('Candidature envoyée !', 'Votre intérêt pour cette émission a bien été transmis Ã  l\'administrateur.', 'success');
             loadMarketMissions();
           }
         });
@@ -3127,11 +3043,11 @@
 
     // ========== SUPPORT URGENCE ==========
     function envoyerSignalement() {
-      const mission = document.getElementById('sigMission').value.trim();
+      const émission = document.getElementById('sigMission').value.trim();
       const desc = document.getElementById('sigDesc').value.trim();
 
-      if (!mission || !desc) {
-        Swal.fire('Champs requis', 'Veuillez renseigner la mission concernée et la description.', 'warning');
+      if (!émission || !desc) {
+        Swal.fire('Champs requis', 'Veuillez renseigner la émission concernée et la description.', 'warning');
         return;
       }
 
@@ -3232,7 +3148,7 @@
       const dateStr = new Date().toLocaleDateString('fr-FR');
       const edlRef = `EDL-BC-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      // Extraction dynamique des données réelles du formulaire de la page
+      // Extréaction dynamique des données réelles du formulaire de la page
       const etatSelect = document.querySelector('#tab-edl select:nth-of-type(1)');
       const carburantSelect = document.querySelector('#tab-edl select:nth-of-type(2)');
       const obsTextarea = document.querySelector('#tab-edl textarea');
@@ -3270,7 +3186,7 @@
       doc.setFontSize(10);
       doc.setTextColor(45, 42, 36); // Anthracite
       doc.text(`Document Réf : ${edlRef}`, 120, 27);
-      doc.text(`Date d'émission : ${dateStr}`, 120, 33);
+      doc.text(`Date d'éémission : ${dateStr}`, 120, 33);
 
       doc.setDrawColor(232, 225, 217); // Ligne Sable
       doc.line(14, 40, 195, 40);
@@ -3294,7 +3210,7 @@
 
       doc.setFont("Helvetica", "normal");
       doc.text(`Ã‰tat général constaté : ${etatVehicule}`, 14, 90);
-      doc.text(`Niveau Carburant / Ã‰nergie : ${carburantNiveau}`, 14, 96);
+      doc.text(`Niveau Carburant / Ã‰énergie : ${carburantNiveau}`, 14, 96);
 
       // Section Observations
       doc.setFont("Helvetica", "bold");
@@ -3366,7 +3282,7 @@
 
         openModal('modalMissionDetails');
       } catch (e) {
-        console.error('Error parsing mission details', e);
+        console.error('Error parsing émission details', e);
       }
     }
   </script>

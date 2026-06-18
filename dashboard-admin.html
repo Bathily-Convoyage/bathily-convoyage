@@ -1,20 +1,16 @@
-﻿<!DOCTYPE html>
+﻿
 <html lang="fr">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Panel Admin â€” Bathily Convoyage</title>
-  <meta name="description"
-    content="Administration complète de Bathily Convoyage : gestion des missions, clients, convoyeurs, tarifs, rémunérations et facturation.">
+  <title>Panel Admin â€” Bathily convoyage</title>
+  <meta name="description" content="Administration complète de Bathily Convoyage : gestion des émissions, clients, convoyeurs, tarifs, rémunérations et facturation.">
   <meta property="og:title" content="Panel Admin â€” Bathily Convoyage">
-  <meta property="og:description"
-    content="Interface d'administration pour gérer les convoyages, les utilisateurs et les paramètres financiers.">
+  <meta property="og:description" content="Interface d'administration pour gérer les convoyages, les utilisateurs et les paramètres financiers.">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚗%3C/text%3E%3C/svg%3E">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
@@ -309,7 +305,7 @@
       color: var(--gray-mid);
     }
 
-    .stats-row {
+    .sétats-row {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 16px;
@@ -853,7 +849,7 @@
       background: var(--success);
     }
 
-    .toggle::after {
+    .toggle::afêter {
       content: '';
       position: absolute;
       top: 3px;
@@ -865,7 +861,7 @@
       transition: transform 0.2s;
     }
 
-    .toggle.on::after {
+    .toggle.on::afêter {
       transform: translateX(18px);
     }
 
@@ -970,7 +966,7 @@
     }
 
     @media (max-width: 1100px) {
-      .stats-row {
+      .sétats-row {
         grid-template-columns: repeat(3, 1fr);
       }
 
@@ -1036,13 +1032,13 @@
         padding: 20px;
       }
 
-      .stats-row {
+      .sétats-row {
         grid-template-columns: 1fr 1fr;
       }
     }
 
     @media (max-width: 600px) {
-      .stats-row {
+      .sétats-row {
         grid-template-columns: 1fr;
       }
 
@@ -1420,12 +1416,11 @@
   <!-- AUTH OVERLAY (connexion Supabase) -->
   <div id="authOverlay">
     <div class="auth-box">
-      <div class="auth-logo">Bathily-Convoyage<span>.</span></div>
+      <div class="auth-logo">Bathily-convoyage<span>.</span></div>
       <div class="auth-sub">Accès administrateur sécurisé</div>
       <input type="email" id="adminEmailInput" class="auth-input" placeholder="Email admin" autocomplete="email">
-      <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Mot de passe"
-        autocomplete="current-password">
-      <div class="auth-error" id="authError">Identifiants incorrects ou compte non admin.</div>
+      <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Mot de passe" autocomplete="current-password">
+      <div class="auth-error" id="authError">Identifiants incorrects ou compâte non admin.</div>
       <button class="auth-btn" id="loginBtn"><i class="fas fa-unlock-alt"></i> Se connecter</button>
     </div>
   </div>
@@ -1433,14 +1428,12 @@
   <div id="mobileNavOverlay" class="mobile-overlay" onclick="closeMobileNav()"></div>
   <div class="topbar">
     <div class="topbar-left">
-      <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileNav()" aria-label="Menu navigation"
-        title="Ouvrir le menu"><i class="fas fa-bars"></i></button>
-      <a href="index.html" class="topbar-logo">Bathily-Convoyage<span>.</span></a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileNav()" aria-label="Menu navigation" title="Ouvrir le menu"><i class="fas fa-bars"></i></button>
+      <a href="index.html" class="topbar-logo">Bathily-convoyage<span>.</span></a>
       <span class="topbar-tag">Admin</span>
     </div>
     <div class="topbar-right">
-      <div class="topbar-notif" role="button" tabindex="0" onclick="navTo('devis')" title="Devis en attente"><i
-          class="fas fa-bell"></i>
+      <div class="topbar-notif" role="button" tabindex="0" onclick="navTo('devis')" title="Devis en attente"><i class="fas fa-bell"></i>
         <div class="notif-badge" id="topbarNotifBadge" style="display:none">0</div>
       </div>
       <div class="topbar-user" role="button" tabindex="0">
@@ -1457,17 +1450,14 @@
       <div class="nav-section">
         <div class="nav-section-lbl">Vue globale</div>
         <div class="nav-item" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</div>
-        <div class="nav-item" data-tab="missions"><i class="fas fa-route"></i> Missions <span class="nav-badge"
-            id="missionsNavBadge" style="display:none">0</span></div>
-        <div class="nav-item" data-tab="devis"><i class="fas fa-calculator"></i> Devis <span class="nav-badge"
-            id="devisNavBadge">4</span></div>
+        <div class="nav-item" data-tab="émissions"><i class="fas fa-route"></i> Missions <span class="nav-badge" id="émissionsNavBadge" style="display:none">0</span></div>
+        <div class="nav-item" data-tab="devis"><i class="fas fa-calculator"></i> Devis <span class="nav-badge" id="devisNavBadge">4</span></div>
       </div>
       <div class="nav-section">
         <div class="nav-section-lbl">Utilisateurs</div>
         <div class="nav-item" data-tab="clients"><i class="fas fa-users"></i> Clients</div>
-        <div class="nav-item" data-tab="convoyeurs"><i class="fas fa-truck"></i> Convoyeurs</div>
-        <div class="nav-item" data-tab="candidatures"><i class="fas fa-user-plus"></i> Candidatures <span
-            class="nav-badge pulsing" id="candidaturesBadge" style="display:none">0</span></div>
+        <div class="nav-item" data-tab="convoyeurs"><i class="fas fa-truck"></i> convoyeurs</div>
+        <div class="nav-item" data-tab="candidatures"><i class="fas fa-user-plus"></i> Candidatures <span class="nav-badge pulsing" id="candidaturesBadge" style="display:none">0</span></div>
         <div class="nav-item" data-tab="reseau-admin"><i class="fas fa-comments"></i> Réseau (Modération)</div>
       </div>
       <div class="nav-section">
@@ -1491,7 +1481,7 @@
           <h1 class="dash-hello">Panel <em>Administration</em></h1>
           <div class="dash-date" id="dashDate"></div>
         </div>
-        <div class="stats-row">
+        <div class="sétats-row">
           <div class="stat-card" data-nav="clients">
             <div class="stat-ico"><i class="fas fa-users"></i></div>
             <div class="stat-val" id="statClientsVal">â€”</div>
@@ -1501,10 +1491,10 @@
           <div class="stat-card" data-nav="convoyeurs">
             <div class="stat-ico"><i class="fas fa-truck"></i></div>
             <div class="stat-val" id="statConvoyeursVal">â€”</div>
-            <div class="stat-lbl">Convoyeurs</div>
+            <div class="stat-lbl">convoyeurs</div>
             <div class="stat-trend trend-up">+2</div>
           </div>
-          <div class="stat-card" data-nav="missions">
+          <div class="stat-card" data-nav="émissions">
             <div class="stat-ico"><i class="fas fa-route"></i></div>
             <div class="stat-val" id="statMissionsVal">â€”</div>
             <div class="stat-lbl">Missions / mois</div>
@@ -1538,7 +1528,7 @@
               <div class="mini-lbl">Devis en attente</div>
             </div>
           </div>
-          <div class="mini-card" data-nav="missions">
+          <div class="mini-card" data-nav="émissions">
             <div class="mini-ico"><i class="fas fa-exclamation-triangle"></i></div>
             <div>
               <div class="mini-val">1</div>
@@ -1562,7 +1552,7 @@
         </div>
         <div class="sec-title">
           <h2 class="sec-h">Missions <em>récentes</em></h2>
-          <div class="sec-actions"><button class="btn-red" data-nav="missions"><i class="fas fa-eye"></i> Voir
+          <div class="sec-actions"><button class="btn-red" data-nav="émissions"><i class="fas fa-eye"></i> Voir
               tout</button></div>
         </div>
         <table class="data-table">
@@ -1571,9 +1561,9 @@
               <th>Réf.</th>
               <th>Client</th>
               <th>Trajet</th>
-              <th>Convoyeur</th>
+              <th>convoyeur</th>
               <th>Pack</th>
-              <th>Montant</th>
+              <th>montant</th>
               <th>Statut</th>
               <th>Actions</th>
             </tr>
@@ -1589,16 +1579,15 @@
       <!-- Candidatures Convoyeurs -->
       <div class="tab-content" id="tab-candidatures">
         <div class="dash-header">
-          <h1 class="dash-hello">Candidatures <em>Convoyeurs</em></h1>
+          <h1 class="dash-hello">Candidatures <em>convoyeurs</em></h1>
         </div>
         <div class="sec-title">
           <h2 class="sec-h">Dossiers <em>Ã  examiner</em></h2>
           <div class="sec-actions">
-            <select id="candidaturesFilter"
-              style="padding:8px 14px; border:1px solid var(--border-light); border-radius:40px; font-size:0.75rem; font-weight:600; background:#F9FAFB; outline:none;">
+            <select id="candidaturesFilter" style="padding:8px 14px; border:1px solid var(--border-light); border-radius:40px; font-size:0.75rem; font-weight:600; background:#F9FAFB; outline:none;">
               <option value="all">Tous les statuts</option>
               <option value="pending">En attente</option>
-              <option value="approved">Approuvés</option>
+              <option value="approved">Appérouvés</option>
               <option value="rejected">Refusés</option>
             </select>
             <button class="btn-outline" id="refreshCandidaturesBtn"><i class="fas fa-sync"></i> Actualiser</button>
@@ -1610,14 +1599,14 @@
       </div>
 
       <!-- Missions -->
-      <div class="tab-content" id="tab-missions">
+      <div class="tab-content" id="tab-émissions">
         <div class="dash-header">
-          <h1 class="dash-hello">Gestion <em>missions</em></h1>
+          <h1 class="dash-hello">gestion <em>émissions</em></h1>
         </div>
         <div class="sec-title">
-          <h2 class="sec-h">Toutes les <em>missions</em></h2>
+          <h2 class="sec-h">toutes les <em>émissions</em></h2>
           <div class="sec-actions"><button class="btn-red" id="createMissionBtn"><i class="fas fa-plus"></i> Créer une
-              mission</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div>
+              émission</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div>
         </div>
         <div class="filter-bar">
           <span class="filter-label"><i class="fas fa-filter"></i> Filtres</span>
@@ -1634,10 +1623,8 @@
             <option value="route">Route</option>
             <option value="plateau">Plateau</option>
           </select>
-          <input type="text" id="filter-search" placeholder="Référence, client, convoyeurâ€¦"
-            style="min-width:200px; border-radius:40px;">
-          <button class="btn-outline" id="resetFiltersBtn" style="padding:6px 14px; font-size:0.6rem;"><i
-              class="fas fa-times"></i> Réinitialiser</button>
+          <input type="text" id="filter-search" placeholder="Référence, client, convoyeurâ€¦" style="min-width:200px; border-radius:40px;">
+          <button class="btn-outline" id="resetFiltersBtn" style="padding:6px 14px; font-size:0.6rem;"><i class="fas fa-times"></i> Réinitialiser</button>
           <span class="auto-refresh-badge"><span class="auto-refresh-dot"></span> Auto-refresh 30s</span>
         </div>
         <table class="data-table">
@@ -1646,19 +1633,19 @@
               <th>Réf.</th>
               <th>Client</th>
               <th>Trajet</th>
-              <th>Convoyeur</th>
+              <th>convoyeur</th>
               <th>Mode</th>
               <th>Pack</th>
-              <th>Montant HT</th>
+              <th>montant HT</th>
               <th>Rém. convoyeur</th>
-              <th>Marge</th>
+              <th>marge</th>
               <th>Paiement</th>
               <th>Statut</th>
               <th>Date</th>
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="missionsTableBody"></tbody>
+          <tbody id="émissionsTableBody"></tbody>
         </table>
       </div>
 
@@ -1677,7 +1664,7 @@
               <th>Trajet</th>
               <th>Type</th>
               <th>Pack</th>
-              <th>Montant estimé</th>
+              <th>montant estimé</th>
               <th>Reçu le</th>
               <th>Actions</th>
             </tr>
@@ -1689,15 +1676,14 @@
       <!-- Clients -->
       <div class="tab-content" id="tab-clients">
         <div class="dash-header">
-          <h1 class="dash-hello">Base <em>clients</em></h1>
+          <h1 class="dash-hello">base <em>clients</em></h1>
         </div>
         <div class="sec-title">
           <h2 class="sec-h" id="clientsCountHeader">0 clients <em>enregistrés</em></h2>
           <div class="sec-actions"><button class="btn-red" id="newClientBtn"><i class="fas fa-plus"></i>
               Ajouter</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div>
         </div>
-        <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="client-search-input"
-            placeholder="Rechercher un clientâ€¦"></div>
+        <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="client-search-input" placeholder="Rechercher un clientâ€¦"></div>
         <table class="data-table">
           <thead>
             <tr>
@@ -1721,20 +1707,19 @@
       <!-- Convoyeurs -->
       <div class="tab-content" id="tab-convoyeurs">
         <div class="dash-header">
-          <h1 class="dash-hello">Gestion <em>convoyeurs</em></h1>
+          <h1 class="dash-hello">gestion <em>convoyeurs</em></h1>
         </div>
         <div class="sec-title">
-          <h2 class="sec-h" id="convoyeursCount">Convoyeurs <em>certifiés</em></h2>
+          <h2 class="sec-h" id="convoyeursCount">convoyeurs <em>certifiés</em></h2>
           <div class="sec-actions"><button class="btn-red" id="addConvoyeurBtn"><i class="fas fa-plus"></i>
               Ajouter</button></div>
         </div>
-        <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="conv-search-input"
-            placeholder="Rechercher un convoyeurâ€¦"></div>
+        <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="conv-search-input" placeholder="Rechercher un convoyeurâ€¦"></div>
         <table class="data-table">
           <thead>
             <tr>
-              <th>Convoyeur</th>
-              <th>Zones d'action</th>
+              <th>convoyeur</th>
+              <th>zones d'action</th>
               <th>Grade</th>
               <th>Note</th>
               <th>Taux km auto</th>
@@ -1767,22 +1752,18 @@
                     <div class="post-ava" style="background:rgba(41,128,185,0.15); color:#2980b9;">KD</div>
                     <div>
                       <div class="post-name">Karim Diallo</div>
-                      <div class="post-meta"><span class="post-role">Convoyeur Senior</span><span class="post-time">Il y
+                      <div class="post-meta"><span class="post-role">convoyeur senior</span><span class="post-time">Il y
                           a 2h Â· Lyon</span></div>
                     </div>
-                  </div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c"
-                    onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i
-                      class="fas fa-trash"></i></button>
+                  </div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button>
                 </div>
                 <div class="post-body">Astuce du jour : pour les longs trajets en été, vérifiez toujours la pression des
                   pneus avant le départ â€” surtout pour les Tesla qui chauffent plus vite en mode auto-pilote. J'ai évité
                   un incident hier sur l'A7. ðŸš—âš¡</div>
-                <div class="post-tags"><span class="post-tag">#conseil</span><span
-                    class="post-tag">#sécurité</span><span class="post-tag">#EV</span></div>
+                <div class="post-tags"><span class="post-tag">#conseil</span><span class="post-tag">#sécurité</span><span class="post-tag">#EV</span></div>
                 <div class="post-actions">
                   <div style="display:flex;gap:20px"><button class="post-action liked"><i class="fas fa-heart"></i>
-                      14</button><button class="post-action" onclick="toggleComments(this)"><i
-                        class="fas fa-comment"></i> 3 commentaires</button></div>
+                      14</button><button class="post-action" onclick="toggleComments(this)"><i class="fas fa-comment"></i> 3 commentaires</button></div>
                 </div>
               </div>
               <div class="post-card">
@@ -1791,22 +1772,18 @@
                     <div class="post-ava" style="background:rgba(74,124,107,0.15); color:var(--success);">SF</div>
                     <div>
                       <div class="post-name">Sophie Fontaine</div>
-                      <div class="post-meta"><span class="post-role">Convoyeur Â· Moto</span><span class="post-time">Il y
+                      <div class="post-meta"><span class="post-role">convoyeur Â· Moto</span><span class="post-time">Il y
                           a 5h Â· Bordeaux</span></div>
                     </div>
-                  </div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c"
-                    onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i
-                      class="fas fa-trash"></i></button>
+                  </div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button>
                 </div>
                 <div class="post-body">Mission terminée ! Paris â†’ Bordeaux avec une R1250GS. Trajet impeccable, client
-                  ravi, 5 étoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout
+                  ravi, 5 éétoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout
                   litige. Merci Bathily pour la logistique au top. ðŸï¸</div>
-                <div class="post-tags"><span class="post-tag">#moto</span><span class="post-tag">#mission</span><span
-                    class="post-tag">#5étoiles</span></div>
+                <div class="post-tags"><span class="post-tag">#moto</span><span class="post-tag">#émission</span><span class="post-tag">#5éétoiles</span></div>
                 <div class="post-actions">
                   <div style="display:flex;gap:20px"><button class="post-action"><i class="fas fa-heart"></i>
-                      22</button><button class="post-action" onclick="toggleComments(this)"><i
-                        class="fas fa-comment"></i> 7 commentaires</button></div>
+                      22</button><button class="post-action" onclick="toggleComments(this)"><i class="fas fa-comment"></i> 7 commentaires</button></div>
                 </div>
               </div>
               <div class="post-card">
@@ -1815,22 +1792,19 @@
                     <div class="post-ava" style="background:rgba(142,68,173,0.15); color:#8e44ad;">AT</div>
                     <div>
                       <div class="post-name">Antoine Tardieu</div>
-                      <div class="post-meta"><span class="post-role">Convoyeur Â· SUV</span><span class="post-time">Hier
+                      <div class="post-meta"><span class="post-role">convoyeur Â· SUV</span><span class="post-time">Hier
                           Â· Marseille</span></div>
                     </div>
-                  </div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c"
-                    onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i
-                      class="fas fa-trash"></i></button>
+                  </div><button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button>
                 </div>
                 <div class="post-body">Question Ã  la communauté : quelqu'un a-t-il une bonne adresse pour se restaurer
-                  sur l'A9 entre Montpellier et Marseille ? J'ai une mission demain matin et je cherche un spot propre
+                  sur l'A9 entre Montpellier et Marseille ? J'ai une émission demain matin et je cherche un spot propre
                   pour la pause déjeuner.</div>
                 <div class="post-tags"><span class="post-tag">#routeA9</span><span class="post-tag">#conseil</span>
                 </div>
                 <div class="post-actions">
                   <div style="display:flex;gap:20px"><button class="post-action"><i class="fas fa-heart"></i>
-                      6</button><button class="post-action" onclick="toggleComments(this)"><i
-                        class="fas fa-comment"></i> 11 commentaires</button></div>
+                      6</button><button class="post-action" onclick="toggleComments(this)"><i class="fas fa-comment"></i> 11 commentaires</button></div>
                 </div>
               </div>
             </div>
@@ -1841,9 +1815,7 @@
               <div style="font-size:0.75rem; color:var(--gray-mid); margin-bottom:12px; line-height:1.5;">En tant
                 qu'administrateur, vous pouvez voir tous les messages publiés par les convoyeurs et les supprimer si
                 besoin.</div>
-              <button class="btn-red" style="width:100%"
-                onclick="Swal.fire('Annonce Globale', 'La publication globale est en cours de développement.', 'info')"><i
-                  class="fas fa-bullhorn"></i> Publier une annonce</button>
+              <button class="btn-red" style="width:100%" onclick="Swal.fire('Annonce Globale', 'La publication globale est en cours de développement.', 'info')"><i class="fas fa-bullhorn"></i> Publier une annonce</button>
             </div>
             <div class="ss-card">
               <div class="ss-title">Hashtags populaires</div>
@@ -1866,60 +1838,47 @@
         <div class="alert alert-warn"><i class="fas fa-exclamation-triangle"></i> Toute modification s'applique
           immédiatement aux nouveaux devis. Les devis en cours ne sont pas affectés.</div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title"><i class="fas fa-road"></i> Convoyage
+          <div class="config-card-header"><span class="config-card-title"><i class="fas fa-road"></i> convoyage
               routier</span><span class="config-card-tag">Tarif client</span></div>
           <div class="config-grid">
             <div class="config-item"><label>Tarif automobile (â‚¬/km)</label>
-              <div class="editable-num"><input class="num-input" type="number" value="1.00" step="0.05"
-                  id="tarifAutoKm"><span class="num-unit">â‚¬/km</span><button class="save-inline"
-                  data-config="tarifAutoKm">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="1.00" step="0.05" id="tarifAutoKm"><span class="num-unit">â‚¬/km</span><button class="save-inline" data-config="tarifAutoKm">Enreg.</button></div>
             </div>
             <div class="config-item"><label>Tarif moto (â‚¬/km)</label>
-              <div class="editable-num"><input class="num-input" type="number" value="0.85" step="0.05"
-                  id="tarifMotoKm"><span class="num-unit">â‚¬/km</span><button class="save-inline"
-                  data-config="tarifMotoKm">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="0.85" step="0.05" id="tarifMotoKm"><span class="num-unit">â‚¬/km</span><button class="save-inline" data-config="tarifMotoKm">Enreg.</button></div>
             </div>
             <div class="config-item"><label>Minimum auto</label>
-              <div class="editable-num"><input class="num-input" type="number" value="120" step="5" id="minAuto"><span
-                  class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="minAuto">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="120" step="5" id="minAuto"><span class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="minAuto">Enreg.</button></div>
             </div>
             <div class="config-item"><label>Minimum moto</label>
-              <div class="editable-num"><input class="num-input" type="number" value="100" step="5" id="minMoto"><span
-                  class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="minMoto">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="100" step="5" id="minMoto"><span class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="minMoto">Enreg.</button></div>
             </div>
             <div class="config-item"><label>Majoration SUV</label>
-              <div class="editable-num"><input class="num-input" type="number" value="15" step="1" id="majSuv"><span
-                  class="num-unit">%</span><button class="save-inline" data-config="majSuv">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="15" step="1" id="majSuv"><span class="num-unit">%</span><button class="save-inline" data-config="majSuv">Enreg.</button></div>
             </div>
             <div class="config-item"><label>Majoration Utilitaire</label>
-              <div class="editable-num"><input class="num-input" type="number" value="20" step="1" id="majUtil"><span
-                  class="num-unit">%</span><button class="save-inline" data-config="majUtil">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="20" step="1" id="majUtil"><span class="num-unit">%</span><button class="save-inline" data-config="majUtil">Enreg.</button></div>
             </div>
           </div>
         </div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title"><i class="fas fa-truck"></i> Transport plateau
+          <div class="config-card-header"><span class="config-card-title"><i class="fas fa-truck"></i> transport plateau
               â€” Forfaits</span><span class="config-card-tag">Tarif client</span></div>
           <div class="config-grid">
             <div class="config-item"><label>0 â€“ 100 km</label>
-              <div class="editable-num"><input class="num-input" type="number" value="350" step="10" id="p1"><span
-                  class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="p1">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="350" step="10" id="p1"><span class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="p1">Enreg.</button></div>
             </div>
             <div class="config-item"><label>100 â€“ 300 km</label>
-              <div class="editable-num"><input class="num-input" type="number" value="550" step="10" id="p2"><span
-                  class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="p2">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="550" step="10" id="p2"><span class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="p2">Enreg.</button></div>
             </div>
             <div class="config-item"><label>300 â€“ 500 km</label>
-              <div class="editable-num"><input class="num-input" type="number" value="750" step="10" id="p3"><span
-                  class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="p3">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="750" step="10" id="p3"><span class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="p3">Enreg.</button></div>
             </div>
             <div class="config-item"><label>500 km +</label>
-              <div class="editable-num"><input class="num-input" type="number" value="1100" step="10" id="p4"><span
-                  class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="p4">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="1100" step="10" id="p4"><span class="num-unit">â‚¬ HT</span><button class="save-inline" data-config="p4">Enreg.</button></div>
             </div>
             <div class="config-item"><label>Majoration Custom</label>
-              <div class="editable-num"><input class="num-input" type="number" value="10" step="1" id="majCustom"><span
-                  class="num-unit">%</span><button class="save-inline" data-config="majCustom">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="10" step="1" id="majCustom"><span class="num-unit">%</span><button class="save-inline" data-config="majCustom">Enreg.</button></div>
             </div>
           </div>
         </div>
@@ -1928,13 +1887,10 @@
               Suppléments</span><span class="config-card-tag">Tarif client</span></div>
           <div class="config-grid">
             <div class="config-item"><label>Option Urgence</label>
-              <div class="editable-num"><input class="num-input" type="number" value="30" step="1" id="optUrgence"><span
-                  class="num-unit">%</span><button class="save-inline" data-config="optUrgence">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="30" step="1" id="optUrgence"><span class="num-unit">%</span><button class="save-inline" data-config="optUrgence">Enreg.</button></div>
             </div>
             <div class="config-item"><label>Gardiennage / nuit</label>
-              <div class="editable-num"><input class="num-input" type="number" value="100" step="5"
-                  id="optGardiennage"><span class="num-unit">â‚¬/nuit</span><button class="save-inline"
-                  data-config="optGardiennage">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="100" step="5" id="optGardiennage"><span class="num-unit">â‚¬/nuit</span><button class="save-inline" data-config="optGardiennage">Enreg.</button></div>
             </div>
           </div>
         </div>
@@ -1948,89 +1904,67 @@
         <div class="alert alert-info"><i class="fas fa-info-circle"></i> Ces paramètres définissent la structure de
           rémunération par défaut.</div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Taux de base convoyeurs</span><span
-              class="config-card-tag">Rémunération</span></div>
+          <div class="config-card-header"><span class="config-card-title">Taux de base convoyeurs</span><span class="config-card-tag">Rémunération</span></div>
           <div class="config-grid">
             <div class="config-item"><label>Taux auto standard (â‚¬/km)</label>
-              <div class="editable-num"><input class="num-input" type="number" value="0.47" step="0.01"
-                  id="remAutoStd"><span class="num-unit">â‚¬/km</span><button class="save-inline"
-                  data-config="remAutoStd">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="0.47" step="0.01" id="remAutoStd"><span class="num-unit">â‚¬/km</span><button class="save-inline" data-config="remAutoStd">Enreg.</button></div>
             </div>
             <div class="config-item"><label>Taux moto standard (â‚¬/km)</label>
-              <div class="editable-num"><input class="num-input" type="number" value="0.40" step="0.01"
-                  id="remMotoStd"><span class="num-unit">â‚¬/km</span><button class="save-inline"
-                  data-config="remMotoStd">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="0.40" step="0.01" id="remMotoStd"><span class="num-unit">â‚¬/km</span><button class="save-inline" data-config="remMotoStd">Enreg.</button></div>
             </div>
             <div class="config-item"><label>Taux senior auto (â‚¬/km)</label>
-              <div class="editable-num"><input class="num-input" type="number" value="0.52" step="0.01"
-                  id="remAutoSen"><span class="num-unit">â‚¬/km</span><button class="save-inline"
-                  data-config="remAutoSen">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="0.52" step="0.01" id="remAutoSen"><span class="num-unit">â‚¬/km</span><button class="save-inline" data-config="remAutoSen">Enreg.</button></div>
             </div>
             <div class="config-item"><label>Taux senior moto (â‚¬/km)</label>
-              <div class="editable-num"><input class="num-input" type="number" value="0.45" step="0.01"
-                  id="remMotoSen"><span class="num-unit">â‚¬/km</span><button class="save-inline"
-                  data-config="remMotoSen">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="0.45" step="0.01" id="remMotoSen"><span class="num-unit">â‚¬/km</span><button class="save-inline" data-config="remMotoSen">Enreg.</button></div>
             </div>
-            <div class="config-item"><label>Minimum garanti / mission</label>
-              <div class="editable-num"><input class="num-input" type="number" value="60" step="5" id="remMin"><span
-                  class="num-unit">â‚¬</span><button class="save-inline" data-config="remMin">Enreg.</button></div>
+            <div class="config-item"><label>Minimum garanti / émission</label>
+              <div class="editable-num"><input class="num-input" type="number" value="60" step="5" id="remMin"><span class="num-unit">â‚¬</span><button class="save-inline" data-config="remMin">Enreg.</button></div>
             </div>
-            <div class="config-item"><label>Complément plateau / mission</label>
-              <div class="editable-num"><input class="num-input" type="number" value="40" step="5" id="remPlateau"><span
-                  class="num-unit">â‚¬ fixe</span><button class="save-inline" data-config="remPlateau">Enreg.</button>
+            <div class="config-item"><label>Complément plateau / émission</label>
+              <div class="editable-num"><input class="num-input" type="number" value="40" step="5" id="remPlateau"><span class="num-unit">â‚¬ fixe</span><button class="save-inline" data-config="remPlateau">Enreg.</button>
               </div>
             </div>
           </div>
         </div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Primes & Bonus</span><span
-              class="config-card-tag">Incentives</span></div>
+          <div class="config-card-header"><span class="config-card-title">Primes & Bonus</span><span class="config-card-tag">Incentives</span></div>
           <div class="config-grid">
             <div class="config-item"><label>Bonus note 5â˜…</label>
-              <div class="editable-num"><input class="num-input" type="number" value="10" step="1" id="bonus5"><span
-                  class="num-unit">â‚¬/mission</span><button class="save-inline" data-config="bonus5">Enreg.</button>
+              <div class="editable-num"><input class="num-input" type="number" value="10" step="1" id="bonus5"><span class="num-unit">â‚¬/émission</span><button class="save-inline" data-config="bonus5">Enreg.</button>
               </div>
             </div>
             <div class="config-item"><label>Bonus urgence (convoyeur)</label>
-              <div class="editable-num"><input class="num-input" type="number" value="15" step="1"
-                  id="bonusUrgence"><span class="num-unit">% suppl.</span><button class="save-inline"
-                  data-config="bonusUrgence">Enreg.</button></div>
+              <div class="editable-num"><input class="num-input" type="number" value="15" step="1" id="bonusUrgence"><span class="num-unit">% suppl.</span><button class="save-inline" data-config="bonusUrgence">Enreg.</button></div>
             </div>
-            <div class="config-item"><label>Prime 10 missions / mois</label>
-              <div class="editable-num"><input class="num-input" type="number" value="50" step="5" id="prime10"><span
-                  class="num-unit">â‚¬/mois</span><button class="save-inline" data-config="prime10">Enreg.</button></div>
+            <div class="config-item"><label>Prime 10 émissions / mois</label>
+              <div class="editable-num"><input class="num-input" type="number" value="50" step="5" id="prime10"><span class="num-unit">â‚¬/mois</span><button class="save-inline" data-config="prime10">Enreg.</button></div>
             </div>
-            <div class="config-item"><label>Prime 20 missions / mois</label>
-              <div class="editable-num"><input class="num-input" type="number" value="120" step="5" id="prime20"><span
-                  class="num-unit">â‚¬/mois</span><button class="save-inline" data-config="prime20">Enreg.</button></div>
+            <div class="config-item"><label>Prime 20 émissions / mois</label>
+              <div class="editable-num"><input class="num-input" type="number" value="120" step="5" id="prime20"><span class="num-unit">â‚¬/mois</span><button class="save-inline" data-config="prime20">Enreg.</button></div>
             </div>
-            <div class="config-item"><label>Indemnité carburant</label>
-              <div class="editable-num"><input class="num-input" type="number" value="0.08" step="0.01"
-                  id="indCarb"><span class="num-unit">â‚¬/km retour</span><button class="save-inline"
-                  data-config="indCarb">Enreg.</button></div>
+            <div class="config-item"><label>indemnitéé carburant</label>
+              <div class="editable-num"><input class="num-input" type="number" value="0.08" step="0.01" id="indCarb"><span class="num-unit">â‚¬/km retour</span><button class="save-inline" data-config="indCarb">Enreg.</button></div>
             </div>
-            <div class="config-item"><label>Indemnité repas / jour</label>
-              <div class="editable-num"><input class="num-input" type="number" value="15" step="1" id="indRepas"><span
-                  class="num-unit">â‚¬/jour</span><button class="save-inline" data-config="indRepas">Enreg.</button></div>
+            <div class="config-item"><label>indemnitéé repas / jour</label>
+              <div class="editable-num"><input class="num-input" type="number" value="15" step="1" id="indRepas"><span class="num-unit">â‚¬/jour</span><button class="save-inline" data-config="indRepas">Enreg.</button></div>
             </div>
           </div>
         </div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Simulateur de rémunération</span><span
-              class="config-card-tag">Outil</span></div>
+          <div class="config-card-header"><span class="config-card-title">Simulateur de rémunération</span><span class="config-card-tag">Outil</span></div>
           <div class="f-row" style="gap:16px;">
             <div class="f-grp"><label>Distance (km)</label><input type="number" id="simKm" value="470"></div>
             <div class="f-grp"><label>Type véhicule</label><select id="simType">
                 <option value="auto">Automobile</option>
                 <option value="moto">Moto</option>
               </select></div>
-            <div class="f-grp"><label>Niveau convoyeur</label><select id="simNiveau">
+            <div class="f-grp"><label>niveau convoyeur</label><select id="simNiveau">
                 <option value="std">Standard</option>
-                <option value="sen">Senior</option>
+                <option value="sen">senior</option>
               </select></div>
           </div>
-          <div
-            style="background:var(--bordeaux-light); border-radius:20px; padding:20px; display:flex; gap:32px; flex-wrap:wrap; margin-top:16px;">
+          <div style="background:var(--bordeaux-light); border-radius:20px; padding:20px; display:flex; gap:32px; flex-wrap:wrap; margin-top:16px;">
             <div>
               <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid);">
                 Rémunération convoyeur</div>
@@ -2042,7 +1976,7 @@
               <div style="font-size:1.8rem; font-weight:700; color:var(--bordeaux)" id="simResultTarif">470â‚¬</div>
             </div>
             <div>
-              <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid);">Marge
+              <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid);">marge
                 brute</div>
               <div style="font-size:1.8rem; font-weight:700; color:var(--success)" id="simResultMarge">250â‚¬</div>
             </div>
@@ -2056,35 +1990,35 @@
           <h1 class="dash-hello">Packs & <em>Options</em></h1>
         </div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Pack Starter</span><span
-              class="config-card-tag" id="tag_pack_starter">Inclus</span></div>
+          <div class="config-card-header"><span class="config-card-title">Pack Starter</span><span class="config-card-tag" id="tag_pack_starter">Inclus</span></div>
           <div class="f-grp"><label>Nom du pack</label><input type="text" id="name_pack_starter" value="Starter"></div>
-          <div class="f-grp"><label>Prestations incluses (une par ligne)</label><textarea id="features_pack_starter"
-              rows="4">Logistique de convoyage standard&#10;Double assurance RC Pro&#10;Identification SIV&#10;Ã‰tat des lieux numérisé (20 photos)&#10;Suivi GPS basique</textarea>
+          <div class="f-grp"><label>prestations incluses (une par ligne)</label><textarea id="features_pack_starter" rows="4">Logistique de convoyage standard
+Double assurance RC Pro
+Identification SIV
+Ã‰tat des lieux numérisé (20 photos)
+Suivi GPS basique</textarea>
           </div><button class="btn-red" data-pack="pack_starter"><i class="fas fa-save"></i> Sauvegarder</button>
         </div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Pack Sérénité</span><span
-              class="config-card-tag" id="tag_pack_serenite">+49â‚¬ HT</span></div>
+          <div class="config-card-header"><span class="config-card-title">Pack Sérénité</span><span class="config-card-tag" id="tag_pack_serenite">+49â‚¬ HT</span></div>
           <div class="f-row">
             <div class="f-grp"><label>Nom</label><input type="text" id="name_pack_serenite" value="Sérénité"></div>
-            <div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" id="price_pack_serenite"
-                value="49" step="1" style="font-size:1rem; width:100px"> â‚¬</div>
+            <div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" id="price_pack_serenite" value="49" step="1" style="font-size:1rem; width:100px"> â‚¬</div>
           </div>
-          <div class="f-grp"><label>Prestations incluses</label><textarea id="features_pack_serenite"
-              rows="3">Nettoyage extérieur haute pression&#10;Mise Ã  niveau carburant / charge&#10;Check-list digitale par email</textarea>
+          <div class="f-grp"><label>prestations incluses</label><textarea id="features_pack_serenite" rows="3">Nettoyage extérieur haute pression
+Mise Ã  niveau carburant / charge
+Check-list digitale par email</textarea>
           </div><button class="btn-red" data-pack="pack_serenite"><i class="fas fa-save"></i> Sauvegarder</button>
         </div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Pack Excellence</span><span
-              class="config-card-tag" id="tag_pack_excellence">+129â‚¬ HT</span></div>
+          <div class="config-card-header"><span class="config-card-title">Pack Excellence</span><span class="config-card-tag" id="tag_pack_excellence">+129â‚¬ HT</span></div>
           <div class="f-row">
             <div class="f-grp"><label>Nom</label><input type="text" id="name_pack_excellence" value="Excellence"></div>
-            <div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" id="price_pack_excellence"
-                value="129" step="1" style="font-size:1rem; width:100px"> â‚¬</div>
+            <div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" id="price_pack_excellence" value="129" step="1" style="font-size:1rem; width:100px"> â‚¬</div>
           </div>
-          <div class="f-grp"><label>Prestations incluses</label><textarea id="features_pack_excellence"
-              rows="3">Préparation esthétique complète&#10;Full Energy â€” 100% charge / plein&#10;Cadeau premium personnalisé</textarea>
+          <div class="f-grp"><label>prestations incluses</label><textarea id="features_pack_excellence" rows="3">Préparation esthétique complète
+Full Energy â€” 100% charge / plein
+Cadeau premium personnalisé</textarea>
           </div><button class="btn-red" data-pack="pack_excellence"><i class="fas fa-save"></i> Sauvegarder</button>
         </div>
       </div>
@@ -2092,7 +2026,7 @@
       <!-- Facturation -->
       <div class="tab-content" id="tab-facturation">
         <div class="dash-header">
-          <h1 class="dash-hello">Gestion <em>facturation</em></h1>
+          <h1 class="dash-hello">gestion <em>facturation</em></h1>
         </div>
 
         <!-- DÃ‰BUT DU BLOC MIS Ã€ JOUR (Cliquable et dynamique) -->
@@ -2107,8 +2041,7 @@
           </div>
 
           <!-- Carte Payées (Cliquable) -->
-          <div class="mini-card" style="cursor: pointer; transition: background 0.2s;" onclick="filterFactures('paid')"
-            onmouseover="this.style.background='#f0ebe1'" onmouseout="this.style.background='white'">
+          <div class="mini-card" style="cursor: pointer; transition: background 0.2s;" onclick="filterFactures('paid')" onmouseover="this.style.background='#f0ebe1'" onmouseout="this.style.background='white'">
             <div class="mini-ico"><i class="fas fa-check-circle" style="color:var(--success)"></i></div>
             <div>
               <div class="mini-val" id="factureKpiPaid">0</div>
@@ -2117,9 +2050,7 @@
           </div>
 
           <!-- Carte En attente (Cliquable) -->
-          <div class="mini-card" style="cursor: pointer; transition: background 0.2s;"
-            onclick="filterFactures('pending')" onmouseover="this.style.background='#f0ebe1'"
-            onmouseout="this.style.background='white'">
+          <div class="mini-card" style="cursor: pointer; transition: background 0.2s;" onclick="filterFactures('pending')" onmouseover="this.style.background='#f0ebe1'" onmouseout="this.style.background='white'">
             <div class="mini-ico"><i class="fas fa-clock" style="color:var(--warning)"></i></div>
             <div>
               <div class="mini-val" id="factureKpiPending">0</div>
@@ -2128,9 +2059,7 @@
           </div>
 
           <!-- Bouton pour tout réafficher -->
-          <div class="mini-card" style="cursor: pointer; justify-content: center; transition: background 0.2s;"
-            onclick="filterFactures('all')" onmouseover="this.style.background='#f0ebe1'"
-            onmouseout="this.style.background='white'">
+          <div class="mini-card" style="cursor: pointer; justify-content: center; transition: background 0.2s;" onclick="filterFactures('all')" onmouseover="this.style.background='#f0ebe1'" onmouseout="this.style.background='white'">
             <div style="text-align:center; font-size:0.7rem; font-weight:700; color:var(--bordeaux);">
               <i class="fas fa-list"></i> Afficher toutes<br>les factures
             </div>
@@ -2140,8 +2069,7 @@
 
         <div class="sec-title">
           <h2 class="sec-h">Factures <em>récentes</em></h2>
-          <div class="sec-actions"><button class="btn-red"><i class="fas fa-plus"></i> Créer</button><button
-              class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div>
+          <div class="sec-actions"><button class="btn-red"><i class="fas fa-plus"></i> Créer</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div>
         </div>
         <table class="data-table">
           <thead>
@@ -2149,9 +2077,9 @@
               <th>NÂ° Facture</th>
               <th>Client</th>
               <th>Mission</th>
-              <th>Montant HT</th>
+              <th>montant HT</th>
               <th>TVA (20%)</th>
-              <th>Montant TTC</th>
+              <th>montant TTC</th>
               <th>Statut</th>
               <th>Date</th>
               <th>Actions</th>
@@ -2170,10 +2098,10 @@
         <div class="dash-header">
           <h1 class="dash-hello">Analytics <em>& KPIs</em></h1>
         </div>
-        <div class="stats-row" id="analyticsKpiRow">
+        <div class="sétats-row" id="analyticsKpiRow">
           <div class="stat-card">
             <div class="stat-ico"><i class="fas fa-route"></i></div>
-            <div class="stat-val" id="kpi-missions">â€”</div>
+            <div class="stat-val" id="kpi-émissions">â€”</div>
             <div class="stat-lbl">Missions totales</div>
           </div>
           <div class="stat-card">
@@ -2187,14 +2115,14 @@
             <div class="stat-lbl">CA Total (â‚¬ HT)</div>
           </div>
           <div class="stat-card">
-            <div class="stat-ico"><i class="fas fa-percentage"></i></div>
+            <div class="stat-ico"><i class="fas fa-perécentage"></i></div>
             <div class="stat-val" id="kpi-marge">â€”</div>
-            <div class="stat-lbl">Marge brute moy.</div>
+            <div class="stat-lbl">marge brute moy.</div>
           </div>
           <div class="stat-card">
             <div class="stat-ico"><i class="fas fa-truck"></i></div>
             <div class="stat-val" id="kpi-convoyeurs">â€”</div>
-            <div class="stat-lbl">Convoyeurs actifs</div>
+            <div class="stat-lbl">convoyeurs actifs</div>
           </div>
         </div>
         <div class="sec-title">
@@ -2211,12 +2139,12 @@
         <div class="config-grid" style="margin-top:16px" id="analyticsDistrib">
           <div class="config-card" style="text-align:center">
             <div style="font-size:2.5rem; font-weight:700; color:var(--bordeaux)" id="kpi-route">â€”</div>
-            <div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Convoyage
+            <div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">convoyage
               routier</div>
           </div>
           <div class="config-card" style="text-align:center">
             <div style="font-size:2.5rem; font-weight:700; color:var(--warning)" id="kpi-plateau">â€”</div>
-            <div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Transport
+            <div style="font-size:0.65rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">transport
               plateau</div>
           </div>
           <div class="config-card" style="text-align:center">
@@ -2233,7 +2161,7 @@
           <h1 class="dash-hello">Paramètres <em>système</em></h1>
         </div>
         <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Informations entreprise</span></div>
+          <div class="config-card-header"><span class="config-card-title">informations entreprise</span></div>
           <div class="f-row">
             <div class="f-grp"><label>Raison sociale</label><input type="text" value="Bathily Convoyage"></div>
             <div class="f-grp"><label>SIRET</label><input type="text" value="XXX XXX XXX XXXXX"></div>
@@ -2244,36 +2172,28 @@
             <div class="f-grp"><label>Téléphone urgence</label><input type="tel" value="+33 X XX XX XX XX"></div>
           </div>
           <div class="f-grp"><label>TVA applicable</label>
-            <div class="editable-num"><input class="num-input" type="number" value="20" step="1"
-                style="font-size:1.2rem; width:100px"><span class="num-unit">%</span><button
-                class="save-inline">Enreg.</button></div>
+            <div class="editable-num"><input class="num-input" type="number" value="20" step="1" style="font-size:1.2rem; width:100px"><span class="num-unit">%</span><button class="save-inline">Enreg.</button></div>
           </div><button class="btn-red" style="margin-top:12px"><i class="fas fa-save"></i> Sauvegarder</button>
         </div>
         <div class="config-card">
           <div class="config-card-header"><span class="config-card-title">Fonctionnalités actives</span></div>
           <div class="toggle-wrap">
-            <div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span
-              class="toggle-lbl">Configurateur Smart Quote en ligne</span>
+            <div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span class="toggle-lbl">Configurateur Smart Quote en ligne</span>
           </div>
           <div class="toggle-wrap">
-            <div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span
-              class="toggle-lbl">Réseau social convoyeurs</span>
+            <div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span class="toggle-lbl">Réseau social convoyeurs</span>
           </div>
           <div class="toggle-wrap">
-            <div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span
-              class="toggle-lbl">Espace client en ligne</span>
+            <div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span class="toggle-lbl">Espace client en ligne</span>
           </div>
           <div class="toggle-wrap">
-            <div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span
-              class="toggle-lbl">Notifications email automatiques</span>
+            <div class="toggle on" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span class="toggle-lbl">Notifications email automatiques</span>
           </div>
           <div class="toggle-wrap">
-            <div class="toggle" onclick="this.classList.toggle('on')" role="switch" aria-checked="false"></div><span
-              class="toggle-lbl">Mode maintenance (site hors ligne)</span>
+            <div class="toggle" onclick="this.classList.toggle('on')" role="switch" aria-checked="false"></div><span class="toggle-lbl">Mode maintenance (site hors ligne)</span>
           </div>
           <div class="toggle-wrap">
-            <div class="toggle" onclick="this.classList.toggle('on')" role="switch" aria-checked="false"></div><span
-              class="toggle-lbl">Paiement en ligne (Stripe)</span>
+            <div class="toggle" onclick="this.classList.toggle('on')" role="switch" aria-checked="false"></div><span class="toggle-lbl">Paiement en ligne (Stripe)</span>
           </div>
         </div>
       </div>
@@ -2282,14 +2202,13 @@
 
   <!-- MODALS -->
   <div class="modal-overlay" id="modalMission">
-    <div class="modal-box"><button class="modal-close" onclick="closeModal('modalMission')"><i
-          class="fas fa-times"></i></button>
-      <h3 class="modal-h">Créer une <em>mission</em></h3>
-      <p class="modal-sub">Saisie manuelle d'une nouvelle mission</p>
+    <div class="modal-box"><button class="modal-close" onclick="closeModal('modalMission')"><i class="fas fa-times"></i></button>
+      <h3 class="modal-h">Créer une <em>émission</em></h3>
+      <p class="modal-sub">Saisie manuelle d'une nouvelle émission</p>
       <div class="f-row">
         <div class="f-grp"><label>Client</label><input type="text" id="manual-client" placeholder="Nom ou email client">
         </div>
-        <div class="f-grp"><label>Convoyeur</label><select id="manual-convoyeur">
+        <div class="f-grp"><label>convoyeur</label><select id="manual-convoyeur">
             <option value="">Marché (aucun convoyeur assigné)</option>
           </select></div>
       </div>
@@ -2318,19 +2237,16 @@
         <div class="f-grp"><label>Date souhaitée</label><input type="date" id="manual-date"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Montant Client HT (â‚¬)</label><input type="number" id="manual-price" placeholder="340">
+        <div class="f-grp"><label>montant Client HT (â‚¬)</label><input type="number" id="manual-price" placeholder="340">
         </div>
-        <div class="f-grp"><label>Rémunération Convoyeur (â‚¬)</label><input type="number" id="manual-remuneration"
-            placeholder="Laisser vide pour calcul auto"></div>
+        <div class="f-grp"><label>Rémunération convoyeur (â‚¬)</label><input type="number" id="manual-remuneration" placeholder="Laisser vide pour calcul auto"></div>
       </div>
-      <div
-        style="margin-bottom: 15px; background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">Marge
-          brute estimée :</span><strong id="manual-marge-val"
-          style="font-size: 1.15rem; color: var(--success);">0â‚¬</strong>
+      <div style="margin-bottom: 15px; background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">marge
+          brute estimée :</span><strong id="manual-marge-val" style="font-size: 1.15rem; color: var(--success);">0â‚¬</strong>
       </div>
       <div class="modal-btns"><button class="btn-red" id="createMissionManualBtn"><i class="fas fa-plus"></i> Créer la
-          mission</button><button class="btn-outline" onclick="closeModal('modalMission')">Annuler</button></div>
+          émission</button><button class="btn-outline" onclick="closeModal('modalMission')">Annuler</button></div>
     </div>
   </div>
 
@@ -2349,8 +2265,7 @@
         <div class="f-grp"><label>Téléphone</label><input type="tel" id="clientTel"></div>
       </div>
 
-      <div style="border-top: 1px solid var(--border-light); margin: 15px 0; padding-top: 10px;"><strong
-          style="font-size: 0.7rem; color: var(--bordeaux); text-transform: uppercase;">Facturation &
+      <div style="border-top: 1px solid var(--border-light); margin: 15px 0; padding-top: 10px;"><strong style="font-size: 0.7rem; color: var(--bordeaux); text-transform: uppercase;">Facturation &
           Entreprise</strong></div>
 
       <div class="f-grp"><label>Société / Nom de l'entreprise</label><input type="text" id="clientSociete"></div>
@@ -2366,8 +2281,7 @@
         <div class="f-grp"><label>Ville</label><input type="text" id="clientVille"></div>
       </div>
 
-      <div class="f-grp"><label>Notes internes (visibles uniquement par l'admin)</label><textarea id="clientNotes"
-          rows="2" placeholder="Remarques particulières, client VIP, etc..."></textarea></div>
+      <div class="f-grp"><label>Notes internes (visibles uniquement par l'admin)</label><textarea id="clientNotes" rows="2" placeholder="Remarques particulières, client VIP, etc..."></textarea></div>
 
       <div class="modal-btns">
         <button class="btn-red" id="saveClientBtn"><i class="fas fa-save"></i> Enregistrer</button>
@@ -2376,8 +2290,7 @@
     </div>
   </div>
   <div class="modal-overlay" id="modalConvoyeur">
-    <div class="modal-box"><button class="modal-close" onclick="closeModal('modalConvoyeur')"><i
-          class="fas fa-times"></i></button>
+    <div class="modal-box"><button class="modal-close" onclick="closeModal('modalConvoyeur')"><i class="fas fa-times"></i></button>
       <h3 class="modal-h">Nouveau <em>convoyeur</em></h3>
       <div class="f-row">
         <div class="f-grp"><label>Prénom</label><input type="text" id="conv-prenom"></div>
@@ -2388,16 +2301,13 @@
         <div class="f-grp"><label>Téléphone</label><input type="tel" id="conv-phone"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Taux auto (â‚¬/km)</label><input type="number" id="conv-taux-auto" value="0.47"
-            step="0.01"></div>
-        <div class="f-grp"><label>Taux moto (â‚¬/km)</label><input type="number" id="conv-taux-moto" value="0.40"
-            step="0.01"></div>
+        <div class="f-grp"><label>Taux auto (â‚¬/km)</label><input type="number" id="conv-taux-auto" value="0.47" step="0.01"></div>
+        <div class="f-grp"><label>Taux moto (â‚¬/km)</label><input type="number" id="conv-taux-moto" value="0.40" step="0.01"></div>
       </div>
-      <div class="f-grp"><label>Zone d'intervention</label><input type="text" id="conv-zone"
-          placeholder="IDF, Rhône-Alpesâ€¦"></div>
-      <div class="f-grp"><label>Niveau</label><select id="conv-niveau">
+      <div class="f-grp"><label>zone d'intervention</label><input type="text" id="conv-zone" placeholder="IDF, Rhône-Alpesâ€¦"></div>
+      <div class="f-grp"><label>niveau</label><select id="conv-niveau">
           <option value="Standard">Standard</option>
-          <option value="Senior">Senior</option>
+          <option value="Senior">senior</option>
         </select></div>
       <div class="modal-btns"><button class="btn-red" id="addConvoyeurSubmitBtn"><i class="fas fa-save"></i>
           Enregistrer</button><button class="btn-outline" onclick="closeModal('modalConvoyeur')">Annuler</button></div>
@@ -2405,12 +2315,10 @@
   </div>
 
   <div class="modal-overlay" id="modalMissionDetails">
-    <div class="modal-box" style="max-width:700px;"><button class="modal-close"
-        onclick="closeModal('modalMissionDetails')"><i class="fas fa-times"></i></button>
-      <h3 class="modal-h">Détails de la <em>mission</em></h3><input type="hidden" id="md-id">
+    <div class="modal-box" style="max-width:700px;"><button class="modal-close" onclick="closeModal('modalMissionDetails')"><i class="fas fa-times"></i></button>
+      <h3 class="modal-h">Détails de la <em>émission</em></h3><input type="hidden" id="md-id">
       <div class="f-row">
-        <div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly
-            style="background:#f5f5f5; cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly="None" style="background:#f5f5f5; cursor:not-allowed;"></div>
         <div class="f-grp"><label>Statut</label><select id="md-status">
             <option value="available">Sur le marché</option>
             <option value="planned">Planifiée</option>
@@ -2428,8 +2336,8 @@
         <div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Montant HT (â‚¬)</label><input type="number" id="md-price"></div>
-        <div class="f-grp"><label>Rémunération Convoyeur (â‚¬)</label><input type="number" id="md-rem"></div>
+        <div class="f-grp"><label>montant HT (â‚¬)</label><input type="number" id="md-price"></div>
+        <div class="f-grp"><label>Rémunération convoyeur (â‚¬)</label><input type="number" id="md-rem"></div>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule"></div>
@@ -2438,9 +2346,8 @@
             <option value="paid">Payé</option>
           </select></div>
       </div>
-      <div
-        style="margin-bottom: 15px; background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">Marge
+      <div style="margin-bottom: 15px; background: var(--bordeaux-light); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid);">marge
           brute estimée :</span><strong id="md-marge" style="font-size: 1.15rem; color: var(--success);">0â‚¬</strong>
       </div>
       <div class="modal-btns"><button class="btn-red" id="saveMissionDetailsBtn"><i class="fas fa-save"></i>
@@ -2456,7 +2363,7 @@
       const toggles = document.querySelectorAll('[role="switch"], .toggle-btn');
 
       toggles.forEach(toggle => {
-        // Sécurité : s'assure qu'un état initial existe pour éviter les bugs au premier clic
+        // Sécurité : s'assure qu'un état initial existe pour ééviter les bugs au premier clic
         if (!toggle.hasAttribute('aria-checked')) {
           toggle.setAttribute('aria-checked', 'false');
         }
@@ -2486,7 +2393,7 @@
           console.log(`Toggle ID: ${this.id || 'Inconnu'} changé vers : ${nextState}`);
         });
 
-        // Support du clavier pour la navigation (Tab + Espace/Entrée)
+        // Support du claévier pour la navigation (Tab + Espace/Entrée)
         toggle.addEventListener('keydown', function (e) {
           if (e.key === ' ' || e.key === 'Enter') {
             e.preventDefault(); // Ã‰vite le défilement de page avec la touche Espace
@@ -2533,7 +2440,7 @@
           .maybeSingle();
         if (profileError || !profile || profile.role !== 'admin') {
           await sb.auth.signOut();
-          throw new Error("Ce compte n'est pas administrateur.");
+          throw new Error("Ce compâte n'est pas administrateur.");
         }
         currentAdminUser = { email, prenom: profile.prenom, nom: profile.nom };
         // Mettre Ã  jour l'affichage
@@ -2611,12 +2518,12 @@
     async function buildCaChart() {
       const client = getSupabase();
       if (!client) return;
-      const { data: missions, error } = await client.from('missions').select('montant_ht, date_mission, created_at');
+      const { data: émissions, error } = await client.from('émissions').select('montant_ht, date_émission, created_at');
       if (error) return;
       const monthlyCA = {};
       const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-      missions?.forEach(m => {
-        const dateStr = m.date_mission || m.created_at;
+      émissions?.forEach(m => {
+        const dateStr = m.date_émission || m.created_at;
         if (!dateStr || !m.montant_ht) return;
         const d = new Date(dateStr);
         if (d.getFullYear() === 2025 || d.getFullYear() === new Date().getFullYear()) {
@@ -2734,11 +2641,11 @@
 
       const htmlContent = `
         <div style="text-align:left; font-size:0.85rem; line-height:1.6;">
-            <!-- Cartes de stats rapides -->
+            <!-- Cartes de sétats rapides -->
             <div style="display:flex; gap:10px; margin-bottom:20px;">
                 <div style="flex:1; background:var(--beige); padding:12px; border-radius:12px; border: 1px solid var(--border-light);">
                     <div style="color:var(--gray-mid); font-size:0.65rem; font-weight:bold; text-transform:uppercase;">Activité</div>
-                    <div style="font-size:1.2rem; font-weight:800; color:var(--bordeaux);">${totalMissions} missions</div>
+                    <div style="font-size:1.2rem; font-weight:800; color:var(--bordeaux);">${totalMissions} émissions</div>
                 </div>
                 <div style="flex:1; background:rgba(74,124,107,0.1); padding:12px; border-radius:12px; border: 1px solid rgba(74,124,107,0.2);">
                     <div style="color:var(--success); font-size:0.65rem; font-weight:bold; text-transform:uppercase;">CA Généré (HT)</div>
@@ -2839,7 +2746,7 @@
         const tempPassword = 'Bathily2025!' + Math.random().toString(36).slice(2, 7);
         const { error: authError } = await sb.auth.signUp({ email, password: tempPassword });
         if (authError) {
-          Swal.fire('Erreur', 'Impossible de créer le compte : ' + authError.message, 'error');
+          Swal.fire('Erreur', 'Impossible de créer le compâte : ' + authError.message, 'error');
           return;
         }
         payload.role = 'client';
@@ -2981,32 +2888,32 @@
     async function loadMissions(silent = false) {
       const client = getSupabase();
       if (!client) return;
-      // Charger missions + candidatures
-      const { data: missions, error } = await client.from('missions').select('*').order('created_at', { ascending: false });
+      // Charger émissions + candidatures
+      const { data: émissions, error } = await client.from('émissions').select('*').order('created_at', { ascending: false });
       if (error) {
         if (!silent) console.error(error);
         return;
       }
       const { data: apps } = await client.from('candidatures').select('*').eq('status', 'pending');
       const appsByMission = {};
-      apps?.forEach(app => { if (!appsByMission[app.mission_id]) appsByMission[app.mission_id] = []; appsByMission[app.mission_id].push(app); });
-      _allMissions = (missions || []).map(m => ({ ...m, _candidatures: appsByMission[m.id] || [] }));
+      apps?.forEach(app => { if (!appsByMission[app.émission_id]) appsByMission[app.émission_id] = []; appsByMission[app.émission_id].push(app); });
+      _allMissions = (émissions || []).map(m => ({ ...m, _candidatures: appsByMission[m.id] || [] }));
 
       renderMissionsTable(_allMissions);
       renderRecentMissionsTable(_allMissions);
       renderInvoicesTable(_allMissions);
 
-      // Mise Ã  jour des stats du dashboard principal
+      // Mise Ã  jour des sétats du dashboard principal
       document.getElementById('statMissionsVal').textContent = _allMissions.filter(m => m.status === 'completed' || m.statut === 'completed').length;
-      const caMonth = _allMissions.filter(m => { const d = new Date(m.date_mission || m.created_at); return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear() && m.montant_ht; }).reduce((s, m) => s + parseFloat(m.montant_ht), 0);
+      const caMonth = _allMissions.filter(m => { const d = new Date(m.date_émission || m.created_at); return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear() && m.montant_ht; }).reduce((s, m) => s + parseFloat(m.montant_ht), 0);
       document.getElementById('statCaVal').textContent = caMonth.toFixed(0) + 'â‚¬';
     }
 
-    function renderMissionsTable(missions) {
-      const tbody = document.getElementById('missionsTableBody');
+    function renderMissionsTable(émissions) {
+      const tbody = document.getElementById('émissionsTableBody');
       if (!tbody) return;
-      if (!missions.length) { tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;">Aucune mission.</td></tr>'; return; }
-      tbody.innerHTML = missions.map(m => {
+      if (!émissions.length) { tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;">Aucune émission.</td></tr>'; return; }
+      tbody.innerHTML = émissions.map(m => {
         const status = m.statut || m.status || 'planned';
         let statusClass = 'sp-att', statusText = 'Planifiée';
         if (status === 'available') { statusClass = 'sp-att'; statusText = 'Sur le marché'; }
@@ -3016,13 +2923,13 @@
         const payStatus = m.paiement_statut || 'pending';
         const payClass = payStatus === 'paid' ? 'sp-ok' : 'sp-err';
         const payText = payStatus === 'paid' ? 'Payé' : 'En attente';
-        const dateStr = formatDate(m.date_mission || m.created_at);
+        const dateStr = formatDate(m.date_émission || m.created_at);
         let actionsHtml = '';
         if (status === 'available') {
           const cand = m._candidatures || [];
-          actionsHtml = `<div style="display:flex;flex-direction:column;gap:4px;">${cand.map(c => `<button class="btn-sm btn-sm-green" onclick="assignConvoyeur('${m.id}', '${c.convoyeur_nom}', '${c.id}')"><i class="fas fa-user-check"></i> Assigner ${c.convoyeur_nom}</button>`).join('')}<button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i> Tarifs</button><a class="btn-sm btn-sm-ghost" href="bon-de-mission.html?id=${m.id}" target="_blank">Bon</a></div>`;
+          actionsHtml = `<div style="display:flex;flex-direction:column;gap:4px;">${cand.map(c => `<button class="btn-sm btn-sm-green" onclick="assignConvoyeur('${m.id}', '${c.convoyeur_nom}', '${c.id}')"><i class="fas fa-user-check"></i> Assigner ${c.convoyeur_nom}</button>`).join('')}<button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i> Tarifs</button><a class="btn-sm btn-sm-ghost" href="bon-de-émission.html?id=${m.id}" target="_blank">Bon</a></div>`;
         } else {
-          actionsHtml = `<div class="td-actions">${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i></button>` : ''}${status !== 'completed' && status !== 'cancelled' ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}<button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button><button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button><a class="btn-sm btn-sm-ghost" href="bon-de-mission.html?id=${m.id}" target="_blank">Bon</a><button class="btn-sm btn-sm-red" onclick="deleteMission('${m.id}')"><i class="fas fa-trash"></i></button></div>`;
+          actionsHtml = `<div class="td-actions">${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i></button>` : ''}${status !== 'completed' && status !== 'cancelled' ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}<button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button><button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button><a class="btn-sm btn-sm-ghost" href="bon-de-émission.html?id=${m.id}" target="_blank">Bon</a><button class="btn-sm btn-sm-red" onclick="deleteMission('${m.id}')"><i class="fas fa-trash"></i></button></div>`;
         }
         return `<tr class="clickable-row" onclick="if(event.target.closest('button')||event.target.closest('a')) return; showMissionDetails('${m.id}')">
       <td>${m.reference || 'â€”'}</td>
@@ -3042,11 +2949,11 @@
       }).join('');
     }
 
-    function renderRecentMissionsTable(missions) {
+    function renderRecentMissionsTable(émissions) {
       const tbody = document.getElementById('recentMissionsTableBody');
       if (!tbody) return;
-      const recent = missions.slice(0, 3);
-      if (!recent.length) { tbody.innerHTML = '<tr><td colspan="8">Aucune mission récente.</td></tr>'; return; }
+      const recent = émissions.slice(0, 3);
+      if (!recent.length) { tbody.innerHTML = '<tr><td colspan="8">Aucune émission récente.</td></tr>'; return; }
       tbody.innerHTML = recent.map(m => {
         const st = m.statut || m.status || 'planned';
         let statusClass = 'sp-att', statusLabel = 'Planifiée';
@@ -3054,16 +2961,16 @@
         else if (st === 'in_progress') { statusClass = 'sp-cours'; statusLabel = 'En cours'; }
         else if (st === 'completed') { statusClass = 'sp-ok'; statusLabel = 'Terminée'; }
         else if (st === 'cancelled') { statusClass = 'sp-err'; statusLabel = 'Annulée'; }
-        return `<tr onclick="showMissionDetails('${m.id}')" class="clickable-row"><td>${m.reference || 'â€”'}</td><td>${m.client_nom || 'Client'}</td><td>${m.depart || 'â€”'} â†’ ${m.arrivee || 'â€”'}</td><td>${m.convoyeur_nom || 'â€”'}</td><td style="text-transform:capitalize">${m.pack || 'starter'}</td><td class="td-price">${m.montant_ht || 0}â‚¬</td><td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusLabel}</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation();showTab('missions', document.querySelector('.nav-item[data-tab=\'missions\']'))"><i class="fas fa-eye"></i></button></td></tr>`;
+        return `<tr onclick="showMissionDetails('${m.id}')" class="clickable-row"><td>${m.reference || 'â€”'}</td><td>${m.client_nom || 'Client'}</td><td>${m.depart || 'â€”'} â†’ ${m.arrivee || 'â€”'}</td><td>${m.convoyeur_nom || 'â€”'}</td><td style="text-transform:capitalize">${m.pack || 'starter'}</td><td class="td-price">${m.montant_ht || 0}â‚¬</td><td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusLabel}</span></td><td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation();showTab('émissions', document.querySelector('.nav-item[data-tab=\'émissions\']'))"><i class="fas fa-eye"></i></button></td></tr>`;
       }).join('');
     }
 
-    function renderInvoicesTable(missions) {
+    function renderInvoicesTable(émissions) {
       const tbody = document.getElementById('invoicesTableBody');
       if (!tbody) return;
 
-      // On garde uniquement les missions facturables
-      _currentFactures = missions.filter(m => m.montant_ht);
+      // On garde uniquement les émissions facturables
+      _currentFactures = émissions.filter(m => m.montant_ht);
       const billing = _currentFactures;
 
       // --- MISE Ã€ JOUR DES CARTES STATISTIQUES FACTURATION ---
@@ -3073,7 +2980,7 @@
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
       const caMois = billing.filter(m => {
-        const d = new Date(m.date_mission || m.created_at);
+        const d = new Date(m.date_émission || m.created_at);
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear && m.paiement_statut === 'paid';
       }).reduce((sum, m) => sum + parseFloat(m.montant_ht), 0);
 
@@ -3114,7 +3021,7 @@
         const payStatus = m.paiement_statut || 'pending';
         const statusClass = payStatus === 'paid' ? 'sp-ok' : 'sp-att';
         const statusLabel = payStatus === 'paid' ? 'Payée' : 'En attente';
-        const dateStr = formatDate(m.date_mission || m.created_at);
+        const dateStr = formatDate(m.date_émission || m.created_at);
         const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-', '') : m.id.slice(0, 8).toUpperCase()}`;
         const priceHt = parseFloat(m.montant_ht) || 0;
         const tva = priceHt * 0.20;
@@ -3136,8 +3043,8 @@
       }).join('');
     }
 
-    function downloadInvoicePdf(missionId) {
-      const m = _allMissions.find(x => x.id === missionId);
+    function downloadInvoicePdf(émissionId) {
+      const m = _allMissions.find(x => x.id === émissionId);
       if (!m) return;
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -3257,9 +3164,9 @@
         if (!result.isConfirmed) return;
         const { clientPrice, driverRem } = result.value;
         // Conservation de la référence BC- telle quelle (sans remplacement)
-        const missionRef = devis.reference || `BC-${Date.now().toString(36).toUpperCase()}`;
-        const missionData = {
-          reference: missionRef,
+        const émissionRef = devis.reference || `BC-${Date.now().toString(36).toUpperCase()}`;
+        const émissionData = {
+          reference: émissionRef,
           client_nom: `${devis.client_prenom || detail.coordonnees?.prenom || ''} ${devis.client_nom || detail.coordonnees?.nom || ''}`.trim() || 'Client',
           client_email: devis.client_email || detail.coordonnees?.email || null,
           client_id: clientId,
@@ -3273,10 +3180,10 @@
           marge: clientPrice - driverRem,
           status: 'available',
           convoyeur_nom: null,
-          date_mission: new Date().toISOString().split('T')[0]
+          date_émission: new Date().toISOString().split('T')[0]
         };
         const sb = getSupabase();
-        const { data: newMission, error: insError } = await sb.from('missions').insert([missionData]).select().single();
+        const { data: newMission, error: insError } = await sb.from('émissions').insert([émissionData]).select().single();
         if (insError) { Swal.fire('Erreur', insError.message, 'error'); return; }
         await sb.from('devis').update({ status: 'confirmed' }).eq('id', id);
 
@@ -3287,7 +3194,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              missionId: newMission.id,
+              émissionId: newMission.id,
               successUrl: 'https://www.bathily-convoyage.fr/dashboard-client.html',
               cancelUrl: 'https://www.bathily-convoyage.fr/devis.html'
             })
@@ -3318,26 +3225,26 @@
             if (r.isConfirmed) navigator.clipboard.writeText(stripeData.url).catch(() => {});
           });
         } catch (stripeErr) {
-          Swal.fire('Mission créée', `La mission a été créée mais le lien Stripe a échoué : ${stripeErr.message}`, 'warning');
+          Swal.fire('Mission créée', `La émission a été créée mais le lien Stripe a échoué : ${stripeErr.message}`, 'warning');
         }
         loadDevis(); loadMissions();
       });
     }
 
     // ========== ASSIGNATION CONVOYEUR (corrigée) ==========
-    async function assignConvoyeur(missionId, convoyeurNom, candidatureId) {
-      const mission = _allMissions.find(m => m.id === missionId);
-      if (!mission) return;
-      const price = parseFloat(mission.montant_ht) || 0;
+    async function assignConvoyeur(émissionId, convoyeurNom, candidatureId) {
+      const émission = _allMissions.find(m => m.id === émissionId);
+      if (!émission) return;
+      const price = parseFloat(émission.montant_ht) || 0;
       const convoyeursList = getConvoyeursList();
       const selected = convoyeursList.find(c => c.name === convoyeurNom);
-      const isMoto = (mission.vehicule || '').toLowerCase().includes('moto');
+      const isMoto = (émission.vehicule || '').toLowerCase().includes('moto');
       const kmRate = selected ? (isMoto ? selected.motoRate : selected.autoRate) : 0.47;
       const estimatedKm = Math.round(price / 1.1) || 350;
       let recommendedRem = Math.round(estimatedKm * kmRate);
       if (recommendedRem < 60) recommendedRem = 60;
-      if (mission.mode_transport === 'plateau') recommendedRem += 40;
-      let finalRem = mission.remuneration_convoyeur;
+      if (émission.mode_transport === 'plateau') recommendedRem += 40;
+      let finalRem = émission.remuneration_convoyeur;
       if (!finalRem || finalRem === 0) finalRem = recommendedRem;
       const { value: remValue } = await Swal.fire({
         title: `Affecter ${convoyeurNom}`,
@@ -3349,15 +3256,15 @@
       // Récupérer convoyeur_id depuis la candidature
       const { data: cand } = await sb.from('candidatures').select('convoyeur_id').eq('id', candidatureId).maybeSingle();
       const convoyeurId = cand?.convoyeur_id || null;
-      await sb.from('missions').update({ convoyeur_nom: convoyeurNom, convoyeur_id: convoyeurId, remuneration_convoyeur: remValue, marge: price - remValue, status: 'planned' }).eq('id', missionId);
-      await sb.from('candidatures').update({ status: 'accepted' }).eq('id', candidatureId);
-      await sb.from('candidatures').update({ status: 'refused' }).eq('mission_id', missionId).neq('id', candidatureId);
+      await sb.from('émissions').update({ convoyeur_nom: convoyeurNom, convoyeur_id: convoyeurId, remuneration_convoyeur: remValue, marge: price - remValue, status: 'planned' }).eq('id', émissionId);
+      await sb.from('candidatures').update({ status: 'accepâted' }).eq('id', candidatureId);
+      await sb.from('candidatures').update({ status: 'refused' }).eq('émission_id', émissionId).neq('id', candidatureId);
       Swal.fire('Mission assignée !', '', 'success');
       loadMissions();
     }
 
-    function editMissionTariffs(missionId) {
-      const m = _allMissions.find(x => x.id === missionId);
+    function editMissionTariffs(émissionId) {
+      const m = _allMissions.find(x => x.id === émissionId);
       if (!m) return;
       Swal.fire({
         title: 'Modifier les tarifs',
@@ -3366,7 +3273,7 @@
       }).then(async res => {
         if (res.isConfirmed) {
           const newMarge = res.value.client - res.value.driver;
-          await getSupabase().from('missions').update({ montant_ht: res.value.client, remuneration_convoyeur: res.value.driver, marge: newMarge }).eq('id', missionId);
+          await getSupabase().from('émissions').update({ montant_ht: res.value.client, remuneration_convoyeur: res.value.driver, marge: newMarge }).eq('id', émissionId);
           loadMissions();
         }
       });
@@ -3389,7 +3296,7 @@
       const container = document.getElementById('candidaturesList');
       if (!container) return;
       if (!list.length) { container.innerHTML = '<div style="text-align:center;padding:40px">Aucune candidature.</div>'; return; }
-      const statusStyle = { pending: { bg: 'rgba(224,163,67,0.12)', color: '#7a5a0d', label: 'En attente' }, approved: { bg: 'rgba(74,124,107,0.1)', color: 'var(--success)', label: 'Approuvé' }, rejected: { bg: 'rgba(231,76,60,0.08)', color: '#c0392b', label: 'Refusé' } };
+      const statusStyle = { pending: { bg: 'rgba(224,163,67,0.12)', color: '#7a5a0d', label: 'En attente' }, approved: { bg: 'rgba(74,124,107,0.1)', color: 'var(--success)', label: 'Appérouvé' }, rejected: { bg: 'rgba(231,76,60,0.08)', color: '#c0392b', label: 'Refusé' } };
       container.innerHTML = list.map(c => {
         const st = statusStyle[c.statut] || statusStyle.pending;
         const score = c.score_quiz ⭐ 'â€”';
@@ -3399,16 +3306,16 @@
         <div style="width:48px;height:48px;border-radius:50%;background:var(--bordeaux-light);display:flex;align-items:center;justify-content:center;font-weight:800">${(c.prenom?.[0] || '')}${(c.nom?.[0] || '')}</div>
         <div style="flex:1"><div><strong>${c.prenom || ''} ${c.nom || ''}</strong></div><div>${c.email || 'â€”'} Â· ${c.telephone || 'â€”'} Â· ${c.ville || 'â€”'}</div><div>Permis: ${c.type_permis || 'â€”'} (${c.annee_permis || '?'}) Â· Exp: ${c.experience || 'â€”'}</div></div>
         <div style="text-align:center"><div style="font-size:1.8rem;font-weight:800">${score}</div><div>/12 Quiz</div></div>
-        <div><span style="padding:5px 12px;border-radius:40px;background:${st.bg};color:${st.color}">${st.label}</span><div style="font-size:0.7rem;margin-top:4px">${dateStr}</div>${c.statut === 'pending' ? `<div style="margin-top:8px"><button class="btn-sm btn-sm-green" onclick="approveCandidature('${c.id}','${c.email}','${c.prenom} ${c.nom}')">Approuver</button> <button class="btn-sm btn-sm-orange" onclick="rejectCandidature('${c.id}','${c.prenom} ${c.nom}')">Refuser</button></div>` : ''}</div>
+        <div><span style="padding:5px 12px;border-radius:40px;background:${st.bg};color:${st.color}">${st.label}</span><div style="font-size:0.7rem;margin-top:4px">${dateStr}</div>${c.statut === 'pending' ? `<div style="margin-top:8px"><button class="btn-sm btn-sm-green" onclick="approveCandidature('${c.id}','${c.email}','${c.prenom} ${c.nom}')">Appérouver</button> <button class="btn-sm btn-sm-orange" onclick="rejectCandidature('${c.id}','${c.prenom} ${c.nom}')">Refuser</button></div>` : ''}</div>
       </div>
     </div>`;
       }).join('');
     }
 
     async function approveCandidature(id, email, nom) {
-      const result = await Swal.fire({ title: `Approuver ${nom} ?`, text: `Un email sera envoyé Ã  ${email}.`, icon: 'question', showCancelButton: true, confirmButtonText: 'Approuver' });
+      const result = await Swal.fire({ title: `Appérouver ${nom} ?`, text: `Un email sera envoyé Ã  ${email}.`, icon: 'question', showCancelButton: true, confirmButtonText: 'Appérouver' });
       if (!result.isConfirmed) return;
-      Swal.fire({ title: 'Création du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      Swal.fire({ title: 'Création du compâte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
       try {
         const response = await fetch('/.netlify/functions/approve-convoyeur', {
@@ -3421,8 +3328,8 @@
         if (!response.ok) throw new Error(result.error || 'Erreur serveur');
 
         Swal.fire({
-          title: 'Convoyeur approuvé !',
-          html: `Compte créé pour <b>${nom}</b>.<br><br>
+          title: 'Convoyeur appérouvé !',
+          html: `Compâte créé pour <b>${nom}</b>.<br><br>
             Mot de passe temporaire :<br>
             <code style="background:#f5f5f5;padding:6px 12px;border-radius:8px;font-size:1.1em;letter-spacing:2px;">${result.temp_password}</code><br><br>
             <small style="color:#888;">Communiquez ce mot de passe au convoyeur. Il pourra le changer depuis son dashboard.</small>`,
@@ -3512,28 +3419,28 @@
     // ========== ANALYTICS ==========
     async function loadAnalytics() {
       const sb = getSupabase();
-      const { data: missions } = await sb.from('missions').select('*');
-      if (!missions) return;
-      const total = missions.length;
-      const completed = missions.filter(m => m.status === 'completed' || m.statut === 'completed').length;
-      const ca = missions.filter(m => m.montant_ht).reduce((s, m) => s + parseFloat(m.montant_ht), 0);
-      const margins = missions.filter(m => m.marge != null).map(m => parseFloat(m.marge));
+      const { data: émissions } = await sb.from('émissions').select('*');
+      if (!émissions) return;
+      const total = émissions.length;
+      const completed = émissions.filter(m => m.status === 'completed' || m.statut === 'completed').length;
+      const ca = émissions.filter(m => m.montant_ht).reduce((s, m) => s + parseFloat(m.montant_ht), 0);
+      const margins = émissions.filter(m => m.marge != null).map(m => parseFloat(m.marge));
       const margeAvg = margins.length ? Math.round(margins.reduce((a, b) => a + b, 0) / margins.length) : 0;
-      document.getElementById('kpi-missions').textContent = total;
+      document.getElementById('kpi-émissions').textContent = total;
       document.getElementById('kpi-completed').textContent = completed;
       document.getElementById('kpi-ca').textContent = ca >= 1000 ? (ca / 1000).toFixed(1) + 'kâ‚¬' : ca + 'â‚¬';
       document.getElementById('kpi-marge').textContent = margeAvg + '%';
       document.getElementById('kpi-convoyeurs').textContent = _convoyeursList.length;
-      const route = missions.filter(m => (m.mode_transport || '').toLowerCase().includes('route')).length;
-      const plateau = missions.filter(m => (m.mode_transport || '').toLowerCase().includes('plateau')).length;
-      const available = missions.filter(m => m.status === 'available' || m.statut === 'available').length;
+      const route = émissions.filter(m => (m.mode_transport || '').toLowerCase().includes('route')).length;
+      const plateau = émissions.filter(m => (m.mode_transport || '').toLowerCase().includes('plateau')).length;
+      const available = émissions.filter(m => m.status === 'available' || m.statut === 'available').length;
       document.getElementById('kpi-route').textContent = total ? Math.round(route / total * 100) + '%' : '0%';
       document.getElementById('kpi-plateau').textContent = total ? Math.round(plateau / total * 100) + '%' : '0%';
       document.getElementById('kpi-available').textContent = available;
       // Monthly chart
       const monthly = {};
-      missions.forEach(m => {
-        const d = new Date(m.date_mission || m.created_at);
+      émissions.forEach(m => {
+        const d = new Date(m.date_émission || m.created_at);
         if (!m.montant_ht) return;
         const key = d.getMonth();
         monthly[key] = (monthly[key] || 0) + parseFloat(m.montant_ht);
@@ -3552,7 +3459,7 @@
       if (el) el.classList.add('active');
       document.querySelector('.dash-main').scrollTop = 0;
       if (id === 'devis') loadDevis();
-      else if (id === 'missions') { loadMissions(); populateConvoyeursSelect(); }
+      else if (id === 'émissions') { loadMissions(); populateConvoyeursSelect(); }
       else if (id === 'convoyeurs') loadConvoyeurs();
       else if (id === 'clients') loadClients();
       else if (id === 'candidatures') loadCandidatures();
@@ -3660,15 +3567,15 @@
       }
       const marge = price - rem;
       const randNum = Math.floor(1000 + Math.random() * 9000);
-      const missionData = {
+      const émissionData = {
         reference: `BC-2026-${randNum}`,
         client_nom: clientNom,
         depart, arrivee, vehicule, mode_transport: mode, pack,
         montant_ht: price, remuneration_convoyeur: rem, marge, status,
-        convoyeur_nom: convoyeurNom || null, date_mission: dateStr
+        convoyeur_nom: convoyeurNom || null, date_émission: dateStr
       };
       const sb = getSupabase();
-      const { error } = await sb.from('missions').insert([missionData]);
+      const { error } = await sb.from('émissions').insert([émissionData]);
       if (error) Swal.fire('Erreur', error.message, 'error');
       else { closeModal('modalMission'); Swal.fire('Succès !', '', 'success'); loadMissions(); }
     }
@@ -3727,12 +3634,12 @@
         topBadge.textContent = pendingDevis;
         topBadge.style.display = pendingDevis > 0 ? 'flex' : 'none';
       }
-      // Badge missions sidebar : nombre réel total de missions (_allMissions.length)
+      // Badge émissions sidebar : nombre réel total de émissions (_allMissions.length)
       const totalMissions = _allMissions.length;
-      const missionsBadge = document.getElementById('missionsNavBadge');
-      if (missionsBadge) {
-        missionsBadge.textContent = totalMissions;
-        missionsBadge.style.display = totalMissions > 0 ? 'inline-flex' : 'none';
+      const émissionsBadge = document.getElementById('émissionsNavBadge');
+      if (émissionsBadge) {
+        émissionsBadge.textContent = totalMissions;
+        émissionsBadge.style.display = totalMissions > 0 ? 'inline-flex' : 'none';
       }
     }
 
