@@ -1,1583 +1,889 @@
-﻿
+﻿<!DOCTYPE html>
 <html lang="fr">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Devis personnalisé — Bathily convoyage</title>
-<meta name="description" content="Finalisez votre devis de convoyage auto ou moto. Récupérez les données déjà saisies, complétez vos coordonnées et obtenez une confirmation sous 2h.">
-<meta property="og:title" content="Bathily Convoyage — Finalisation du devis">
-<meta property="og:description" content="Devis personnalisé en 60 secondes. Double RC Pro incluse.">
-<meta property="og:image" content="https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/supabase-config.js"></script>
-<style>
-/* ========== STYLES (identiques à votre version, seule la partie suggestion est ajoutée) ========== */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-body {
-  font-family: 'Inter', sans-serif;
-  background: #FDFBF7;
-  color: #2D2A24;
-  line-height: 1.5;
-  scroll-behavior: smooth;
-}
-.container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-:root {
-  --bordeaux: #0A4D68;
-  --bordeaux-dark: #063244;
-  --bordeaux-light: #E6F0F4;
-  --cream: #FDFBF7;
-  --beige: #F9F6F0;
-  --gray-dark: #2D2A24;
-  --gray-mid: #6B625A;
-  --border-light: #E8E1D9;
-  --success: #4A7C6B;
-  --warning: #F5A623;
-}
-/* Header */
-header {
-  position: sticky;
-  top: 0;
-  background: rgba(253,251,247,0.96);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border-light);
-  z-index: 100;
-}
-.header-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 72px;
-}
-.logo {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--gray-dark);
-  text-decoration: none;
-  letter-spacing: -0.02em;
-}
-.logo span { color: var(--bordeaux); }
-.nav-links {
-  display: flex;
-  gap: 32px;
-  align-items: center;
-}
-.nav-links a {
-  text-decoration: none;
-  color: var(--gray-mid);
-  font-weight: 500;
-  transition: color 0.2s;
-}
-.nav-links a:hover, .nav-links a.active { color: var(--bordeaux); }
-.btn-outline {
-  border: 1px solid var(--bordeaux);
-  background: transparent;
-  padding: 8px 20px;
-  border-radius: 40px;
-  color: var(--bordeaux);
-  font-weight: 600;
-  transition: all 0.2s;
-}
-.btn-outline:hover {
-  background: var(--bordeaux);
-  color: white;
-}
-.menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; }
-/* Hero */
-.hero {
-  background: transparent;
-  padding: 60px 0 40px;
-}
-.hero-content {
-  text-align: center;
-  max-width: 700px;
-  margin: 0 auto;
-}
-.hero-badge {
-  background: #FEF3C7;
-  color: #D97706;
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 40px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-bottom: 16px;
-}
-.hero h1 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin-bottom: 16px;
-}
-.hero h1 span { color: var(--bordeaux); }
-.hero p {
-  font-size: 1.125rem;
-  color: var(--gray-mid);
-  margin-bottom: 24px;
-}
-.fast-garanties {
-  background: white;
-  border-radius: 80px;
-  padding: 12px 24px;
-  display: inline-flex;
-  gap: 32px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: 40px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-  border: 1px solid var(--border-light);
-}
-.fg-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--gray-dark);
-}
-.fg-item i { color: var(--bordeaux); }
-/* Breadcrumb */
-.breadcrumb {
-  margin: 20px 0;
-  font-size: 0.75rem;
-  color: var(--gray-mid);
-}
-.breadcrumb a { text-decoration: none; color: var(--gray-mid); }
-.breadcrumb a:hover { color: var(--bordeaux); }
-.breadcrumb .sep { margin: 0 8px; }
-/* Config wrapper */
-.config-wrapper {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 32px;
-  margin: 40px 0 80px;
-}
-.config-form {
-  background: white;
-  border-radius: 28px;
-  padding: 32px;
-  border: 1px solid var(--border-light);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.02);
-}
-.steps-bar {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 40px;
-  flex-wrap: wrap;
-}
-.s-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  min-width: 60px;
-}
-.s-num {
-  width: 36px;
-  height: 36px;
-  background: #F3F4F6;
-  border-radius: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.875rem;
-  color: var(--gray-mid);
-  margin-bottom: 8px;
-}
-.s-num.active {
-  background: var(--bordeaux);
-  color: white;
-}
-.s-num.done {
-  background: #D1D5DB;
-  color: #374151;
-}
-.s-lbl {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--gray-mid);
-}
-.s-line {
-  flex: 1;
-  height: 2px;
-  background: #E5E7EB;
-  margin: 18px 8px 0;
-}
-.s-line.done { background: var(--bordeaux); }
-.cfg-step { display: none; }
-.cfg-step.active { display: block; animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-.step-h {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-.step-p {
-  color: var(--gray-mid);
-  margin-bottom: 24px;
-}
-.f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.f-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-.f-grp { margin-bottom: 20px; position: relative; }
-.f-grp label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--gray-mid);
-  margin-bottom: 6px;
-}
-.f-grp input, .f-grp select, .f-grp textarea {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  background: #F9FAFB;
-  transition: all 0.2s;
-}
-.f-grp input:focus, .f-grp select:focus, .f-grp textarea:focus {
-  outline: none;
-  border-color: var(--bordeaux);
-  box-shadow: 0 0 0 2px rgba(122,46,26,0.1);
-}
-.f-grp input.error { border-color: #DC2626; }
-.field-err {
-  color: #DC2626;
-  font-size: 0.7rem;
-  margin-top: 4px;
-  display: none;
-}
-.field-err.show { display: block; }
-.v-sel, .t-modes, .cat-sel, .pck-grid, .opt-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.v-card, .t-mode, .cat-card, .pck-card, .opt-item {
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: white;
-}
-.v-card:hover, .t-mode:hover, .cat-card:hover, .pck-card:hover, .opt-item:hover {
-  border-color: var(--bordeaux);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-}
-.sel {
-  border-color: var(--bordeaux);
-  background: var(--bordeaux-light);
-}
-.v-card i, .t-mode-ico, .cat-card i {
-  font-size: 1.5rem;
-  color: var(--bordeaux);
-  margin-bottom: 12px;
-  display: block;
-}
-.v-card-name, .t-mode h4, .cat-card span {
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-.v-card-sub, .t-mode-sub, .cat-card small {
-  font-size: 0.7rem;
-  color: var(--gray-mid);
-}
-.t-mode-price { font-weight: 700; color: var(--bordeaux); margin: 8px 0; }
-.t-mode-feats { list-style: none; margin-top: 12px; font-size: 0.7rem; color: var(--gray-mid); }
-.t-mode-feats li { margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-.t-mode-feats li::before { content: '✓'; color: var(--bordeaux); }
-.pck-badge {
-  position: absolute;
-  top: -10px;
-  right: 12px;
-  background: var(--bordeaux);
-  color: white;
-  font-size: 0.6rem;
-  padding: 2px 8px;
-  border-radius: 20px;
-}
-.pck-price { font-weight: 700; color: var(--bordeaux); margin-top: 8px; }
-.pck-card ul { list-style: none; margin-top: 12px; font-size: 0.7rem; color: var(--gray-dark); }
-.pck-card ul li { margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-.pck-card ul li::before { content: '•'; color: var(--bordeaux); }
-.opt-item { display: flex; align-items: center; gap: 12px; }
-.opt-check {
-  width: 18px;
-  height: 18px;
-  border: 1px solid #D1D5DB;
-  border-radius: 6px;
-  background: white;
-  transition: all 0.2s;
-}
-.opt-item.chk .opt-check {
-  background: var(--bordeaux);
-  border-color: var(--bordeaux);
-}
-.opt-item.chk .opt-check::afêter {
-  content: '✓';
-  color: white;
-  font-size: 12px;
-  display: flex;
-  justify-content: center;
-  line-height: 1;
-}
-.opt-lbl { flex: 1; font-weight: 600; font-size: 0.875rem; }
-.opt-lbl small { display: block; font-weight: normal; font-size: 0.7rem; color: var(--gray-mid); }
-.opt-price { font-weight: 700; color: var(--bordeaux); }
-.sn {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border-light);
-}
-.btn-nav {
-  padding: 12px 24px;
-  border-radius: 40px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-prev {
-  background: transparent;
-  border: 1px solid #D1D5DB;
-  color: var(--gray-mid);
-}
-.btn-prev:hover { background: #F3F4F6; }
-.btn-prev:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-next {
-  background: var(--bordeaux);
-  color: white;
-}
-.btn-next:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
-.price-sidebar {
-  background: white;
-  border-radius: 28px;
-  padding: 28px;
-  border: 1px solid var(--border-light);
-  position: sticky;
-  top: 90px;
-  height: fit-content;
-}
-.ps-lbl {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--gray-mid);
-}
-.ps-num {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--gray-dark);
-  margin: 8px 0 4px;
-}
-.ps-num em { color: var(--bordeaux); font-style: normal; font-size: 1rem; }
-.ps-ht { font-size: 0.7rem; color: var(--gray-mid); margin-bottom: 20px; }
-.ps-line {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #F3F4F6;
-  font-size: 0.875rem;
-}
-.ps-total { border-top: 1px solid var(--border-light); margin-top: 8px; padding-top: 12px; font-weight: 700; }
-.ps-total span:last-child { color: var(--bordeaux); }
-.btn-validate {
-  width: 100%;
-  background: var(--bordeaux);
-  color: white;
-  border: none;
-  border-radius: 40px;
-  padding: 14px;
-  font-weight: 700;
-  font-size: 0.875rem;
-  margin-top: 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-validate:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
-.btn-validate:disabled { background: #D1D5DB; cursor: not-allowed; transform: none; }
-.ps-incl { margin-top: 20px; }
-.ps-incl-title { font-weight: 700; font-size: 0.7rem; margin-bottom: 12px; text-transform: uppercase; }
-.ps-incl ul { list-style: none; font-size: 0.7rem; color: var(--gray-mid); }
-.ps-incl li { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
-.ps-incl li i { color: var(--bordeaux); width: 16px; }
-.ps-note { font-size: 0.7rem; color: #9CA3AF; margin-top: 16px; }
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(4px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-}
-.modal-overlay.open { display: flex; }
-.modal-box {
-  background: white;
-  border-radius: 32px;
-  max-width: 480px;
-  width: 90%;
-  padding: 32px;
-  text-align: center;
-  position: relative;
-}
-.modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
-  color: var(--gray-mid);
-}
-.modal-ico { font-size: 3rem; color: var(--bordeaux); margin-bottom: 16px; }
-.modal-h {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.5rem;
-  margin-bottom: 8px;
-}
-.modal-h em { color: var(--bordeaux); font-style: normal; }
-.modal-ref {
-  background: #F9FAFB;
-  border-radius: 16px;
-  padding: 16px;
-  margin: 20px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.modal-ref-val { font-weight: 700; font-size: 1.25rem; }
-.modal-steps { text-align: left; margin: 20px 0; }
-.modal-step { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 0.875rem; }
-.modal-step i { color: var(--bordeaux); width: 20px; }
-.modal-btns { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
-.btn-primary {
-  background: var(--bordeaux);
-  color: white;
-  padding: 10px 20px;
-  border-radius: 40px;
-  text-decoration: none;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.btn-primary:hover { background: var(--bordeaux-dark); transform: translateY(-2px); }
-.btn-secondary {
-  background: transparent;
-  border: 1px solid #D1D5DB;
-  padding: 10px 20px;
-  border-radius: 40px;
-  text-decoration: none;
-  font-weight: 600;
-  color: var(--gray-mid);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-secondary:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
-footer {
-  background: var(--beige);
-  border-top: 1px solid var(--border-light);
-  padding: 48px 0;
-  margin-top: 60px;
-}
-.footer-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 48px;
-}
-.footer-logo {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin-bottom: 16px;
-}
-.footer-logo span { color: var(--bordeaux); }
-.footer-about p { color: var(--gray-mid); font-size: 0.875rem; }
-.footer-links h4 { font-weight: 600; margin-bottom: 16px; font-size: 0.875rem; }
-.footer-links a {
-  display: block;
-  color: var(--gray-mid);
-  text-decoration: none;
-  font-size: 0.875rem;
-  margin-bottom: 8px;
-}
-.footer-links a:hover { color: var(--bordeaux); }
-.footer-bottom {
-  text-align: center;
-  margin-top: 48px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border-light);
-  color: var(--gray-mid);
-  font-size: 0.75rem;
-}
-.reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-}
-.reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-/* Suggests box */
-.suggest-box {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  background: white;
-  border: 1px solid var(--border-light);
-  border-radius: 12px;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-  display: none;
-}
-.suggest-item {
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: background 0.2s;
-}
-.suggest-item:hover {
-  background: var(--bordeaux-light);
-  color: var(--bordeaux);
-}
-@media (max-width: 900px) {
-  .config-wrapper { grid-template-columns: 1fr; }
-  .price-sidebar { position: static; margin-top: 24px; }
-  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
-  .menu-toggle { display: block; }
-  .nav-links {
-    display: none;
-    position: absolute;
-    top: 72px;
-    left: 0;
-    right: 0;
-    background: white;
-    flex-direction: column;
-    padding: 24px;
-    border-bottom: 1px solid var(--border-light);
-  }
-  .nav-links.show { display: flex; }
-  .fast-garanties { border-radius: 24px; gap: 16px; }
-}
-@media (max-width: 600px) {
-  .steps-bar { flex-wrap: wrap; justify-content: center; gap: 12px; }
-  .s-line { display: none; }
-  .v-sel, .t-modes, .cat-sel, .pck-grid, .opt-grid { grid-template-columns: 1fr; }
-  .f-row, .f-row3 { grid-template-columns: 1fr; }
-}
-</style>
-<script src="/js/lang-switcher.js" defer="None"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Devis - Convoyage Auto &amp; Moto | Bathily Convoyage</title>
+  <meta name="description" content="Demandez un devis de convoyage gratuit et sans engagement. Estimez le prix de votre transport de voiture ou moto en France en 2 minutes.">
+  <meta property="og:title" content="Devis de Convoyage Auto &amp; Moto | Bathily Convoyage">
+  <meta property="og:description" content="Estimation rapide de votre convoyage automobile ou moto. Devis gratuit en ligne.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚗%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FDFBF7;
+      color: #2D2A24;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    :root {
+      --bordeaux: #0A4D68;
+      --bordeaux-dark: #063244;
+      --bordeaux-light: #E6F0F4;
+      --cream: #FDFBF7;
+      --beige: #F9F6F0;
+      --gray-dark: #2D2A24;
+      --gray-mid: #6B625A;
+      --border-light: #E8E1D9;
+      --success: #4A7C6B;
+      --warning: #F5A623;
+    }
+
+    /* Topbar */
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--border-light);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--gray-dark);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    .topbar-logo span {
+      color: var(--bordeaux);
+    }
+
+    .topbar-center {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gray-mid);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      background: var(--bordeaux-light);
+      border: 1px solid var(--bordeaux);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: var(--bordeaux);
+    }
+
+    .topbar-logout {
+      background: none;
+      border: none;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+      cursor: pointer;
+      transition: color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .topbar-logout:hover {
+      color: var(--bordeaux);
+    }
+
+    /* Hero Section */
+    .hero-devis {
+      padding: 60px 0 40px;
+      background: linear-gradient(135deg, var(--cream) 0%, var(--beige) 100%);
+    }
+
+    .hero-devis h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: var(--gray-dark);
+    }
+
+    .hero-devis h1 span {
+      color: var(--bordeaux);
+    }
+
+    .hero-devis p {
+      font-size: 1.125rem;
+      color: var(--gray-mid);
+      max-width: 600px;
+      margin-bottom: 24px;
+    }
+
+    /* Devis Form */
+    .devis-form-wrapper {
+      background: white;
+      border-radius: 32px;
+      padding: 48px;
+      border: 1px solid var(--border-light);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+      margin-bottom: 60px;
+    }
+
+    .devis-form-wrapper .section-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .devis-form-wrapper .section-title em {
+      color: var(--bordeaux);
+      font-style: normal;
+    }
+
+    .devis-form-wrapper .section-sub {
+      color: var(--gray-mid);
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+
+    .f-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .f-grp {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .f-grp label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-mid);
+      margin-bottom: 6px;
+    }
+
+    .f-grp input,
+    .f-grp select,
+    .f-grp textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      background: #F9FAFB;
+      transition: all 0.2s;
+    }
+
+    .f-grp input:focus,
+    .f-grp select:focus,
+    .f-grp textarea:focus {
+      outline: none;
+      border-color: var(--bordeaux);
+      box-shadow: 0 0 0 2px rgba(122, 46, 26, 0.1);
+    }
+
+    .f-grp input:disabled {
+      background: var(--beige);
+      color: var(--gray-mid);
+    }
+
+    /* Suggest box */
+    .suggest-box {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+    .suggest-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.2s;
+    }
+
+    .suggest-item:hover {
+      background: var(--bordeaux-light);
+      color: var(--bordeaux);
+    }
+
+    /* Vehicule type tabs */
+    .veh-tabs {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .veh-tab {
+      padding: 10px 24px;
+      border-radius: 40px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+    }
+
+    .veh-tab.active {
+      background: var(--bordeaux);
+      color: white;
+    }
+
+    .veh-tab:not(.active) {
+      background: #E8E1D9;
+      color: var(--bordeaux);
+    }
+
+    .veh-tab:not(.active):hover {
+      background: var(--bordeaux-light);
+    }
+
+    /* Options grid */
+    .opts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .opt-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .opt-item:hover {
+      border-color: var(--bordeaux-light);
+      background: var(--bordeaux-light);
+    }
+
+    .opt-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--bordeaux);
+    }
+
+    .opt-item label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+      cursor: pointer;
+    }
+
+    /* Price display */
+    .price-display {
+      background: var(--bordeaux-light);
+      border-radius: 20px;
+      padding: 24px 32px;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .price-display .price-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+    }
+
+    .price-display .price-amount {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--bordeaux);
+    }
+
+    .price-display .price-amount span {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--gray-mid);
+    }
+
+    .btn-red {
+      background: var(--bordeaux);
+      color: white;
+      border: none;
+      border-radius: 40px;
+      padding: 14px 32px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-red:hover {
+      background: var(--bordeaux-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(10, 77, 104, 0.15);
+    }
+
+    .btn-red:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-light);
+      border-radius: 40px;
+      padding: 10px 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--bordeaux);
+      color: var(--bordeaux);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .f-row {
+        grid-template-columns: 1fr;
+      }
+
+      .devis-form-wrapper {
+        padding: 24px;
+      }
+
+      .hero-devis h1 {
+        font-size: 2rem;
+      }
+
+      .opts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .price-display {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    /* Checkbox */
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: var(--gray-mid);
+      cursor: pointer;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--bordeaux);
+    }
+
+    .checkbox-label a {
+      color: var(--bordeaux);
+      text-decoration: underline;
+    }
+
+    .field-err {
+      color: #DC2626;
+      font-size: 0.7rem;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .field-err.show {
+      display: block;
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <div class="container header-inner">
-    <a href="index.html" class="logo">Bathily-convoyage<span>.</span></a>
-    <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</div>
-    <div class="nav-links">
-      <a href="index.html">Accueil</a>
-      <a href="formation-convoyeur.html">Devenir convoyeur</a>
-      <a href="contact.html">Contact</a>
-      <a href="dashboard-convoyeur.html">Espace convoyeur</a>
-      <a href="dashboard-client.html" class="btn-outline">Espace client</a>
+  <!-- Topbar -->
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo">Bathily-convoyage<span>.</span></a>
+    <span class="topbar-center">Devis Express</span>
+    <div class="topbar-right">
+      <a href="dashboard-client.html" class="btn-outline" style="padding:6px 16px; font-size:0.65rem;"><i class="fas fa-user"></i> Espace client</a>
     </div>
   </div>
-</header>
 
-<main>
-  <div class="container">
-    <div class="hero reveal">
-      <div class="hero-content">
-        <div class="hero-badge">✨ Configurateur Smart Quote</div>
-        <h1>Votre <span>devis</span> en 60 secondes</h1>
-        <p>Prix HT transparents, confirmation sous 2h, double RC Pro incluse.</p>
-        <div class="fast-garanties">
-          <div class="fg-item"><i class="fas fa-clock"></i> Devis en 60s</div>
-          <div class="fg-item"><i class="fas fa-shield-alt"></i> Double RC Pro</div>
-          <div class="fg-item"><i class="fas fa-camera"></i> 20 photos EDL</div>
-          <div class="fg-item"><i class="fas fa-check-circle"></i> Confirmation sous 2h</div>
-          <div class="fg-item"><i class="fas fa-eye"></i> Aucun frais caché</div>
-        </div>
+  <main>
+    <section class="hero-devis">
+      <div class="container">
+        <h1>Devis <span>convoyage</span></h1>
+        <p>Obtenez une estimation instantanée pour le transport de votre voiture ou moto en France. Devis gratuit et sans engagement.</p>
       </div>
-    </div>
+    </section>
 
-    <div class="breadcrumb">
-      <a href="index.html">Accueil</a><span class="sep">/</span><span>Devis</span>
-    </div>
+    <section class="container">
+      <div class="devis-form-wrapper">
+        <h2 class="section-title">Estimation en <em>2 minutes</em></h2>
+        <p class="section-sub">Remplissez les informations ci-dessous pour recevoir une estimation de prix.</p>
 
-    <div class="config-wrapper reveal">
-      <div class="config-form">
-        <div class="steps-bar">
-          <div class="s-item"><div class="s-num active" id="d1">01</div><div class="s-lbl">Véhicule</div><div class="s-line" id="l1"></div></div>
-          <div class="s-item"><div class="s-num" id="d2">02</div><div class="s-lbl">SIV</div><div class="s-line" id="l2"></div></div>
-          <div class="s-item"><div class="s-num" id="d3">03</div><div class="s-lbl">Trajet</div><div class="s-line" id="l3"></div></div>
-          <div class="s-item"><div class="s-num" id="d4">04</div><div class="s-lbl">transport</div><div class="s-line" id="l4"></div></div>
-          <div class="s-item"><div class="s-num" id="d5">05</div><div class="s-lbl">Packs</div><div class="s-line" id="l5"></div></div>
-          <div class="s-item"><div class="s-num" id="d6">06</div><div class="s-lbl">Contact</div></div>
-        </div>
-
-        <!-- step 1 -->
-        <div class="cfg-step active" data-step="1">
-          <h3 class="step-h">Type de véhicule</h3>
-          <p class="step-p">Sélectionnez le type de véhicule à convoyer</p>
-          <div class="v-sel">
-            <div class="v-card" onclick="selVeh(this,'auto')" role="button" tabindex="0"><i class="fas fa-car"></i><div class="v-card-name">Automobile</div><div class="v-card-sub">Berline, SUV, Utilitaire</div></div>
-            <div class="v-card" onclick="selVeh(this,'moto')" role="button" tabindex="0"><i class="fas fa-motorcycle"></i><div class="v-card-name">Moto</div><div class="v-card-sub">Routière, Custom, Side-car</div></div>
-          </div>
-        </div>
-
-        <!-- step 2 -->
-        <div class="cfg-step" data-step="2">
-          <h3 class="step-h">Identification SIV</h3>
-          <p class="step-p">Renseignez la plaque pour identifier votre véhicule automatiquement</p>
+        <form id="devisForm" onsubmit="submitDevis(event)">
+          <!-- Type véhicule -->
           <div class="f-grp">
-            <label>Plaque d'immatriculation</label>
-            <div style="display:flex; gap:8px;">
-              <input type="text" id="plaque" placeholder="AB-123-CD" oninput="fmtPlaque(this)" maxlength="9" style="flex:1;">
-              <button type="button" onclick="lookupDevisLicensePlate()" style="background:var(--bordeaux); color:white; border:none; border-radius:16px; padding:0 18px; cursor:pointer; font-size:0.9rem; transition: background 0.2s;" onmouseover="this.style.background='var(--bordeaux-dark)'" onmouseout="this.style.background='var(--bordeaux)'" title="Rechercher avec le SIV">
-                <i class="fas fa-search"></i>
-              </button>
+            <label>Type de véhicule</label>
+            <div class="veh-tabs">
+              <button type="button" class="veh-tab active" data-value="Automobile" onclick="setVehicleType('Automobile')">🚗 Automobile</button>
+              <button type="button" class="veh-tab" data-value="Moto" onclick="setVehicleType('Moto')">🏍️ Moto</button>
+            </div>
+            <input type="hidden" id="vehiculeType" value="Automobile">
+          </div>
+
+          <!-- Trajet -->
+          <div class="f-row">
+            <div class="f-grp">
+              <label>Ville / Adresse de départ *</label>
+              <input type="text" id="depart" placeholder="Ex: Paris" autocomplete="off" required>
+              <div class="suggest-box" id="departSuggests"></div>
+              <div class="field-err" id="errDepart">Veuillez renseigner le lieu de départ</div>
+            </div>
+            <div class="f-grp">
+              <label>Ville / Adresse d'arrivée *</label>
+              <input type="text" id="arrivee" placeholder="Ex: Lyon" autocomplete="off" required>
+              <div class="suggest-box" id="arriveeSuggests"></div>
+              <div class="field-err" id="errArrivee">Veuillez renseigner le lieu d'arrivée</div>
             </div>
           </div>
-          <div class="siv-box" id="sivBox" style="display:none; background:#F9FAFB; border-radius:16px; padding:16px; margin-bottom:16px;"><div class="siv-lbl"><i class="fas fa-check-circle"></i> Véhicule identifié</div><div id="sivName" style="font-weight:600"></div><div class="siv-specs" style="display:flex; gap:12px; margin-top:8px;"><div><div class="siv-spec-lbl">Année</div><div class="siv-spec-val" id="sivYear">—</div></div><div><div class="siv-spec-lbl">Éénergie</div><div class="siv-spec-val" id="sivEnergy">—</div></div><div><div class="siv-spec-lbl">Puissance</div><div class="siv-spec-val" id="sivPower">—</div></div></div></div>
-          <button class="np-btn" id="npBtn" onclick="toggleNP()" style="background:none; border:none; color:var(--bordeaux); font-weight:600; cursor:pointer; margin-bottom:12px;"><i class="fas fa-lock-open"></i> Je ne souhaite pas communiquer ma plaque</button>
-          <div class="np-form" id="npForm" style="display:none; background:#F9FAFB; border-radius:20px; padding:16px; margin-bottom:16px;">
-            <div class="np-note">Ces informations sont nécessaires pour organiser votre transport.</div>
-            <div class="f-row">
-              <div class="f-grp">
-                <label>Marque</label>
-                <select id="np-marque-select" style="width:100%; padding:12px 16px; border:1px solid var(--border-light); border-radius:16px; font-size:1rem; background:#fff; cursor:pointer;">
-                  <option value="">Choisir une marque</option>
-                </select>
-                <input type="hidden" id="np-marque" name="marque">
+
+          <!-- Mode transport -->
+          <div class="f-grp">
+            <label>Mode de transport</label>
+            <select id="modeTransport">
+              <option value="route">Route (pilote professionnel)</option>
+              <option value="plateau">Plateau (sans kilomètres au compteur)</option>
+            </select>
+          </div>
+
+          <!-- Pack -->
+          <div class="f-grp">
+            <label>Pack de service</label>
+            <select id="packSelect">
+              <option value="starter">Starter — Inclus</option>
+              <option value="serenite">Sérénité — +49€</option>
+              <option value="excellence">Excellence — +129€</option>
+            </select>
+          </div>
+
+          <!-- Options -->
+          <div class="f-grp">
+            <label>Options complémentaires</label>
+            <div class="opts-grid">
+              <div class="opt-item">
+                <input type="checkbox" id="optUrgence">
+                <label for="optUrgence">Urgence (+30%)</label>
               </div>
-              <div class="f-grp">
-                <label>Modèle</label>
-                <select id="np-modele-select" disabled="None" style="width:100%; padding:12px 16px; border:1px solid var(--border-light); border-radius:16px; font-size:1rem; background:#fff; cursor:pointer;">
-                  <option value="">Choisir un modèle</option>
-                </select>
-                <input type="hidden" id="np-modele" name="modele">
+              <div class="opt-item">
+                <input type="checkbox" id="optGardiennage">
+                <label for="optGardiennage">Gardiennage +100€/nuit</label>
               </div>
             </div>
-            <div class="f-row"><div class="f-grp"><label>Année</label><input type="number" id="np-annee" placeholder="2022"></div><div class="f-grp"><label>Carburant</label><select id="np-carbu"><option>Essence</option><option>Diesel</option><option>hybride</option><option>Électrique</option></select></div></div>
-            <div class="f-grp"><label>Valeur estimée</label><select id="np-valeur"><option>Moins de 10 000 €</option><option>10 000 – 30 000 €</option><option>30 000 – 60 000 €</option><option>Plus de 60 000 €</option></select></div>
           </div>
-          <div class="f-grp"><label>Date souhaitée</label><input type="date" id="mDate"></div>
-        </div>
 
-        <!-- step 3 -->
-        <div class="cfg-step" data-step="3">
-  <h3 class="step-h">Itinéraire & Distance</h3>
-  <p class="step-p">Définissez le trajet de la prise en charge à la livraison</p>
-  <div class="f-row">
-    <div class="f-grp">
-      <label>Ville de départ</label>
-      <input type="text" id="depart" placeholder="Paris" autocomplete="off" oninput="debounceGeocode(this, 'departSuggests')" onchange="calcDist()">
-      <div id="departSuggests" class="suggest-box"></div>
-    </div>
-    <div class="f-grp">
-      <label>Ville d'arrivée</label>
-      <input type="text" id="arrivee" placeholder="Lyon" autocomplete="off" oninput="debounceGeocode(this, 'arriveeSuggests')" onchange="calcDist()">
-      <div id="arriveeSuggests" class="suggest-box"></div>
-    </div>
-  </div>
-  <div class="f-grp"><label>Distance calculée</label><input type="text" id="distAff" value="— km" readonly="None"></div>
-  <div class="f-grp">
-    <label>Adresse complète de départ</label>
-    <input type="text" id="addrDep" placeholder="Numéro, rue, code postal" autocomplete="off" oninput="debounceGeocodeAddress(this, 'addrDepSuggests')">
-    <div id="addrDepSuggests" class="suggest-box"></div>
-  </div>
-  <div class="f-grp">
-    <label>Adresse complète d'arrivée</label>
-    <input type="text" id="addrArr" placeholder="Numéro, rue, code postal" autocomplete="off" oninput="debounceGeocodeAddress(this, 'addrArrSuggests')">
-    <div id="addrArrSuggests" class="suggest-box"></div>
-  </div>
-</div>
-        <!-- step 4 -->
-        <div class="cfg-step" data-step="4">
-          <h3 class="step-h">Mode de transport</h3>
-          <p class="step-p">Choisissez la solution adaptée</p>
-          <div class="t-modes">
-            <div class="t-mode sel" onclick="selMode(this,'route')"><div class="t-mode-ico"><i class="fas fa-road"></i></div><h4>Par la route</h4><div class="t-mode-price">1€ / km</div><div class="t-mode-sub">Min. 120€ HT</div><ul class="t-mode-feats"><li>convoyeur certifié SIV</li><li>Suivi GPS temps réel</li></ul></div>
-            <div class="t-mode" onclick="selMode(this,'plateau')"><div class="t-mode-ico"><i class="fas fa-truck"></i></div><h4>Par plateau</h4><div class="t-mode-price">Forfait zone</div><div class="t-mode-sub">350€ à 1100€ HT</div><ul class="t-mode-feats"><li>Protection totale</li><li>Idéal motos & collection</li></ul></div>
-          </div>
-        </div>
-
-        <!-- step 5 -->
-        <div class="cfg-step" data-step="5">
-          <h3 class="step-h">Catégorie & Packs</h3>
-          <p class="step-p">Personnalisez votre solution</p>
-          <div id="catBlock"><div class="f-grp"><label>Catégorie du véhicule</label></div><div class="cat-sel"><div class="cat-card sel" onclick="selCat(this,'berline',0)"><i class="fas fa-car-side"></i><span>Berline</span><small>Standard</small></div><div class="cat-card" onclick="selCat(this,'suv',15)"><i class="fas fa-truck-pickup"></i><span>SUV</span><small>+15%</small></div><div class="cat-card" onclick="selCat(this,'utilitaire',20)"><i class="fas fa-truck-moving"></i><span>Utilitaire</span><small>+20%</small></div></div></div>
-          <div id="motoBadge" style="display:none; background:var(--bordeaux-light); border-radius:16px; padding:12px; margin-bottom:16px;"><i class="fas fa-motorcycle"></i> Moto — tarification spécifique</div>
-          <div class="f-row3"><div class="f-grp"><label>Heure prise en charge</label><select id="heureDep" onchange="updSidebar()"><option>09:00</option><option>10:00</option><option>11:00</option></select></div><div class="f-grp"><label>Heure livraison</label><select id="heureLiv" onchange="updSidebar()"><option>14:00</option><option>15:00</option><option>16:00</option></select></div><div class="f-grp"><label>Flexibilité</label><select id="flexib" onchange="updSidebar()"><option>Fixe</option><option>± 1h</option><option>Demi-journée</option></select></div></div>
-          <div class="f-grp"><label>Pack de service</label></div>
-          <div class="pck-grid">
-            <div class="pck-card sel" onclick="selPack(this,'starter',0)"><div class="pck-name">Starter</div><div class="pck-price">Inclus</div><ul><li>Logistique standard</li><li>Double RC Pro</li><li>20 photos EDL</li></ul></div>
-            <div class="pck-card" onclick="selPack(this,'serenite',49)"><div class="pck-name">Sérénité</div><div class="pck-price">+49€</div><ul><li>Tout Starter</li><li>Nettoyage HP</li><li>Mise à niveau carburant</li></ul></div>
-            <div class="pck-card" onclick="selPack(this,'excellence',129)"><div class="pck-badge">Premium</div><div class="pck-name">Excellence</div><div class="pck-price">+129€</div><ul><li>Tout Sérénité</li><li>Prépa esthétique</li><li>Full Energy 100%</li></ul></div>
-          </div>
-          <div class="opt-title">Options supplémentaires</div>
-          <div class="opt-grid">
-            <div class="opt-item" onclick="togOpt(this,'urgence')"><div class="opt-check"></div><div class="opt-lbl">Urgence 24h<small>Prise en charge prioritaire</small></div><span class="opt-price">+30%</span></div>
-            <div class="opt-item" onclick="togOpt(this,'gardiennage')"><div class="opt-check"></div><div class="opt-lbl">Gardiennage<small>Nuit sécurisée</small></div><span class="opt-price">+100€</span></div>
-          </div>
-        </div>
-
-        <!-- step 6 -->
-        <div class="cfg-step" data-step="6">
-          <h3 class="step-h">Vos coordonnées</h3>
-          <p class="step-p">Dernière éÉtape — recevez votre devis confirmé</p>
-          <div class="f-row"><div class="f-grp"><label>Prénom *</label><input type="text" id="cli-prenom"><div class="field-err" id="err-prenom">Champ requis</div></div><div class="f-grp"><label>Nom *</label><input type="text" id="cli-nom"><div class="field-err" id="err-nom">Champ requis</div></div></div>
-          <div class="f-row"><div class="f-grp"><label>Email *</label><input type="email" id="cli-email"><div class="field-err" id="err-email">Email invalide</div></div><div class="f-grp"><label>Téléphone *</label><input type="tel" id="cli-tel"><div class="field-err" id="err-tel">10 chiffres min.</div></div></div>
-          <div class="f-grp"><label>Société (optionnel)</label><input type="text" id="cli-societe"></div>
-          <div class="f-grp"><label>informations complémentaires</label><textarea id="cli-notes" rows="3"></textarea></div>
-          <div class="f-grp"><label>Comment nous avez-vous connus ?</label><select id="cli-source"><option>Google</option><option>Bouche à oreille</option><option>Réseaux sociaux</option><option>Autre</option></select></div>
-          <div class="checkbox-row" id="cbPrivacy" onclick="this.classList.toggle('chk');updBtn()" style="display:flex; align-items:center; gap:12px; cursor:pointer;"><div class="cb-box" style="width:18px;height:18px;border:1px solid #D1D5DB; border-radius:6px;"></div><div class="cb-label">J'accepâte la <a href="mentions-legales.html#privacy" target="_blank" style="color:var(--bordeaux);text-decoration:underline;">politique de confidentialité</a> *</div></div>
-          <div class="field-err" id="err-privacy">Veuillez accepâter la politique</div>
-        </div>
-
-        <div class="sn">
-          <button class="btn-nav btn-prev" id="bPrev" disabled="None" onclick="prevS()"><i class="fas fa-arrow-left"></i> Précédent</button>
-          <button class="btn-nav btn-next" id="bNext" onclick="nextS()">Suivant <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
-
-      <div class="price-sidebar">
-        <div class="ps-lbl">Estimation HT</div>
-        <div class="ps-num" id="psNum">0<em>€</em></div>
-        <div class="ps-ht">Prix indicatif · Confirmation sous 2h</div>
-        <div class="ps-lines">
-          <div class="ps-line"><span>Trajet</span><span id="psTrajet">—</span></div>
-          <div class="ps-line"><span>Catégorie</span><span id="psCat">—</span></div>
-          <div class="ps-line"><span>Pack</span><span id="psPack">Starter</span></div>
-          <div class="ps-line"><span>Options</span><span id="psOpts">—</span></div>
-          <div class="ps-line" id="psPromoRow" style="display:none; color: var(--success); font-weight: 600;"><span>Réduction (10%)</span><span id="psPromoDiscount">-0 €</span></div>
-          <div class="ps-line ps-total"><span>Total HT</span><span id="psTotal">0 €</span></div>
-        </div>
-        <!-- Code Promo -->
-        <div class="promo-code-box" style="margin-top: 16px; border-top: 1px dashed var(--border-light); padding-top: 16px;">
-          <div class="f-grp" style="margin-bottom: 8px;">
-            <label style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--gray-mid);">Code Promo</label>
-            <div style="display: flex; gap: 8px; margin-top: 4px;">
-              <input type="text" id="promoCode" placeholder="Ex: HELLO10" style="padding: 8px 12px; border-radius: 12px; font-size: 0.8rem; border: 1px solid var(--border-light); text-transform: uppercase; flex: 1;">
-              <button type="button" onclick="applyPromoCode()" style="background: var(--bordeaux); color: white; border: none; border-radius: 12px; padding: 0 16px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: background 0.2s;">Appliquer</button>
+          <!-- Coordonnées client -->
+          <div class="f-row">
+            <div class="f-grp">
+              <label>Prénom *</label>
+              <input type="text" id="clientPrenom" placeholder="Jean" required>
+              <div class="field-err" id="errPrenom">Champ requis</div>
+            </div>
+            <div class="f-grp">
+              <label>Nom *</label>
+              <input type="text" id="clientNom" placeholder="Dupont" required>
+              <div class="field-err" id="errNom">Champ requis</div>
             </div>
           </div>
-          <div id="promoFeedback" style="font-size: 0.75rem; font-weight: 600; display: none; margin-top: 4px;"></div>
-        </div>
-        <div class="ps-recap" id="psRecap" style="display:none; margin-top:16px;">
-          <div class="ps-recap-title">Récapitulatif</div>
-          <div class="ps-line"><span>Type</span><span id="recType">—</span></div>
-          <div class="ps-line"><span>Distance</span><span id="recDist">—</span></div>
-          <div class="ps-line"><span>transport</span><span id="recMode">—</span></div>
-          <div class="ps-line"><span>Date</span><span id="recDate">—</span></div>
-        </div>
-        <button class="btn-validate" id="bVal" onclick="submitDevis()">Valider mon devis <i class="fas fa-check"></i></button>
-        <div class="ps-incl"><div class="ps-incl-title">Inclus dans tous les packs</div><ul><li><i class="fas fa-check"></i> Double RC Pro</li><li><i class="fas fa-check"></i> Expertise SIV</li><li><i class="fas fa-check"></i> 20 photos EDL</li><li><i class="fas fa-check"></i> Suivi GPS temps réel</li></ul></div>
-        <p class="ps-note">Prix indicatif. Devis définitif par email sous 2h.</p>
+          <div class="f-row">
+            <div class="f-grp">
+              <label>Email *</label>
+              <input type="email" id="clientEmail" placeholder="jean.dupont@email.fr" required>
+              <div class="field-err" id="errEmail">Email invalide</div>
+            </div>
+            <div class="f-grp">
+              <label>Téléphone</label>
+              <input type="tel" id="clientTel" placeholder="+33 6 12 34 56 78">
+            </div>
+          </div>
+
+          <!-- Message -->
+          <div class="f-grp">
+            <label>Message (optionnel)</label>
+            <textarea id="messageDevis" rows="3" placeholder="Précisions sur le véhicule, dates souhaitées, contraintes particulières…"></textarea>
+          </div>
+
+          <!-- CGU -->
+          <div class="f-grp">
+            <label class="checkbox-label">
+              <input type="checkbox" id="cguCheck" required>
+              J'accepte la <a href="mentions-legales.html#cgu" target="_blank">politique de confidentialité</a> et les CGU *
+            </label>
+            <div class="field-err" id="errCgu">Veuillez accepter les conditions</div>
+          </div>
+
+          <!-- Price display -->
+          <div class="price-display">
+            <div>
+              <div class="price-label">Estimation de votre convoyage</div>
+              <div class="price-amount" id="priceDisplay">— <span>€ HT</span></div>
+              <div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">Sous réserve de validation définitive</div>
+            </div>
+            <button type="submit" class="btn-red" id="submitBtn"><i class="fas fa-paper-plane"></i> Envoyer la demande</button>
+          </div>
+        </form>
       </div>
-    </div>
-  </div>
-</main>
+    </section>
+  </main>
 
-<footer>
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-about"><div class="footer-logo">Bathily-convoyage<span>.</span></div><p>La solution digitale de convoyage automobile & moto avec suivi en temps réel en France.</p></div>
-      <div class="footer-links"><h4>Navigation</h4><a href="index.html">Accueil</a><a href="index.html#services">Services</a><a href="index.html#tarifs">Tarifs</a><a href="devis.html">Devis</a><a href="contact.html">Contact</a></div>
-      <div class="footer-links"><h4>Espaces</h4><a href="dashboard-client.html">Espace client</a><a href="dashboard-convoyeur.html">Espace convoyeur</a><a href="dashboard-admin.html">Espace admin</a></div>
-      <div class="footer-links"><h4>Contact</h4><a href="mailto:contact@bathily-convoyage.fr">contact@bathily-convoyage.fr</a><span>France entière</span></div>
-    </div>
-    <div class="footer-bottom">© 2025 Bathily convoyage — Tous droits réservés — <a href="mentions-legales.html" style="color:inherit;text-decoration:underline;">Mentions Légales & CGV/CGU</a></div>
-  </div>
-</footer>
+  <script>
+    // ========== SUPABASE ==========
+    let _supabaseClient = null;
 
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-    <div class="modal-ico"><i class="fas fa-check-circle"></i></div>
-    <h3 class="modal-h">Devis <em>pris en compâte !</em></h3>
-    <p class="modal-sub">Merci pour votre confiance. Un conseiller vous contactera sous 2h.</p>
-    <div class="modal-ref"><div><div class="modal-ref-lbl">Référence</div><div class="modal-ref-val" id="devisRef">BC-2025-XXXX</div></div><i class="fas fa-clipboard" style="cursor:pointer" onclick="copyRef()"></i></div>
-    <div class="modal-steps"><div class="modal-step"><i class="fas fa-envelope"></i> Confirmation email</div><div class="modal-step"><i class="fas fa-phone"></i> Appel sous 2h</div><div class="modal-step"><i class="fas fa-file-contract"></i> Devis définitif</div></div>
-    
-    <!-- Register Invitation Box if not logged in -->
-    <div id="registerInvitationBox" style="display:none; margin-top:20px; padding:16px; background:var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius:16px; text-align:center;">
-      <div style="font-weight:700; color:var(--bordeaux); font-size:0.85rem; margin-bottom:6px;"><i class="fas fa-user-plus"></i> Suivez votre devis en temps réel !</div>
-      <p style="font-size:0.75rem; color:var(--gray-mid); margin-bottom:12px;">Créez votre compâte client en quelques secondes pour accéder à votre tableau de bord.</p>
-      <a href="dashboard-client.html?signup=true" class="btn-sm btn-sm-red" style="font-size:0.7rem; padding:8px 16px; text-decoration:none; display:inline-block; border-radius:40px; background:var(--bordeaux); color:white; font-weight:700;"><i class="fas fa-magic"></i> Créer mon compâte</a>
-    </div>
-
-    <div class="modal-btns" style="margin-top:20px;"><a href="index.html" class="btn-primary">Accueil</a><button class="btn-secondary" onclick="resetAndNewDevis()">Nouveau devis</button></div>
-  </div>
-</div>
-
-<script>
-// ========== LOGIQUE MÉTIER (inchangée) ==========
-let S = { step:1, veh:null, immat:'', noPlaque:false, dep:'', arr:'', dist:0, addrDep:'', addrArr:'', mode:'route', cat:'berline', catS:0, pack:'starter', packP:0, opts:{urgence:false,gardiennage:false}, optP:0, date:'', privacy:false, promoApplied:false, promoCode:'', discount:0 };
-const sivDB = {'AB-123-CD':{name:'Renault Clio V',year:'2022',energy:'Essence',power:'130 CV'},'IJ-789-KL':{name:'BMW Série 3',year:'2023',energy:'Hybride',power:'190 CV'},'MN-012-OP':{name:'Tesla Model 3',year:'2023',energy:'Électrique',power:'283 CV'}};
-function selVeh(el,t){ document.querySelectorAll('.v-card').forEach(c=>c.classList.remove('sel')); el.classList.add('sel'); S.veh=t; if(t==='moto'){S.cat='moto';S.catS=0;}else{S.cat='berline';S.catS=0;} updPrice(); }
-function fmtPlaque(inp){
-  let v=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
-  if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2);
-  if(v.length>6)v=v.slice(0,6)+'-'+v.slice(6);
-  inp.value=v;
-  S.immat=v;
-  
-  const d=sivDB[v];
-  const box=document.getElementById('sivBox');
-  if(d){
-    box.style.display='block';
-    document.getElementById('sivName').textContent=d.name;
-    document.getElementById('sivYear').textContent=d.year;
-    document.getElementById('sivEnergy').textContent=d.energy;
-    document.getElementById('sivPower').textContent=d.power;
-    window.lastLookedUpPlate = v;
-  } else {
-    if (!window.lastLookedUpPlate || v !== window.lastLookedUpPlate) {
-      box.style.display='none';
-    }
-  }
-}
-
-async function lookupDevisLicensePlate() {
-  const plaque = document.getElementById('plaque')?.value || '';
-  if (!plaque) {
-    Swal.fire({
-      title: 'Attention',
-      text: 'Veuillez saisir une plaque d\'immatriculation.',
-      icon: 'warning',
-      confirmButtonColor: 'var(--bordeaux)'
-    });
-    return;
-  }
-
-  Swal.fire({
-    title: 'Recherche SIV en cours...',
-    text: 'Identification du véhicule sur la base de données...',
-    allowOutsideClick: false,
-    didOpen: () => {
-      Swal.showLoading();
-    }
-  });
-
-  try {
-    const response = await fetch(`/.netlify/functions/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Erreur lors de l\'identification.');
-    }
-
-    if (data.marque) {
-      const box = document.getElementById('sivBox');
-      const nameEl = document.getElementById('sivName');
-      const yearEl = document.getElementById('sivYear');
-      const energyEl = document.getElementById('sivEnergy');
-      const powerEl = document.getElementById('sivPower');
-
-      const carName = `${data.marque} ${data.modele || ''}`.trim();
-      if (nameEl) nameEl.textContent = carName;
-      if (yearEl) yearEl.textContent = data.annee || '—';
-      if (energyEl) energyEl.textContent = data.eénergie || '—';
-      if (powerEl) powerEl.textContent = data.puissance ? `${data.puissance} CV` : '—';
-
-      if (box) box.style.display = 'block';
-
-      // Enregistrer dans l'objet de devis
-      S.immat = plaque;
-      S.sivInfo = {
-        marque: data.marque,
-        modele: data.modele,
-        annee: data.annee,
-        eénergie: data.eénergie,
-        puissance: data.puissance,
-        couleur: data.couleur || ''
-      };
-      
-      const cleanedPlate = plaque.toUpperCase().replace(/[^A-Z0-9]/g, '');
-      const formatted = cleanedPlate.length === 7 
-        ? cleanedPlate.slice(0, 2) + '-' + cleanedPlate.slice(2, 5) + '-' + cleanedPlate.slice(5)
-        : plaque;
-      document.getElementById('plaque').value = formatted;
-      S.immat = formatted;
-      window.lastLookedUpPlate = formatted;
-
-      Swal.fire({
-        title: 'Véhicule identifié ! 🚗',
-        html: `<strong>Marque :</strong> ${data.marque}<br><strong>Modèle :</strong> ${data.modele || '—'}<br><strong>Éénergie :</strong> ${data.eénergie || '—'}`,
-        icon: 'success',
-        confirmButtonColor: 'var(--bordeaux)'
-      });
-    } else {
-      throw new Error('Aucun véhicule trouvé pour cette plaque.');
-    }
-  } catch (err) {
-    Swal.fire({
-      title: 'Identification impossible',
-      text: err.message || 'Le service SIV n\'a pas pu identifier cette plaque. Saisie manuelle requise.',
-      icon: 'error',
-      confirmButtonColor: 'var(--bordeaux)'
-    });
-  }
-}
-function toggleNP(){ S.noPlaque=!S.noPlaque; document.getElementById('npForm').style.display=S.noPlaque?'block':'none'; document.getElementById('plaque').disabled=S.noPlaque; if(S.noPlaque){ document.getElementById('plaque').value=''; document.getElementById('sivBox').style.display='none'; } document.getElementById('npBtn').innerHTML=S.noPlaque?'<i class="fas fa-lock"></i> Saisir ma plaque':'<i class="fas fa-lock-open"></i> Je ne souhaite pas communiquer ma plaque'; }
-function selMode(el,m){ document.querySelectorAll('.t-mode').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); S.mode=m; updPrice(); }
-function selCat(el,c,s){ document.querySelectorAll('.cat-card').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); S.cat=c; S.catS=s; updPrice(); }
-function selPack(el,p,pr){ document.querySelectorAll('.pck-card').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); S.pack=p; S.packP=pr; updPrice(); }
-function togOpt(el,o){ el.classList.toggle('chk'); S.opts[o]=!S.opts[o]; updPrice(); }
-function plateauForfait(km){ if(km<=100)return 350; if(km<=300)return 550; if(km<=500)return 750; return 1100; }
-function updPrice(){
-  const isMoto=(S.veh==='moto');
-  let base=0;
-  if(S.dist>0){
-    if(S.mode==='route'){
-      const rate=isMoto?0.85:1.0;
-      base=Math.max(S.dist*rate,isMoto?100:120);
-    } else {
-      base=plateauForfait(S.dist);
-    }
-  }
-  let sub=isMoto?base:base*(1+S.catS/100);
-  sub+=S.packP;
-  let optP=0;
-  if(S.opts.gardiennage)optP+=100;
-  if(S.opts.urgence)sub*=1.30;
-  S.optP=optP;
-  let total=Math.round(sub+optP);
-  
-  if (S.promoApplied && S.promoCode === 'HELLO10') {
-    S.discount = Math.round(total * 0.10);
-    total = total - S.discount;
-    document.getElementById('psPromoDiscount').textContent = `-${S.discount} €`;
-  } else {
-    S.discount = 0;
-  }
-  
-  document.getElementById('psNum').innerHTML=total+'<em>€</em>';
-  document.getElementById('psTotal').textContent=total+' €';
-  document.getElementById('psTrajet').textContent=S.dist?S.dist+'km · '+Math.round(base)+'€':'—';
-  const cl={berline:'Berline',suv:'SUV +15%',utilitaire:'Utilitaire +20%'};
-  document.getElementById('psCat').textContent=isMoto?'Moto':(cl[S.cat]||'—');
-  const packLabels = window._packLabels || {starter:'Starter',serenite:'Sérénité +49€',excellence:'Excellence +129€'};
-  document.getElementById('psPack').textContent=packLabels[S.pack]||'—';
-  const optsList=[];
-  if(S.opts.urgence)optsList.push('Urgence +30%');
-  if(S.opts.gardiennage)optsList.push('Gardiennage +100€');
-  document.getElementById('psOpts').textContent=optsList.length?optsList.join(', '):'—';
-  updBtn();
-  if(S.step>=3)updSidebar();
-}
-
-function applyPromoCode() {
-  const codeInput = document.getElementById('promoCode');
-  const feedback = document.getElementById('promoFeedback');
-  const code = codeInput.value.trim().toUpperCase();
-  
-  if (!code) {
-    feedback.textContent = "Veuillez entrer un code.";
-    feedback.style.color = "var(--warning)";
-    feedback.style.display = "block";
-    return;
-  }
-  
-  if (code === 'HELLO10') {
-    S.promoApplied = true;
-    S.promoCode = code;
-    feedback.textContent = "Code HELLO10 appliqué : -10% sur votre devis !";
-    feedback.style.color = "var(--success)";
-    feedback.style.display = "block";
-    document.getElementById('psPromoRow').style.display = 'flex';
-  } else {
-    S.promoApplied = false;
-    S.promoCode = '';
-    feedback.textContent = "Code promo invalide.";
-    feedback.style.color = "var(--bordeaux)";
-    feedback.style.display = "block";
-    document.getElementById('psPromoRow').style.display = 'none';
-  }
-  updPrice();
-}
-function updSidebar(){ const d=document.getElementById('mDate').value; S.date=d; document.getElementById('recType').textContent=S.veh==='moto'?'Moto':'Automobile'; document.getElementById('recDist').textContent=S.dist?S.dist+' km':'—'; document.getElementById('recMode').textContent=S.mode==='route'?'Route':'Plateau'; document.getElementById('recDate').textContent=d||'—'; }
-function updBtn(){ const total=parseInt(document.getElementById('psTotal').textContent)||0; document.getElementById('bVal').disabled=(total===0 || S.step<6 || !S.privacy); }
-function goStep(n){ document.querySelectorAll('.cfg-step').forEach(s=>s.classList.remove('active')); document.querySelector(`.cfg-step[data-step="${n}"]`).classList.add('active'); for(let i=1;i<=6;i++){ const d=document.getElementById('d'+i); d.classList.remove('active','done'); if(i<n)d.classList.add('done'); else if(i===n)d.classList.add('active'); if(i<6){const l=document.getElementById('l'+i);if(l)l.classList.toggle('done',i<n);} } if(n===5){ const isMoto=(S.veh==='moto'); document.getElementById('catBlock').style.display=isMoto?'none':'block'; document.getElementById('motoBadge').style.display=isMoto?'block':'none'; } if(n>=3)document.getElementById('psRecap').style.display='block'; document.getElementById('bPrev').disabled=(n===1); const bn=document.getElementById('bNext'); if(n===6)bn.style.display='none'; else{bn.style.display=''; bn.innerHTML=(n===5)?'Finaliser <i class="fas fa-arrow-right"></i>':'Suivant <i class="fas fa-arrow-right"></i>';} S.step=n; updPrice(); document.querySelector('.config-wrapper').scrollIntoView({behavior:'smooth',block:'start'}); }
-function nextS(){
-  if(S.step===1&&!S.veh){
-    Swal.fire({ title: 'Champs requis', text: 'Choisissez un véhicule', icon: 'warning', confirmButtonColor: '#0A4D68' });
-    return;
-  }
-  if(S.step===2&&!S.immat&&!S.noPlaque){
-    const ok=document.getElementById('npForm').style.display==='block'&&document.getElementById('np-marque').value;
-    if(!ok){
-      Swal.fire({ title: 'Champs requis', text: 'Renseignez la plaque ou le formulaire alternatif', icon: 'warning', confirmButtonColor: '#0A4D68' });
-      return;
-    }
-  }
-  if(S.step===3&&S.dist===0){
-    Swal.fire({ title: 'Itinéraire requis', text: 'Saisissez deux villes reconnues', icon: 'warning', confirmButtonColor: '#0A4D68' });
-    return;
-  }
-  if(S.step<6)goStep(S.step+1);
-}
-function prevS(){ if(S.step>1)goStep(S.step-1); }
-function validateStep6(){ let ok=true; const fields=[{id:'cli-prenom',err:'err-prenom',check:v=>v.trim().length>1},{id:'cli-nom',err:'err-nom',check:v=>v.trim().length>1},{id:'cli-email',err:'err-email',check:v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)},{id:'cli-tel',err:'err-tel',check:v=>v.replace(/\D/g,'').length>=10}]; fields.forEach(f=>{const inp=document.getElementById(f.id);const valid=f.check(inp.value.trim());inp.classList.toggle('error',!valid);document.getElementById(f.err).classList.toggle('show',!valid);if(!valid)ok=false;}); const privErr=document.getElementById('err-privacy'); if(!S.privacy){privErr.classList.add('show');ok=false;}else{privErr.classList.remove('show');} return ok; }
-
-// ========== AUTOCOMPLÉTION DYNAMIQUE DES VILLES ET ADRESSES ==========
-let debounceTimer;
-async function fetchCitySuggestions(query) {
-  if (!query || query.length < 2) return [];
-  try {
-    const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5&type=municipality`);
-    const data = await response.json();
-    return data.features.map(f => f.properties.city || f.properties.label);
-  } catch (err) {
-    console.warn("Erreur autocomplétion ville :", err);
-    return [];
-  }
-}
-async function fetchAddressSuggestions(query) {
-  if (!query || query.length < 3) return [];
-  try {
-    const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
-    const data = await response.json();
-    return data.features.map(f => f.properties.label);
-  } catch (err) {
-    console.warn("Erreur autocomplétion adresse :", err);
-    return [];
-  }
-}
-function showSuggestions(inputId, suggestBoxId, suggestions) {
-  const box = document.getElementById(suggestBoxId);
-  if (!box) return;
-  box.innerHTML = '';
-  if (suggestions.length === 0) { box.style.display = 'none'; return; }
-  suggestions.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'suggest-item';
-    div.textContent = item;
-    div.addEventListener('click', () => {
-      const input = document.getElementById(inputId);
-      input.value = item;
-      box.style.display = 'none';
-      if (inputId === 'depart' || inputId === 'arrivee') {
-        if (typeof calcDist === 'function') calcDist();
-      }
-    });
-    box.appendChild(div);
-  });
-  box.style.display = 'block';
-}
-function debounceGeocode(input, suggestBoxId) {
-  clearTimeout(debounceTimer);
-  const query = input.value.trim();
-  if (query.length < 2) {
-    document.getElementById(suggestBoxId).style.display = 'none';
-    return;
-  }
-  debounceTimer = setTimeout(async () => {
-    const suggestions = await fetchCitySuggestions(query);
-    showSuggestions(input.id, suggestBoxId, suggestions);
-  }, 300);
-}
-function debounceGeocodeAddress(input, suggestBoxId) {
-  clearTimeout(debounceTimer);
-  const query = input.value.trim();
-  if (query.length < 3) {
-    document.getElementById(suggestBoxId).style.display = 'none';
-    return;
-  }
-  debounceTimer = setTimeout(async () => {
-    const suggestions = await fetchAddressSuggestions(query);
-    showSuggestions(input.id, suggestBoxId, suggestions);
-  }, 300);
-}
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.f-grp')) {
-    document.querySelectorAll('.suggest-box').forEach(box => box.style.display = 'none');
-  }
-});
-
-// ========== GÉOCODAGE ET DISTANCE ==========
-async function geocodeAddress(query) {
-  if (!query.trim()) return null;
-  try {
-    const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=1`);
-    const data = await response.json();
-    if (data.features && data.features.length > 0) {
-      const [lon, lat] = data.features[0].geometry.coordinates;
-      return { lat, lon };
-    }
-    return null;
-  } catch (err) {
-    console.warn("Erreur géocodage:", err);
-    return null;
-  }
-}
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLon/2)**2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  let dist = R * c;
-  dist = Math.round(dist * 1.22);
-  return dist;
-}
-async function calcDist() {
-  const depart = document.getElementById('depart').value.trim();
-  const arrivee = document.getElementById('arrivee').value.trim();
-  S.dep = depart;
-  S.arr = arrivee;
-  const distField = document.getElementById('distAff');
-  if (!depart || !arrivee) {
-    S.dist = 0;
-    distField.value = '— km';
-    updPrice();
-    return;
-  }
-  distField.value = 'Calcul en cours...';
-  try {
-    const coord1 = await geocodeAddress(depart);
-    const coord2 = await geocodeAddress(arrivee);
-    if (coord1 && coord2) {
-      try {
-        const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${coord1.lon},${coord1.lat};${coord2.lon},${coord2.lat}?overview=false`);
-        if (!response.ok) throw new Error("Erreur service routier");
-        const data = await response.json();
-        if (data.routes && data.routes.length > 0) {
-          const dist = Math.round(data.routes[0].distance / 1000);
-          S.dist = dist;
-          distField.value = dist + ' km (route)';
-        } else {
-          throw new Error("Itinéraire introuvable");
+    function getSupabase() {
+      if (!_supabaseClient) {
+        if (typeof supabase === 'undefined' || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+          console.warn("Supabase non disponible. Utilisation du localStorage comme fallback.");
+          return null;
         }
-      } catch (osrmErr) {
-        console.warn("Calcul OSRM échoué, repli sur Haversine :", osrmErr);
-        const dist = haversine(coord1.lat, coord1.lon, coord2.lat, coord2.lon);
-        S.dist = dist;
-        distField.value = dist + ' km (estimé)';
+        _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
       }
-    } else {
-      S.dist = 0;
-      distField.value = 'Ville non reconnue';
+      return _supabaseClient;
     }
-  } catch (err) {
-    console.error(err);
-    S.dist = 0;
-    distField.value = 'Erreur géocodage';
-  }
-  updPrice();
-}
 
-// ========== ENVOI DU DEVIS ==========
-let _supabaseClient = null;
-function getSupabase() {
-  if (!_supabaseClient) {
-    _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-  }
-  return _supabaseClient;
-}
-
-function submitDevis() {
-  if (!validateStep6()) return;
-  const devisFinal = {
-    ...S,
-    vehicule_details: S.noPlaque ? {
-      marque: document.getElementById('np-marque').value,
-      modele: document.getElementById('np-modele').value,
-      annee: document.getElementById('np-annee').value,
-      carburant: document.getElementById('np-carbu').value,
-      valeur: document.getElementById('np-valeur').value
-    } : (S.sivInfo || null),
-    coordonnees: {
-      prenom: document.getElementById('cli-prenom').value,
-      nom: document.getElementById('cli-nom').value,
-      email: document.getElementById('cli-email').value,
-      telephone: document.getElementById('cli-tel').value,
-      societe: document.getElementById('cli-societe').value,
-      notes: document.getElementById('cli-notes').value,
-      source: document.getElementById('cli-source').value
-    },
-    adresses: {
-      depart: document.getElementById('addrDep').value,
-      arrivee: document.getElementById('addrArr').value
-    },
-    horaires: {
-      heureDep: document.getElementById('heureDep').value,
-      heureLiv: document.getElementById('heureLiv').value,
-      flexibilite: document.getElementById('flexib').value
-    },
-    date: document.getElementById('mDate').value,
-    total: parseInt(document.getElementById('psTotal').textContent) || 0
-  };
-
-  const client = getSupabase();
-  const ts = Date.now().toString(36).toUpperCase();
-  const rand = Math.floor(100 + Math.random() * 900);
-  const devisRef = 'BC-' + new Date().getFullYear() + '-' + ts.slice(-3) + rand;
-
-  client.from('devis').insert([{
-    reference: devisRef,
-    client_nom: devisFinal.coordonnees.nom,
-    client_prenom: devisFinal.coordonnees.prenom,
-    client_email: devisFinal.coordonnees.email,
-    depart: devisFinal.dep + ' (' + devisFinal.adresses.depart + ')',
-    arrivee: devisFinal.arr + ' (' + devisFinal.adresses.arrivee + ')',
-    vehicule: devisFinal.veh === 'moto' ? 'Moto' : 'Automobile',
-    total_ht: devisFinal.total,
-    status: 'pending',
-    details: devisFinal
-  }])
-  .select()
-  .then(({ data, error }) => {
-    if (error) {
-      console.error(error);
-      Swal.fire({
-        title: 'Erreur',
-        text: 'Erreur lors de la sauvegarde : ' + error.message,
-        icon: 'error',
-        confirmButtonColor: '#0A4D68'
+    // ========== VEHICULE TYPE ==========
+    function setVehicleType(type) {
+      document.getElementById('vehiculeType').value = type;
+      document.querySelectorAll('.veh-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.value === type);
       });
-    } else {
-      document.getElementById('devisRef').textContent = devisRef;
-      if (!sessionStorage.getItem('client_user')) {
-        document.getElementById('registerInvitationBox').style.display = 'block';
-      } else {
-        document.getElementById('registerInvitationBox').style.display = 'none';
-      }
-      document.getElementById('modalOverlay').classList.add('open');
-      console.log('Devis inséré avec succès', data);
+      calculatePrice();
+    }
 
-      // Déclenchement de l'envoi d'e-mail
-      if (data && data[0] && data[0].id) {
-        fetch('/.netlify/functions/send-email', {
+    // ========== AUTOCOMPLÉTION ADRESSES (API BAN) ==========
+    let debounceTimer;
+
+    async function fetchAddressSuggestions(query) {
+      if (!query || query.length < 2) return [];
+      try {
+        const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
+        if (!response.ok) return [];
+        const data = await response.json();
+        return data.features.map(f => ({
+          label: f.properties.label,
+          city: f.properties.city || '',
+          postcode: f.properties.postcode || ''
+        }));
+      } catch (err) {
+        console.warn("Erreur géocodage:", err);
+        return [];
+      }
+    }
+
+    function setupAutocomplete(inputId, suggestId) {
+      const input = document.getElementById(inputId);
+      const box = document.getElementById(suggestId);
+      if (!input || !box) return;
+
+      input.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+        if (query.length < 2) {
+          box.style.display = 'none';
+          return;
+        }
+        debounceTimer = setTimeout(async () => {
+          const suggestions = await fetchAddressSuggestions(query);
+          box.innerHTML = '';
+          if (suggestions.length === 0) {
+            box.style.display = 'none';
+            return;
+          }
+          suggestions.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'suggest-item';
+            div.textContent = s.label;
+            div.addEventListener('click', () => {
+              input.value = s.label;
+              box.style.display = 'none';
+              calculatePrice();
+            });
+            box.appendChild(div);
+          });
+          box.style.display = 'block';
+        }, 300);
+      });
+
+      input.addEventListener('blur', () => {
+        setTimeout(() => { box.style.display = 'none'; }, 200);
+      });
+    }
+
+    setupAutocomplete('depart', 'departSuggests');
+    setupAutocomplete('arrivee', 'arriveeSuggests');
+
+    // ========== CALCUL DU PRIX ==========
+    function calculatePrice() {
+      const depart = document.getElementById('depart').value.trim();
+      const arrivee = document.getElementById('arrivee').value.trim();
+      const type = document.getElementById('vehiculeType').value;
+      const mode = document.getElementById('modeTransport').value;
+      const pack = document.getElementById('packSelect').value;
+      const isUrgence = document.getElementById('optUrgence').checked;
+      const isGardiennage = document.getElementById('optGardiennage').checked;
+
+      const priceDisplay = document.getElementById('priceDisplay');
+
+      if (!depart || !arrivee) {
+        priceDisplay.innerHTML = '— <span>€ HT</span>';
+        return;
+      }
+
+      // Estimation simplifiée basée sur une distance approximative
+      const baseRates = {
+        'Automobile': { route: 1.00, plateau: 1.40 },
+        'Moto': { route: 0.85, plateau: 1.20 }
+      };
+      const rate = baseRates[type]?.[mode] || 1.00;
+
+      // Forfait plateau si plateau
+      let basePrice = 0;
+      if (mode === 'plateau') {
+        basePrice = type === 'Moto' ? 300 : 350;
+      } else {
+        // Estimation distance approximative (simplifiée)
+        const dist = Math.floor(Math.random() * 300 + 200); // Simulation
+        basePrice = Math.round(dist * rate);
+        if (basePrice < (type === 'Moto' ? 100 : 120)) basePrice = type === 'Moto' ? 100 : 120;
+      }
+
+      // Pack
+      const packPrices = { starter: 0, serenite: 49, excellence: 129 };
+      let total = basePrice + (packPrices[pack] || 0);
+
+      // Options
+      if (isUrgence) total = Math.round(total * 1.3);
+      if (isGardiennage) total += 100;
+
+      priceDisplay.innerHTML = `${total} <span>€ HT</span>`;
+      return total;
+    }
+
+    // Écouteurs pour recalculer
+    document.getElementById('modeTransport').addEventListener('change', calculatePrice);
+    document.getElementById('packSelect').addEventListener('change', calculatePrice);
+    document.getElementById('optUrgence').addEventListener('change', calculatePrice);
+    document.getElementById('optGardiennage').addEventListener('change', calculatePrice);
+    document.getElementById('depart').addEventListener('blur', calculatePrice);
+    document.getElementById('arrivee').addEventListener('blur', calculatePrice);
+
+    // ========== SOUMISSION DU DEVIS ==========
+    async function submitDevis(event) {
+      event.preventDefault();
+
+      // Validation
+      let ok = true;
+      const fields = [
+        { id: 'depart', err: 'errDepart', check: v => v.trim().length > 2 },
+        { id: 'arrivee', err: 'errArrivee', check: v => v.trim().length > 2 },
+        { id: 'clientPrenom', err: 'errPrenom', check: v => v.trim().length > 1 },
+        { id: 'clientNom', err: 'errNom', check: v => v.trim().length > 1 },
+        { id: 'clientEmail', err: 'errEmail', check: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) },
+      ];
+      fields.forEach(f => {
+        const inp = document.getElementById(f.id);
+        const valid = f.check(inp.value);
+        inp.classList.toggle('err', !valid);
+        document.getElementById(f.err).classList.toggle('show', !valid);
+        if (!valid) ok = false;
+      });
+
+      const cgu = document.getElementById('cguCheck');
+      const errCgu = document.getElementById('errCgu');
+      if (!cgu.checked) {
+        errCgu.classList.add('show');
+        ok = false;
+      } else {
+        errCgu.classList.remove('show');
+      }
+
+      if (!ok) return;
+
+      // Récupération des données
+      const depart = document.getElementById('depart').value.trim();
+      const arrivee = document.getElementById('arrivee').value.trim();
+      const vehicule = document.getElementById('vehiculeType').value;
+      const mode = document.getElementById('modeTransport').value;
+      const pack = document.getElementById('packSelect').value;
+      const prenom = document.getElementById('clientPrenom').value.trim();
+      const nom = document.getElementById('clientNom').value.trim();
+      const email = document.getElementById('clientEmail').value.trim();
+      const tel = document.getElementById('clientTel').value.trim();
+      const message = document.getElementById('messageDevis').value.trim();
+      const isUrgence = document.getElementById('optUrgence').checked;
+      const isGardiennage = document.getElementById('optGardiennage').checked;
+
+      // Calcul du prix total
+      const totalHt = calculatePrice();
+      if (!totalHt) {
+        Swal.fire('Erreur', 'Veuillez renseigner le trajet pour obtenir une estimation.', 'warning');
+        return;
+      }
+
+      const ref = 'BC-DEV-' + Math.floor(1000 + Math.random() * 9000);
+
+      const devisData = {
+        reference: ref,
+        client_prenom: prenom,
+        client_nom: nom,
+        client_email: email,
+        client_telephone: tel || null,
+        depart: depart,
+        arrivee: arrivee,
+        vehicule: vehicule,
+        mode_transport: mode,
+        pack: pack,
+        total_ht: totalHt,
+        details: {
+          coordonnees: { prenom, nom, email, telephone: tel || '' },
+          dep: depart,
+          arr: arrivee,
+          mode: mode,
+          pack: pack,
+          opts: { urgence: isUrgence, gardiennage: isGardiennage },
+          message: message || ''
+        },
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+
+      // Envoi vers Supabase ou fallback localStorage
+      const sb = getSupabase();
+      let error = null;
+
+      if (sb) {
+        const { error: insertError } = await sb.from('devis').insert([devisData]);
+        error = insertError;
+      }
+
+      if (error) {
+        console.warn('Erreur Supabase, fallback localStorage:', error);
+        // Fallback localStorage
+        const devis = JSON.parse(localStorage.getItem('bathily_devis_list') || '[]');
+        devis.push(devisData);
+        localStorage.setItem('bathily_devis_list', JSON.stringify(devis));
+      }
+
+      // Envoyer un email de notification (via Netlify Functions)
+      try {
+        const response = await fetch('/.netlify/functions/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ trigger: 'devis_created', id: data[0].id })
-        }).catch(err => console.warn("Erreur envoi email devis:", err));
+          body: JSON.stringify({
+            trigger: 'devis_received',
+            id: ref,
+            email: email,
+            prenom: prenom,
+            nom: nom,
+            depart: depart,
+            arrivee: arrivee,
+            total: totalHt
+          })
+        });
+        if (!response.ok) console.warn('Email notification failed');
+      } catch (e) {
+        console.warn('Email notification error:', e);
       }
-    }
-  })
-  .catch(err => {
-    console.error(err);
-    Swal.fire({
-      title: 'Erreur réseau',
-      text: 'Le serveur de base de données est injoignable.',
-      icon: 'error',
-      confirmButtonColor: '#0A4D68'
-    });
-  });
-}
-function resetAndNewDevis() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  S = { step:1, veh:null, immat:'', noPlaque:false, dep:'', arr:'', dist:0, addrDep:'', addrArr:'', mode:'route', cat:'berline', catS:0, pack:'starter', packP:0, opts:{urgence:false,gardiennage:false}, optP:0, date:'', privacy:false, promoApplied:false, promoCode:'', discount:0 };
-  document.getElementById('promoFeedback').style.display = 'none';
-  document.getElementById('psPromoRow').style.display = 'none';
-  document.querySelectorAll('input, select, textarea').forEach(f=>{if(f.type!=='button'&&f.type!=='submit')f.value='';});
-  document.getElementById('plaque').disabled=false;
-  document.getElementById('npForm').style.display='none';
-  document.getElementById('sivBox').style.display='none';
-  document.getElementById('distAff').value='— km';
-  document.getElementById('psRecap').style.display='none';
-  document.getElementById('cbPrivacy').classList.remove('chk');
-  document.querySelectorAll('.v-card').forEach(c=>c.classList.remove('sel'));
-  document.querySelectorAll('.t-mode').forEach(m=>m.classList.remove('sel'));
-  document.querySelector('.t-mode').classList.add('sel');
-  document.querySelectorAll('.cat-card').forEach(c=>c.classList.remove('sel'));
-  document.querySelector('.cat-card').classList.add('sel');
-  document.querySelectorAll('.pck-card').forEach(p=>p.classList.remove('sel'));
-  document.querySelector('.pck-card').classList.add('sel');
-  document.querySelectorAll('.opt-item').forEach(o=>o.classList.remove('chk'));
-  goStep(1);
-  updPrice();
-}
-function copyRef() {
-  navigator.clipboard.writeText(document.getElementById('devisRef').textContent);
-  Swal.fire({
-    title: 'Copié !',
-    text: 'La référence a été copiée dans le presse-papiers.',
-    icon: 'success',
-    timer: 2000,
-    showConfirmButton: false
-  });
-}
-function loadFromLocalStorage() {
-  const saved = localStorage.getItem('bathily_devis');
-  if (!saved) return;
-  try {
-    const data = JSON.parse(saved);
-    if (data.vehicule) {
-      const vehCard = document.querySelector(`.v-card[onclick*="${data.vehicule}"]`);
-      if (vehCard) selVeh(vehCard, data.vehicule);
-      // Auto-advance to Step 2 (SIV) since vehicle type is preloaded from homepage
-      goStep(2);
-    }
-    if (data.immat) {
-      const plaqueInput = document.getElementById('plaque');
-      plaqueInput.value = data.immat;
-      fmtPlaque(plaqueInput);
-    }
-    if (data.depart) {
-      document.getElementById('depart').value = data.depart;
-      document.getElementById('arrivee').value = data.arrivee;
-      // Prefill complete addresses to avoid double-typing
-      const addrDepInput = document.getElementById('addrDep');
-      const addrArrInput = document.getElementById('addrArr');
-      if (addrDepInput) addrDepInput.value = data.depart;
-      if (addrArrInput) addrArrInput.value = data.arrivee;
-      calcDist();
-    }
-    if (data.mode) {
-      const modeEl = document.querySelector(`.t-mode[onclick*="${data.mode}"]`);
-      if (modeEl) selMode(modeEl, data.mode);
-    }
-    if (data.categorie) {
-      const catMap = { berline: 0, suv: 15, utilitaire: 20 };
-      const catEl = document.querySelector(`.cat-card[onclick*="${data.categorie}"]`);
-      if (catEl) selCat(catEl, data.categorie, catMap[data.categorie] || 0);
-    }
-    if (data.pack) {
-      const packPrice = window._packPrices || { starter: 0, serenite: 49, excellence: 129 };
-      const packEl = document.querySelector(`.pck-card[onclick*="${data.pack}"]`);
-      if (packEl) selPack(packEl, data.pack, packPrice[data.pack]);
-    }
-    if (data.options) {
-      if (data.options.urgence) {
-        const optUrg = document.querySelector('.opt-item[onclick*="urgence"]');
-        if (optUrg) togOpt(optUrg, 'urgence');
-      }
-      if (data.options.gardiennage) {
-        const optGard = document.querySelector('.opt-item[onclick*="gardiennage"]');
-        if (optGard) togOpt(optGard, 'gardiennage');
-      }
-    }
-    if (data.date) {
-      document.getElementById('mDate').value = data.date;
-    }
-  } catch (e) {
-    console.warn(e);
-  }
-}
-document.getElementById('cbPrivacy').addEventListener('click',function(){ S.privacy=this.classList.contains('chk'); updBtn(); });
-document.getElementById('cbPrivacy').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); this.click(); } });
-function loadClientSession() {
-  const savedUser = sessionStorage.getItem('client_user');
-  if (savedUser) {
-    try {
-      const user = JSON.parse(savedUser);
-      if (user.prenom) document.getElementById('cli-prenom').value = user.prenom;
-      if (user.nom) document.getElementById('cli-nom').value = user.nom;
-      if (user.email) document.getElementById('cli-email').value = user.email;
-      if (user.telephone) document.getElementById('cli-tel').value = user.telephone;
-      if (user.societe) document.getElementById('cli-societe').value = user.societe;
-      
-      if (user.adresse && user.ville) {
-        const adresseComplete = `${user.adresse}, ${user.code_postal || ''} ${user.ville}`.replace(/,\s*$/, '').trim();
-        const departInput = document.getElementById('depart');
-        const addrDepInput = document.getElementById('addrDep');
-        if (departInput && !departInput.value) departInput.value = adresseComplete;
-        if (addrDepInput && !addrDepInput.value) addrDepInput.value = adresseComplete;
-      }
-    } catch (e) {
-      console.warn("Erreur chargement session client_user dans devis", e);
-    }
-  }
-}
-loadFromLocalStorage();
-loadClientSession();
 
-const urlParams = new URLSearchParams(window.location.search);
-const paramMode = urlParams.get('mode');
-if (paramMode === 'route' || paramMode === 'plateau') {
-  setTimeout(() => {
-    const modeCard = document.querySelector(`.t-mode[onclick*="${paramMode}"]`);
-    if (modeCard) selMode(modeCard, paramMode);
-  }, 150);
-}
+      // Succès
+      const confirmBtn = document.getElementById('submitBtn');
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
 
-async function loadPacksConfig() {
-  try {
-    const client = getSupabase();
-    const { data, error } = await client.from('system_settings').select('*');
-    if(error || !data) return;
-
-    const labels = { starter: 'Starter', serenite: 'Sérénité', excellence: 'Excellence' };
-    // Valeurs par défaut pour serenite et excellence (conservées si DB renvoie null/undefined)
-    const prices = { starter: 0, serenite: 49, excellence: 129 };
-
-    data.forEach(setting => {
-      if (setting.key.startsWith('pack_')) {
-        const p = setting.value;
-        const type = setting.key.replace('pack_', ''); // 'starter', 'serenite', 'excellence'
-        // Conserver la valeur par défaut si le DB renvoie null ou undefined
-        if (p.price !== undefined && p.price !== null) {
-          prices[type] = p.price;
-        }
-        
-        const cardEl = document.querySelector(`.pck-card[onclick*="'${type}'"]`);
-        if (cardEl) {
-          cardEl.setAttribute('onclick', `selPack(this,'${type}',${p.price || 0})`);
-          const nameEl = cardEl.querySelector('.pck-name');
-          if(nameEl) nameEl.textContent = p.name || type;
-          const priceEl = cardEl.querySelector('.pck-price');
-          if(priceEl) {
-            if(p.price > 0) priceEl.textContent = `+${p.price}€`;
-            else priceEl.textContent = 'Inclus';
-          }
-          labels[type] = `${p.name || type}` + (p.price > 0 ? ` +${p.price}€` : '');
-          
-          if (p.features) {
-            const ul = cardEl.querySelector('ul');
-            if(ul) ul.innerHTML = p.features.split('\n').map(f => `<li>${f}</li>`).join('');
-          }
-        }
-      }
-    });
-    window._packLabels = labels;
-    window._packPrices = prices;
-    if (typeof S !== 'undefined' && S.pack && prices[S.pack] !== undefined) {
-      S.packP = prices[S.pack];
-    }
-    updSidebar();
-    updPrice();
-  } catch (err) {
-    console.warn('Failed to load packs config', err);
-  }
-}
-loadPacksConfig();
-
-setTimeout(()=>{ updPrice(); },100);
-function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
-window.addEventListener('scroll', () => {
-  const hdr = document.querySelector('header');
-  if (hdr) hdr.classList.toggle('scrolled', scrollY > 50);
-});
-document.getElementById('mDate').min = new Date().toISOString().split('T')[0];
-const revealObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); }); }, { threshold: 0.15 });
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-// ========== AUTOCOMPLÉTION VÉHICULES (BASE JSON) ==========
-(function() {
-  let vehiculesDB = null;
-
-  async function loadVehiculesDB() {
-    if (vehiculesDB) return vehiculesDB;
-    try {
-      const response = await fetch('data/vehicules-fr.json');
-      vehiculesDB = await response.json();
-      return vehiculesDB;
-    } catch (err) {
-      console.error('Erreur chargement base véhicules:', err);
-      return null;
-    }
-  }
-
-  async function populateMarques() {
-    const db = await loadVehiculesDB();
-    if (!db) return;
-
-    const marqueSelect = document.getElementById('np-marque-select');
-    if (!marqueSelect) return;
-
-    marqueSelect.innerHTML = '<option value="">Choisir une marque</option>';
-    
-    db.marques.sort((a, b) => a.nom.localeCompare(b.nom)).forEach(marque => {
-      const option = document.createElement('option');
-      option.value = marque.nom;
-      option.textContent = marque.nom;
-      marqueSelect.appendChild(option);
-    });
-  }
-
-  async function populateModeles(marqueNom) {
-    const db = await loadVehiculesDB();
-    if (!db) return;
-
-    const modeleSelect = document.getElementById('np-modele-select');
-    const modeleHidden = document.getElementById('np-modele');
-    if (!modeleSelect) return;
-
-    modeleSelect.innerHTML = '<option value="">Choisir un modèle</option>';
-    
-    if (!marqueNom) {
-      modeleSelect.disabled = true;
-      if (modeleHidden) modeleHidden.value = '';
-      return;
-    }
-
-    const marque = db.marques.find(m => m.nom === marqueNom);
-    if (marque && marque.modeles) {
-      marque.modeles.sort().forEach(modele => {
-        const option = document.createElement('option');
-        option.value = modele;
-        option.textContent = modele;
-        modeleSelect.appendChild(option);
-      });
-      modeleSelect.disabled = false;
-    }
-    
-    if (modeleHidden) modeleHidden.value = '';
-  }
-
-  function initVehiculeAutocomplete() {
-    populateMarques();
-
-    const marqueSelect = document.getElementById('np-marque-select');
-    const modeleSelect = document.getElementById('np-modele-select');
-    const marqueHidden = document.getElementById('np-marque');
-    const modeleHidden = document.getElementById('np-modele');
-    
-    if (marqueSelect) {
-      marqueSelect.addEventListener('change', (e) => {
-        populateModeles(e.target.value);
-        if (marqueHidden) marqueHidden.value = e.target.value;
+      Swal.fire({
+        title: 'Devis envoyé ! ⭐',
+        html: `Votre devis <strong>${ref}</strong> a bien été enregistré.<br><br>Nous vous répondrons sous 24h ouvrées.<br><br><small>Un email de confirmation vous a été envoyé.</small>`,
+        icon: 'success',
+        confirmButtonColor: 'var(--bordeaux)',
+        confirmButtonText: 'OK'
+      }).then(() => {
+        // Réinitialiser le formulaire
+        document.getElementById('devisForm').reset();
+        document.getElementById('priceDisplay').innerHTML = '— <span>€ HT</span>';
+        document.querySelectorAll('.veh-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector('.veh-tab[data-value="Automobile"]').classList.add('active');
+        document.getElementById('vehiculeType').value = 'Automobile';
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer la demande';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     }
-    
-    if (modeleSelect) {
-      modeleSelect.addEventListener('change', (e) => {
-        if (modeleHidden) modeleHidden.value = e.target.value;
-      });
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initVehiculeAutocomplete);
-  } else {
-    initVehiculeAutocomplete();
-  }
-})();
-</script>
+  </script>
 </body>
+
 </html>

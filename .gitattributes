@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Force UTF-8 encoding for HTML files
+*.html text eol=lf working-tree-encoding=UTF-8
+*.css text eol=lf working-tree-encoding=UTF-8
+*.js text eol=lf working-tree-encoding=UTF-8

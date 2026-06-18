@@ -1,645 +1,645 @@
-
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>État des Lieux Num€ris€ € Bathily convoyage</title>
-<meta name="description" content="R€alisez l'État des lieux num€ris€ de votre véhicule : photos, dommages, signatures €lectroniques et conformit€.">
-<meta property="og:title" content="État des Lieux Num€ris€ € Bathily Convoyage">
-<meta property="og:description" content="Outil complet d'État des lieux avec photos, sch€ma interactif, signatures €lectroniques et génération de document PDF.">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⭐%3C/text%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-body {
-  font-family: 'Inter', sans-serif;
-  background: #FDFBF7;
-  color: #2D2A24;
-  line-height: 1.5;
-  overflow-x: hidden;
-}
-:root {
-  --bordeaux: #0A4D68;
-  --bordeaux-dark: #063244;
-  --bordeaux-light: #E6F0F4;
-  --cream: #FDFBF7;
-  --beige: #F9F6F0;
-  --gray-dark: #2D2A24;
-  --gray-mid: #6B625A;
-  --border-light: #E8E1D9;
-  --success: #4A7C6B;
-  --warning: #F5A623;
-}
-/* Curseur personnalis€ seulement sur souris */
-@media (hover: hover) {
-  .cur{position:fixed;width:8px;height:8px;background:var(--bordeaux);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
-  .cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(122,46,26,.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
-}
-@media (hover: none) {
-  .cur, .cur-ring { display: none; }
-}
-/* Topbar */
-.topbar {
-  background: white;
-  border-bottom: 1px solid var(--border-light);
-  padding: 0 32px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-.topbar-logo {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--gray-dark);
-  text-decoration: none;
-}
-.topbar-logo span { color: var(--bordeaux); }
-.topbar-mid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.topbar-title {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--gray-mid);
-}
-.topbar-ref {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--bordeaux);
-}
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.topbar-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 6px 14px;
-  border-radius: 40px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: transparent;
-  border: 1px solid var(--border-light);
-  color: var(--gray-mid);
-}
-.topbar-btn:hover {
-  border-color: var(--bordeaux);
-  color: var(--bordeaux);
-}
-.topbar-btn.tb-red {
-  background: var(--bordeaux);
-  color: white;
-  border: none;
-}
-.topbar-btn.tb-red:hover {
-  background: var(--bordeaux-dark);
-}
-/* Progress bar */
-.progress-bar {
-  background: white;
-  border-bottom: 1px solid var(--border-light);
-  padding: 0 32px;
-}
-.pb-inner {
-  display: flex;
-  align-items: center;
-  height: 60px;
-  gap: 4px;
-}
-.pb-step {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  cursor: pointer;
-}
-.pb-num {
-  width: 28px;
-  height: 28px;
-  background: #F3F4F6;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--gray-mid);
-  transition: all 0.2s;
-}
-.pb-num.active {
-  background: var(--bordeaux);
-  color: white;
-}
-.pb-num.done {
-  background: var(--success);
-  color: white;
-}
-.pb-lbl {
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--gray-mid);
-  white-space: nowrap;
-}
-.pb-lbl.active { color: var(--bordeaux); }
-.pb-line {
-  flex: 1;
-  height: 2px;
-  background: var(--border-light);
-  margin: 0 8px;
-}
-.pb-line.done { background: var(--success); }
-/* Main */
-.edl-main {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 32px 24px;
-}
-/* Steps */
-.edl-step { display: none; }
-.edl-step.active { display: block; animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-.step-header { margin-bottom: 28px; }
-.step-tag {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--bordeaux);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.step-tag::before {
-  content: '';
-  width: 24px;
-  height: 1px;
-  background: var(--bordeaux);
-}
-.step-title {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.step-title em { color: var(--bordeaux); font-style: normal; }
-.step-sub { font-size: 0.8rem; color: var(--gray-mid); }
-/* Cards */
-.card {
-  background: white;
-  border: 1px solid var(--border-light);
-  border-radius: 24px;
-  padding: 24px;
-  margin-bottom: 20px;
-  transition: all 0.2s;
-}
-.card:hover { border-color: var(--bordeaux-light); }
-.card-title {
-  font-weight: 700;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  color: var(--bordeaux);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-/* Forms */
-.f-row, .f-row3, .f-row4 {
-  display: grid;
-  gap: 16px;
-}
-.f-row { grid-template-columns: 1fr 1fr; }
-.f-row3 { grid-template-columns: repeat(3,1fr); }
-.f-row4 { grid-template-columns: repeat(4,1fr); }
-.f-grp { margin-bottom: 16px; }
-.f-grp label {
-  display: block;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--gray-mid);
-  margin-bottom: 6px;
-}
-.f-grp input, .f-grp select, .f-grp textarea {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
-  background: #F9FAFB;
-  transition: all 0.2s;
-}
-.f-grp input:focus, .f-grp select:focus, .f-grp textarea:focus {
-  outline: none;
-  border-color: var(--bordeaux);
-  box-shadow: 0 0 0 2px rgba(122,46,26,0.1);
-}
-/* Docs grids */
-.doc-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 20px;
-}
-.doc-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border-light);
-}
-.doc-lbl { font-size: 0.8rem; font-weight: 500; }
-.doc-toggle { display: flex; gap: 8px; }
-.doc-btn {
-  padding: 4px 12px;
-  border-radius: 40px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  border: 1px solid var(--border-light);
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.doc-btn.ok { background: rgba(74,124,107,0.1); border-color: var(--success); color: var(--success); }
-.doc-btn.nok { background: var(--bordeaux-light); border-color: var(--bordeaux); color: var(--bordeaux); }
-/* Photos */
-.photos-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.photo-slot {
-  aspect-ratio: 1;
-  border: 1px dashed var(--border-light);
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: var(--beige);
-  overflow: hidden;
-  position: relative;
-}
-.photo-slot:hover { border-color: var(--bordeaux); background: var(--bordeaux-light); }
-.photo-slot.taken { border-style: solid; border-color: var(--success); background: rgba(74,124,107,0.05); }
-.photo-slot .ps-ico { font-size: 1.2rem; color: var(--gray-mid); }
-.photo-slot.taken .ps-ico { color: var(--success); }
-.photo-slot .ps-lbl { font-size: 0.6rem; font-weight: 700; text-align: center; }
-.photo-slot .ps-check {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 18px;
-  height: 18px;
-  background: var(--success);
-  border-radius: 50%;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 0.6rem;
-}
-.photo-slot.taken .ps-check { display: flex; }
-.photo-preview {
-  display: none;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.photo-slot.has-image .photo-preview { display: block; }
-.photo-slot.has-image .ps-ico, .photo-slot.has-image .ps-lbl { display: none; }
-.photo-count {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.photo-progress {
-  height: 3px;
-  background: var(--border-light);
-  border-radius: 4px;
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-.photo-progress-bar { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
-/* Fuel */
-.fuel-gauge { display: flex; flex-direction: column; gap: 8px; }
-.fuel-slider {
-  width: 100%;
-  height: 4px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, var(--bordeaux), var(--warning), var(--success));
-  appearance: none;
-}
-.fuel-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: white;
-  border: 2px solid var(--bordeaux);
-  cursor: pointer;
-}
-.fuel-val { font-size: 1.2rem; font-weight: 700; text-align: center; margin-top: 8px; }
-/* Zones */
-.zones-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.zone-card {
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  padding: 12px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.zone-card:hover { border-color: var(--bordeaux-light); background: var(--beige); }
-.zone-card.etat-bon { border-color: var(--success); background: rgba(74,124,107,0.05); }
-.zone-card.etat-raye { border-color: var(--warning); background: rgba(224,163,67,0.05); }
-.zone-card.etat-enfonce, .zone-card.etat-casse { border-color: var(--bordeaux); background: var(--bordeaux-light); }
-.zone-ico { font-size: 1.2rem; display: block; margin-bottom: 6px; }
-.zone-name { font-weight: 700; font-size: 0.7rem; margin-bottom: 6px; }
-.zone-selector {
-  width: 100%;
-  padding: 4px;
-  border-radius: 40px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  background: white;
-  border: 1px solid var(--border-light);
-}
-/* Dommages */
-.dommage-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-.dommage-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: var(--beige);
-  border-radius: 16px;
-  padding: 12px;
-}
-.dommage-item-ico { font-size: 1rem; color: var(--bordeaux); margin-top: 2px; }
-.dommage-zone { font-weight: 700; font-size: 0.75rem; }
-.dommage-desc { font-size: 0.7rem; color: var(--gray-mid); }
-.dommage-del {
-  background: none;
-  border: none;
-  color: var(--gray-mid);
-  cursor: pointer;
-  font-size: 1rem;
-}
-.btn-add-dommage {
-  background: var(--bordeaux-light);
-  border: 1px solid var(--bordeaux);
-  border-radius: 40px;
-  padding: 8px 16px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--bordeaux);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-add-dommage:hover { background: var(--bordeaux); color: white; }
-/* Signature pad */
-.sig-container {
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  overflow: hidden;
-  margin-bottom: 16px;
-}
-.sig-header {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px;
-  background: var(--beige);
-  border-bottom: 1px solid var(--border-light);
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-canvas {
-  width: 100%;
-  height: 160px;
-  background: white;
-  display: block;
-  cursor: crosshair;
-}
-.sig-clear {
-  background: none;
-  border: none;
-  color: var(--gray-mid);
-  cursor: pointer;
-  font-size: 0.65rem;
-  font-weight: 700;
-}
-.sig-done {
-  display: none;
-  background: rgba(74,124,107,0.1);
-  border-radius: 40px;
-  padding: 8px;
-  margin-bottom: 12px;
-  gap: 8px;
-  align-items: center;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--success);
-}
-.sig-done.show { display: flex; }
-.btn-sig {
-  background: var(--bordeaux);
-  color: white;
-  border: none;
-  border-radius: 40px;
-  padding: 8px 20px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-sig:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
-/* Step nav */
-.step-nav {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border-light);
-}
-.btn-nav {
-  padding: 10px 24px;
-  border-radius: 40px;
-  font-weight: 700;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-prev {
-  background: transparent;
-  border: 1px solid var(--border-light);
-  color: var(--gray-mid);
-}
-.btn-prev:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-next {
-  background: var(--bordeaux);
-  color: white;
-}
-.btn-next:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
-/* Recap */
-.recap-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.recap-card {
-  background: white;
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 20px;
-}
-.recap-card-title {
-  font-weight: 700;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  color: var(--bordeaux);
-  margin-bottom: 12px;
-}
-.recap-line {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--border-light);
-  font-size: 0.75rem;
-}
-.recap-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 40px;
-  font-size: 0.6rem;
-  font-weight: 700;
-}
-.rs-ok { background: rgba(74,124,107,0.1); color: var(--success); }
-.rs-warn { background: rgba(224,163,67,0.1); color: var(--warning); }
-.rs-err { background: var(--bordeaux-light); color: var(--bordeaux); }
-/* Success final */
-.success-final {
-  display: none;
-  text-align: center;
-  background: white;
-  border: 1px solid var(--success);
-  border-radius: 28px;
-  padding: 48px;
-  margin-top: 20px;
-}
-.success-final.show { display: block; }
-.sf-ico { font-size: 3rem; color: var(--success); margin-bottom: 20px; }
-.sf-h {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-.sf-h em { color: var(--success); font-style: normal; }
-.sf-ref-val {
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: var(--bordeaux);
-  margin: 16px 0;
-}
-/* Toast */
-.toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: white;
-  border-left: 4px solid var(--success);
-  border-radius: 12px;
-  padding: 12px 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 1000;
-  font-size: 0.8rem;
-  animation: slideIn 0.3s ease;
-}
-.toast.error { border-left-color: var(--bordeaux); }
-@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(4px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-}
-.modal-overlay.open { display: flex; }
-.modal-box {
-  background: white;
-  border-radius: 28px;
-  max-width: 480px;
-  width: 90%;
-  padding: 24px;
-  position: relative;
-}
-.modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-/* Responsive */
-@media (max-width: 768px) {
-  .f-row, .f-row3, .f-row4 { grid-template-columns: 1fr; }
-  .photos-grid { grid-template-columns: repeat(3,1fr); }
-  .zones-grid { grid-template-columns: 1fr 1fr; }
-  .recap-grid { grid-template-columns: 1fr; }
-  .topbar-mid { display: none; }
-  .pb-lbl { display: none; }
-}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/supabase-config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>État des Lieux Numérisé - Bathily Convoyage</title>
+  <meta name="description" content="Réalisez l'État des lieux numérisé de votre véhicule : photos, dommages, signatures électroniques et conformité.">
+  <meta property="og:title" content="État des Lieux Numérisé - Bathily Convoyage">
+  <meta property="og:description" content="Outil complet d'État des lieux avec photos, schéma interactif, signatures électroniques et génération de document PDF.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⭐%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FDFBF7;
+      color: #2D2A24;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    :root {
+      --bordeaux: #0A4D68;
+      --bordeaux-dark: #063244;
+      --bordeaux-light: #E6F0F4;
+      --cream: #FDFBF7;
+      --beige: #F9F6F0;
+      --gray-dark: #2D2A24;
+      --gray-mid: #6B625A;
+      --border-light: #E8E1D9;
+      --success: #4A7C6B;
+      --warning: #F5A623;
+    }
+    /* Curseur personnalisé seulement sur souris */
+    @media (hover: hover) {
+      .cur{position:fixed;width:8px;height:8px;background:var(--bordeaux);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+      .cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(122,46,26,.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+    }
+    @media (hover: none) {
+      .cur, .cur-ring { display: none; }
+    }
+    /* Topbar */
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--border-light);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--gray-dark);
+      text-decoration: none;
+    }
+    .topbar-logo span { color: var(--bordeaux); }
+    .topbar-mid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .topbar-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+    }
+    .topbar-ref {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--bordeaux);
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 40px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+      border: 1px solid var(--border-light);
+      color: var(--gray-mid);
+    }
+    .topbar-btn:hover {
+      border-color: var(--bordeaux);
+      color: var(--bordeaux);
+    }
+    .topbar-btn.tb-red {
+      background: var(--bordeaux);
+      color: white;
+      border: none;
+    }
+    .topbar-btn.tb-red:hover {
+      background: var(--bordeaux-dark);
+    }
+    /* Progress bar */
+    .progress-bar {
+      background: white;
+      border-bottom: 1px solid var(--border-light);
+      padding: 0 32px;
+    }
+    .pb-inner {
+      display: flex;
+      align-items: center;
+      height: 60px;
+      gap: 4px;
+    }
+    .pb-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      cursor: pointer;
+    }
+    .pb-num {
+      width: 28px;
+      height: 28px;
+      background: #F3F4F6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--gray-mid);
+      transition: all 0.2s;
+    }
+    .pb-num.active {
+      background: var(--bordeaux);
+      color: white;
+    }
+    .pb-num.done {
+      background: var(--success);
+      color: white;
+    }
+    .pb-lbl {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+      white-space: nowrap;
+    }
+    .pb-lbl.active { color: var(--bordeaux); }
+    .pb-line {
+      flex: 1;
+      height: 2px;
+      background: var(--border-light);
+      margin: 0 8px;
+    }
+    .pb-line.done { background: var(--success); }
+    /* Main */
+    .edl-main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    /* Steps */
+    .edl-step { display: none; }
+    .edl-step.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .step-header { margin-bottom: 28px; }
+    .step-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--bordeaux);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .step-tag::before {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--bordeaux);
+    }
+    .step-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .step-title em { color: var(--bordeaux); font-style: normal; }
+    .step-sub { font-size: 0.8rem; color: var(--gray-mid); }
+    /* Cards */
+    .card {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      transition: all 0.2s;
+    }
+    .card:hover { border-color: var(--bordeaux-light); }
+    .card-title {
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      color: var(--bordeaux);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    /* Forms */
+    .f-row, .f-row3, .f-row4 {
+      display: grid;
+      gap: 16px;
+    }
+    .f-row { grid-template-columns: 1fr 1fr; }
+    .f-row3 { grid-template-columns: repeat(3,1fr); }
+    .f-row4 { grid-template-columns: repeat(4,1fr); }
+    .f-grp { margin-bottom: 16px; }
+    .f-grp label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+      margin-bottom: 6px;
+    }
+    .f-grp input, .f-grp select, .f-grp textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      background: #F9FAFB;
+      transition: all 0.2s;
+    }
+    .f-grp input:focus, .f-grp select:focus, .f-grp textarea:focus {
+      outline: none;
+      border-color: var(--bordeaux);
+      box-shadow: 0 0 0 2px rgba(122,46,26,0.1);
+    }
+    /* Docs grids */
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .doc-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .doc-lbl { font-size: 0.8rem; font-weight: 500; }
+    .doc-toggle { display: flex; gap: 8px; }
+    .doc-btn {
+      padding: 4px 12px;
+      border-radius: 40px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      border: 1px solid var(--border-light);
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .doc-btn.ok { background: rgba(74,124,107,0.1); border-color: var(--success); color: var(--success); }
+    .doc-btn.nok { background: var(--bordeaux-light); border-color: var(--bordeaux); color: var(--bordeaux); }
+    /* Photos */
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .photo-slot {
+      aspect-ratio: 1;
+      border: 1px dashed var(--border-light);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--beige);
+      overflow: hidden;
+      position: relative;
+    }
+    .photo-slot:hover { border-color: var(--bordeaux); background: var(--bordeaux-light); }
+    .photo-slot.taken { border-style: solid; border-color: var(--success); background: rgba(74,124,107,0.05); }
+    .photo-slot .ps-ico { font-size: 1.2rem; color: var(--gray-mid); }
+    .photo-slot.taken .ps-ico { color: var(--success); }
+    .photo-slot .ps-lbl { font-size: 0.6rem; font-weight: 700; text-align: center; }
+    .photo-slot .ps-check {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 18px;
+      height: 18px;
+      background: var(--success);
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.6rem;
+    }
+    .photo-slot.taken .ps-check { display: flex; }
+    .photo-preview {
+      display: none;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .photo-slot.has-image .photo-preview { display: block; }
+    .photo-slot.has-image .ps-ico, .photo-slot.has-image .ps-lbl { display: none; }
+    .photo-count {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .photo-progress {
+      height: 3px;
+      background: var(--border-light);
+      border-radius: 4px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .photo-progress-bar { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
+    /* Fuel */
+    .fuel-gauge { display: flex; flex-direction: column; gap: 8px; }
+    .fuel-slider {
+      width: 100%;
+      height: 4px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--bordeaux), var(--warning), var(--success));
+      appearance: none;
+    }
+    .fuel-slider::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid var(--bordeaux);
+      cursor: pointer;
+    }
+    .fuel-val { font-size: 1.2rem; font-weight: 700; text-align: center; margin-top: 8px; }
+    /* Zones */
+    .zones-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .zone-card {
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .zone-card:hover { border-color: var(--bordeaux-light); background: var(--beige); }
+    .zone-card.etat-bon { border-color: var(--success); background: rgba(74,124,107,0.05); }
+    .zone-card.etat-raye { border-color: var(--warning); background: rgba(224,163,67,0.05); }
+    .zone-card.etat-enfonce, .zone-card.etat-casse { border-color: var(--bordeaux); background: var(--bordeaux-light); }
+    .zone-ico { font-size: 1.2rem; display: block; margin-bottom: 6px; }
+    .zone-name { font-weight: 700; font-size: 0.7rem; margin-bottom: 6px; }
+    .zone-selector {
+      width: 100%;
+      padding: 4px;
+      border-radius: 40px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: white;
+      border: 1px solid var(--border-light);
+    }
+    /* Dommages */
+    .dommage-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .dommage-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: var(--beige);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .dommage-item-ico { font-size: 1rem; color: var(--bordeaux); margin-top: 2px; }
+    .dommage-zone { font-weight: 700; font-size: 0.75rem; }
+    .dommage-desc { font-size: 0.7rem; color: var(--gray-mid); }
+    .dommage-del {
+      background: none;
+      border: none;
+      color: var(--gray-mid);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .btn-add-dommage {
+      background: var(--bordeaux-light);
+      border: 1px solid var(--bordeaux);
+      border-radius: 40px;
+      padding: 8px 16px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--bordeaux);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-add-dommage:hover { background: var(--bordeaux); color: white; }
+    /* Signature pad */
+    .sig-container {
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .sig-header {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      background: var(--beige);
+      border-bottom: 1px solid var(--border-light);
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    canvas {
+      width: 100%;
+      height: 160px;
+      background: white;
+      display: block;
+      cursor: crosshair;
+    }
+    .sig-clear {
+      background: none;
+      border: none;
+      color: var(--gray-mid);
+      cursor: pointer;
+      font-size: 0.65rem;
+      font-weight: 700;
+    }
+    .sig-done {
+      display: none;
+      background: rgba(74,124,107,0.1);
+      border-radius: 40px;
+      padding: 8px;
+      margin-bottom: 12px;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--success);
+    }
+    .sig-done.show { display: flex; }
+    .btn-sig {
+      background: var(--bordeaux);
+      color: white;
+      border: none;
+      border-radius: 40px;
+      padding: 8px 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-sig:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
+    /* Step nav */
+    .step-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-light);
+    }
+    .btn-nav {
+      padding: 10px 24px;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-prev {
+      background: transparent;
+      border: 1px solid var(--border-light);
+      color: var(--gray-mid);
+    }
+    .btn-prev:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-next {
+      background: var(--bordeaux);
+      color: white;
+    }
+    .btn-next:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
+    /* Recap */
+    .recap-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .recap-card {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 20px;
+    }
+    .recap-card-title {
+      font-weight: 700;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--bordeaux);
+      margin-bottom: 12px;
+    }
+    .recap-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 0.75rem;
+    }
+    .recap-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 40px;
+      font-size: 0.6rem;
+      font-weight: 700;
+    }
+    .rs-ok { background: rgba(74,124,107,0.1); color: var(--success); }
+    .rs-warn { background: rgba(224,163,67,0.1); color: var(--warning); }
+    .rs-err { background: var(--bordeaux-light); color: var(--bordeaux); }
+    /* Success final */
+    .success-final {
+      display: none;
+      text-align: center;
+      background: white;
+      border: 1px solid var(--success);
+      border-radius: 28px;
+      padding: 48px;
+      margin-top: 20px;
+    }
+    .success-final.show { display: block; }
+    .sf-ico { font-size: 3rem; color: var(--success); margin-bottom: 20px; }
+    .sf-h {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .sf-h em { color: var(--success); font-style: normal; }
+    .sf-ref-val {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--bordeaux);
+      margin: 16px 0;
+    }
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      border-left: 4px solid var(--success);
+      border-radius: 12px;
+      padding: 12px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+      font-size: 0.8rem;
+      animation: slideIn 0.3s ease;
+    }
+    .toast.error { border-left-color: var(--bordeaux); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: white;
+      border-radius: 28px;
+      max-width: 480px;
+      width: 90%;
+      padding: 24px;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    /* Responsive */
+    @media (max-width: 768px) {
+      .f-row, .f-row3, .f-row4 { grid-template-columns: 1fr; }
+      .photos-grid { grid-template-columns: repeat(3,1fr); }
+      .zones-grid { grid-template-columns: 1fr 1fr; }
+      .recap-grid { grid-template-columns: 1fr; }
+      .topbar-mid { display: none; }
+      .pb-lbl { display: none; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -649,8 +649,8 @@ canvas {
 <div class="topbar">
   <a href="index.html" class="topbar-logo">Bathily-convoyage<span>.</span></a>
   <div class="topbar-mid">
-    <div class="topbar-title">État des Lieux Num€ris€</div>
-    <div class="topbar-ref" id="topRef">BC-2025-0847 € BMW S€rie 3 € IJ-789-KL</div>
+    <div class="topbar-title">État des Lieux Numérisé</div>
+    <div class="topbar-ref" id="topRef">BC-2025-0847 · BMW Série 3 · IJ-789-KL</div>
   </div>
   <div class="topbar-right">
     <button class="topbar-btn" onclick="saveDraft()"><i class="fas fa-save"></i> Sauvegarder</button>
@@ -664,136 +664,136 @@ canvas {
     <div class="pb-step" onclick="goStep(1)"><div class="pb-num active" id="pn1">1</div><div class="pb-lbl active" id="pl1">Mission</div><div class="pb-line" id="pline1"></div></div>
     <div class="pb-step" onclick="goStep(2)"><div class="pb-num" id="pn2">2</div><div class="pb-lbl" id="pl2">Véhicule</div><div class="pb-line" id="pline2"></div></div>
     <div class="pb-step" onclick="goStep(3)"><div class="pb-num" id="pn3">3</div><div class="pb-lbl" id="pl3">Photos</div><div class="pb-line" id="pline3"></div></div>
-    <div class="pb-step" onclick="goStep(4)"><div class="pb-num" id="pn4">4</div><div class="pb-lbl" id="pl4">zones</div><div class="pb-line" id="pline4"></div></div>
-    <div class="pb-step" onclick="goStep(5)"><div class="pb-num" id="pn5">5</div><div class="pb-lbl" id="pl5">Conformit€</div><div class="pb-line" id="pline5"></div></div>
+    <div class="pb-step" onclick="goStep(4)"><div class="pb-num" id="pn4">4</div><div class="pb-lbl" id="pl4">Zones</div><div class="pb-line" id="pline4"></div></div>
+    <div class="pb-step" onclick="goStep(5)"><div class="pb-num" id="pn5">5</div><div class="pb-lbl" id="pl5">Conformité</div><div class="pb-line" id="pline5"></div></div>
     <div class="pb-step" onclick="goStep(6)"><div class="pb-num" id="pn6">6</div><div class="pb-lbl" id="pl6">Signatures</div><div class="pb-line" id="pline6"></div></div>
     <div class="pb-step" onclick="goStep(7)"><div class="pb-num" id="pn7">7</div><div class="pb-lbl" id="pl7">Validation</div></div>
   </div>
 </div>
 
 <div class="edl-main">
-  <!-- €TAPE 1 : INFOS MISSION -->
+  <!-- ÉTAPE 1 : INFOS MISSION -->
   <div class="edl-step active" data-step="1">
     <div class="step-header">
-      <div class="step-tag">€Étape 1 / 7</div>
-      <h2 class="step-title">informations <em>émission</em></h2>
-      <p class="step-sub">V€rifiez et compl€tez les informations de la émission.</p>
+      <div class="step-tag">Étape 1 / 7</div>
+      <h2 class="step-title">Informations <em>mission</em></h2>
+      <p class="step-sub">Vérifiez et complétez les informations de la mission.</p>
     </div>
     <div style="display:flex; gap:12px; margin-bottom:24px;">
-      <div id="badgeDepart" class="type-badge" style="background:rgba(41,128,185,0.1); border-radius:40px; padding:6px 16px; font-size:0.7rem; font-weight:700; cursor:pointer;" onclick="setEdlType('depart')"><i class="fas fa-map-marker-alt"></i> État des lieux de D€PART</div>
-      <div id="badgeArrivee" class="type-badge" style="background:rgba(240,237,237,.04); border-radius:40px; padding:6px 16px; font-size:0.7rem; font-weight:700; cursor:pointer;" onclick="setEdlType('arrivee')"><i class="fas fa-flag-checkered"></i> État des lieux d'ARRIV€E</div>
+      <div id="badgeDepart" class="type-badge" style="background:rgba(41,128,185,0.1); border-radius:40px; padding:6px 16px; font-size:0.7rem; font-weight:700; cursor:pointer;" onclick="setEdlType('depart')"><i class="fas fa-map-marker-alt"></i> État des lieux de DÉPART</div>
+      <div id="badgeArrivee" class="type-badge" style="background:rgba(240,237,237,.04); border-radius:40px; padding:6px 16px; font-size:0.7rem; font-weight:700; cursor:pointer;" onclick="setEdlType('arrivee')"><i class="fas fa-flag-checkered"></i> État des lieux d'ARRIVÉE</div>
     </div>
-    <div class="card"><div class="card-title"><i class="fas fa-route"></i> D€tails de la émission</div>
-      <div class="f-row"><div class="f-grp"><label>R€f€rence émission *</label><input type="text" id="mRef" value="BC-2025-0847" oninput="updateRef()"></div><div class="f-grp"><label>Date & heure *</label><input type="datetime-local" id="mDate"></div></div>
-      <div class="f-row"><div class="f-grp"><label>convoyeur *</label><input type="text" id="mConvoyeur" value="M. Bathily"></div><div class="f-grp"><label>N€ permis</label><input type="text" id="mPermis" placeholder="XX-XXXXXX-XX"></div></div>
-      <div class="f-row"><div class="f-grp"><label>Ville de d€part</label><input type="text" id="mDepart" value="Paris 8€me € 15 Rue de Rivoli"></div><div class="f-grp"><label>Ville d'arriv€e</label><input type="text" id="mArrivee" value="Lyon Part-Dieu € 3 Rue Servient"></div></div>
+    <div class="card"><div class="card-title"><i class="fas fa-route"></i> Détails de la mission</div>
+      <div class="f-row"><div class="f-grp"><label>Référence mission *</label><input type="text" id="mRef" value="BC-2025-0847" oninput="updateRef()"></div><div class="f-grp"><label>Date & heure *</label><input type="datetime-local" id="mDate"></div></div>
+      <div class="f-row"><div class="f-grp"><label>Convoyeur *</label><input type="text" id="mConvoyeur" value="M. Bathily"></div><div class="f-grp"><label>N° permis</label><input type="text" id="mPermis" placeholder="XX-XXXXXX-XX"></div></div>
+      <div class="f-row"><div class="f-grp"><label>Ville de départ</label><input type="text" id="mDepart" value="Paris 8ème - 15 Rue de Rivoli"></div><div class="f-grp"><label>Ville d'arrivée</label><input type="text" id="mArrivee" value="Lyon Part-Dieu - 3 Rue Servient"></div></div>
     </div>
-    <div class="card"><div class="card-title"><i class="fas fa-user"></i> informations client</div>
-      <div class="f-row"><div class="f-grp"><label>Nom & pr€nom *</label><input type="text" id="cNom" value="Jean Dupont"></div><div class="f-grp"><label>Téléphone *</label><input type="tel" id="cTel" value="+33 6 12 34 56 78"></div></div>
+    <div class="card"><div class="card-title"><i class="fas fa-user"></i> Informations client</div>
+      <div class="f-row"><div class="f-grp"><label>Nom & prénom *</label><input type="text" id="cNom" value="Jean Dupont"></div><div class="f-grp"><label>Téléphone *</label><input type="tel" id="cTel" value="+33 6 12 34 56 78"></div></div>
       <div class="f-grp"><label>Email</label><input type="email" id="cEmail" value="jean.dupont@email.fr"></div>
     </div>
-    <div class="step-nav"><button class="btn-nav btn-prev" disabled="None"><i class="fas fa-arrow-left"></i> Pr€c€dent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
+    <div class="step-nav"><button class="btn-nav btn-prev" disabled><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
 
-  <!-- €TAPE 2 : V€HICULE -->
+  <!-- ÉTAPE 2 : VÉHICULE -->
   <div class="edl-step" data-step="2">
-    <div class="step-header"><div class="step-tag">€Étape 2 / 7</div><h2 class="step-title">Identification <em>véhicule</em></h2><p class="step-sub">V€rifiez les informations SIV.</p></div>
-    <div class="card"><div class="card-title"><i class="fas fa-search"></i> Donn€es SIV</div>
+    <div class="step-header"><div class="step-tag">Étape 2 / 7</div><h2 class="step-title">Identification <em>véhicule</em></h2><p class="step-sub">Vérifiez les informations SIV.</p></div>
+    <div class="card"><div class="card-title"><i class="fas fa-search"></i> Données SIV</div>
       <div class="f-row"><div class="f-grp"><label>Plaque d'immatriculation *</label><div style="display:flex; gap:8px;"><input type="text" id="vPlaque" value="IJ-789-KL" oninput="fmtPlaque(this)" style="flex:1;"><button type="button" class="btn-sig" style="padding:0 15px; margin:0;" onclick="lookupLicensePlate()" title="Rechercher avec le SIV"><i class="fas fa-search"></i></button></div></div><div class="f-grp"><label>Type</label><select id="vType"><option value="berline">Berline</option><option value="suv">SUV</option><option value="break">Break</option><option value="utilitaire">Utilitaire</option><option value="moto">Moto</option></select></div></div>
-      <div class="f-row3"><div class="f-grp"><label>Marque *</label><input type="text" id="vMarque" value="BMW"></div><div class="f-grp"><label>Mod€le *</label><input type="text" id="vModele" value="S€rie 3"></div><div class="f-grp"><label>Ann€e</label><input type="number" id="vAnnee" value="2023"></div></div>
-      <div class="f-row3"><div class="f-grp"><label>Couleur *</label><input type="text" id="vCouleur" value="Gris Mineralgrau"></div><div class="f-grp"><label>€énergie</label><select id="vEénergie"><option>Essence</option><option selected="None">hybride</option><option>Diesel</option><option>€lectrique</option></select></div><div class="f-grp"><label>Transémission</label><select id="vTransémission"><option>Manuelle</option><option selected="None">Automatique</option></select></div></div>
+      <div class="f-row3"><div class="f-grp"><label>Marque *</label><input type="text" id="vMarque" value="BMW"></div><div class="f-grp"><label>Modèle *</label><input type="text" id="vModele" value="Série 3"></div><div class="f-grp"><label>Année</label><input type="number" id="vAnnee" value="2023"></div></div>
+      <div class="f-row3"><div class="f-grp"><label>Couleur *</label><input type="text" id="vCouleur" value="Gris Mineralgrau"></div><div class="f-grp"><label>Énergie</label><select id="vEnergie"><option>Essence</option><option selected>Hybride</option><option>Diesel</option><option>Électrique</option></select></div><div class="f-grp"><label>Transmission</label><select id="vTransmission"><option>Manuelle</option><option selected>Automatique</option></select></div></div>
     </div>
-    <div class="card"><div class="card-title"><i class="fas fa-tachometer-alt"></i> Reélevé€s au d€part</div>
-      <div class="f-row4"><div class="f-grp"><label>Kilom€trage *</label><input type="number" id="vKm" placeholder="Ex: 24500"></div><div class="f-grp"><label>VIN</label><input type="text" id="vVin" placeholder="17 caract€res"></div><div class="f-grp"><label>Prochain CT</label><input type="month" id="vCt"></div><div class="f-grp"><label>Assurance</label><input type="date" id="vAssurance"></div></div>
-      <div class="f-grp"><label>niveau carburant / charge</label><div class="fuel-gauge"><div class="fuel-marks" style="display:flex; justify-content:space-between;"><span>0</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div><input type="range" class="fuel-slider" id="fuelSlider" min="0" max="100" value="65" step="5" oninput="updFuel(this.value)"><div class="fuel-val" id="fuelVal">65%</div></div></div>
+    <div class="card"><div class="card-title"><i class="fas fa-tachometer-alt"></i> Relevés au départ</div>
+      <div class="f-row4"><div class="f-grp"><label>Kilométrage *</label><input type="number" id="vKm" placeholder="Ex: 24500"></div><div class="f-grp"><label>VIN</label><input type="text" id="vVin" placeholder="17 caractères"></div><div class="f-grp"><label>Prochain CT</label><input type="month" id="vCt"></div><div class="f-grp"><label>Assurance</label><input type="date" id="vAssurance"></div></div>
+      <div class="f-grp"><label>Niveau carburant / charge</label><div class="fuel-gauge"><div class="fuel-marks" style="display:flex; justify-content:space-between;"><span>0</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div><input type="range" class="fuel-slider" id="fuelSlider" min="0" max="100" value="65" step="5" oninput="updFuel(this.value)"><div class="fuel-val" id="fuelVal">65%</div></div></div>
     </div>
     <div class="card"><div class="card-title"><i class="fas fa-clipboard-check"></i> Documents & accessoires</div>
       <div class="doc-grid" id="docGrid"></div>
       <div class="f-grp"><label>Objets personnels</label><textarea id="vObjets" rows="2" placeholder="Bagages, effets personnels..."></textarea></div>
     </div>
-    <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Pr€c€dent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
+    <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
 
-  <!-- €TAPE 3 : PHOTOS -->
+  <!-- ÉTAPE 3 : PHOTOS -->
   <div class="edl-step" data-step="3">
-    <div class="step-header"><div class="step-tag">€Étape 3 / 7</div><h2 class="step-title">Photos <em>obligatoires</em></h2><p class="step-sub">10 photos minimum (5 ext€rieur + 5 int€rieur).</p></div>
-    <div class="card"><div class="card-title"><i class="fas fa-car"></i> Ext€rieur € 5 photos requises</div>
+    <div class="step-header"><div class="step-tag">Étape 3 / 7</div><h2 class="step-title">Photos <em>obligatoires</em></h2><p class="step-sub">10 photos minimum (5 extérieur + 5 intérieur).</p></div>
+    <div class="card"><div class="card-title"><i class="fas fa-car"></i> Extérieur - 5 photos requises</div>
       <div class="photo-count">Photos prises : <span id="photoExtCount">0</span> / 5</div>
       <div class="photo-progress"><div class="photo-progress-bar" id="photoExtBar"></div></div>
       <div class="photos-grid" id="photoExtGrid"></div>
     </div>
-    <div class="card"><div class="card-title"><i class="fas fa-chair"></i> Int€rieur € 5 photos requises</div>
+    <div class="card"><div class="card-title"><i class="fas fa-chair"></i> Intérieur - 5 photos requises</div>
       <div class="photo-count">Photos prises : <span id="photoIntCount">0</span> / 5</div>
       <div class="photo-progress"><div class="photo-progress-bar" id="photoIntBar"></div></div>
       <div class="photos-grid" id="photoIntGrid"></div>
     </div>
-    <div class="card"><div class="card-title"><i class="fas fa-plus-circle"></i> Photos suppl€mentaires (optionnel)</div>
+    <div class="card"><div class="card-title"><i class="fas fa-plus-circle"></i> Photos supplémentaires (optionnel)</div>
       <div class="photos-grid" id="photoSupGrid"></div>
     </div>
     <div class="alert-required" id="photoAlert" style="display:none; background:rgba(224,163,67,0.1); border-radius:16px; padding:12px; margin-bottom:16px;"><i class="fas fa-exclamation-circle"></i> Veuillez prendre les 10 photos obligatoires.</div>
-    <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Pr€c€dent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
+    <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
 
-  <!-- €TAPE 4 : ZONES & DOMMAGES -->
+  <!-- ÉTAPE 4 : ZONES & DOMMAGES -->
   <div class="edl-step" data-step="4">
-    <div class="step-header"><div class="step-tag">€Étape 4 / 7</div><h2 class="step-title">zones & <em>dommages</em></h2><p class="step-sub">€valuez l'État de chaque zone.</p></div>
-    <div class="card"><div class="card-title"><i class="fas fa-car-crash"></i> Sch€ma interactif</div>
+    <div class="step-header"><div class="step-tag">Étape 4 / 7</div><h2 class="step-title">Zones & <em>dommages</em></h2><p class="step-sub">Évaluez l'état de chaque zone.</p></div>
+    <div class="card"><div class="card-title"><i class="fas fa-car-crash"></i> Schéma interactif</div>
       <div class="vehicle-schema" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
-        <div class="schema-view" style="background:var(--beige); border-radius:20px; padding:20px;"><div class="schema-label" style="font-weight:700; font-size:0.7rem; margin-bottom:12px;">Vue de dessus</div><svg viewbox="0 0 320 200" style="width:100%"><rect x="80" y="20" width="160" height="160" rx="30" fill="#F9F6F0" stroke="#E8E1D9" stroke-width="1"></rect><g class="damage-point" onclick="markDamage(this,'Pare-choc avant')"><circle cx="160" cy="18" r="10"></circle><text x="160" y="22" text-anchor="middle">AV</text></g><g class="damage-point" onclick="markDamage(this,'Pare-choc arri€re')"><circle cx="160" cy="182" r="10"></circle><text x="160" y="186" text-anchor="middle">AR</text></g><g class="damage-point" onclick="markDamage(this,'Aile avant gauche')"><circle cx="75" cy="45" r="9"></circle><text x="75" y="49" text-anchor="middle" font-size="7">AVG</text></g><g class="damage-point" onclick="markDamage(this,'Aile avant droite')"><circle cx="245" cy="45" r="9"></circle><text x="245" y="49" text-anchor="middle" font-size="7">AVD</text></g><g class="damage-point" onclick="markDamage(this,'Flanc gauche')"><circle cx="75" cy="100" r="9"></circle><text x="75" y="104" text-anchor="middle" font-size="7">FG</text></g><g class="damage-point" onclick="markDamage(this,'Flanc droit')"><circle cx="245" cy="100" r="9"></circle><text x="245" y="104" text-anchor="middle" font-size="7">FD</text></g><g class="damage-point" onclick="markDamage(this,'Aile arri€re gauche')"><circle cx="75" cy="155" r="9"></circle><text x="75" y="159" text-anchor="middle" font-size="7">ARG</text></g><g class="damage-point" onclick="markDamage(this,'Aile arri€re droite')"><circle cx="245" cy="155" r="9"></circle><text x="245" y="159" text-anchor="middle" font-size="7">ARD</text></g><g class="damage-point" onclick="markDamage(this,'Toit')"><circle cx="160" cy="100" r="10"></circle><text x="160" y="104" text-anchor="middle">Toit</text></g></svg></div>
-        <div class="schema-view" style="background:var(--beige); border-radius:20px; padding:20px;"><div class="schema-label" style="font-weight:700; font-size:0.7rem; margin-bottom:12px;">Vue de face</div><svg viewbox="0 0 320 200" style="width:100%"><rect x="60" y="30" width="200" height="140" rx="20" fill="#F9F6F0" stroke="#E8E1D9" stroke-width="1"></rect><g class="damage-point" onclick="markDamage(this,'Phare avant gauche')"><circle cx="90" cy="60" r="10"></circle><text x="90" y="64" text-anchor="middle" font-size="7">PHG</text></g><g class="damage-point" onclick="markDamage(this,'Phare avant droit')"><circle cx="230" cy="60" r="10"></circle><text x="230" y="64" text-anchor="middle" font-size="7">PHD</text></g><g class="damage-point" onclick="markDamage(this,'Pare-brise')"><circle cx="160" cy="75" r="10"></circle><text x="160" y="79" text-anchor="middle" font-size="7">PB</text></g><g class="damage-point" onclick="markDamage(this,'Calandre')"><circle cx="160" cy="150" r="10"></circle><text x="160" y="154" text-anchor="middle" font-size="7">CAL</text></g></svg></div>
+        <div class="schema-view" style="background:var(--beige); border-radius:20px; padding:20px;"><div class="schema-label" style="font-weight:700; font-size:0.7rem; margin-bottom:12px;">Vue de dessus</div><svg viewBox="0 0 320 200" style="width:100%"><rect x="80" y="20" width="160" height="160" rx="30" fill="#F9F6F0" stroke="#E8E1D9" stroke-width="1"></rect><g class="damage-point" onclick="markDamage(this,'Pare-choc avant')"><circle cx="160" cy="18" r="10"></circle><text x="160" y="22" text-anchor="middle">AV</text></g><g class="damage-point" onclick="markDamage(this,'Pare-choc arrière')"><circle cx="160" cy="182" r="10"></circle><text x="160" y="186" text-anchor="middle">AR</text></g><g class="damage-point" onclick="markDamage(this,'Aile avant gauche')"><circle cx="75" cy="45" r="9"></circle><text x="75" y="49" text-anchor="middle" font-size="7">AVG</text></g><g class="damage-point" onclick="markDamage(this,'Aile avant droite')"><circle cx="245" cy="45" r="9"></circle><text x="245" y="49" text-anchor="middle" font-size="7">AVD</text></g><g class="damage-point" onclick="markDamage(this,'Flanc gauche')"><circle cx="75" cy="100" r="9"></circle><text x="75" y="104" text-anchor="middle" font-size="7">FG</text></g><g class="damage-point" onclick="markDamage(this,'Flanc droit')"><circle cx="245" cy="100" r="9"></circle><text x="245" y="104" text-anchor="middle" font-size="7">FD</text></g><g class="damage-point" onclick="markDamage(this,'Aile arrière gauche')"><circle cx="75" cy="155" r="9"></circle><text x="75" y="159" text-anchor="middle" font-size="7">ARG</text></g><g class="damage-point" onclick="markDamage(this,'Aile arrière droite')"><circle cx="245" cy="155" r="9"></circle><text x="245" y="159" text-anchor="middle" font-size="7">ARD</text></g><g class="damage-point" onclick="markDamage(this,'Toit')"><circle cx="160" cy="100" r="10"></circle><text x="160" y="104" text-anchor="middle">Toit</text></g></svg></div>
+        <div class="schema-view" style="background:var(--beige); border-radius:20px; padding:20px;"><div class="schema-label" style="font-weight:700; font-size:0.7rem; margin-bottom:12px;">Vue de face</div><svg viewBox="0 0 320 200" style="width:100%"><rect x="60" y="30" width="200" height="140" rx="20" fill="#F9F6F0" stroke="#E8E1D9" stroke-width="1"></rect><g class="damage-point" onclick="markDamage(this,'Phare avant gauche')"><circle cx="90" cy="60" r="10"></circle><text x="90" y="64" text-anchor="middle" font-size="7">PHG</text></g><g class="damage-point" onclick="markDamage(this,'Phare avant droit')"><circle cx="230" cy="60" r="10"></circle><text x="230" y="64" text-anchor="middle" font-size="7">PHD</text></g><g class="damage-point" onclick="markDamage(this,'Pare-brise')"><circle cx="160" cy="75" r="10"></circle><text x="160" y="79" text-anchor="middle" font-size="7">PB</text></g><g class="damage-point" onclick="markDamage(this,'Calandre')"><circle cx="160" cy="150" r="10"></circle><text x="160" y="154" text-anchor="middle" font-size="7">CAL</text></g></svg></div>
       </div>
     </div>
     <div class="card"><div class="card-title"><i class="fas fa-layer-group"></i> État par zone</div>
-      <div class="legend-row" style="display:flex; gap:12px; margin-bottom:16px;"><div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:var(--success)"></div> Bon</div><div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:var(--warning)"></div> Rayure</div><div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:var(--bordeaux)"></div> Enfoncement/Cass€</div></div>
+      <div class="legend-row" style="display:flex; gap:12px; margin-bottom:16px;"><div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:var(--success)"></div> Bon</div><div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:var(--warning)"></div> Rayure</div><div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:var(--bordeaux)"></div> Enfoncement/Cassé</div></div>
       <div class="zones-grid" id="zonesGrid"></div>
     </div>
-    <div class="card"><div class="card-title"><i class="fas fa-exclamation-triangle"></i> Dommages signal€s</div>
+    <div class="card"><div class="card-title"><i class="fas fa-exclamation-triangle"></i> Dommages signalés</div>
       <div class="dommage-list" id="dommageList"><div style="font-size:0.7rem; color:var(--gray-mid)">Aucun dommage.</div></div>
       <button class="btn-add-dommage" onclick="openModal('modalDommage')"><i class="fas fa-plus"></i> Ajouter un dommage</button>
     </div>
-    <div class="card"><div class="card-title"><i class="fas fa-sticky-note"></i> Observations g€n€rales</div><textarea id="obsGenerales" rows="3" placeholder="État g€n€ral, odeurs, bruits..."></textarea></div>
-    <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Pr€c€dent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
+    <div class="card"><div class="card-title"><i class="fas fa-sticky-note"></i> Observations générales</div><textarea id="obsGenerales" rows="3" placeholder="État général, odeurs, bruits..."></textarea></div>
+    <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
 
-  <!-- €TAPE 5 : CONFORMIT€ (€équipements) -->
+  <!-- ÉTAPE 5 : CONFORMITÉ (équipements) -->
   <div class="edl-step" data-step="5">
-    <div class="step-header"><div class="step-tag">€Étape 5 / 7</div><h2 class="step-title">Contr€le de <em>conformit€</em></h2><p class="step-sub">V€rification technique.</p></div>
-    <div class="card"><div class="card-title"><i class="fas fa-shield-alt"></i> €équipements de sécurité</div>
+    <div class="step-header"><div class="step-tag">Étape 5 / 7</div><h2 class="step-title">Contrôle de <em>conformité</em></h2><p class="step-sub">Vérification technique.</p></div>
+    <div class="card"><div class="card-title"><i class="fas fa-shield-alt"></i> Équipements de sécurité</div>
       <div class="doc-grid" id="equipGrid"></div>
     </div>
     <div class="card"><div class="card-title"><i class="fas fa-cog"></i> État mécanique visuel</div>
       <div class="doc-grid" id="mecaGrid"></div>
       <div class="f-grp"><label>Remarques techniques</label><textarea id="remTech" rows="2"></textarea></div>
     </div>
-    <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Pr€c€dent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
+    <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
 
-  <!-- €TAPE 6 : SIGNATURES -->
+  <!-- ÉTAPE 6 : SIGNATURES -->
   <div class="edl-step" data-step="6">
-    <div class="step-header"><div class="step-tag">€Étape 6 / 7</div><h2 class="step-title">Signatures <em>€lectroniques</em></h2><p class="step-sub">Les deux signatures sont obligatoires.</p></div>
+    <div class="step-header"><div class="step-tag">Étape 6 / 7</div><h2 class="step-title">Signatures <em>électroniques</em></h2><p class="step-sub">Les deux signatures sont obligatoires.</p></div>
     <div class="card"><div class="card-title"><i class="fas fa-truck"></i> Signature du convoyeur</div>
-      <div class="f-row" style="margin-bottom:12px;"><div class="f-grp"><label>Nom</label><input type="text" id="sigConvNom" value="M. Bathily" readonly="None"></div><div class="f-grp"><label>Horodatage</label><input type="text" id="sigConvDate" readonly="None"></div></div>
-      <div class="sig-done" id="sigConvDone"><i class="fas fa-check-circle"></i> Signature enregistr€e</div>
-      <div class="sig-container"><div class="sig-header"><span>Je certifie l'exactiétude de cet État des lieux.</span><button class="sig-clear" onclick="clearSig('sigConv')">Effacer</button></div><canvas id="sigConv" width="800" height="160"></canvas></div>
+      <div class="f-row" style="margin-bottom:12px;"><div class="f-grp"><label>Nom</label><input type="text" id="sigConvNom" value="M. Bathily" readonly></div><div class="f-grp"><label>Horodatage</label><input type="text" id="sigConvDate" readonly></div></div>
+      <div class="sig-done" id="sigConvDone"><i class="fas fa-check-circle"></i> Signature enregistrée</div>
+      <div class="sig-container"><div class="sig-header"><span>Je certifie l'exactitude de cet État des lieux.</span><button class="sig-clear" onclick="clearSig('sigConv')">Effacer</button></div><canvas id="sigConv" width="800" height="160"></canvas></div>
       <button class="btn-sig" onclick="saveSig('sigConv','sigConvDone','sigConvDate')">Valider ma signature</button>
     </div>
     <div class="card"><div class="card-title"><i class="fas fa-user"></i> Signature du client</div>
-      <div class="f-row" style="margin-bottom:12px;"><div class="f-grp"><label>Nom</label><input type="text" id="sigCliNom" value="Jean Dupont" readonly="None"></div><div class="f-grp"><label>Horodatage</label><input type="text" id="sigCliDate" readonly="None"></div></div>
-      <div class="sig-done" id="sigCliDone"><i class="fas fa-check-circle"></i> Signature enregistr€e</div>
-      <div class="sig-container"><div class="sig-header"><span>Je confirme avoir v€rifi€ l'État du véhicule.</span><button class="sig-clear" onclick="clearSig('sigCli')">Effacer</button></div><canvas id="sigCli" width="800" height="160"></canvas></div>
+      <div class="f-row" style="margin-bottom:12px;"><div class="f-grp"><label>Nom</label><input type="text" id="sigCliNom" value="Jean Dupont" readonly></div><div class="f-grp"><label>Horodatage</label><input type="text" id="sigCliDate" readonly></div></div>
+      <div class="sig-done" id="sigCliDone"><i class="fas fa-check-circle"></i> Signature enregistrée</div>
+      <div class="sig-container"><div class="sig-header"><span>Je confirme avoir vérifié l'état du véhicule.</span><button class="sig-clear" onclick="clearSig('sigCli')">Effacer</button></div><canvas id="sigCli" width="800" height="160"></canvas></div>
       <button class="btn-sig" onclick="saveSig('sigCli','sigCliDone','sigCliDate')">Valider la signature</button>
     </div>
     <div class="alert-required" id="sigAlert" style="display:none; background:rgba(224,163,67,0.1); border-radius:16px; padding:12px;"><i class="fas fa-exclamation-circle"></i> Les deux signatures sont requises.</div>
-    <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Pr€c€dent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
+    <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
 
-  <!-- €TAPE 7 : VALIDATION -->
+  <!-- ÉTAPE 7 : VALIDATION -->
   <div class="edl-step" data-step="7">
-    <div class="step-header"><div class="step-tag">€Étape 7 / 7</div><h2 class="step-title">R€capitulatif & <em>validation</em></h2><p class="step-sub">V€rifiez et validez l'État des lieux.</p></div>
-    <div class="recap-grid"><div class="recap-card"><div class="recap-card-title">Mission</div><div class="recap-line"><span>R€f€rence</span><span id="recRef">BC-2025-0847</span></div><div class="recap-line"><span>Type EDL</span><span id="recType">D€part</span></div><div class="recap-line"><span>convoyeur</span><span id="recConv">M. Bathily</span></div></div><div class="recap-card"><div class="recap-card-title">Véhicule</div><div class="recap-line"><span>Plaque</span><span id="recPlaque">IJ-789-KL</span></div><div class="recap-line"><span>Véhicule</span><span id="recVehicule">BMW S€rie 3</span></div><div class="recap-line"><span>Carburant</span><span id="recFuel">65%</span></div></div><div class="recap-card"><div class="recap-card-title">Photos & Dommages</div><div class="recap-line"><span>Photos ext€rieur</span><span id="recPhotoExt">0/5</span></div><div class="recap-line"><span>Photos int€rieur</span><span id="recPhotoInt">0/5</span></div><div class="recap-line"><span>Dommages</span><span id="recDommages">0</span></div></div><div class="recap-card"><div class="recap-card-title">Signatures</div><div class="recap-line"><span>convoyeur</span><span id="recSigConv">En attente</span></div><div class="recap-line"><span>Client</span><span id="recSigCli">En attente</span></div></div></div>
-    <div class="card"><div class="card-title"><i class="fas fa-paper-plane"></i> Envoi automatique</div><div class="f-row"><div class="f-grp"><label>Email client</label><input type="email" id="emailCli" value="jean.dupont@email.fr"></div><div class="f-grp"><label>Email convoyeur</label><input type="email" id="emailConv" value="m.bathily@convoyeur.fr"></div></div><div class="f-grp"><label>Email Bathily</label><input type="email" value="contact@bathily-convoyage.fr" readonly="None"></div></div>
-    <div class="success-final" id="successFinal"><div class="sf-ico"><i class="fas fa-check-circle"></i></div><h3 class="sf-h">État des lieux <em>valid€ !</em></h3><div class="sf-ref-val" id="edlRef">EDL-2025-0847-DEP</div><div class="sf-actions" style="display:flex; gap:12px; justify-content:center; margin-top:20px;"><button class="btn-red" onclick="printEdl()"><i class="fas fa-download"></i> T€l€charger PDF</button><a href="dashboard-convoyeur.html" class="btn-outline">Retour au dashboard</a><button class="btn-outline" onclick="newEdl()">Nouvel État des lieux</button></div></div>
-    <div class="step-nav" id="finalNav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Pr€c€dent</button><button class="btn-nav btn-next" style="background:var(--success)" onclick="validateEdl()"><i class="fas fa-check"></i> Valider & envoyer</button></div>
+    <div class="step-header"><div class="step-tag">Étape 7 / 7</div><h2 class="step-title">Récapitulatif & <em>validation</em></h2><p class="step-sub">Vérifiez et validez l'État des lieux.</p></div>
+    <div class="recap-grid"><div class="recap-card"><div class="recap-card-title">Mission</div><div class="recap-line"><span>Référence</span><span id="recRef">BC-2025-0847</span></div><div class="recap-line"><span>Type EDL</span><span id="recType">Départ</span></div><div class="recap-line"><span>Convoyeur</span><span id="recConv">M. Bathily</span></div></div><div class="recap-card"><div class="recap-card-title">Véhicule</div><div class="recap-line"><span>Plaque</span><span id="recPlaque">IJ-789-KL</span></div><div class="recap-line"><span>Véhicule</span><span id="recVehicule">BMW Série 3</span></div><div class="recap-line"><span>Carburant</span><span id="recFuel">65%</span></div></div><div class="recap-card"><div class="recap-card-title">Photos & Dommages</div><div class="recap-line"><span>Photos extérieur</span><span id="recPhotoExt">0/5</span></div><div class="recap-line"><span>Photos intérieur</span><span id="recPhotoInt">0/5</span></div><div class="recap-line"><span>Dommages</span><span id="recDommages">0</span></div></div><div class="recap-card"><div class="recap-card-title">Signatures</div><div class="recap-line"><span>Convoyeur</span><span id="recSigConv">En attente</span></div><div class="recap-line"><span>Client</span><span id="recSigCli">En attente</span></div></div></div>
+    <div class="card"><div class="card-title"><i class="fas fa-paper-plane"></i> Envoi automatique</div><div class="f-row"><div class="f-grp"><label>Email client</label><input type="email" id="emailCli" value="jean.dupont@email.fr"></div><div class="f-grp"><label>Email convoyeur</label><input type="email" id="emailConv" value="m.bathily@convoyeur.fr"></div></div><div class="f-grp"><label>Email Bathily</label><input type="email" value="contact@bathily-convoyage.fr" readonly></div></div>
+    <div class="success-final" id="successFinal"><div class="sf-ico"><i class="fas fa-check-circle"></i></div><h3 class="sf-h">État des lieux <em>validé !</em></h3><div class="sf-ref-val" id="edlRef">EDL-2025-0847-DEP</div><div class="sf-actions" style="display:flex; gap:12px; justify-content:center; margin-top:20px;"><button class="btn-red" onclick="printEdl()"><i class="fas fa-download"></i> Télécharger PDF</button><a href="dashboard-convoyeur.html" class="btn-outline">Retour au dashboard</a><button class="btn-outline" onclick="newEdl()">Nouvel État des lieux</button></div></div>
+    <div class="step-nav" id="finalNav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" style="background:var(--success)" onclick="validateEdl()"><i class="fas fa-check"></i> Valider & envoyer</button></div>
   </div>
 </div>
 
@@ -802,7 +802,7 @@ canvas {
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal('modalDommage')"><i class="fas fa-times"></i></button>
     <h3 class="modal-h" style="font-family:'Montserrat'; font-size:1.2rem;">Signaler un <em>dommage</em></h3>
-    <div class="f-grp"><label>zone</label><select id="dZone"><option>Pare-choc avant</option><option>Pare-choc arri€re</option><option>Aile avant gauche</option><option>Aile avant droite</option><option>Flanc gauche</option><option>Flanc droit</option><option>Toit</option></select></div>
+    <div class="f-grp"><label>Zone</label><select id="dZone"><option>Pare-choc avant</option><option>Pare-choc arrière</option><option>Aile avant gauche</option><option>Aile avant droite</option><option>Flanc gauche</option><option>Flanc droit</option><option>Toit</option></select></div>
     <div class="f-grp"><label>Type</label><select id="dType"><option>Rayure</option><option>Enfoncement</option><option>Cassure</option></select></div>
     <div class="f-grp"><label>Description</label><textarea id="dDesc" rows="2"></textarea></div>
     <div class="modal-btns" style="display:flex; gap:12px; margin-top:16px;"><button class="btn-red" style="background:var(--bordeaux); border-radius:40px; padding:8px 16px; color:white; border:none; cursor:pointer;" onclick="addDommage()">Ajouter</button><button class="btn-outline" onclick="closeModal('modalDommage')">Annuler</button></div>
@@ -818,7 +818,7 @@ if(window.matchMedia('(hover: hover)').matches) {
   (function loop(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(loop)})();
 }
 
-// ========== €TAT GLOBAL ==========
+// ========== ÉTAT GLOBAL ==========
 const STATE = {
   step:1, edlType:'depart', photoExt:0, photoInt:0, dommages:[], sigConvDone:false, sigCliDone:false, fuelValue:65,
   photosExt:[], photosInt:[], photosSup:[]
@@ -843,10 +843,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 function hasUnsavedChanges() { return true; }
-function autoSave() { saveDraft(); showToast('Brouillon sauvegard€'); }
+function autoSave() { saveDraft(); showToast('Brouillon sauvegardé'); }
 function saveDraft() {
   const draft = {
-    émission_id: new URLSearchParams(window.location.search).get('émission_id') || '',
+    mission_id: new URLSearchParams(window.location.search).get('mission_id') || '',
     step:STATE.step, edlType:STATE.edlType, photoExt:STATE.photoExt, photoInt:STATE.photoInt, dommages:STATE.dommages,
     sigConvDone:STATE.sigConvDone, sigCliDone:STATE.sigCliDone, fuelValue:STATE.fuelValue,
     mRef:document.getElementById('mRef')?.value, mDate:document.getElementById('mDate')?.value,
@@ -868,8 +868,8 @@ function loadDraft() {
   try {
     const d = JSON.parse(saved);
     const urlParams = new URLSearchParams(window.location.search);
-    const urlMissionId = urlParams.get('émission_id');
-    if (urlMissionId && d.émission_id !== urlMissionId) {
+    const urlMissionId = urlParams.get('mission_id');
+    if (urlMissionId && d.mission_id !== urlMissionId) {
       localStorage.removeItem('bathily_edl_draft');
       return;
     }
@@ -895,7 +895,7 @@ function showToast(msg, type='success') {
   setTimeout(() => toast.remove(), 3000);
 }
 
-// ========== €TAPES ==========
+// ========== ÉTAPES ==========
 function goStep(n) {
   document.querySelectorAll('.edl-step').forEach(s=>s.classList.remove('active'));
   document.querySelector(`.edl-step[data-step="${n}"]`).classList.add('active');
@@ -941,38 +941,38 @@ function setEdlType(type){
 // ========== GRILLES DOCUMENTS ==========
 function buildDocGrid() {
   const docs = [
-    {label:'Carte grise'}, {label:'Assurance'}, {label:'Cl€ principale'}, {label:'Cl€ de secours'},
-    {label:'Manuel du propri€taire'}, {label:'Roue de secours / Kit'}, {label:'Triangle'}, {label:'Gilet de sécurité'},
-    {label:'C€ble de recharge EV'}, {label:'Vignette Crit\'Air'}
+    {label:'Carte grise'}, {label:'Assurance'}, {label:'Clé principale'}, {label:'Clé de secours'},
+    {label:'Manuel du propriétaire'}, {label:'Roue de secours / Kit'}, {label:'Triangle'}, {label:'Gilet de sécurité'},
+    {label:'Câble de recharge EV'}, {label:'Vignette Crit\'Air'}
   ];
   const container = document.getElementById('docGrid');
   container.innerHTML = '';
   docs.forEach(doc => {
     const div = document.createElement('div');
     div.className = 'doc-item';
-    div.innerHTML = `<span class="doc-lbl">${doc.label}</span><div class="doc-toggle"><button class="doc-btn" onclick="confToggle(this,'ok')">?</button><button class="doc-btn" onclick="confToggle(this,'nok')">?</button>${doc.label === 'C€ble de recharge EV' ? `<button class="doc-btn" onclick="confToggle(this,'na')">N/A</button>` : ''}</div>`;
+    div.innerHTML = `<span class="doc-lbl">${doc.label}</span><div class="doc-toggle"><button class="doc-btn" onclick="confToggle(this,'ok')">✓</button><button class="doc-btn" onclick="confToggle(this,'nok')">✗</button>${doc.label === 'Câble de recharge EV' ? `<button class="doc-btn" onclick="confToggle(this,'na')">N/A</button>` : ''}</div>`;
     container.appendChild(div);
   });
 }
 function buildEquipGrid() {
-  const equips = ['Feux avant', 'Feux arri€re', 'Clignotants', 'Klaxon', 'Essuie-glaces', 'R€troviseurs', 'Ceintures de sécurité'];
+  const equips = ['Feux avant', 'Feux arrière', 'Clignotants', 'Klaxon', 'Essuie-glaces', 'Rétroviseurs', 'Ceintures de sécurité'];
   const container = document.getElementById('equipGrid');
   container.innerHTML = '';
   equips.forEach(equip => {
     const div = document.createElement('div');
     div.className = 'doc-item';
-    div.innerHTML = `<span class="doc-lbl">${equip}</span><div class="doc-toggle"><button class="doc-btn" onclick="confToggle(this,'ok')">? OK</button><button class="doc-btn" onclick="confToggle(this,'nok')">? NOK</button></div>`;
+    div.innerHTML = `<span class="doc-lbl">${equip}</span><div class="doc-toggle"><button class="doc-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="doc-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div>`;
     container.appendChild(div);
   });
 }
 function buildMecaGrid() {
-  const mecas = ['Voyants tableau de bord', 'Pression des pneus (visuel)', 'Usure des pneus', 'Liquide refroidissement', 'Huile moteur (jauge)', 'D€marrage moteur'];
+  const mecas = ['Voyants tableau de bord', 'Pression des pneus (visuel)', 'Usure des pneus', 'Liquide refroidissement', 'Huile moteur (jauge)', 'Démarrage moteur'];
   const container = document.getElementById('mecaGrid');
   container.innerHTML = '';
   mecas.forEach(meca => {
     const div = document.createElement('div');
     div.className = 'doc-item';
-    div.innerHTML = `<span class="doc-lbl">${meca}</span><div class="doc-toggle"><button class="doc-btn" onclick="confToggle(this,'ok')">? OK</button><button class="doc-btn" onclick="confToggle(this,'nok')">? NOK</button></div>`;
+    div.innerHTML = `<span class="doc-lbl">${meca}</span><div class="doc-toggle"><button class="doc-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="doc-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div>`;
     container.appendChild(div);
   });
 }
@@ -984,9 +984,9 @@ function confToggle(btn, state){
 
 // ========== PHOTOS UPLOAD ==========
 function initPhotoSlots() {
-  const extSlots = [{label:'Avant'},{label:'Arri€re'},{label:'C€t€ Gauche'},{label:'C€t€ Droit'},{label:'Toit'}];
-  const intSlots = [{label:'Tableau de bord'},{label:'Si€ge AV G'},{label:'Si€ge AV D'},{label:'Si€ges AR'},{label:'Coffre'}];
-  const supSlots = [{label:'Dommage 1'},{label:'Dommage 2'},{label:'Dommage 3'},{label:'D€tail 4'},{label:'D€tail 5'}];
+  const extSlots = [{label:'Avant'},{label:'Arrière'},{label:'Côté Gauche'},{label:'Côté Droit'},{label:'Toit'}];
+  const intSlots = [{label:'Tableau de bord'},{label:'Siège AV G'},{label:'Siège AV D'},{label:'Sièges AR'},{label:'Coffre'}];
+  const supSlots = [{label:'Dommage 1'},{label:'Dommage 2'},{label:'Dommage 3'},{label:'Détail 4'},{label:'Détail 5'}];
   function buildGrid(containerId, slots, type) {
     const grid = document.getElementById(containerId);
     grid.innerHTML = '';
@@ -1025,20 +1025,20 @@ function handlePhotoUpload(div, file, type, idx) {
     div.appendChild(check);
     if (type === 'ext') { STATE.photoExt++; document.getElementById('photoExtCount').innerText = STATE.photoExt; document.getElementById('photoExtBar').style.width = (STATE.photoExt/5*100)+'%'; }
     if (type === 'int') { STATE.photoInt++; document.getElementById('photoIntCount').innerText = STATE.photoInt; document.getElementById('photoIntBar').style.width = (STATE.photoInt/5*100)+'%'; }
-    showToast('Photo ajout€e');
+    showToast('Photo ajoutée');
   };
   reader.readAsDataURL(file);
 }
 
 // ========== ZONES ==========
-const ZONES = ['Pare-choc AV','Pare-choc AR','Capot','Toit','Aile AV G','Aile AV D','Aile AR G','Aile AR D','Porte AV G','Porte AV D','Porte AR G','Porte AR D','Pare-brise','Coffre','Si€ges','Tableau de bord'];
+const ZONES = ['Pare-choc AV','Pare-choc AR','Capot','Toit','Aile AV G','Aile AV D','Aile AR G','Aile AR D','Porte AV G','Porte AV D','Porte AR G','Porte AR D','Pare-brise','Coffre','Sièges','Tableau de bord'];
 function buildZonesGrid(){
   const grid = document.getElementById('zonesGrid');
   grid.innerHTML = '';
   ZONES.forEach(zone => {
     const div = document.createElement('div');
     div.className = 'zone-card';
-    div.innerHTML = `<i class="fas fa-car-side zone-ico"></i><div class="zone-name">${zone}</div><select class="zone-selector" onchange="updateZoneState(this,'${zone}')"><option value="">€</option><option value="bon">? Bon</option><option value="raye">~ Rayure</option><option value="enfonce">? Enfoncement</option><option value="casse">? Cass€</option></select>`;
+    div.innerHTML = `<i class="fas fa-car-side zone-ico"></i><div class="zone-name">${zone}</div><select class="zone-selector" onchange="updateZoneState(this,'${zone}')"><option value="">-</option><option value="bon">✓ Bon</option><option value="raye">~ Rayure</option><option value="enfonce">↕ Enfoncement</option><option value="casse">✗ Cassé</option></select>`;
     grid.appendChild(div);
   });
 }
@@ -1060,7 +1060,7 @@ function addDommage(){
   document.getElementById('dType').value = '';
   document.getElementById('dDesc').value = '';
   closeModal('modalDommage');
-  showToast('Dommage ajout€');
+  showToast('Dommage ajouté');
 }
 function refreshDommageList(){
   const list = document.getElementById('dommageList');
@@ -1069,7 +1069,7 @@ function refreshDommageList(){
   STATE.dommages.forEach((d,i)=>{
     const div = document.createElement('div');
     div.className = 'dommage-item';
-    div.innerHTML = `<i class="fas fa-exclamation-triangle dommage-item-ico"></i><div><div class="dommage-zone">${d.zone} € ${d.type}</div><div class="dommage-desc">${d.desc}</div></div><button class="dommage-del" onclick="removeDommage(${i})">&times;</button>`;
+    div.innerHTML = `<i class="fas fa-exclamation-triangle dommage-item-ico"></i><div><div class="dommage-zone">${d.zone} - ${d.type}</div><div class="dommage-desc">${d.desc}</div></div><button class="dommage-del" onclick="removeDommage(${i})">&times;</button>`;
     list.appendChild(div);
   });
 }
@@ -1080,18 +1080,14 @@ function initSignatures(){
   ['sigConv','sigCli'].forEach(id => {
     const canvas = document.getElementById(id);
     const ctx = canvas.getContext('2d');
-    // Fonction pour redimensionner le canvas et préserver le contenu
     function resizeCanvas() {
       const container = canvas.parentElement;
       const rect = container.getBoundingClientRect();
-      const oldWidth = canvas.width;
-      const oldHeight = canvas.height;
       canvas.width = rect.width;
       canvas.height = 160;
       ctx.strokeStyle = '#2D2A24';
       ctx.lineWidth = 2;
       ctx.lineCap = 'round';
-      // On ne restaure pas l'ancien contenu (on recommence)
     }
     resizeCanvas();
     window.addEventListener('resize', () => resizeCanvas());
@@ -1160,7 +1156,7 @@ function saveSig(canvasId, doneId, dateId) {
   document.getElementById(doneId).classList.add('show');
   if (canvasId === 'sigConv') STATE.sigConvDone = true;
   if (canvasId === 'sigCli') STATE.sigCliDone = true;
-  showToast('Signature enregistr€e');
+  showToast('Signature enregistrée');
 }
 function updFuel(v){ STATE.fuelValue = v; document.getElementById('fuelVal').innerHTML = v+'%'; }
 function fmtPlaque(inp){ let v=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,''); if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2); if(v.length>6)v=v.slice(0,6)+'-'+v.slice(6); inp.value=v; }
@@ -1175,18 +1171,18 @@ function getSupabase() {
 
 async function initSupabaseEdl() {
   const urlParams = new URLSearchParams(window.location.search);
-  const émissionId = urlParams.get('émission_id');
+  const missionId = urlParams.get('mission_id');
   const typeParam = urlParams.get('type');
 
   if (typeParam) {
     setEdlType(typeParam);
   }
 
-  if (!émissionId) return;
+  if (!missionId) return;
 
   // Show Loading indicator
   Swal.fire({
-    title: 'Chargement de la émission...',
+    title: 'Chargement de la mission...',
     allowOutsideClick: false,
     didOpen: () => {
       Swal.showLoading();
@@ -1195,33 +1191,33 @@ async function initSupabaseEdl() {
 
   try {
     const client = getSupabase();
-    const { data: émission, error } = await client.from('émissions').select('*').eq('id', émissionId).single();
+    const { data: mission, error } = await client.from('missions').select('*').eq('id', missionId).single();
 
-    if (error || !émission) {
+    if (error || !mission) {
       throw new Error(error?.message || "Mission introuvable");
     }
 
     if (document.getElementById('mRef')) {
-      document.getElementById('mRef').value = émission.reference;
+      document.getElementById('mRef').value = mission.reference;
     }
-    if (document.getElementById('mDepart')) document.getElementById('mDepart').value = émission.depart || '';
-    if (document.getElementById('mArrivee')) document.getElementById('mArrivee').value = émission.arrivee || '';
-    if (document.getElementById('mConvoyeur')) document.getElementById('mConvoyeur').value = émission.convoyeur_nom || 'M. Bathily';
-    if (document.getElementById('cNom')) document.getElementById('cNom').value = émission.client_nom || 'Client';
+    if (document.getElementById('mDepart')) document.getElementById('mDepart').value = mission.depart || '';
+    if (document.getElementById('mArrivee')) document.getElementById('mArrivee').value = mission.arrivee || '';
+    if (document.getElementById('mConvoyeur')) document.getElementById('mConvoyeur').value = mission.convoyeur_nom || 'M. Bathily';
+    if (document.getElementById('cNom')) document.getElementById('cNom').value = mission.client_nom || 'Client';
     
     // Retrieve client details to extract email/phone if possible
-    if (émission.client_email && document.getElementById('cEmail')) {
-      document.getElementById('cEmail').value = émission.client_email;
-      document.getElementById('emailCli').value = émission.client_email;
+    if (mission.client_email && document.getElementById('cEmail')) {
+      document.getElementById('cEmail').value = mission.client_email;
+      document.getElementById('emailCli').value = mission.client_email;
     }
 
-    if (émission.vehicule) {
-      const spaceIdx = émission.vehicule.indexOf(' ');
+    if (mission.vehicule) {
+      const spaceIdx = mission.vehicule.indexOf(' ');
       if (spaceIdx > 0) {
-        if (document.getElementById('vMarque')) document.getElementById('vMarque').value = émission.vehicule.substring(0, spaceIdx).trim();
-        if (document.getElementById('vModele')) document.getElementById('vModele').value = émission.vehicule.substring(spaceIdx).trim();
+        if (document.getElementById('vMarque')) document.getElementById('vMarque').value = mission.vehicule.substring(0, spaceIdx).trim();
+        if (document.getElementById('vModele')) document.getElementById('vModele').value = mission.vehicule.substring(spaceIdx).trim();
       } else {
-        if (document.getElementById('vMarque')) document.getElementById('vMarque').value = émission.vehicule;
+        if (document.getElementById('vMarque')) document.getElementById('vMarque').value = mission.vehicule;
       }
     }
 
@@ -1231,7 +1227,7 @@ async function initSupabaseEdl() {
   } catch (err) {
     Swal.fire({
       title: 'Erreur',
-      text: 'Impossible de charger les détails de la émission : ' + err.message,
+      text: 'Impossible de charger les détails de la mission : ' + err.message,
       icon: 'error',
       confirmButtonColor: 'var(--bordeaux)'
     });
@@ -1252,7 +1248,7 @@ async function lookupLicensePlate() {
 
   Swal.fire({
     title: 'Recherche SIV en cours...',
-    text: 'Identification du véhicule sur la base de donn€es...',
+    text: 'Identification du véhicule sur la base de données...',
     allowOutsideClick: false,
     didOpen: () => {
       Swal.showLoading();
@@ -1275,9 +1271,9 @@ async function lookupLicensePlate() {
       if (document.getElementById('vVin') && data.vin) document.getElementById('vVin').value = data.vin;
       
       // Auto-select fuel type if possible
-      if (data.eénergie && document.getElementById('vEénergie')) {
-        const option = Array.from(document.getElementById('vEénergie').options)
-          .find(opt => opt.text.toLowerCase().includes(data.eénergie.toLowerCase()));
+      if (data.energie && document.getElementById('vEnergie')) {
+        const option = Array.from(document.getElementById('vEnergie').options)
+          .find(opt => opt.text.toLowerCase().includes(data.energie.toLowerCase()));
         if (option) option.selected = true;
       }
 
@@ -1285,13 +1281,13 @@ async function lookupLicensePlate() {
       updRecap();
       
       Swal.fire({
-        title: 'Véhicule identifi€ ! ⭐',
-        html: `<strong>Marque :</strong> ${data.marque}<br><strong>Mod€le :</strong> ${data.modele || '€'}<br><strong>€énergie :</strong> ${data.eénergie || '€'}`,
+        title: 'Véhicule identifié ! ⭐',
+        html: `<strong>Marque :</strong> ${data.marque}<br><strong>Modèle :</strong> ${data.modele || '-'}<br><strong>Énergie :</strong> ${data.energie || '-'}`,
         icon: 'success',
         confirmButtonColor: 'var(--bordeaux)'
       });
     } else {
-      throw new Error('Aucun véhicule trouv€ pour cette plaque.');
+      throw new Error('Aucun véhicule trouvé pour cette plaque.');
     }
   } catch (err) {
     Swal.fire({
@@ -1304,25 +1300,25 @@ async function lookupLicensePlate() {
 }
 
 function updateRef(){
-  const ref = document.getElementById('mRef')?.value || '€';
+  const ref = document.getElementById('mRef')?.value || '-';
   const marque = document.getElementById('vMarque')?.value || '';
   const modele = document.getElementById('vModele')?.value || '';
   const plaque = document.getElementById('vPlaque')?.value || '';
-  document.getElementById('topRef').innerHTML = `${ref} € ${marque} ${modele} € ${plaque}`;
+  document.getElementById('topRef').innerHTML = `${ref} · ${marque} ${modele} · ${plaque}`;
 }
 
 function updRecap(){
-  document.getElementById('recRef').innerHTML = document.getElementById('mRef')?.value || '€';
-  document.getElementById('recType').innerHTML = STATE.edlType==='depart'?'D€part':'Arriv€e';
-  document.getElementById('recConv').innerHTML = document.getElementById('mConvoyeur')?.value || '€';
-  document.getElementById('recPlaque').innerHTML = document.getElementById('vPlaque')?.value || '€';
+  document.getElementById('recRef').innerHTML = document.getElementById('mRef')?.value || '-';
+  document.getElementById('recType').innerHTML = STATE.edlType==='depart'?'Départ':'Arrivée';
+  document.getElementById('recConv').innerHTML = document.getElementById('mConvoyeur')?.value || '-';
+  document.getElementById('recPlaque').innerHTML = document.getElementById('vPlaque')?.value || '-';
   document.getElementById('recVehicule').innerHTML = (document.getElementById('vMarque')?.value||'')+' '+(document.getElementById('vModele')?.value||'');
   document.getElementById('recFuel').innerHTML = STATE.fuelValue+'%';
   document.getElementById('recPhotoExt').innerHTML = STATE.photoExt+'/5';
   document.getElementById('recPhotoInt').innerHTML = STATE.photoInt+'/5';
   document.getElementById('recDommages').innerHTML = STATE.dommages.length;
-  document.getElementById('recSigConv').innerHTML = STATE.sigConvDone ? 'Sign€e' : 'En attente';
-  document.getElementById('recSigCli').innerHTML = STATE.sigCliDone ? 'Sign€e' : 'En attente';
+  document.getElementById('recSigConv').innerHTML = STATE.sigConvDone ? 'Signée' : 'En attente';
+  document.getElementById('recSigCli').innerHTML = STATE.sigCliDone ? 'Signée' : 'En attente';
 }
 
 async function validateEdl(){
@@ -1335,7 +1331,7 @@ async function validateEdl(){
   // Show Loading indicator
   Swal.fire({
     title: 'Validation de l\'État des lieux...',
-    text: 'Sauvegarde des donn€es et envoi des notifications en cours.',
+    text: 'Sauvegarde des données et envoi des notifications en cours.',
     allowOutsideClick: false,
     didOpen: () => {
       Swal.showLoading();
@@ -1344,7 +1340,7 @@ async function validateEdl(){
 
   try {
     const urlParams = new URLSearchParams(window.location.search);
-    const émissionId = urlParams.get('émission_id') || null;
+    const missionId = urlParams.get('mission_id') || null;
     const client = getSupabase();
     
     // Convert signatures to base64
@@ -1362,7 +1358,7 @@ async function validateEdl(){
     });
 
     const edlData = {
-      émission_id: émissionId,
+      mission_id: missionId,
       reference: ref,
       type: STATE.edlType,
       convoyeur_nom: document.getElementById('mConvoyeur')?.value || 'M. Bathily',
@@ -1402,12 +1398,12 @@ async function validateEdl(){
     });
 
     if (!emailResponse.ok) {
-      console.warn("L'email n'a pas pu €tre envoy€, mais l'EDL est enregistr€.");
+      console.warn("L'email n'a pas pu être envoyé, mais l'EDL est enregistré.");
     }
 
     Swal.fire({
-      title: 'État des lieux valid€ ! ⭐',
-      text: 'L\'État des lieux a €t€ enregistr€ en base de donn€es et envoy€ par e-mail au client.',
+      title: 'État des lieux validé ! ⭐',
+      text: 'L\'État des lieux a été enregistré en base de données et envoyé par e-mail au client.',
       icon: 'success',
       confirmButtonText: 'Fermer',
       confirmButtonColor: 'var(--bordeaux)'
@@ -1433,7 +1429,7 @@ function printEdl(){ window.print(); }
 function newEdl(){ localStorage.removeItem('bathily_edl_draft'); window.location.reload(); }
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.style.display='none';}));
 document.querySelectorAll('.pb-step').forEach(step=>{step.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const stepNum=step.getAttribute('onclick').match(/\d+/)[0];goStep(parseInt(stepNum));}});});
-// Appel de l'initialisation des signatures apr€s le chargement DOM
+// Appel de l'initialisation des signatures après le chargement DOM
 initSignatures();
 </script>
 </body>

@@ -1853,7 +1853,7 @@
         const progress = Math.min(elapsed / duration, 1);
         const easeOut = 1 - Math.pow(1 - progress, 3);
         
-        // Special handling for Google rating to show 4.9 instead of 49
+        // Special handling for Google rating to show 4.9 instead of 4.9
         let displayValue = Math.floor(target * easeOut);
         if (el.id === 'stat3') {
           displayValue = (displayValue / 10).toFixed(1);

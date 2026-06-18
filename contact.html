@@ -1,12 +1,11 @@
-﻿
-<html lang="fr">
+﻿<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact � Bathily convoyage</title>
-<meta name="description" content="Une question, un devis, une urgence ? Contactez Bathily Convoyage. Réponse sous 24h ouvr�es, ligne urgence 24/7.">
-<meta property="og:title" content="Contact � Bathily Convoyage">
-<meta property="og:description" content="Contactez notre ééquipe pour toute demande de convoyage auto ou moto en France. Devis rapide, support réactif.">
+<title>Contact - Bathily convoyage</title>
+<meta name="description" content="Une question, un devis, une urgence ? Contactez Bathily Convoyage. Réponse sous 24h ouvrables, ligne urgence 24/7.">
+<meta property="og:title" content="Contact - Bathily convoyage">
+<meta property="og:description" content="Contactez notre équipe pour toute demande de convoyage auto ou moto en France. Devis rapide, support réactif.">
 <meta property="og:image" content="https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⭐%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -260,8 +259,8 @@ header {
   background: var(--bordeaux);
   border-color: var(--bordeaux);
 }
-.cb-row.chk .cb-box::afêter {
-  content: '?';
+.cb-row.chk .cb-box::after {
+  content: '✓';
   color: white;
   font-size: 12px;
   display: flex;
@@ -578,7 +577,7 @@ footer {
   .f-row { grid-template-columns: 1fr; }
 }
 </style>
-<script src="/js/lang-switcher.js" defer="None"></script>
+<script src="/js/lang-switcher.js" defer></script>
 </head>
 <body>
 
@@ -588,7 +587,7 @@ footer {
 <header>
   <div class="container header-inner">
     <a href="index.html" class="logo">Bathily-convoyage<span>.</span></a>
-    <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">?</div>
+    <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</div>
     <div class="nav-links">
       <a href="index.html">Accueil</a>
       <a href="formation-convoyeur.html">Devenir convoyeur</a>
@@ -605,7 +604,7 @@ footer {
       <div class="hero-content">
         <div class="hero-badge">⭐ Service client dédié</div>
         <h1>Nous <span>contacter</span></h1>
-        <p>Une question, un devis, une urgence � notre éééquipe vous répond sous 2h ouvrées, 7j/7 pour les urgences.</p>
+        <p>Une question, un devis, une urgence, notre équipe vous répond sous 2h ouvrées, 7j/7 pour les urgences.</p>
       </div>
     </div>
 
@@ -618,7 +617,7 @@ footer {
       <div class="ub-left">
         <div class="ub-ico"><i class="fas fa-bolt"></i></div>
         <div class="ub-text">
-          <div class="ub-title">Urgence 24h/24 � 7j/7</div>
+          <div class="ub-title">Urgence 24h/24 - 7j/7</div>
           <div class="ub-sub">Pour toute intervention immédiate, contactez directement notre ligne d'urgence</div>
         </div>
       </div>
@@ -630,7 +629,7 @@ footer {
       <div class="contact-form-wrap reveal">
         <div class="form-intro">
           <h2 class="form-intro-title">Envoyez-nous<br>un <em>message</em></h2>
-          <p class="form-intro-sub">Remplissez ce formulaire � nous vous répondons sous 24h ouvrés. Pour les urgences, utilisez notre ligne directe.</p>
+          <p class="form-intro-sub">Remplissez ce formulaire, nous vous répondons sous 24h ouvrées. Pour les urgences, utilisez notre ligne directe.</p>
         </div>
 
         <div class="sujet-tabs" role="tablist">
@@ -638,7 +637,7 @@ footer {
           <button class="sujet-tab" onclick="setSubject(this,'information')" role="tab">Information</button>
           <button class="sujet-tab" onclick="setSubject(this,'urgence')" role="tab">Urgence</button>
           <button class="sujet-tab" onclick="setSubject(this,'partenariat')" role="tab">Partenariat</button>
-          <button class="sujet-tab" onclick="setSubject(this,'reclamation')" role="tab">R�clamation</button>
+          <button class="sujet-tab" onclick="setSubject(this,'reclamation')" role="tab">Réclamation</button>
           <button class="sujet-tab" onclick="setSubject(this,'autre')" role="tab">Autre</button>
         </div>
 
@@ -647,7 +646,7 @@ footer {
 
           <div class="f-row">
             <div class="f-grp">
-              <label>Pr�nom *</label>
+              <label>Prénom *</label>
               <input type="text" id="fPrenom" placeholder="Jean">
               <div class="field-err" id="errPrenom">Champ requis</div>
             </div>
@@ -664,39 +663,39 @@ footer {
               <div class="field-err" id="errEmail">Email invalide</div>
             </div>
             <div class="f-grp">
-              <label>T�l�phone</label>
+              <label>Téléphone</label>
               <input type="tel" id="fTel" placeholder="+33 6 12 34 56 78">
             </div>
           </div>
 
           <div class="f-grp">
-            <label>Type de véhicule concern�</label>
+            <label>Type de véhicule concerné</label>
             <select id="fVehicule">
-              <option value="">Non concern� / � préciser dans le message</option>
-              <option>Automobile � Berline</option>
-              <option>Automobile � SUV</option>
-              <option>Automobile � Utilitaire</option>
+              <option value="">Non concerné / à préciser dans le message</option>
+              <option>Automobile - Berline</option>
+              <option>Automobile - SUV</option>
+              <option>Automobile - Utilitaire</option>
               <option>Moto</option>
-              <option>V�hicule �lectrique / hybride</option>
+              <option>Véhicule électrique / hybride</option>
               <option>Autre</option>
             </select>
           </div>
 
           <div class="f-grp">
             <label>Message *</label>
-            <textarea id="fMessage" rows="4" placeholder="D�crivez votre demande en d�tail � trajet souhait�, type de véhicule, dates envisag�es, contraintes particuli�res�"></textarea>
-            <div class="field-err" id="errMessage">Veuillez r�diger votre message</div>
+            <textarea id="fMessage" rows="4" placeholder="Décrivez votre demande en détail – trajet souhaité, type de véhicule, dates envisagées, contraintes particulières…"></textarea>
+            <div class="field-err" id="errMessage">Veuillez rédiger votre message</div>
           </div>
 
           <div class="cb-row" id="cbNewsletter" onclick="toggleCheckbox(this)" role="checkbox" aria-checked="false" tabindex="0">
             <div class="cb-box"></div>
-            <span class="cb-lbl">J'accepâte de recevoir les actualit�s et offres de Bathily convoyage</span>
+            <span class="cb-lbl">J'accepte de recevoir les actualités et offres de Bathily convoyage</span>
           </div>
           <div class="cb-row" id="cbPrivacy" onclick="toggleCheckbox(this)" role="checkbox" aria-checked="false" tabindex="0">
             <div class="cb-box"></div>
-            <span class="cb-lbl">J'accepâte la <a href="mentions-legales.html#privacy" target="_blank" style="color:var(--bordeaux);text-decoration:underline;">politique de confidentialit�</a> et le traitement de mes donn�es pour traiter ma demande *</span>
+            <span class="cb-lbl">J'accepte la <a href="mentions-legales.html#privacy" target="_blank" style="color:var(--bordeaux);text-decoration:underline;">politique de confidentialité</a> et le traitement de mes données pour traiter ma demande *</span>
           </div>
-          <div class="field-err" id="errPrivacy" style="margin-bottom:12px">Veuillez accepâter la politique de confidentialit�</div>
+          <div class="field-err" id="errPrivacy" style="margin-bottom:12px">Veuillez accepter la politique de confidentialité</div>
 
           <button type="submit" class="btn-send">
             <i class="fas fa-paper-plane"></i> Envoyer le message
@@ -705,9 +704,9 @@ footer {
 
         <div class="success-panel" id="successPanel">
           <div class="success-ico"><i class="fas fa-check-circle"></i></div>
-          <h3 class="success-h">Message <em>envoy� !</em></h3>
+          <h3 class="success-h">Message <em>envoyé !</em></h3>
           <div class="success-ref-val" id="contactRef">BC-MSG-XXXX</div>
-          <p class="success-sub">Merci pour votre message. Notre �ééquipe vous r�pondra sous 24h ouvr�es. Pour toute urgence, n'h�sitez pas � utiliser notre ligne directe.</p>
+          <p class="success-sub">Merci pour votre message. Notre équipe vous répondra sous 24h ouvrées. Pour toute urgence, n'hésitez pas à utiliser notre ligne directe.</p>
         </div>
       </div>
 
@@ -717,29 +716,29 @@ footer {
           <div class="info-ico"><i class="fas fa-envelope"></i></div>
           <div class="info-title">Email</div>
           <div class="info-val">contact@bathily-convoyage.fr</div>
-          <div class="info-note">R�ponse garantie sous 24h ouvr�es</div>
+          <div class="info-note">Réponse garantie sous 24h ouvrées</div>
         </div>
         <div class="info-block">
           <div class="info-ico"><i class="fas fa-clock"></i></div>
           <div class="info-title">Horaires</div>
-          <div class="info-val">Lun � Ven : 9h00 � 18h00<br>Samedi : 9h00 � 12h00</div>
-          <div class="info-note">Ferm� dimanche � Urgences 24h/24</div>
+          <div class="info-val">Lun - Ven : 9h00 – 18h00<br>Samedi : 9h00 – 12h00</div>
+          <div class="info-note">Fermé dimanche – Urgences 24h/24</div>
         </div>
         <div class="info-block">
           <div class="info-ico"><i class="fas fa-map-marker-alt"></i></div>
           <div class="info-title">zone d'intervention</div>
-          <div class="info-val">France enti�re</div>
-          <div class="info-note">D�placement partout en m�tropole</div>
+          <div class="info-val">France entière</div>
+          <div class="info-note">Déplacement partout en métropole</div>
         </div>
         <div class="info-block">
           <div class="info-ico"><i class="fas fa-reply"></i></div>
           <div class="info-title">Engagement de réponse</div>
-          <div class="info-val">Devis confirm� sous 2h<br>Message r�pondu sous 24h</div>
+          <div class="info-val">Devis confirmé sous 2h<br>Message répondu sous 24h</div>
         </div>
         <div class="urgence-block">
           <div class="urgence-tag">Ligne urgence</div>
           <div class="urgence-num">disponible 24h/24</div>
-          <div class="info-note">7j/7 � Pour toute intervention imm�diate</div>
+          <div class="info-note">7j/7 – Pour toute intervention immédiate</div>
         </div>
       </div>
     </div>
@@ -752,8 +751,8 @@ footer {
           <a href="mailto:contact@bathily-convoyage.fr" class="channel-card reveal">
             <div class="ch-ico"><i class="fas fa-envelope"></i></div>
             <div class="ch-title">Email</div>
-            <div class="ch-desc">Pour toutes vos demandes standards. R�ponse sous 24h ouvr�es garantie.</div>
-            <div class="ch-link">Nous �écrire <i class="fas fa-arrow-right"></i></div>
+            <div class="ch-desc">Pour toutes vos demandes standards. Réponse sous 24h ouvrées garantie.</div>
+            <div class="ch-link">Nous écrire <i class="fas fa-arrow-right"></i></div>
           </a>
           <a href="devis.html" class="channel-card reveal">
             <div class="ch-ico"><i class="fas fa-calculator"></i></div>
@@ -764,13 +763,13 @@ footer {
           <a href="dashboard-client.html" class="channel-card reveal">
             <div class="ch-ico"><i class="fas fa-user"></i></div>
             <div class="ch-title">Espace Client</div>
-            <div class="ch-desc">Suivez vos émissions, consultez vos factures et contactez notre support d�di�.</div>
+            <div class="ch-desc">Suivez vos missions, consultez vos factures et contactez notre support dédié.</div>
             <div class="ch-link">Se connecter <i class="fas fa-arrow-right"></i></div>
           </a>
           <div class="channel-card reveal" style="border-color:var(--bordeaux-light); background:var(--bordeaux-light)">
             <div class="ch-ico"><i class="fas fa-bolt"></i></div>
             <div class="ch-title">Urgence 24h/24</div>
-            <div class="ch-desc">Intervention imm�diate nécessaire ? Notre �ééquipe est disponible � toute heure.</div>
+            <div class="ch-desc">Intervention immédiate nécessaire ? Notre équipe est disponible à toute heure.</div>
             <div class="ch-link" style="color:var(--bordeaux)">Ligne urgence <i class="fas fa-arrow-right"></i></div>
           </div>
         </div>
@@ -784,45 +783,45 @@ footer {
         <div class="faq-list">
           <div class="faq-item reveal">
             <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
-              <span class="faq-q-text">Quand vais-je recevoir une réponse � mon message ?</span>
+              <span class="faq-q-text">Quand vais-je recevoir une réponse à mon message ?</span>
               <i class="fas fa-plus faq-q-ico"></i>
             </div>
-            <div class="faq-a"><p>Nous nous engageons � r�pondre � tous les messages sous 24h ouvr�es. Pour les devis, la confirmation est envoy�e sous 2h avec un interlocuteur d�di�. Pour les urgences, notre ligne est disponible 24h/24.</p></div>
+            <div class="faq-a"><p>Nous nous engageons à répondre à tous les messages sous 24h ouvrées. Pour les devis, la confirmation est envoyée sous 2h avec un interlocuteur dédié. Pour les urgences, notre ligne est disponible 24h/24.</p></div>
           </div>
           <div class="faq-item reveal">
             <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
               <span class="faq-q-text">Puis-je obtenir un devis directement par téléphone ?</span>
               <i class="fas fa-plus faq-q-ico"></i>
             </div>
-            <div class="faq-a"><p>Oui � nos conseillers sont disponibles du lundi au vendredi de 9h � 18h pour �tablir un devis personnalis� par téléphone. Pour les demandes complexes, c'est souvent la solution la plus rapide. Vous pouvez aussi utiliser notre configurateur Smart Quote en ligne.</p></div>
+            <div class="faq-a"><p>Oui – nos conseillers sont disponibles du lundi au vendredi de 9h à 18h pour établir un devis personnalisé par téléphone. Pour les demandes complexes, c'est souvent la solution la plus rapide. Vous pouvez aussi utiliser notre configurateur Smart Quote en ligne.</p></div>
           </div>
           <div class="faq-item reveal">
             <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
               <span class="faq-q-text">Comment suivre l'avancement de ma demande ?</span>
               <i class="fas fa-plus faq-q-ico"></i>
             </div>
-            <div class="faq-a"><p>Chaque demande de contact re�oit automatiquement un numéro de référence unique (ex : BC-MSG-XXXX). Vous recevrez �également une copie de votre message par email. En tant que client enregistr�, votre espace personnel centralise toutes vos �changes.</p></div>
+            <div class="faq-a"><p>Chaque demande de contact reçoit automatiquement un numéro de référence unique (ex : BC-MSG-XXXX). Vous recevrez également une copie de votre message par email. En tant que client enregistré, votre espace personnel centralise tous vos échanges.</p></div>
           </div>
           <div class="faq-item reveal">
             <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
               <span class="faq-q-text">La ligne d'urgence est-elle vraiment disponible 24h/24 ?</span>
               <i class="fas fa-plus faq-q-ico"></i>
             </div>
-            <div class="faq-a"><p>Oui, notre ligne d'urgence est op�rationnelle 24h/24 et 7j/7 pour les situations n�cessitant une intervention imm�diate : incident en cours de émission, panne, probl�me avec un client ou un convoyeur. Pour les demandes non urgentes, pr�f�rez l'email ou le formulaire.</p></div>
+            <div class="faq-a"><p>Oui, notre ligne d'urgence est opérationnelle 24h/24 et 7j/7 pour les situations nécessitant une intervention immédiate : incident en cours de mission, panne, problème avec un client ou un convoyeur. Pour les demandes non urgentes, préférez l'email ou le formulaire.</p></div>
           </div>
           <div class="faq-item reveal">
             <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
-              <span class="faq-q-text">Je souhaite devenir convoyeur � qui contacter ?</span>
+              <span class="faq-q-text">Je souhaite devenir convoyeur – qui contacter ?</span>
               <i class="fas fa-plus faq-q-ico"></i>
             </div>
-            <div class="faq-a"><p>Utilisez ce formulaire en sélectionnant le sujet "Partenariat" et précisez dans le message que vous souhaitez rejoindre notre réseau de convoyeurs. Notre responsable recrutement vous contactera sous 48h pour présenter le processus d'int�gration et de certification.</p></div>
+            <div class="faq-a"><p>Utilisez ce formulaire en sélectionnant le sujet "Partenariat" et précisez dans le message que vous souhaitez rejoindre notre réseau de convoyeurs. Notre responsable recrutement vous contactera sous 48h pour présenter le processus d'intégration et de certification.</p></div>
           </div>
           <div class="faq-item reveal">
             <div class="faq-q" onclick="toggleFaq(this)" role="button" tabindex="0">
               <span class="faq-q-text">Intervenez-vous sur toute la France ?</span>
               <i class="fas fa-plus faq-q-ico"></i>
             </div>
-            <div class="faq-a"><p>Oui � notre réseau de convoyeurs certifi�s couvre l'ensemble du territoire m�tropolitain. Pour les DOM-TOM ou les émissions transfrontali�res (Belgique, Luxembourg, Suisse, Monaco), contactez-nous directement pour �étudier la faisabilit�.</p></div>
+            <div class="faq-a"><p>Oui – notre réseau de convoyeurs certifiés couvre l'ensemble du territoire métropolitain. Pour les DOM-TOM ou les missions transfrontalières (Belgique, Luxembourg, Suisse, Monaco), contactez-nous directement pour étudier la faisabilité.</p></div>
           </div>
         </div>
       </div>
@@ -830,10 +829,10 @@ footer {
 
     <!-- CTA final -->
     <div class="cta-final reveal">
-      <h2>Pr�t � démarrer<br>votre émission ?</h2>
+      <h2>Prêt à démarrer<br>votre mission ?</h2>
       <div>
         <a href="devis.html" class="btn-dark"><i class="fas fa-calculator"></i> Obtenir un devis</a>
-        <a href="dashboard-client.html" class="btn-ghost2">Acc�der � mon espace</a>
+        <a href="dashboard-client.html" class="btn-ghost2">Accéder à mon espace</a>
       </div>
     </div>
   </div>
@@ -863,10 +862,10 @@ footer {
       <div class="footer-links">
         <h4>Contact</h4>
         <a href="mailto:contact@bathily-convoyage.fr">contact@bathily-convoyage.fr</a>
-        <span>France enti�re</span>
+        <span>France entière</span>
       </div>
     </div>
-    <div class="footer-bottom">� 2025 Bathily convoyage � Tous droits r�serv�s � <a href="mentions-legales.html" style="color:inherit;text-decoration:underline;">Mentions L�gales & CGV/CGU</a></div>
+    <div class="footer-bottom">© 2025 Bathily convoyage – Tous droits réservés – <a href="mentions-legales.html" style="color:inherit;text-decoration:underline;">Mentions Légales & CGV/CGU</a></div>
   </div>
 </footer>
 
@@ -893,12 +892,12 @@ function setSubject(btn, val) {
   btn.classList.add('active');
   document.getElementById('hiddenSubject').value = val;
   const placeholders = {
-    devis: 'D�crivez votre besoin de convoyage � trajet souhait�, type de véhicule, dates envisag�es�',
-    information: 'Quelle information recherchez-vous ? Nous ferons notre possible pour vous r�pondre rapidement.',
-    urgence: 'D�crivez précis�ment la situation d\'urgence � lieu, véhicule concern�, nature de l\'incident�',
-    partenariat: 'Pr�sentez votre projet de partenariat ou votre demande presse en quelques lignes.',
-    reclamation: 'D�crivez la situation avec la référence de émission concern�e si possible.',
-    autre: 'D�crivez votre demande en d�tail.',
+    devis: 'Décrivez votre besoin de convoyage – trajet souhaité, type de véhicule, dates envisagées…',
+    information: 'Quelle information recherchez-vous ? Nous ferons notre possible pour vous répondre rapidement.',
+    urgence: 'Décrivez précisément la situation d\'urgence – lieu, véhicule concerné, nature de l\'incident…',
+    partenariat: 'Présentez votre projet de partenariat ou votre demande presse en quelques lignes.',
+    reclamation: 'Décrivez la situation avec la référence de mission concernée si possible.',
+    autre: 'Décrivez votre demande en détail.',
   };
   document.getElementById('fMessage').placeholder = placeholders[val] || placeholders.autre;
 }

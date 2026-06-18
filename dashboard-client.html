@@ -1,13 +1,12 @@
-
 <html lang="fr">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Espace Client € Bathily convoyage</title>
-  <meta name="description" content="Gérez vos émissions, véhicules et factures depuis votre espace client Bathily Convoyage. Suivi en temps réel, historique et support d€di€.">
-  <meta property="og:title" content="Espace Client € Bathily Convoyage">
-  <meta property="og:description" content="Tableau de bord client pour suivre vos convoyages, consulter vos factures et g€rer vos véhicules.">
+  <title>Espace Client - Bathily Convoyage</title>
+  <meta name="description" content="Gérez vos missions, véhicules et factures depuis votre espace client Bathily Convoyage. Suivi en temps réel, historique et support dédié.">
+  <meta property="og:title" content="Espace Client - Bathily Convoyage">
+  <meta property="og:description" content="Tableau de bord client pour suivre vos convoyages, consulter vos factures et gérer vos véhicules.">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚗%3C/text%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -53,7 +52,7 @@
       --warning: #F5A623;
     }
 
-    /* Curseur personnalis€ seulement sur souris */
+    /* Curseur personnalisé seulement sur souris */
     @media (hover: hover) {
       .cur {
         position: fixed;
@@ -297,8 +296,8 @@
       color: var(--gray-mid);
     }
 
-    /* Sétats cards */
-    .sétats-row {
+    /* Stats cards */
+    .stats-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 20px;
@@ -412,14 +411,14 @@
     }
 
     /* Missions list */
-    .émissions-list {
+    .missions-list {
       display: flex;
       flex-direction: column;
       gap: 12px;
       margin-bottom: 32px;
     }
 
-    .émission-card {
+    .mission-card {
       background: white;
       border-radius: 24px;
       padding: 24px;
@@ -431,7 +430,7 @@
       gap: 20px;
     }
 
-    .émission-card:hover {
+    .mission-card:hover {
       border-color: var(--bordeaux-light);
       transform: translateY(-2px);
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
@@ -778,7 +777,7 @@
       color: var(--warning);
     }
 
-    /* Tabs (émissions filter) */
+    /* Tabs (missions filter) */
     .tabs {
       display: flex;
       gap: 0;
@@ -1048,7 +1047,7 @@
         padding: 24px;
       }
 
-      .sétats-row {
+      .stats-row {
         grid-template-columns: 1fr 1fr;
       }
 
@@ -1060,7 +1059,7 @@
         grid-template-columns: 1fr 1fr;
       }
 
-      .émission-card {
+      .mission-card {
         grid-template-columns: auto 1fr;
         gap: 12px;
       }
@@ -1073,7 +1072,7 @@
     }
 
     @media (max-width: 600px) {
-      .sétats-row {
+      .stats-row {
         grid-template-columns: 1fr;
       }
 
@@ -1112,11 +1111,11 @@
       </div>
       <a href="devis.html" class="sec-action" style="padding:6px 14px; font-size:0.65rem;"><i class="fas fa-plus"></i>
         Nouveau devis</a>
-      <div class="topbar-user" role="button" tabindex="0" aria-label="Mon compâte">
+      <div class="topbar-user" role="button" tabindex="0" aria-label="Mon compte">
         <div class="user-avatar" id="cliAvatar">JD</div>
         <span class="user-name" id="cliNomTopbar">Mon espace</span>
       </div>
-      <button class="topbar-logout" type="button" onclick="clientLogout()" title="Changer de compâte"><i class="fas fa-sign-out-alt"></i></button>
+      <button class="topbar-logout" type="button" onclick="clientLogout()" title="Changer de compte"><i class="fas fa-sign-out-alt"></i></button>
     </div>
   </div>
 
@@ -1136,8 +1135,8 @@
       <div style="display:flex;background:rgba(0,0,0,0.04);padding:4px;border-radius:14px;margin-bottom:24px;">
         <button id="authTabLogin" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:white;color:#2D2A24;transition:all 0.25s ease;">Se
           connecter</button>
-        <button id="authTabSignup" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:transparent;color:#6B625A;transition:all 0.25s ease;">Cr€er
-          un compâte</button>
+        <button id="authTabSignup" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:transparent;color:#6B625A;transition:all 0.25s ease;">Créer
+          un compte</button>
       </div>
 
       <!-- FORM 1: LOGIN -->
@@ -1145,14 +1144,15 @@
         <div style="margin-bottom:16px;text-align:left;">
           <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Adresse
             Email</label>
-          <input id="loginEmail" type="email" required="None" placeholder="nom@exemple.com" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
+          <input id="loginEmail" type="email" required placeholder="nom@exemple.com" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
         </div>
         <div style="margin-bottom:20px;text-align:left;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
             <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;">Mot de
               passe</label>
+            <button type="button" id="linkForgotPassword" style="background:none;border:none;font-size:0.65rem;font-weight:600;color:#0A4D68;cursor:pointer;text-decoration:underline;">Mot de passe oublié ?</button>
           </div>
-          <input id="loginPassword" type="password" required="None" placeholder="€€€€€€€€" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
+          <input id="loginPassword" type="password" required placeholder="••••••••" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
         </div>
         <button type="submit" style="width:100%;background:#0A4D68;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
       </form>
@@ -1162,17 +1162,17 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
           <div style="text-align:left;">
             <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Prénom</label>
-            <input id="signupPrenom" type="text" required="None" placeholder="Jean" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+            <input id="signupPrenom" type="text" required placeholder="Jean" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
           </div>
           <div style="text-align:left;">
             <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Nom</label>
-            <input id="signupNom" type="text" required="None" placeholder="Dupont" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+            <input id="signupNom" type="text" required placeholder="Dupont" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
           </div>
         </div>
         <div style="margin-bottom:12px;text-align:left;">
           <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Adresse
             Email</label>
-          <input id="signupEmail" type="email" required="None" placeholder="jean.dupont@email.com" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+          <input id="signupEmail" type="email" required placeholder="jean.dupont@email.com" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
         </div>
         <div style="margin-bottom:12px;text-align:left;">
           <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Téléphone</label>
@@ -1186,9 +1186,9 @@
         <div style="margin-bottom:20px;text-align:left;">
           <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Mot
             de passe</label>
-          <input id="signupPassword" type="password" required="None" minlength="6" placeholder="€€€€€€€€" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+          <input id="signupPassword" type="password" required minlength="6" placeholder="••••••••" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
         </div>
-        <button type="submit" style="width:100%;background:#0A4D68;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-user-plus"></i> Cr€er mon compâte</button>
+        <button type="submit" style="width:100%;background:#0A4D68;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-user-plus"></i> Créer mon compte</button>
       </form>
     </div>
   </div>
@@ -1199,14 +1199,14 @@
       <div class="nav-section">
         <div class="nav-section-lbl">Principal</div>
         <div class="nav-item active" onclick="showTab('accueil',this)" role="button" tabindex="0"><i class="fas fa-home"></i> Tableau de bord</div>
-        <div class="nav-item" onclick="showTab('émissions',this)" role="button" tabindex="0"><i class="fas fa-route"></i>
-          Mes émissions</div>
+        <div class="nav-item" onclick="showTab('missions',this)" role="button" tabindex="0"><i class="fas fa-route"></i>
+          Mes missions</div>
         <div class="nav-item" onclick="showTab('vehicules',this)" role="button" tabindex="0"><i class="fas fa-car"></i>
           Mes véhicules</div>
         <div class="nav-item" onclick="showTab('factures',this)" role="button" tabindex="0"><i class="fas fa-file-invoice"></i> Mes factures</div>
       </div>
       <div class="nav-section">
-        <div class="nav-section-lbl">Compâte</div>
+        <div class="nav-section-lbl">Compte</div>
         <div class="nav-item" onclick="showTab('profil',this)" role="button" tabindex="0"><i class="fas fa-user"></i>
           Mon profil</div>
         <div class="nav-item" onclick="showTab('support',this)" role="button" tabindex="0"><i class="fas fa-headset"></i> Support</div>
@@ -1222,29 +1222,29 @@
           <h1 class="dash-hello">Bonjour, <em id="cliPrenom">...</em></h1>
           <div class="dash-date" id="dashDate"></div>
         </div>
-        <div class="sétats-row">
+        <div class="stats-row">
           <div class="stat-card">
             <div class="stat-ico"><i class="fas fa-route"></i></div>
-            <div class="stat-val" id="kpiActives">€</div>
+            <div class="stat-val" id="kpiActives">-</div>
             <div class="stat-lbl">Missions en cours</div>
             <div class="stat-trend trend-up">Actives</div>
           </div>
           <div class="stat-card">
             <div class="stat-ico"><i class="fas fa-check-circle"></i></div>
-            <div class="stat-val" id="kpiTerminees">€</div>
-            <div class="stat-lbl">Missions termin€es</div>
+            <div class="stat-val" id="kpiTerminees">-</div>
+            <div class="stat-lbl">Missions terminées</div>
             <div class="stat-trend trend-neutral">Total</div>
           </div>
           <div class="stat-card">
             <div class="stat-ico"><i class="fas fa-euro-sign"></i></div>
-            <div class="stat-val" id="kpiCA">€</div>
+            <div class="stat-val" id="kpiCA">-</div>
             <div class="stat-lbl">Dépensé en 2025</div>
             <div class="stat-trend trend-neutral">HT</div>
           </div>
           <div class="stat-card">
             <div class="stat-ico"><i class="fas fa-car"></i></div>
-            <div class="stat-val" id="kpiTotal">€</div>
-            <div class="stat-lbl">Total émissions</div>
+            <div class="stat-val" id="kpiTotal">-</div>
+            <div class="stat-lbl">Total missions</div>
             <div class="stat-trend trend-neutral">toutes</div>
           </div>
         </div>
@@ -1271,23 +1271,23 @@
         </div>
         <div class="sec-title">
           <h2 class="sec-h">Missions <em>récentes</em></h2>
-          <div class="nav-item" onclick="showTab('émissions',null)" style="padding:0; color:var(--bordeaux); cursor:pointer;" role="button" tabindex="0">Voir tout <i class="fas fa-arrow-right"></i></div>
+          <div class="nav-item" onclick="showTab('missions',null)" style="padding:0; color:var(--bordeaux); cursor:pointer;" role="button" tabindex="0">Voir tout <i class="fas fa-arrow-right"></i></div>
         </div>
-        <div class="émissions-list" id="recentMissionsList">
+        <div class="missions-list" id="recentMissionsList">
           <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i>
             Chargement...</div>
         </div>
       </div>
 
       <!-- Missions -->
-      <div class="tab-content" id="tab-émissions">
+      <div class="tab-content" id="tab-missions">
         <div class="dash-header">
-          <h1 class="dash-hello">Mes <em>émissions</em></h1>
+          <h1 class="dash-hello">Mes <em>missions</em></h1>
         </div>
         <div class="sec-title">
-          <div class="tabs"><button class="tab-btn active" onclick="filterMissions('all',this)">toutes</button><button class="tab-btn" onclick="filterMissions('active',this)">En cours</button><button class="tab-btn" onclick="filterMissions('planned',this)">Planifiées</button><button class="tab-btn" onclick="filterMissions('completed',this)">Terminées</button></div><a href="devis.html" class="sec-action"><i class="fas fa-plus"></i> Nouvelle émission</a>
+          <div class="tabs"><button class="tab-btn active" onclick="filterMissions('all',this)">toutes</button><button class="tab-btn" onclick="filterMissions('active',this)">En cours</button><button class="tab-btn" onclick="filterMissions('planned',this)">Planifiées</button><button class="tab-btn" onclick="filterMissions('completed',this)">Terminées</button></div><a href="devis.html" class="sec-action"><i class="fas fa-plus"></i> Nouvelle mission</a>
         </div>
-        <div class="émissions-list" id="émissionsList">
+        <div class="missions-list" id="missionsList">
           <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i>
             Chargement...</div>
         </div>
@@ -1299,14 +1299,14 @@
           <h1 class="dash-hello">Mes <em>véhicules</em></h1>
         </div>
         <div class="sec-title">
-          <h2 class="sec-h">Véhicules <em>enregistr€s</em></h2><button class="sec-action" onclick="openModal('modalVehicule')"><i class="fas fa-plus"></i> Ajouter</button>
+          <h2 class="sec-h">Véhicules <em>enregistrés</em></h2><button class="sec-action" onclick="openModal('modalVehicule')"><i class="fas fa-plus"></i> Ajouter</button>
         </div>
         <div class="vehi-grid">
           <div class="vehi-card">
             <div class="vehi-ico"><i class="fas fa-car"></i></div>
-            <div class="vehi-name">BMW S€rie 3</div>
+            <div class="vehi-name">BMW Série 3</div>
             <div class="vehi-plate">IJ-789-KL</div>
-            <div class="vehi-meta">2023 € hybride € 190 CV<br>Berline € Derni€re émission : 12 mai 2025</div>
+            <div class="vehi-meta">2023 - hybride - 190 CV<br>Berline - Dernière mission : 12 mai 2025</div>
             <div class="vehi-actions"><button class="btn-sm btn-sm-red"><i class="fas fa-route"></i> Nouveau
                 convoyage</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></div>
           </div>
@@ -1314,7 +1314,7 @@
             <div class="vehi-ico"><i class="fas fa-bolt" style="color:var(--success)"></i></div>
             <div class="vehi-name">Tesla Model 3</div>
             <div class="vehi-plate">MN-012-OP</div>
-            <div class="vehi-meta">2023 € Électrique € 283 CV<br>Berline € Derni€re émission : 10 avr. 2025</div>
+            <div class="vehi-meta">2023 - Électrique - 283 CV<br>Berline - Dernière mission : 10 avr. 2025</div>
             <div class="vehi-actions"><button class="btn-sm btn-sm-red"><i class="fas fa-route"></i> Nouveau
                 convoyage</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></div>
           </div>
@@ -1322,7 +1322,7 @@
             <div class="vehi-ico"><i class="fas fa-motorcycle"></i></div>
             <div class="vehi-name">Kawasaki Z900</div>
             <div class="vehi-plate">KL-890-MN</div>
-            <div class="vehi-meta">2022 € Essence € 125 CV<br>Moto € Derni€re émission : 28 avr. 2025</div>
+            <div class="vehi-meta">2022 - Essence - 125 CV<br>Moto - Dernière mission : 28 avr. 2025</div>
             <div class="vehi-actions"><button class="btn-sm btn-sm-red"><i class="fas fa-route"></i> Nouveau
                 convoyage</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></div>
           </div>
@@ -1342,7 +1342,7 @@
           <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i>
             Chargement...</div>
         </div>
-        <div style="text-align:center; padding:20px 0; border-top:1px solid var(--border-light)"><span style="font-size:0.7rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Total cumul€ :
+        <div style="text-align:center; padding:20px 0; border-top:1px solid var(--border-light)"><span style="font-size:0.7rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Total cumulé :
             <span style="color:var(--bordeaux)" id="factTotalHt">0€ HT</span></span></div>
       </div>
 
@@ -1354,10 +1354,10 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:700px">
           <div class="f-grp"><label>Prénom</label><input type="text" id="profilPrenom" value=""></div>
           <div class="f-grp"><label>Nom</label><input type="text" id="profilNom" value=""></div>
-          <div class="f-grp"><label>Email</label><input type="email" id="profilEmail" value="" disabled="None" style="opacity: 0.7; cursor: not-allowed;"></div>
+          <div class="f-grp"><label>Email</label><input type="email" id="profilEmail" value="" disabled style="opacity: 0.7; cursor: not-allowed;"></div>
           <div class="f-grp"><label>Téléphone</label><input type="tel" id="profilTel" value=""></div>
           <div class="f-grp" style="grid-column:span 2; position:relative;">
-            <label>Adresse (N€ et rue)</label>
+            <label>Adresse (N° et rue)</label>
             <input type="text" id="profilAdresse" value="" oninput="debounceGeocodeAddress(this, 'suggProfilAdresse')">
             <div class="suggest-box" id="suggProfilAdresse"></div>
           </div>
@@ -1367,10 +1367,10 @@
             <input type="text" id="profilVille" value="" oninput="debounceGeocode(this, 'suggProfilVille')">
             <div class="suggest-box" id="suggProfilVille"></div>
           </div>
-          <div class="f-grp" style="grid-column:span 2"><label>pays</label><input type="text" id="profilPays" value="France"></div>
+          <div class="f-grp" style="grid-column:span 2"><label>Pays</label><input type="text" id="profilPays" value="France"></div>
 
           <div class="sec-title" style="grid-column:span 2; margin-top: 20px;">
-            <h2 class="sec-h">informations <em>entreprise</em></h2>
+            <h2 class="sec-h">Informations <em>entreprise</em></h2>
           </div>
           <div class="f-grp"><label>Société (optionnel)</label><input type="text" id="profilSociete" value=""></div>
           <div class="f-grp"><label>SIRET (optionnel)</label><input type="text" id="profilSiret" value=""></div>
@@ -1379,7 +1379,7 @@
             <h2 class="sec-h">Documents <em>officiels</em></h2>
           </div>
           <div class="f-grp" style="grid-column:span 2">
-            <label>Pi€ce d'identit€ (CNI / Passeport) <span style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
+            <label>Pièce d'identité (CNI / Passeport) <span style="font-weight:400; font-size:0.7rem; color:var(--gray-mid);">(PDF, JPG, PNG)</span></label>
             <input type="file" id="uploadCni" accept=".pdf,.jpg,.jpeg,.png">
             <div id="cniLink" style="font-size:0.8rem; margin-top:5px; color:var(--bordeaux);"></div>
           </div>
@@ -1401,7 +1401,7 @@
           <div class="support-ico"><i class="fas fa-headset"></i></div>
           <div class="support-content">
             <div class="support-h">Besoin d'aide ?</div>
-            <p class="support-p">Notre €éééquipe est disponible du lundi au vendredi, 9h€18h. Urgences 24h/24.</p>
+            <p class="support-p">Notre équipe est disponible du lundi au vendredi, 9h-18h. Urgences 24h/24.</p>
           </div>
           <div class="support-actions"><a href="contact.html" class="btn-red"><i class="fas fa-envelope"></i>
               Email</a><button class="btn-outline"><i class="fas fa-phone"></i> Appeler</button></div>
@@ -1410,16 +1410,18 @@
           <h2 class="sec-h">Nouveau <em>ticket</em></h2>
         </div>
         <div style="max-width:560px">
-          <div class="f-grp"><label>Sujet</label><select>
-              <option>Question sur une émission</option>
+          <div class="f-grp"><label>Sujet</label>
+            <select id="supportSujet">
+              <option>Question sur une mission</option>
               <option>Problème de facturation</option>
               <option>Problème technique</option>
               <option>Autre</option>
-            </select></div>
-          <div class="f-grp"><label>Référence émission (optionnel)</label><input type="text" placeholder="BC-2025-XXXX">
+            </select>
           </div>
-          <div class="f-grp"><label>Message</label><textarea rows="5" placeholder="Décrivez votre demande€"></textarea>
-          </div><button class="btn-red"><i class="fas fa-paper-plane"></i> Envoyer</button>
+          <div class="f-grp"><label>Référence mission (optionnel)</label><input type="text" placeholder="BC-2025-XXXX">
+          </div>
+          <div class="f-grp"><label>Message</label><textarea id="supportMessage" rows="5" placeholder="Décrivez votre demande"></textarea>
+          </div><button class="btn-red" onclick="submitSupportTicket()"><i class="fas fa-paper-plane"></i> Envoyer</button>
         </div>
       </div>
     </main>
@@ -1428,88 +1430,92 @@
   <!-- Modal véhicule -->
   <div class="modal-overlay" id="modalMissionDetails">
     <div class="modal-box" style="max-width:700px;"><button class="modal-close" onclick="closeModal('modalMissionDetails')"><i class="fas fa-times"></i></button>
-      <h3 class="modal-h">Détails de la <em>émission</em></h3>
+      <h3 class="modal-h">Détails de la <em>mission</em></h3>
       <div class="f-row">
-        <div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly="None" style="background:#f5f5f5; cursor:not-allowed;"></div>
-        <div class="f-grp"><label>Statut</label><input type="text" id="md-status" readonly="None" style="background:#f5f5f5; cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Statut</label><input type="text" id="md-status" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Départ</label><input type="text" id="md-depart" readonly="None" style="background:#f5f5f5; cursor:not-allowed;"></div>
-        <div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee" readonly="None" style="background:#f5f5f5; cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Départ</label><input type="text" id="md-depart" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule" readonly="None" style="background:#f5f5f5; cursor:not-allowed;"></div>
-        <div class="f-grp"><label>montant HT (€)</label><input type="number" id="md-price" readonly="None" style="background:#f5f5f5; cursor:not-allowed; font-weight:bold; color:var(--bordeaux);"></div>
+        <div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Montant HT (€)</label><input type="number" id="md-price" readonly style="background:#f5f5f5; cursor:not-allowed; font-weight:bold; color:var(--bordeaux);"></div>
       </div>
       <div class="modal-btns"><button class="btn-outline" onclick="closeModal('modalMissionDetails')">Fermer</button>
       </div>
     </div>
   </div>
 
-  <button class="modal-close" onclick="closeModal('modalVehicule')"><i class="fas fa-times"></i></button>
-  <h3 class="modal-h">Ajouter un <em>véhicule</em></h3>
-  <p class="modal-sub">Renseignez les informations de votre véhicule</p>
+  <!-- Modal Ajout Véhicule -->
+  <div class="modal-overlay" id="modalVehicule">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('modalVehicule')"><i class="fas fa-times"></i></button>
+      <h3 class="modal-h">Ajouter un <em>véhicule</em></h3>
+      <p class="modal-sub">Renseignez les informations de votre véhicule</p>
 
-  <!-- €TAPE 1 : Choix du Type via tes Onglets Officiels v2.0 -->
-  <div class="f-grp" style="margin-bottom: 16px;">
-    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Type de véhicule</label>
-    <div class="veh-tabs" style="display: flex; gap: 16px;">
-      <button type="button" id="tab-auto" class="veh-tab active" onclick="switchVehicleType('auto')" style="background: var(--primary, #0A4D68); color: #ffffff; padding: 10px 24px; border-radius: 40px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s;">Auto</button>
-      <button type="button" id="tab-moto" class="veh-tab" onclick="switchVehicleType('moto')" style="background: #E8E1D9; color: var(--primary, #0A4D68); padding: 10px 24px; border-radius: 40px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s;">Moto</button>
-    </div>
-    <input type="hidden" id="type-vehicule" value="auto">
-  </div>
+      <!-- ÉTAPE 1 : Choix du Type via tes Onglets Officiels v2.0 -->
+      <div class="f-grp" style="margin-bottom: 16px;">
+        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Type de véhicule</label>
+        <div class="veh-tabs" style="display: flex; gap: 16px;">
+          <button type="button" id="tab-auto" class="veh-tab active" onclick="switchVehicleType('auto')" style="background: var(--primary, #0A4D68); color: #ffffff; padding: 10px 24px; border-radius: 40px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s;">Auto</button>
+          <button type="button" id="tab-moto" class="veh-tab" onclick="switchVehicleType('moto')" style="background: #E8E1D9; color: var(--primary, #0A4D68); padding: 10px 24px; border-radius: 40px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s;">Moto</button>
+        </div>
+        <input type="hidden" id="type-vehicule" value="auto">
+      </div>
 
-  <!-- €TAPE 2 : Plaque d'immatriculation -->
-  <div class="f-grp">
-    <label>Plaque d'immatriculation</label>
-    <input type="text" id="vehi-plaque" placeholder="AB-123-CD" class="uppercase" required="None">
-  </div>
+      <!-- ÉTAPE 2 : Plaque d'immatriculation -->
+      <div class="f-grp">
+        <label>Plaque d'immatriculation</label>
+        <input type="text" id="vehi-plaque" placeholder="AB-123-CD" class="uppercase" required>
+      </div>
 
-  <!-- €TAPE 3 : Listes d€roulantes dynamiques pour Marque et Modèle -->
-  <div class="f-row" style="display:flex; gap:16px;">
-    <div class="f-grp" style="flex:1;">
-      <label>Marque</label>
-      <select id="vehi-marque" onchange="updateModelesLocal()" style="width: 100%; padding: 10px; border: 1px solid var(--border-light, #E8E1D9); border-radius: 12px; background-color: #fff;">
-        <!-- Rempli par le script -->
-      </select>
-    </div>
-    <div class="f-grp" style="flex:1;">
-      <label>Modèle</label>
-      <select id="vehi-modele" style="width: 100%; padding: 10px; border: 1px solid var(--border-light, #E8E1D9); border-radius: 12px; background-color: #fff;">
-        <option value="">-- Choisissez d'abord une marque --</option>
-      </select>
-    </div>
-  </div>
+      <!-- ÉTAPE 3 : Listes déroulantes dynamiques pour Marque et Modèle -->
+      <div class="f-row" style="display:flex; gap:16px;">
+        <div class="f-grp" style="flex:1;">
+          <label>Marque</label>
+          <select id="vehi-marque" onchange="updateModelesLocal()" style="width: 100%; padding: 10px; border: 1px solid var(--border-light, #E8E1D9); border-radius: 12px; background-color: #fff;">
+            <!-- Rempli par le script -->
+          </select>
+        </div>
+        <div class="f-grp" style="flex:1;">
+          <label>Modèle</label>
+          <select id="vehi-modele" style="width: 100%; padding: 10px; border: 1px solid var(--border-light, #E8E1D9); border-radius: 12px; background-color: #fff;">
+            <option value="">-- Choisissez d'abord une marque --</option>
+          </select>
+        </div>
+      </div>
 
-  <!-- €TAPE 4 : Année et Carburant (Conserv€s de ton code d'origine) -->
-  <div class="f-row" style="display:flex; gap:16px;">
-    <div class="f-grp" style="flex:1;">
-      <label>Année</label>
-      <input type="number" id="vehi-anne" placeholder="2026" value="2026">
-    </div>
-    <div class="f-grp" style="flex:1;">
-      <label>Carburant</label>
-      <select id="vehi-carbu" style="width: 100%; padding: 10px; border: 1px solid var(--border-light, #E8E1D9); border-radius: 12px; background-color: #fff;">
-        <option>Essence</option>
-        <option>Diesel</option>
-        <option>hybride</option>
-        <option>Électrique</option>
-      </select>
-    </div>
-  </div>
+      <!-- ÉTAPE 4 : Année et Carburant (Conservés de ton code d'origine) -->
+      <div class="f-row" style="display:flex; gap:16px;">
+        <div class="f-grp" style="flex:1;">
+          <label>Année</label>
+          <input type="number" id="vehi-anne" placeholder="2026" value="2026">
+        </div>
+        <div class="f-grp" style="flex:1;">
+          <label>Carburant</label>
+          <select id="vehi-carbu" style="width: 100%; padding: 10px; border: 1px solid var(--border-light, #E8E1D9); border-radius: 12px; background-color: #fff;">
+            <option>Essence</option>
+            <option>Diesel</option>
+            <option>Hybride</option>
+            <option>Électrique</option>
+          </select>
+        </div>
+      </div>
 
-  <!-- Boutons d'actions -->
-  <div class="modal-btns">
-    <button class="btn-red" onclick="triggerVehicleSave()"><i class="fas fa-save"></i> Enregistrer</button>
-    <button class="btn-outline" onclick="closeModal('modalVehicule')">Annuler</button>
-  </div>
+      <!-- Boutons d'actions -->
+      <div class="modal-btns">
+        <button class="btn-red" onclick="triggerVehicleSave()"><i class="fas fa-save"></i> Enregistrer</button>
+        <button class="btn-outline" onclick="closeModal('modalVehicule')">Annuler</button>
+      </div>
+    </div>
   </div>
 
   <script>
     // ========== DEVIATION/CDN FALLBACKS ==========
     if (typeof supabase === 'undefined') {
-      alert("⭐ Erreur de chargement : Le module de base de donn€es (Supabase) n'a pas pu €tre charg€.\n\nCela est g€n€ralement d€ € un bloqueur de publicit€ (comme uBlock Origin, AdBlock) ou un bloqueur de scripts sur votre navigateur.\n\nVeuillez d€sactiver votre bloqueur de publicit€ pour ce site ou essayer en mode Navigation Priv€e sans extensions pour vous connecter.");
+      alert("⭐ Erreur de chargement : Le module de base de données (Supabase) n'a pas pu être chargé.\n\nCela est généralement dû à un bloqueur de publicité (comme uBlock Origin, AdBlock) ou un bloqueur de scripts sur votre navigateur.\n\nVeuillez désactiver votre bloqueur de publicité pour ce site ou essayer en mode Navigation Privée sans extensions pour vous connecter.");
     }
 
     if (typeof Swal === 'undefined') {
@@ -1530,10 +1536,11 @@
 
     // ========== SUPABASE ==========
     let _sbCli = null;
+
     function getSBCli() {
       if (typeof supabase === 'undefined') {
-        alert("⭐ Base de donn€es inaccessible. Veuillez d€sactiver votre bloqueur de publicit€.");
-        throw new Error("Supabase non d€fini");
+        alert("⭐ Base de données inaccessible. Veuillez désactiver votre bloqueur de publicité.");
+        throw new Error("Supabase non défini");
       }
       if (!_sbCli) _sbCli = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
       return _sbCli;
@@ -1587,8 +1594,8 @@
       if (event) event.preventDefault();
 
       const { value: email } = await Swal.fire({
-        title: 'Mot de passe oubli€ ?',
-        text: 'Entrez votre adresse e-mail pour recevoir les instructions de r€initialisation.',
+        title: 'Mot de passe oublié ?',
+        text: 'Entrez votre adresse e-mail pour recevoir les instructions de réinitialisation.',
         input: 'email',
         inputPlaceholder: 'nom@exemple.com',
         showCancelButton: true,
@@ -1619,7 +1626,7 @@
         if (checkError) {
           Swal.fire({
             title: 'Erreur',
-            text: 'Une erreur est survenue lors de la v€rification.',
+            text: 'Une erreur est survenue lors de la vérification.',
             icon: 'error',
             confirmButtonColor: 'var(--bordeaux)'
           });
@@ -1629,14 +1636,14 @@
         if (!existing) {
           Swal.fire({
             title: 'Adresse inconnue',
-            text: "Aucun compâte client n'est enregistr€ avec cette adresse e-mail.",
+            text: "Aucun compte client n'est enregistré avec cette adresse e-mail.",
             icon: 'warning',
             confirmButtonColor: 'var(--bordeaux)'
           });
           return;
         }
 
-        // Appel de la fonction serverless pour envoyer le mail de r€initialisation
+        // Appel de la fonction serverless pour envoyer le mail de réinitialisation
         try {
           const response = await fetch('/.netlify/functions/send-email', {
             method: 'POST',
@@ -1649,15 +1656,15 @@
           });
 
           Swal.fire({
-            title: 'E-mail envoy€ ! ⭐',
-            text: 'Un e-mail contenant les instructions de r€initialisation a €t€ envoy€ (simul€ en développement).',
+            title: 'E-mail envoyé ! ⭐',
+            text: 'Un e-mail contenant les instructions de réinitialisation a été envoyé (simulé en développement).',
             icon: 'success',
             confirmButtonColor: 'var(--bordeaux)'
           });
         } catch (e) {
           Swal.fire({
-            title: 'E-mail envoy€ ! ⭐',
-            text: 'Un e-mail contenant les instructions de r€initialisation a €t€ simul€ avec succ€s.',
+            title: 'E-mail envoyé ! ⭐',
+            text: 'Un e-mail contenant les instructions de réinitialisation a été simulé avec succès.',
             icon: 'success',
             confirmButtonColor: 'var(--bordeaux)'
           });
@@ -1686,7 +1693,7 @@
       });
 
       if (authError) {
-        // Tentative de fallback sur l'ancienne m€thode (SHA-256) pour les compâtes existants
+        // Tentative de fallback sur l'ancienne méthode (SHA-256) pour les comptes existants
         const { data: profileData, error: profileError } = await client
           .from('clients')
           .select('*')
@@ -1695,20 +1702,20 @@
 
         if (profileError || !profileData) {
           Swal.fire({
-            title: '€chec de connexion',
-            text: 'Identifiants incorrects ou compâte inexistant.',
+            title: 'Échec de connexion',
+            text: 'Identifiants incorrects ou compte inexistant.',
             icon: 'error',
             confirmButtonColor: 'var(--bordeaux)'
           });
           return;
         }
 
-        // Fallback SHA-256 pour les anciens compâtes (migration progressive)
+        // Fallback SHA-256 pour les anciens comptes (migration progressive)
         const hashedPassword = await hashPassword(mot_de_passe);
         if (profileData.mot_de_passe !== hashedPassword) {
           Swal.fire({
-            title: '€chec de connexion',
-            text: 'Identifiants incorrects ou compâte inexistant.',
+            title: 'Échec de connexion',
+            text: 'Identifiants incorrects ou compte inexistant.',
             icon: 'error',
             confirmButtonColor: 'var(--bordeaux)'
           });
@@ -1720,19 +1727,19 @@
         sessionStorage.setItem('client_user', JSON.stringify(profileData));
         sessionStorage.setItem('client_name', _clientName);
 
-        const { data: émissions } = await client
-          .from('émissions')
+        const { data: missions } = await client
+          .from('missions')
           .select('*')
           .eq('client_id', profileData.id)
           .order('created_at', { ascending: false });
 
         document.getElementById('clientLoginOverlay').style.display = 'none';
-        initClientDashboard(émissions || []);
+        initClientDashboard(missions || []);
         Swal.fire({ title: 'Bienvenue !', text: `Content de vous revoir, ${profileData.prenom}.`, icon: 'success', timer: 2000, showConfirmButton: false });
         return;
       }
 
-      // Auth Supabase r€ussie
+      // Auth Supabase réussie
       const { data: profileFromAuth, error: pErr } = await client
         .from('clients')
         .select('*')
@@ -1740,7 +1747,7 @@
         .maybeSingle();
 
       if (!profileFromAuth) {
-        // Cr€er l'entr€e client si elle n'existe pas encore
+        // Créer l'entrée client si elle n'existe pas encore
         const user = authData.user;
         const { data: newProfile } = await client.from('clients').insert([{
           email: user.email,
@@ -1758,25 +1765,25 @@
       sessionStorage.setItem('client_name', _clientName);
 
       // Chercher par client_id ET par client_email pour couvrir tous les cas
-      const { data: émissionsByClientId } = await client
-        .from('émissions')
+      const { data: missionsByClientId } = await client
+        .from('missions')
         .select('*')
         .eq('client_id', _clientUser.id)
         .order('created_at', { ascending: false });
 
-      const { data: émissionsByEmail } = await client
-        .from('émissions')
+      const { data: missionsByEmail } = await client
+        .from('missions')
         .select('*')
         .eq('client_email', _clientUser.email)
         .order('created_at', { ascending: false });
 
       // Fusionner sans doublons
       const allMissionsMap = new Map();
-      [...(émissionsByClientId || []), ...(émissionsByEmail || [])].forEach(m => allMissionsMap.set(m.id, m));
-      const émissions = Array.from(allMissionsMap.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      [...(missionsByClientId || []), ...(missionsByEmail || [])].forEach(m => allMissionsMap.set(m.id, m));
+      const missions = Array.from(allMissionsMap.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
       document.getElementById('clientLoginOverlay').style.display = 'none';
-      initClientDashboard(émissions || []);
+      initClientDashboard(missions || []);
 
       Swal.fire({
         title: 'Bienvenue !',
@@ -1799,15 +1806,15 @@
       if (!prenom || !nom || !email || !mot_de_passe) return;
 
       if (mot_de_passe.length < 6) {
-        Swal.fire({ title: 'Mot de passe trop court', text: 'Le mot de passe doit contenir au moins 6 caract€res.', icon: 'warning', confirmButtonColor: 'var(--bordeaux)' });
+        Swal.fire({ title: 'Mot de passe trop court', text: 'Le mot de passe doit contenir au moins 6 caractères.', icon: 'warning', confirmButtonColor: 'var(--bordeaux)' });
         return;
       }
 
-      Swal.fire({ title: 'Cr€ation du compâte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      Swal.fire({ title: 'Création du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
       const client = getSBCli();
 
-      // 1. Cr€er le compâte via Supabase Auth
+      // 1. Créer le compte via Supabase Auth
       const { data: authData, error: authError } = await client.auth.signUp({
         email,
         password: mot_de_passe,
@@ -1816,7 +1823,7 @@
 
       if (authError) {
         if (authError.message?.includes('already registered')) {
-          Swal.fire({ title: 'Compâte existant', text: 'Cette adresse e-mail est d€j€ associ€e € un compâte. Souhaitez-vous vous connecter ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Se connecter', cancelButtonText: 'Annuler', confirmButtonColor: 'var(--bordeaux)' })
+          Swal.fire({ title: 'Compte existant', text: 'Cette adresse e-mail est déjà associée à un compte. Souhaitez-vous vous connecter ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Se connecter', cancelButtonText: 'Annuler', confirmButtonColor: 'var(--bordeaux)' })
             .then((result) => { if (result.isConfirmed) { switchAuthTab('login'); document.getElementById('loginEmail').value = email; } });
         } else {
           Swal.fire({ title: 'Erreur', text: authError.message, icon: 'error', confirmButtonColor: 'var(--bordeaux)' });
@@ -1824,11 +1831,11 @@
         return;
       }
 
-      // 2. Ins€rer le profil dans la table clients
+      // 2. Insérer le profil dans la table clients
       const { data, error } = await client.from('clients').insert([{ prenom, nom, email, telephone, societe, role: 'client' }]).select().single();
 
       if (error || !data) {
-        Swal.fire({ title: 'Erreur', text: error ? error.message : 'Impossible de créer le compâte.', icon: 'error', confirmButtonColor: 'var(--bordeaux)' });
+        Swal.fire({ title: 'Erreur', text: error ? error.message : 'Impossible de créer le compte.', icon: 'error', confirmButtonColor: 'var(--bordeaux)' });
         return;
       }
 
@@ -1840,7 +1847,7 @@
       document.getElementById('clientLoginOverlay').style.display = 'none';
       initClientDashboard([]);
 
-      Swal.fire({ title: 'Compâte cr€€ ! ⭐', text: `Bienvenue sur votre espace, ${prenom}.`, icon: 'success', timer: 2500, showConfirmButton: false });
+      Swal.fire({ title: 'Compte créé ! ⭐', text: `Bienvenue sur votre espace, ${prenom}.`, icon: 'success', timer: 2500, showConfirmButton: false });
     }
 
     async function uploadDocumentClient(fileInputId, docType) {
@@ -1871,7 +1878,7 @@
       if (!_clientUser) {
         Swal.fire({
           title: 'Action impossible',
-          text: 'Vous devez €tre connect€ pour modifier votre profil.',
+          text: 'Vous devez être connecté pour modifier votre profil.',
           icon: 'warning',
           confirmButtonColor: 'var(--bordeaux)'
         });
@@ -1891,7 +1898,7 @@
       if (!prenom || !nom) {
         Swal.fire({
           title: 'Champs requis',
-          text: 'Le pr€nom et le nom sont obligatoires.',
+          text: 'Le prénom et le nom sont obligatoires.',
           icon: 'warning',
           confirmButtonColor: 'var(--bordeaux)'
         });
@@ -1899,7 +1906,7 @@
       }
 
       Swal.fire({
-        title: 'Mise € jour...',
+        title: 'Mise à jour...',
         text: 'Enregistrement du profil et des documents (cela peut prendre quelques secondes)...',
         didOpen: () => Swal.showLoading(),
         allowOutsideClick: false
@@ -1928,7 +1935,7 @@
       if (error) {
         Swal.fire({
           title: 'Erreur',
-          text: error.message || 'Impossible de mettre € jour le profil.',
+          text: error.message || 'Impossible de mettre à jour le profil.',
           icon: 'error',
           confirmButtonColor: 'var(--bordeaux)'
         });
@@ -1947,16 +1954,16 @@
         if (prenomEl) prenomEl.textContent = firstName;
 
         Swal.fire({
-          title: 'Succ€s',
-          text: 'Votre profil a €t€ mis € jour avec succ€s.',
+          title: 'Succès',
+          text: 'Votre profil a été mis à jour avec succès.',
           icon: 'success',
           confirmButtonColor: 'var(--bordeaux)'
         });
       }
     }
 
-    async function initClientDashboard(émissions) {
-      _clientMissions = émissions || [];
+    async function initClientDashboard(missions) {
+      _clientMissions = missions || [];
 
       const firstName = _clientName.split(' ')[0];
       const initials = _clientName.split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0, 2);
@@ -2009,53 +2016,53 @@
         if (pNom) pNom.value = parts.slice(1).join(' ') || '';
       }
 
-      const actives = émissions.filter(m => m.status === 'in_progress').length;
-      const terminees = émissions.filter(m => m.status === 'completed').length;
-      const planned = émissions.filter(m => m.status === 'planned' || m.status === 'available').length;
-      const caTotal = émissions.filter(m => m.montant_ht).reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0);
+      const actives = missions.filter(m => m.status === 'in_progress').length;
+      const terminees = missions.filter(m => m.status === 'completed').length;
+      const planned = missions.filter(m => m.status === 'planned' || m.status === 'available').length;
+      const caTotal = missions.filter(m => m.montant_ht).reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0);
 
       const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
       set('kpiActives', actives);
       set('kpiTerminees', terminees);
       set('kpiCA', caTotal >= 1000 ? (caTotal / 1000).toFixed(1) + 'k€' : caTotal + '€');
-      set('kpiTotal', émissions.length);
+      set('kpiTotal', missions.length);
 
-      renderClientMissions('recentMissionsList', émissions.slice(0, 3), false);
-      renderClientMissions('émissionsList', émissions, true);
-      renderClientInvoices(émissions);
+      renderClientMissions('recentMissionsList', missions.slice(0, 3), false);
+      renderClientMissions('missionsList', missions, true);
+      renderClientInvoices(missions);
     }
 
-    function renderClientMissions(containerId, émissions, showAll) {
+    function renderClientMissions(containerId, missions, showAll) {
       const container = document.getElementById(containerId);
       if (!container) return;
 
-      if (!émissions || émissions.length === 0) {
-        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-inbox" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune émission pour l\'instant.<br><a href="devis.html" style="color:var(--bordeaux);font-weight:700;font-size:0.8rem;">Faire un devis ?</a></div>';
+      if (!missions || missions.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-inbox" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune mission pour l\'instant.<br><a href="devis.html" style="color:var(--bordeaux);font-weight:700;font-size:0.8rem;">Faire un devis ?</a></div>';
         return;
       }
 
       const filtered = showAll && _activeFilter !== 'all'
-        ? émissions.filter(m => {
+        ? missions.filter(m => {
           if (_activeFilter === 'active') return m.status === 'in_progress';
           if (_activeFilter === 'planned') return m.status === 'planned' || m.status === 'available';
           if (_activeFilter === 'completed') return m.status === 'completed';
           return true;
         })
-        : émissions;
+        : missions;
 
       if (filtered.length === 0) {
-        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:20px;">Aucune émission dans cette cat€gorie.</div>';
+        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:20px;">Aucune mission dans cette catégorie.</div>';
         return;
       }
 
       container.innerHTML = filtered.map(m => {
         const mStatus = m.status || m.statut || 'planned';
         const statusClass = mStatus === 'in_progress' ? 'status-en-cours' : mStatus === 'completed' ? 'status-termine' : 'status-planifie';
-        const statusLabel = mStatus === 'in_progress' ? 'En transit' : mStatus === 'completed' ? 'Livr€' : 'Planifi€e';
+        const statusLabel = mStatus === 'in_progress' ? 'En transit' : mStatus === 'completed' ? 'Livrée' : 'Planifiée';
         const pct = mStatus === 'completed' ? 100 : mStatus === 'in_progress' ? 65 : 10;
         const strokeColor = mStatus === 'completed' ? 'var(--success)' : mStatus === 'in_progress' ? 'var(--bordeaux)' : '#F5A623';
         const dashOffset = Math.round(138 - (pct / 100) * 138);
-        const dateStr = m.date_émission ? new Date(m.date_émission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '€';
+        const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
         const tagMode = (m.mode_transport || 'route').toLowerCase().includes('plateau') ? '<span class="mc-tag tag-plateau">Plateau</span>' : '<span class="mc-tag tag-route">Route</span>';
         const tagVehicule = (m.vehicule || 'auto').toLowerCase().includes('moto') ? '<span class="mc-tag tag-moto">Moto</span>' : '<span class="mc-tag tag-auto">Automobile</span>';
 
@@ -2067,18 +2074,18 @@
 
         const trackBtn = mStatus === 'in_progress' ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> Suivre GPS</a>` : '';
 
-        // Condition canPay : la émission doit €tre non pay€e, non termin€e, non annul€e ET non 'available' (en attente de convoyeur)
+        // Condition canPay : la mission doit être non payée, non terminée, non annulée ET non 'available' (en attente de convoyeur)
         const canPay = payStatus !== 'paid' && mStatus !== 'completed' && mStatus !== 'cancelled' && mStatus !== 'available';
         const payBtn = canPay
           ? `<button class="btn-sm btn-sm-red" onclick="payMission('${m.id}')" style="background:#2ecc71; color:white; border:none;"><i class="fas fa-credit-card"></i> Payer</button>`
           : '';
 
-        return `<div class="émission-card clickable-card" onclick="if(event.target.closest('button') || event.target.closest('a')) return; showMissionDetails(encodeURIComponent(JSON.stringify(m)));">
+        return `<div class="mission-card clickable-card" onclick="if(event.target.closest('button') || event.target.closest('a')) return; showMissionDetails(encodeURIComponent(JSON.stringify(m)));">
       <div class="mc-status ${statusClass}"></div>
       <div class="mc-info">
-        <div class="mc-ref">${m.reference || '€'}</div>
-        <div class="mc-route">${m.depart || '€'} <em>?</em> ${m.arrivee || '€'}</div>
-        <div class="mc-meta">${tagVehicule}${tagMode}${tagPay}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase() + m.pack.slice(1) : '€'} € ${m.montant_ht || '€'}€ HT</span></div>
+        <div class="mc-ref">${m.reference || '-'}</div>
+        <div class="mc-route">${m.depart || '-'} <em>→</em> ${m.arrivee || '-'}</div>
+        <div class="mc-meta">${tagVehicule}${tagMode}${tagPay}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase() + m.pack.slice(1) : '-'} - ${m.montant_ht || '-'}€ HT</span></div>
       </div>
       <div class="mc-progress">
         <svg class="progress-circle" viewBox="0 0 52 52">
@@ -2091,7 +2098,7 @@
       <div class="mc-actions">
         ${payBtn}
         ${trackBtn}
-        <a href="bon-de-émission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Détails</a>
+        <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Détails</a>
       </div>
     </div>`;
       }).join('');
@@ -2101,7 +2108,7 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
       _activeFilter = status;
-      renderClientMissions('émissionsList', _clientMissions, true);
+      renderClientMissions('missionsList', _clientMissions, true);
     }
 
     // Check session
@@ -2112,8 +2119,8 @@
         _clientName = `${_clientUser.prenom} ${_clientUser.nom}`;
         document.getElementById('clientLoginOverlay').style.display = 'none';
         Promise.all([
-          getSBCli().from('émissions').select('*').eq('client_id', _clientUser.id).order('created_at', { ascending: false }),
-          getSBCli().from('émissions').select('*').eq('client_email', _clientUser.email).order('created_at', { ascending: false })
+          getSBCli().from('missions').select('*').eq('client_id', _clientUser.id).order('created_at', { ascending: false }),
+          getSBCli().from('missions').select('*').eq('client_email', _clientUser.email).order('created_at', { ascending: false })
         ]).then(([r1, r2]) => {
           const map = new Map();
           [...(r1.data || []), ...(r2.data || [])].forEach(m => map.set(m.id, m));
@@ -2131,18 +2138,31 @@
 
     // ========== CURSOR ==========
     if (window.matchMedia('(hover: hover)').matches) {
-      const cur = document.getElementById('cur'), cring = document.getElementById('cring');
-      let mx = 0, my = 0, rx = 0, ry = 0;
-      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cur.style.left = mx + 'px'; cur.style.top = my + 'px' });
-      (function loop() { rx += (mx - rx) * .11; ry += (my - ry) * .11; cring.style.left = rx + 'px'; cring.style.top = ry + 'px'; requestAnimationFrame(loop) })();
+      const cur = document.getElementById('cur'),
+        cring = document.getElementById('cring');
+      let mx = 0,
+        my = 0,
+        rx = 0,
+        ry = 0;
+      document.addEventListener('mousemove', e => { mx = e.clientX;
+        my = e.clientY;
+        cur.style.left = mx + 'px';
+        cur.style.top = my + 'px' });
+      (function loop() { rx += (mx - rx) * .11;
+        ry += (my - ry) * .11;
+        cring.style.left = rx + 'px';
+        cring.style.top = ry + 'px';
+        requestAnimationFrame(loop) })();
     }
 
     // ========== DATE ==========
     document.getElementById('dashDate').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
     function fmtMontant(m) { return parseFloat(m).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }); }
 
-    // ========== AUTOCOMPL€TION DYNAMIQUE DES VILLES ET ADRESSES ==========
+    // ========== AUTOCOMPLÉTION DYNAMIQUE DES VILLES ET ADRESSES ==========
     let debounceTimer;
+
     async function fetchCitySuggestions(query) {
       if (!query || query.length < 2) return [];
       try {
@@ -2156,6 +2176,7 @@
         return [];
       }
     }
+
     async function fetchAddressSuggestions(query) {
       if (!query || query.length < 3) return [];
       try {
@@ -2170,6 +2191,7 @@
         return [];
       }
     }
+
     function showSuggestions(inputId, suggestBoxId, suggestions, isCityOnly) {
       const box = document.getElementById(suggestBoxId);
       if (!box) return;
@@ -2195,6 +2217,7 @@
       });
       box.style.display = 'block';
     }
+
     function debounceGeocode(input, suggestBoxId) {
       clearTimeout(debounceTimer);
       const query = input.value.trim();
@@ -2207,6 +2230,7 @@
         showSuggestions(input.id, suggestBoxId, suggestions, true);
       }, 300);
     }
+
     function debounceGeocodeAddress(input, suggestBoxId) {
       clearTimeout(debounceTimer);
       const query = input.value.trim();
@@ -2219,6 +2243,7 @@
         showSuggestions(input.id, suggestBoxId, suggestions, false);
       }, 300);
     }
+
     document.addEventListener('click', function (e) {
       if (!e.target.closest('.f-grp')) {
         document.querySelectorAll('.suggest-box').forEach(box => box.style.display = 'none');
@@ -2231,8 +2256,9 @@
       document.getElementById('tab-' + id).classList.add('active');
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       if (el) el.classList.add('active');
-      if (id === 'émissions') filterMissions(_activeFilter, document.querySelector('.tab-btn.active'));
+      if (id === 'missions') filterMissions(_activeFilter, document.querySelector('.tab-btn.active'));
     }
+
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -2243,13 +2269,16 @@
     });
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault();
+          btn.click(); }
       });
     });
 
     // ========== MODAL ==========
     function openModal(id) { document.getElementById(id).classList.add('open'); }
+
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
     document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function (e) { if (e.target === this) this.classList.remove('open'); }));
 
     // ========== QUICK ACTIONS ==========
@@ -2263,20 +2292,23 @@
       });
     });
     const addVehi = document.querySelector('.add-vehi');
-    if (addVehi) addVehi.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('modalVehicule'); } });
+    if (addVehi) addVehi.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault();
+        openModal('modalVehicule'); } });
 
     // ========== NOTIFICATIONS ==========
     const notif = document.querySelector('.topbar-notif');
-    if (notif) notif.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alert('Notifications (d€mo)'); } });
+    if (notif) notif.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault();
+        alert('Notifications (démo)'); } });
     const userBtnCli = document.querySelector('.topbar-user');
-    if (userBtnCli) userBtnCli.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showTab('profil', document.querySelector('.nav-item[onclick*="profil"]')); } });
+    if (userBtnCli) userBtnCli.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault();
+        showTab('profil', document.querySelector('.nav-item[onclick*="profil"]')); } });
 
     // ========== DYNAMIC INVOICES RENDER ==========
-    function renderClientInvoices(émissions) {
+    function renderClientInvoices(missions) {
       const container = document.getElementById('clientFactList');
       if (!container) return;
 
-      const billingMissions = émissions.filter(m => m.montant_ht);
+      const billingMissions = missions.filter(m => m.montant_ht);
 
       if (billingMissions.length === 0) {
         container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-file-invoice" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune facture disponible.</div>';
@@ -2289,12 +2321,12 @@
       const totalHt = billingMissions.reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0);
       document.getElementById('factTotalHt').textContent = totalHt + '€ HT';
 
-      // Mise € jour badge notification : émissions non pay€es (hors 'available' et 'cancelled')
-      const unpaidCount = émissions.filter(m => {
+      // Mise à jour badge notification : missions non payées (hors 'available' et 'cancelled')
+      const unpaidCount = missions.filter(m => {
         const st = m.status || m.statut || '';
-        return (m.paiement_statut || 'pending') !== 'paid'
-          && st !== 'available'
-          && st !== 'cancelled';
+        return (m.paiement_statut || 'pending') !== 'paid' &&
+          st !== 'available' &&
+          st !== 'cancelled';
       }).length;
       const notifBadge = document.getElementById('cliNotifBadge');
       if (notifBadge) {
@@ -2306,16 +2338,16 @@
         const payStatus = m.paiement_statut || 'pending';
         const statusClass = payStatus === 'paid' ? 'ts-ok' : 'ts-att';
         const statusLabel = payStatus === 'paid' ? 'Payée' : 'En attente';
-        const dateStr = m.date_émission ? new Date(m.date_émission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '€';
+        const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
         const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-', '') : m.id.slice(0, 8).toUpperCase()}`;
-        const depStr = (m.depart || '').split('(')[0].trim() || '€';
-        const arrStr = (m.arrivee || '').split('(')[0].trim() || '€';
+        const depStr = (m.depart || '').split('(')[0].trim() || '-';
+        const arrStr = (m.arrivee || '').split('(')[0].trim() || '-';
 
         return `<div class="fact-item">
       <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
       <div style="flex:1;">
         <div class="fact-ref">${invoiceRef}</div>
-        <div class="fact-date">${dateStr} € ${depStr} ? ${arrStr}</div>
+        <div class="fact-date">${dateStr} - ${depStr} → ${arrStr}</div>
       </div>
       <div class="fact-montant" style="margin-left:20px; font-weight:600;">${m.montant_ht}€</div>
       <div class="fact-status" style="margin-left:20px;"><span class="td-status ${statusClass}">${statusLabel}</span></div>
@@ -2325,10 +2357,10 @@
     }
 
     // ========== STRIPE CHECKOUT ROUTING ==========
-    async function payMission(émissionId) {
+    async function payMission(missionId) {
       Swal.fire({
         title: 'Redirection...',
-        text: 'Nous pr€parons votre paiement sécurisé via Stripe.',
+        text: 'Nous préparons votre paiement sécurisé via Stripe.',
         allowOutsideClick: false,
         didOpen: () => {
           Swal.showLoading();
@@ -2344,12 +2376,12 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ émissionId, successUrl, cancelUrl })
+          body: JSON.stringify({ missionId, successUrl, cancelUrl })
         });
 
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || data.errorMessage || JSON.stringify(data) || 'Erreur lors de la cr€ation de la session Stripe.');
+          throw new Error(data.error || data.errorMessage || JSON.stringify(data) || 'Erreur lors de la création de la session Stripe.');
         }
 
         window.location.href = data.url;
@@ -2368,8 +2400,8 @@
     const paymentStatus = urlParams.get('payment_status');
     if (paymentStatus === 'success') {
       Swal.fire({
-        title: 'Paiement valid€ ! ⭐',
-        text: 'Votre r€glement a €t€ trait€ avec succ€s. La émission est maintenant pr€te € démarrer.',
+        title: 'Paiement validé ! ⭐',
+        text: 'Votre règlement a été traité avec succès. La mission est maintenant prête à démarrer.',
         icon: 'success',
         confirmButtonColor: 'var(--bordeaux)'
       }).then(() => {
@@ -2377,8 +2409,8 @@
       });
     } else if (paymentStatus === 'cancel') {
       Swal.fire({
-        title: 'Paiement annul€',
-        text: 'Le processus de r€glement a €t€ annul€. Vous pouvez payer votre devis € tout moment.',
+        title: 'Paiement annulé',
+        text: 'Le processus de règlement a été annulé. Vous pouvez payer votre devis à tout moment.',
         icon: 'info',
         confirmButtonColor: 'var(--bordeaux)'
       }).then(() => {
@@ -2427,48 +2459,54 @@
     } else {
       bindClientAuthListeners();
     }
+
     function showMissionDetails(mObjStr) {
       try {
         const m = JSON.parse(decodeURIComponent(mObjStr));
         document.getElementById('md-ref').value = m.reference || '';
 
-        let statusText = 'Planifi€e';
+        let statusText = 'Planifiée';
         if (m.status === 'available') statusText = 'En recherche de convoyeur';
         else if (m.status === 'in_progress') statusText = 'En cours';
-        else if (m.status === 'completed') statusText = 'Termin€e';
-        else if (m.status === 'cancelled') statusText = 'Annul€e';
+        else if (m.status === 'completed') statusText = 'Terminée';
+        else if (m.status === 'cancelled') statusText = 'Annulée';
         document.getElementById('md-status').value = statusText;
 
-        document.getElementById('md-depart').value = m.depart || '€';
-        document.getElementById('md-arrivee').value = m.arrivee || '€';
+        document.getElementById('md-depart').value = m.depart || '-';
+        document.getElementById('md-arrivee').value = m.arrivee || '-';
         document.getElementById('md-vehicule').value = m.vehicule || 'Automobile';
         document.getElementById('md-price').value = m.montant_ht || 0;
 
         openModal('modalMissionDetails');
       } catch (e) {
-        console.error('Error parsing émission details', e);
+        console.error('Error parsing mission details', e);
       }
     }
 
     // ---------------------------------------------------------
-    // 1. SAUVEGARDE DU V€HICULE (saveVehicule)
+    // 1. SAUVEGARDE DU VÉHICULE (saveVehicule)
     // ---------------------------------------------------------
     /**
-     * Sauvegarde un nouveau véhicule en base de donn€es (Auto / Moto)
+     * Sauvegarde un nouveau véhicule en base de données (Auto / Moto)
      * @param {Object} vehiculeData - Ex: { marque: 'BMW', modele: 'S1000RR', immatriculation: 'AA-123-BB', type: 'moto', client_id: 'uuid' }
      */
     async function saveVehicule(vehiculeData) {
       try {
-        // Utilisation de l'instance globale 'supabase' d€j€ configur€e dans ton projet
-        const { data, error } = await supabase
+        if (!_clientUser || !_clientUser.id) {
+          alert('Vous devez être connecté pour enregistrer un véhicule.');
+          return;
+        }
+        vehiculeData.client_id = _clientUser.id;
+
+        const { data, error } = await getSBCli()
           .from('vehicules')
           .insert([vehiculeData])
           .select();
 
         if (error) throw error;
 
-        console.log('Véhicule sauvegard€ avec succ€s:', data);
-        alert('Votre véhicule a €t€ enregistr€ avec succ€s !');
+        console.log('Véhicule sauvegardé avec succès:', data);
+        alert('Votre véhicule a été enregistré avec succès !');
 
         if (typeof refreshVehiclesList === 'function') {
           refreshVehiclesList();
@@ -2483,153 +2521,11 @@
     // ---------------------------------------------------------
     // 2. SOUMISSION D'UN TICKET SUPPORT (submitSupportTicket)
     // ---------------------------------------------------------
-    async function submitSupportTicket(ticketData) {
-      try {
-        const { data, error } = await supabase
-          .from('support_tickets')
-          .insert([ticketData])
-          .select();
-
-        if (error) throw error;
-
-        console.log('Ticket cr€€ avec succ€s:', data);
-        alert('Votre demande de support a €t€ envoy€e. Notre €équipe vous contactera rapidement.');
-
-        const supportForm = document.getElementById('support-form');
-        if (supportForm) supportForm.reset();
-
-      } catch (error) {
-        console.error('Erreur lors de la cr€ation du ticket:', error.message);
-        alert('Une erreur est survenue lors de l\'envoi du ticket : ' + error.message);
-      }
-    }
-
-    // ---------------------------------------------------------
-    // 3. G€N€RATION ET T€L€CHARGEMENT PDF PREMIUM (jsPDF)
-    // ---------------------------------------------------------
-    /**
-     * G€n€re un PDF haut de gamme aux couleurs de Bathily Convoyage
-     * @param {Object} facture - Détails de la facture
-     */
-    function downloadInvoice(facture) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      // --- COULEURS DE LA CHARTE V2.0 ---
-      const primaryColor = [10, 77, 104];     // #0A4D68 (Bleu Brand)
-      const accentColor = [245, 166, 35];     // #F5A623 (Jaune/Or)
-      const textColor = [45, 42, 36];         // #2D2A24 (Anthracite / Texte Fonc€)
-      const lightGray = [107, 98, 90];        // #6B625A (Gris Neutre)
-      const separatorColor = [232, 225, 217]; // #E8E1D9 (Sable / Bordures)
-
-      // --- €L€MENTS DE MARQUE (En-t€te) ---
-      doc.setFont("Helvetica", "bold"); // Fallback propre pour Montserrat
-      doc.setFontSize(24);
-      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text("BATHILY", 20, 25);
-
-      doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
-      doc.text("CONVOYAGE", 62, 25);
-
-      // Titre du Document (Facture)
-      doc.setFontSize(12);
-      doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
-      doc.setFont("Helvetica", "normal");
-      doc.text(`FACTURE N€ : ${facture.numero || 'FAC-0000'}`, 190, 25, null, null, "right");
-
-      // Ligne de structure sup€rieure (Couleur Sable)
-      doc.setDrawColor(separatorColor[0], separatorColor[1], separatorColor[2]);
-      doc.setLineWidth(0.5);
-      doc.line(20, 32, 190, 32);
-
-      // --- INFORMATIONS COMPL€MENTAIRES ---
-      doc.setFontSize(10);
-      doc.setTextColor(textColor[0], textColor[textColor[1]], textColor[2]);
-      doc.text(`Date d'€émission : ${facture.date || new Date().toLocaleDateString('fr-FR')}`, 20, 42);
-
-      // Bloc Client (Cadre Premium simul€)
-      doc.setFont("Helvetica", "bold");
-      doc.text("Facturé € :", 120, 42);
-      doc.setFont("Helvetica", "normal");
-      doc.text(`${facture.clientNom || 'Nom du Client'}`, 120, 49);
-      doc.text(`${facture.clientAdresse || 'Adresse du client'}`, 120, 56);
-
-      // --- TABLEAU DE PRESTATION ---
-      // En-t€te de colonne
-      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.rect(20, 70, 170, 8, "F");
-
-      doc.setFont("Helvetica", "bold");
-      doc.setTextColor(255, 255, 255); // Texte blanc
-      doc.text("Désignation de la prestation", 24, 75);
-      doc.text("Montant HT", 155, 75);
-
-      // Lignes de contenu
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.setFont("Helvetica", "normal");
-      doc.text(`Convoyage véhicule : ${facture.vehicule || 'Non sp€cifi€'}`, 24, 88);
-
-      doc.setFontSize(9);
-      doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
-      doc.text(`€ Point de d€part : ${facture.lieuDepart || '€'}`, 28, 95);
-      doc.text(`€ Point d'arriv€e : ${facture.lieuArrivee || '€'}`, 28, 101);
-
-      // Prix unitaire
-      doc.setFontSize(10);
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      const montantHT = facture.montantHT ? parseFloat(facture.montantHT).toFixed(2) : '0.00';
-      doc.text(`${montantHT} €`, 155, 88);
-
-      // Ligne de fermeture du tableau
-      doc.line(20, 110, 190, 110);
-
-      // --- CALCUL DES TOTALS ---
-      const tva = facture.tva ? parseFloat(facture.tva).toFixed(2) : (montantHT * 0.20).toFixed(2);
-      const totalTTC = (parseFloat(montantHT) + parseFloat(tva)).toFixed(2);
-
-      doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
-      doc.text("Montant HT :", 125, 120, null, null, "right");
-      doc.text(`${montantHT} €`, 155, 120);
-
-      doc.text("TVA (20%) :", 125, 127, null, null, "right");
-      doc.text(`${tva} €`, 155, 127);
-
-      // Mise en avant du total TTC (Ligne Premium Or)
-      doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
-      doc.setLineWidth(1);
-      doc.line(100, 133, 190, 133);
-
-      doc.setFont("Helvetica", "bold");
-      doc.setFontSize(12);
-      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text("TOTAL TTC :", 125, 142, null, null, "right");
-      doc.text(`${totalTTC} €`, 155, 142);
-
-      // --- PIED DE PAGE & REASSURANCE ---
-      doc.setDrawColor(separatorColor[0], separatorColor[1], separatorColor[2]);
-      doc.setLineWidth(0.5);
-      doc.line(20, 265, 190, 265);
-
-      doc.setFontSize(9);
-      doc.setFont("Helvetica", "bold");
-      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text("BATHILY CONVOYAGE € Service de Transport Automobile & Moto Premium", 105, 272, null, null, "center");
-
-      doc.setFont("Helvetica", "normal");
-      doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
-      doc.text("Suivi GPS en temps réel € Double assurance RC Pro incluse € Assistance 7j/7", 105, 278, null, null, "center");
-      doc.text("contact@bathily-convoyage.fr € www.bathily-convoyage.fr", 105, 283, null, null, "center");
-
-      // Lancer le t€l€chargement du fichier
-      doc.save(`Facture_${facture.numero || 'convoyage'}.pdf`);
-    }
-
-    // ========== TICKET SUPPORT ==========
     async function submitSupportTicket() {
-      if (!_clientUser) { Swal.fire('Erreur', 'Vous devez €tre connect€.', 'error'); return; }
+      if (!_clientUser) { Swal.fire('Erreur', 'Vous devez être connecté.', 'error'); return; }
       const sujet = document.getElementById('supportSujet')?.value.trim() || 'Demande de support';
       const message = document.getElementById('supportMessage')?.value.trim();
-      if (!message) { Swal.fire('Message requis', 'Veuillez d€écrire votre demande.', 'warning'); return; }
+      if (!message) { Swal.fire('Message requis', 'Veuillez décrire votre demande.', 'warning'); return; }
       Swal.fire({ title: 'Envoi en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
       const client = getSBCli();
       const { error } = await client.from('support_tickets').insert([{
@@ -2645,43 +2541,51 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ trigger: 'support_ticket', email: _clientUser.email, sujet, message })
-      }).catch(() => { });
+      }).catch(() => {});
       if (error && !error.message.includes('does not exist')) {
         Swal.fire('Erreur', error.message, 'error');
       } else {
         if (document.getElementById('supportMessage')) document.getElementById('supportMessage').value = '';
-        Swal.fire({ title: 'Message envoy€ ! ⭐', text: 'Notre €équipe vous r€pondra sous 24h.', icon: 'success', confirmButtonColor: 'var(--bordeaux)' });
+        Swal.fire({ title: 'Message envoyé ! ⭐', text: 'Notre équipe vous répondra sous 24h.', icon: 'success', confirmButtonColor: 'var(--bordeaux)' });
       }
     }
 
     // ========== FACTURE PDF CLIENT ==========
-    function downloadClientInvoicePdf(émissionId) {
-      const m = _clientMissions.find(x => x.id === émissionId);
+    function downloadClientInvoicePdf(missionId) {
+      const m = _clientMissions.find(x => x.id === missionId);
       if (!m) return;
       if (typeof window.jspdf === 'undefined') {
-        Swal.fire('Information', 'Téléchargement PDF en cours de chargement, r€essayez dans quelques secondes.', 'info');
+        Swal.fire('Information', 'Téléchargement PDF en cours de chargement, réessayez dans quelques secondes.', 'info');
         return;
       }
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      doc.setFontSize(22); doc.setTextColor(10, 77, 104); doc.text('Bathily-Convoyage', 14, 20);
-      doc.setFontSize(10); doc.setTextColor(100, 100, 100);
+      doc.setFontSize(22);
+      doc.setTextColor(10, 77, 104);
+      doc.text('Bathily-Convoyage', 14, 20);
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
       doc.text('34, rue de Padirac 34070 Montpellier', 14, 28);
       doc.text('SIRET: 789 285 376 00032 | RCS Montpellier', 14, 34);
       const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-', '') : m.id.slice(0, 8).toUpperCase()}`;
-      const dateStr = m.date_émission ? new Date(m.date_émission).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
-      doc.setFontSize(12); doc.setTextColor(0, 0, 0);
-      doc.text(`Facture N€ ${invoiceRef}`, 140, 20);
+      const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Facture N° ${invoiceRef}`, 140, 20);
       doc.text(`Date : ${dateStr}`, 140, 28);
-      doc.text('Facturé € :', 14, 50);
+      doc.text('Facturé à :', 14, 50);
       doc.text(_clientName || _clientUser?.email || 'Client', 14, 58);
       const priceHt = parseFloat(m.montant_ht) || 0;
       const tva = priceHt * 0.20;
       const priceTtc = priceHt + tva;
       doc.autoTable({
         startY: 80,
-        head: [['Description', 'Prix HT', 'TVA', 'Total TTC']],
-        body: [[`Mission de convoyage\nR€f: ${m.reference || 'N/A'}\nTrajet: ${(m.depart || '').split('(')[0].trim()} -> ${(m.arrivee || '').split('(')[0].trim()}`, `${priceHt.toFixed(2)} €`, '20%', `${priceTtc.toFixed(2)} €`]],
+        head: [
+          ['Description', 'Prix HT', 'TVA', 'Total TTC']
+        ],
+        body: [
+          [`Mission de convoyage\nRéf: ${m.reference || 'N/A'}\nTrajet: ${(m.depart || '').split('(')[0].trim()} -> ${(m.arrivee || '').split('(')[0].trim()}`, `${priceHt.toFixed(2)} €`, '20%', `${priceTtc.toFixed(2)} €`]
+        ],
         theme: 'grid',
         headStyles: { fillColor: [10, 77, 104], textColor: [255, 255, 255] }
       });
@@ -2692,7 +2596,8 @@
       doc.text(`TVA (20%) : ${tva.toFixed(2)} €`, 125, finalY + 26);
       doc.setDrawColor(10, 77, 104);
       doc.line(125, finalY + 31, 185, finalY + 31);
-      doc.setFontSize(12); doc.setTextColor(10, 77, 104);
+      doc.setFontSize(12);
+      doc.setTextColor(10, 77, 104);
       doc.text(`Total TTC : ${priceTtc.toFixed(2)} €`, 125, finalY + 39);
       doc.save(`Facture_${invoiceRef}.pdf`);
     }
@@ -2701,14 +2606,14 @@
       auto: {
         "Peugeot": ["208", "308", "2008", "3008", "5008", "408"],
         "Renault": ["Clio", "Captur", "Megane", "Austral", "Scenic", "Twingo"],
-        "Citro€n": ["C3", "C4", "C5 Aircross", "Berlingo"],
-        "BMW": ["S€rie 1", "S€rie 3", "S€rie 5", "X1", "X3", "X5", "i4"],
+        "Citroën": ["C3", "C4", "C5 Aircross", "Berlingo"],
+        "BMW": ["Série 1", "Série 3", "Série 5", "X1", "X3", "X5", "i4"],
         "Mercedes-Benz": ["Classe A", "Classe C", "Classe E", "GLA", "GLC", "EQE"],
         "Audi": ["A1", "A3", "A4", "Q3", "Q5", "E-Tron"],
         "Volkswagen": ["Golf", "Polo", "Tiguan", "T-Roc", "ID.3", "ID.4"],
         "Tesla": ["Model 3", "Model Y", "Model S", "Model X"],
         "Dacia": ["Sandero", "Duster", "Spring", "Jogger"],
-        "Autre": ["Modèle personnalis€"]
+        "Autre": ["Modèle personnalisé"]
       },
       moto: {
         "Yamaha": ["MT-07", "MT-09", "TMAX", "XMAX", "Tracer 9", "Tenere 700"],
@@ -2717,7 +2622,7 @@
         "Kawasaki": ["Z650", "Z900", "Ninja 400", "Versys"],
         "Triumph": ["Street Triple", "Tiger 900", "Bonneville", "Speed Triple"],
         "Ducati": ["Monster", "Multistrada", "Panigale", "Scrambler"],
-        "Autre": ["Modèle personnalis€"]
+        "Autre": ["Modèle personnalisé"]
       }
     };
 
@@ -2747,7 +2652,7 @@
 
       const marques = Object.keys(VEHICULES_DATA[type]);
 
-      marqueSelect.innerHTML = '<option value="">-- S€lectionnez une marque --</option>';
+      marqueSelect.innerHTML = '<option value="">-- Sélectionnez une marque --</option>';
       marques.forEach(marque => {
         const op = document.createElement('option');
         op.value = marque;
@@ -2764,7 +2669,7 @@
       if (!modeleSelect) return;
 
       if (!marque) {
-        modeleSelect.innerHTML = '<option value="">-- S€lectionnez d\'abord une marque --</option>';
+        modeleSelect.innerHTML = '<option value="">-- Sélectionnez d\'abord une marque --</option>';
         modeleSelect.disabled = true;
         return;
       }
@@ -2781,7 +2686,7 @@
       });
     }
 
-    // Fonction interm€diaire appel€e lors du clic sur "Enregistrer"
+    // Fonction intermédiaire appelée lors du clic sur "Enregistrer"
     function triggerVehicleSave() {
       const plaqueInput = document.getElementById('vehi-plaque');
       const marqueSelect = document.getElementById('vehi-marque');
@@ -2801,12 +2706,12 @@
         carburant: document.getElementById('vehi-carbu').value
       };
 
-      // Lance la sauvegarde Supabase qu'on a valid€e au point n€2
+      // Lance la sauvegarde Supabase
       saveVehicule(vehiculeData);
       closeModal('modalVehicule');
     }
 
-    // Lance l'initialisation d€s que l'affichage est pr€t
+    // Lance l'initialisation dès que l'affichage est prêt
     document.addEventListener('DOMContentLoaded', initMarques);
   </script>
 </body>
