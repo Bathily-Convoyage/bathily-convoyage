@@ -1420,7 +1420,7 @@
       <input type="email" id="adminEmailInput" class="auth-input" placeholder="Email admin" autocomplete="email">
       <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Mot de passe" autocomplete="current-password">
       <div class="auth-error" id="authError">Identifiants incorrects ou compte non admin.</div>
-      <button class="auth-btn" id="loginBtn" onclick="(async function(){const e=document.getElementById('adminEmailInput').value.trim(),p=document.getElementById('adminPasswordInput').value;if(!e||!p){Swal.fire('Champs requis','Veuillez saisir email et mot de passe.','warning');return;}const s=await signInWithEmail(e,p);if(s){document.getElementById('authOverlay').classList.add('hidden');document.querySelector('.topbar').style.display='flex';document.querySelector('.dash-layout').style.display='flex';loadAllData();}})()"><i class="fas fa-unlock-alt"></i> Se connecter</button>
+      <button class="auth-btn" id="loginBtn" onclick="handleLogin()"><i class="fas fa-unlock-alt"></i> Se connecter</button>
     </div>
   </div>
 
@@ -2356,30 +2356,53 @@ Cadeau premium personnalisé</textarea>
   </div>
 
   <script>
-    // Fonction globale pour le login (appelée par onclick inline)
+    // Fonction globale pour le login (complètement autonome)
     window.handleLogin = async function() {
       const email = document.getElementById('adminEmailInput').value.trim();
       const password = document.getElementById('adminPasswordInput').value;
       if (!email || !password) {
-        if (typeof Swal !== 'undefined') {
-          Swal.fire('Champs requis', 'Veuillez saisir email et mot de passe.', 'warning');
-        } else {
-          alert('Veuillez saisir email et mot de passe.');
-        }
+        alert('Veuillez saisir email et mot de passe.');
         return;
       }
-      // Vérifier si signInWithEmail existe (défini plus tard dans DOMContentLoaded)
-      if (typeof window.signInWithEmail === 'function') {
-        const success = await window.signInWithEmail(email, password);
-        if (success) {
-          document.getElementById('authOverlay').classList.add('hidden');
-          document.querySelector('.topbar').style.display = 'flex';
-          document.querySelector('.dash-layout').style.display = 'flex';
-          if (typeof loadAllData === 'function') loadAllData();
+      
+      try {
+        // Créer client Supabase directement
+        if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+          alert('Erreur de configuration Supabase');
+          return;
         }
-      } else {
-        console.error('Auth not ready');
-        alert('Erreur: Le système d\'authentification n\'est pas encore chargé. Attendez 2 secondes et réessayez.');
+        const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        
+        // Connexion
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        
+        // Vérifier rôle admin
+        const { data: profile, error: profileError } = await sb
+          .from('clients')
+          .select('role, prenom, nom')
+          .eq('email', email)
+          .maybeSingle();
+          
+        if (profileError || !profile || profile.role !== 'admin') {
+          await sb.auth.signOut();
+          throw new Error("Ce compte n'est pas administrateur.");
+        }
+        
+        // Succès !
+        document.getElementById('authOverlay').classList.add('hidden');
+        document.querySelector('.topbar').style.display = 'flex';
+        document.querySelector('.dash-layout').style.display = 'flex';
+        document.getElementById('adminName').textContent = (profile.prenom || 'Admin').toUpperCase();
+        
+        alert('Connexion réussie ! Bienvenue ' + profile.prenom);
+        
+      } catch (err) {
+        console.error(err);
+        const errDiv = document.getElementById('authError');
+        errDiv.style.display = 'block';
+        errDiv.textContent = err.message || "Identifiants incorrects.";
+        setTimeout(() => errDiv.style.display = 'none', 3000);
       }
     };
 
