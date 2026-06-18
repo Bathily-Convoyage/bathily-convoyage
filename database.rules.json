@@ -1,0 +1,106 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    
+    "missions": {
+      "$missionId": {
+        ".read": "auth != null && (data.child('convoyeurId').val() == auth.token.supabaseUid || data.child('clientId').val() == auth.token.supabaseUid || data.child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+        ".write": "auth != null && (newData.child('convoyeurId').val() == auth.token.supabaseUid || data.child('convoyeurId').val() == auth.token.supabaseUid || newData.child('convoyeurId').val() == auth.uid || data.child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+        
+        "convoyeurId": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        
+        "clientId": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        
+        "gps": {
+          "current": {
+            ".read": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || data.parent().parent().parent().child('clientId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('clientId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            ".write": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            ".validate": "newData.hasChildren(['lat', 'lng', 'accuracy', 'timestamp', 'mission', 'status', 'convoyeurId'])"
+          },
+          "history": {
+            ".read": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || data.parent().parent().parent().child('clientId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('clientId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            ".write": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            "$timestamp": {
+              ".validate": "newData.hasChildren(['lat', 'lng', 'accuracy', 'timestamp', 'mission', 'status', 'convoyeurId'])"
+            }
+          },
+          "status": {
+            ".read": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || data.parent().parent().parent().child('clientId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('clientId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            ".write": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            ".validate": "newData.val() == 'online' || newData.val() == 'offline' || newData.val() == 'arrived' || newData.val() == 'in_transit'"
+          }
+        },
+        
+        "status": {
+          ".read": "auth != null && (data.parent().child('convoyeurId').val() == auth.uid || data.parent().child('clientId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+          ".write": "auth != null && (data.parent().child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')"
+        }
+      }
+    },
+    
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid",
+        
+        "role": {
+          ".read": "auth != null && auth.uid == $uid",
+          ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin')"
+        },
+        
+        "missions": {
+          ".read": "auth != null && auth.uid == $uid",
+          ".indexOn": ["status", "date"]
+        },
+        
+        "location": {
+          ".read": "auth != null && auth.uid == $uid",
+          ".write": "auth != null && auth.uid == $uid"
+        },
+        
+        "profile": {
+          ".read": "auth != null && auth.uid == $uid",
+          ".write": "auth != null && auth.uid == $uid"
+        }
+      }
+    },
+    
+    "candidatures": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin'",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || data.child('userId').val() == auth.uid)",
+      "$candidatureId": {
+        ".validate": "newData.hasChildren(['userId', 'email', 'nom', 'prenom', 'dateCreation'])"
+      }
+    },
+    
+    "notifications": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+        ".indexOn": ["timestamp", "read"]
+      }
+    },
+    
+    "analytics": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin'",
+      ".write": false
+    },
+    
+    "system": {
+      "maintenance": {
+        ".read": true,
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin'"
+      },
+      
+      "tarifs": {
+        ".read": true,
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() == 'admin'"
+      }
+    }
+  }
+}

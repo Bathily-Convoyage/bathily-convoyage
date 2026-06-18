@@ -1,0 +1,2 @@
+[functions.generate-firebase-token]
+verify_jwt = true

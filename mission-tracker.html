@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Suivi GPS Mission | Bathily Convoyage</title>
+  <meta name="description" content="Suivez votre convoyage en temps réel. Position GPS actualisée, itinéraire et informations mission.">
+  
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⭐%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FDFBF7;
+      color: #2D2A24;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    
+    :root {
+      --bordeaux: #0A4D68;
+      --bordeaux-dark: #063244;
+      --bordeaux-light: #E6F0F4;
+      --cream: #FDFBF7;
+      --beige: #F9F6F0;
+      --gray-dark: #2D2A24;
+      --gray-mid: #6B625A;
+      --border-light: #E8E1D9;
+      --success: #4A7C6B;
+      --warning: #F5A623;
+      --error: #C75B5B;
+      --online: #10B981;
+    }
+    
+    /* Header */
+    .track-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(253, 251, 247, 0.98);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-light);
+      z-index: 1000;
+      padding: 12px 20px;
+    }
+    
+    .track-header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .btn-logout {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: transparent;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      color: var(--gray-mid);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    
+    .btn-logout:hover {
+      background: var(--beige);
+      color: var(--gray-dark);
+    }
+    
+    .track-logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--gray-dark);
+      text-decoration: none;
+    }
+    
+    .track-logo span { color: var(--bordeaux); }
+    
+    .track-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gray-mid);
+      animation: pulse 2s infinite;
+    }
+    
+    .status-dot.online { background: var(--online); }
+    .status-dot.offline { background: var(--error); animation: none; }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    /* Layout */
+    .track-container {
+      display: flex;
+      height: 100vh;
+      padding-top: 60px;
+    }
+    
+    /* Sidebar */
+    .track-sidebar {
+      width: 380px;
+      background: white;
+      border-right: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    
+    .mission-card {
+      padding: 24px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    
+    .mission-ref {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--bordeaux);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    
+    .mission-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+      margin-bottom: 4px;
+    }
+    
+    .mission-route {
+      font-size: 0.9rem;
+      color: var(--gray-mid);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .mission-route i { color: var(--bordeaux); }
+    
+    /* Vehicle Info */
+    .vehicle-card {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-light);
+      background: var(--beige);
+    }
+    
+    .vehicle-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--gray-mid);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    
+    .vehicle-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+    }
+    
+    /* Position Stats */
+    .stats-card {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-mid);
+      margin-bottom: 4px;
+    }
+    
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+    }
+    
+    .stat-value.accent { color: var(--bordeaux); }
+    
+    /* Convoyeur */
+    .convoyeur-card {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    
+    .convoyeur-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .convoyeur-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--bordeaux-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bordeaux);
+      font-size: 1.2rem;
+    }
+    
+    .convoyeur-info h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+    }
+    
+    .convoyeur-info p {
+      font-size: 0.85rem;
+      color: var(--gray-mid);
+    }
+    
+    /* ETA */
+    .eta-card {
+      padding: 20px 24px;
+      background: var(--bordeaux);
+      color: white;
+    }
+    
+    .eta-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.8;
+      margin-bottom: 8px;
+    }
+    
+    .eta-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    /* History */
+    .history-card {
+      padding: 20px 24px;
+      flex: 1;
+    }
+    
+    .history-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--beige);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+    
+    .history-time {
+      font-weight: 600;
+      color: var(--bordeaux);
+      min-width: 50px;
+    }
+    
+    .history-location {
+      color: var(--gray-mid);
+      flex: 1;
+    }
+    
+    /* Map */
+    .track-map {
+      flex: 1;
+      position: relative;
+    }
+    
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Loading */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(253, 251, 247, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      gap: 16px;
+    }
+    
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border-light);
+      border-top-color: var(--bordeaux);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Error State */
+    .error-state {
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .error-state i {
+      font-size: 3rem;
+      color: var(--error);
+      margin-bottom: 16px;
+    }
+    
+    .error-state h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+      margin-bottom: 8px;
+    }
+    
+    .error-state p {
+      color: var(--gray-mid);
+      margin-bottom: 24px;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: var(--bordeaux);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn:hover { background: var(--bordeaux-dark); }
+    
+    /* Mobile */
+    @media (max-width: 768px) {
+      .track-container {
+        flex-direction: column;
+      }
+      
+      .track-sidebar {
+        width: 100%;
+        max-height: 50vh;
+        order: 2;
+      }
+      
+      .track-map {
+        order: 1;
+        height: 50vh;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    
+    /* Custom Marker */
+    .custom-marker {
+      background: var(--bordeaux);
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    
+    /* Popup */
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px;
+      padding: 0;
+    }
+    
+    .leaflet-popup-content {
+      margin: 12px;
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="track-header">
+    <div class="track-header-inner">
+      <a href="/" class="track-logo">Bathily <span>Convoyage</span></a>
+      <div class="header-right">
+        <div class="track-status">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Connexion...</span>
+        </div>
+        <button class="btn-logout" id="logoutBtn" onclick="logout()" style="display: none;">
+          <i class="fas fa-sign-out-alt"></i>
+          Déconnexion
+        </button>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Main Container -->
+  <div class="track-container">
+    <!-- Sidebar -->
+    <aside class="track-sidebar">
+      <!-- Mission Info -->
+      <div class="mission-card">
+        <div class="mission-ref" id="missionRef">Mission</div>
+        <h2 class="mission-title" id="missionTitle">Chargement...</h2>
+        <div class="mission-route">
+          <i class="fas fa-route"></i>
+          <span id="missionRoute">--</span>
+        </div>
+      </div>
+      
+      <!-- Vehicle -->
+      <div class="vehicle-card">
+        <div class="vehicle-label">Véhicule convoyé</div>
+        <div class="vehicle-name" id="vehicleName">--</div>
+      </div>
+      
+      <!-- Stats -->
+      <div class="stats-card">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-label">Vitesse</span>
+            <span class="stat-value" id="statSpeed">--</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Précision</span>
+            <span class="stat-value accent" id="statAccuracy">--</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Dernière pos.</span>
+            <span class="stat-value" id="statLastUpdate">--</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Distance</span>
+            <span class="stat-value" id="statDistance">--</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Convoyeur -->
+      <div class="convoyeur-card">
+        <div class="convoyeur-header">
+          <div class="convoyeur-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="convoyeur-info">
+            <h4 id="convoyeurName">--</h4>
+            <p>Votre convoyeur</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ETA -->
+      <div class="eta-card">
+        <div class="eta-label">Arrivée estimée</div>
+        <div class="eta-value" id="etaValue">Calcul...</div>
+      </div>
+      
+      <!-- History -->
+      <div class="history-card">
+        <div class="history-title">
+          <i class="fas fa-history"></i>
+          Historique des positions
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="history-item">
+            <span class="history-time">--:--</span>
+            <span class="history-location">En attente de données...</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Map -->
+    <div class="track-map">
+      <div id="map"></div>
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p>Chargement de la position...</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-config.js"></script>
+  
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getDatabase, ref, onValue, off } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+    import { getAuth, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyAbPM7pM4umkuG1k_MAUYxddHQMNP9UebM",
+      authDomain: "bathily-convoyage-c211b.firebaseapp.com",
+      databaseURL: "https://bathily-convoyage-c211b-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "bathily-convoyage-c211b",
+      storageBucket: "bathily-convoyage-c211b.firebasestorage.app",
+      messagingSenderId: "115133170172",
+      appId: "1:115133170172:web:5fcdc2b835f6df157b3279"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    
+    window._db = db;
+    window._auth = auth;
+    window._ref = ref;
+    window._onValue = onValue;
+    window._off = off;
+    window._signInWithCustomToken = signInWithCustomToken;
+    
+    document.dispatchEvent(new CustomEvent('firebase-ready'));
+  </script>
+  
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <script>
+    // ========== STATE ==========
+    const STATE = {
+      missionRef: null,
+      db: null,
+      map: null,
+      marker: null,
+      pathLine: null,
+      positions: [],
+      lastPosition: null,
+      convoyeurId: null,
+      clientId: null,
+      unsubscribe: null,
+      totalDistance: 0,
+      currentUser: null,
+      supabase: null,
+      isAuthorized: false,
+    };
+    
+    // ========== INIT ==========
+    document.addEventListener('firebase-ready', initTracker);
+    
+    async function initTracker() {
+      // Initialize Supabase first
+      STATE.supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      
+      // Check authentication
+      const { data: { session }, error: authError } = await STATE.supabase.auth.getSession();
+      
+      if (authError || !session) {
+        showLoginPrompt();
+        return;
+      }
+      
+      STATE.currentUser = session.user;
+      
+      // Authenticate with Firebase using Custom Token
+      await signInToFirebase(session);
+      
+      // Parse URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      const missionRef = urlParams.get('ref') || urlParams.get('mission');
+      
+      if (!missionRef) {
+        showError('Aucune mission spécifiée', 'Ajoutez ?ref=BC-XXXX-XXX à l\'URL');
+        return;
+      }
+      
+      STATE.missionRef = missionRef;
+      document.getElementById('missionRef').textContent = missionRef;
+      document.getElementById('missionTitle').textContent = 'Suivi en cours';
+      
+      // Get mission details and verify authorization
+      const authorized = await loadMissionDetails(missionRef);
+      
+      if (!authorized) {
+        showError('Accès non autorisé', 'Vous n\'avez pas accès à cette mission. <a href="/login.html" class="btn" style="margin-top:16px;"><i class="fas fa-sign-in-alt"></i> Se connecter</a>');
+        return;
+      }
+      
+      STATE.isAuthorized = true;
+      
+      // Initialize map
+      initMap();
+      
+      // Subscribe to Firebase
+      subscribeToGPS(missionRef);
+    }
+    
+    async function signInToFirebase(session) {
+      try {
+        if (!window._auth || !window._signInWithCustomToken) {
+          console.warn('Firebase Auth non disponible');
+          return;
+        }
+        
+        // Call Supabase Edge Function to get Firebase Custom Token
+        const { data: { session: currentSession } } = await STATE.supabase.auth.getSession();
+        
+        if (!currentSession) {
+          console.error('Session Supabase expirée');
+          return;
+        }
+        
+        console.log('Récupération du token Firebase...');
+        
+        // Call the Edge Function
+        const response = await fetch(`${window.SUPABASE_URL}/functions/v1/generate-firebase-token`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${currentSession.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to get Firebase token');
+        }
+        
+        const { token } = await response.json();
+        
+        // Sign in to Firebase with the custom token
+        await window._signInWithCustomToken(window._auth, token);
+        console.log('Firebase Auth: connecté avec Custom Token');
+        
+      } catch (err) {
+        console.error('Firebase Auth: erreur -', err.message);
+      }
+    }
+    
+    function showLoginPrompt() {
+      document.getElementById('loadingOverlay').innerHTML = `
+        <div class="error-state">
+          <i class="fas fa-lock" style="color: var(--bordeaux);"></i>
+          <h3>Connexion requise</h3>
+          <p>Veuillez vous connecter pour accéder au suivi de votre mission.</p>
+          <a href="/login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn">
+            <i class="fas fa-sign-in-alt"></i>
+            Se connecter
+          </a>
+          <p style="margin-top: 16px; font-size: 0.85rem;">
+            <a href="/" style="color: var(--gray-mid);">Retour à l'accueil</a>
+          </p>
+        </div>
+      `;
+    }
+    
+    async function loadMissionDetails(missionRef) {
+      try {
+        // Get mission from Supabase with client info
+        const { data: mission, error } = await STATE.supabase
+          .from('missions')
+          .select('*, convoyeur:convoyeur_id(nom, prenom, email), client:client_id(nom, prenom, email)')
+          .eq('reference', missionRef)
+          .single();
+        
+        if (error) {
+          console.log('Mission non trouvée dans Supabase, accès restreint');
+          return false;
+        }
+        
+        if (mission) {
+          // Check authorization: must be client, convoyeur, or admin
+          const userId = STATE.currentUser.id;
+          const isClient = mission.client_id === userId;
+          const isConvoyeur = mission.convoyeur_id === userId;
+          
+          // Check if user is admin
+          const { data: profile } = await STATE.supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', userId)
+            .single();
+          
+          const isAdmin = profile?.role === 'admin';
+          
+          if (!isClient && !isConvoyeur && !isAdmin) {
+            console.log('User not authorized for this mission');
+            return false;
+          }
+          
+          document.getElementById('missionRoute').textContent = 
+            `${mission.ville_depart || 'Départ'} → ${mission.ville_arrivee || 'Arrivée'}`;
+          document.getElementById('vehicleName').textContent = 
+            `${mission.marque_vehicule || ''} ${mission.modele_vehicule || ''}`.trim() || 'Véhicule';
+          
+          if (mission.convoyeur) {
+            document.getElementById('convoyeurName').textContent = 
+              `${mission.convoyeur.prenom || ''} ${mission.convoyeur.nom || ''}`.trim() || 'Convoyeur';
+          }
+          
+          // Store IDs for validation
+          STATE.convoyeurId = mission.convoyeur_id;
+          STATE.clientId = mission.client_id;
+          
+          // Show user info in header
+          const userName = STATE.currentUser.user_metadata?.prenom || 
+                          STATE.currentUser.user_metadata?.nom || 
+                          STATE.currentUser.email;
+          
+          const statusText = document.getElementById('statusText');
+          statusText.innerHTML = `<i class="fas fa-user" style="margin-right: 6px;"></i> ${userName} · ${isClient ? 'Client' : isConvoyeur ? 'Convoyeur' : 'Admin'}`;
+          
+          // Show logout button
+          document.getElementById('logoutBtn').style.display = 'inline-flex';
+          
+          return true;
+        }
+        
+        return false;
+      } catch (err) {
+        console.error('Error loading mission:', err);
+        return false;
+      }
+    }
+    
+    function initMap() {
+      // Default to center of France
+      const defaultLat = 46.2276;
+      const defaultLng = 2.2137;
+      
+      STATE.map = L.map('map').setView([defaultLat, defaultLng], 6);
+      
+      // Add tile layer
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+      }).addTo(STATE.map);
+      
+      // Custom marker icon
+      const carIcon = L.divIcon({
+        className: 'custom-marker',
+        html: '<div style="width:24px;height:24px;background:#0A4D68;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><i class="fas fa-car" style="color:white;font-size:10px;"></i></div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+      
+      STATE.marker = L.marker([defaultLat, defaultLng], { icon: carIcon }).addTo(STATE.map);
+      
+      // Path line
+      STATE.pathLine = L.polyline([], {
+        color: '#0A4D68',
+        weight: 4,
+        opacity: 0.8,
+        dashArray: '10, 10'
+      }).addTo(STATE.map);
+    }
+    
+    function subscribeToGPS(missionRef) {
+      if (!window._db || !window._ref || !window._onValue) {
+        showError('Erreur Firebase', 'Impossible de se connecter à la base de données');
+        return;
+      }
+      
+      const gpsRef = window._ref(window._db, `missions/${missionRef}/gps`);
+      
+      STATE.unsubscribe = window._onValue(gpsRef, (snapshot) => {
+        const data = snapshot.val();
+        
+        if (!data) {
+          updateStatus('offline', 'En attente de position');
+          return;
+        }
+        
+        // Update status
+        const status = data.status || 'offline';
+        updateStatus(status === 'online' || status === 'in_transit' ? 'online' : 'offline', 
+                    status === 'online' ? 'En direct' : 'Hors ligne');
+        
+        // Handle current position
+        if (data.current) {
+          updatePosition(data.current);
+        }
+        
+        // Handle history
+        if (data.history) {
+          updateHistory(data.history);
+        }
+        
+        // Hide loading
+        document.getElementById('loadingOverlay').style.display = 'none';
+      }, (error) => {
+        console.error('Firebase error:', error);
+        updateStatus('offline', 'Erreur de connexion');
+      });
+    }
+    
+    function updatePosition(pos) {
+      if (!pos.lat || !pos.lng) return;
+      
+      STATE.lastPosition = pos;
+      
+      // Update marker
+      STATE.marker.setLatLng([pos.lat, pos.lng]);
+      
+      // Add to path
+      STATE.positions.push([pos.lat, pos.lng]);
+      STATE.pathLine.setLatLngs(STATE.positions);
+      
+      // Center map on first position
+      if (STATE.positions.length === 1) {
+        STATE.map.setView([pos.lat, pos.lng], 14);
+      } else {
+        // Fit bounds to show entire path
+        STATE.map.fitBounds(STATE.pathLine.getBounds().pad(0.1));
+      }
+      
+      // Update stats
+      document.getElementById('statSpeed').textContent = pos.speed ? `${pos.speed} km/h` : '--';
+      document.getElementById('statAccuracy').textContent = pos.accuracy ? `±${Math.round(pos.accuracy)}m` : '--';
+      document.getElementById('statLastUpdate').textContent = formatTimeAgo(pos.timestamp);
+      
+      // Calculate distance
+      if (STATE.positions.length > 1) {
+        const lastIdx = STATE.positions.length - 1;
+        const dist = calculateDistance(
+          STATE.positions[lastIdx - 1][0], STATE.positions[lastIdx - 1][1],
+          STATE.positions[lastIdx][0], STATE.positions[lastIdx][1]
+        );
+        STATE.totalDistance += dist;
+        document.getElementById('statDistance').textContent = 
+          STATE.totalDistance < 1 
+            ? `${(STATE.totalDistance * 1000).toFixed(0)} m` 
+            : `${STATE.totalDistance.toFixed(1)} km`;
+      }
+      
+      // Update ETA (simplified estimation)
+      updateETA(pos);
+    }
+    
+    function updateHistory(history) {
+      const list = document.getElementById('historyList');
+      const entries = Object.entries(history)
+        .sort((a, b) => b[0] - a[0]) // Sort by timestamp desc
+        .slice(0, 5); // Keep only last 5
+      
+      if (entries.length === 0) return;
+      
+      list.innerHTML = entries.map(([timestamp, pos]) => {
+        const date = new Date(pos.timestamp || parseInt(timestamp));
+        const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="history-item">
+            <span class="history-time">${time}</span>
+            <span class="history-location">${pos.lat?.toFixed(4) || '--'}°, ${pos.lng?.toFixed(4) || '--'}°</span>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function updateStatus(status, text) {
+      const dot = document.getElementById('statusDot');
+      const label = document.getElementById('statusText');
+      
+      dot.className = 'status-dot ' + status;
+      label.textContent = text;
+    }
+    
+    function updateETA(pos) {
+      // Simple ETA calculation based on speed and typical distance remaining
+      // In a real app, you'd calculate route distance to destination
+      if (!pos.speed || pos.speed === 0) {
+        document.getElementById('etaValue').textContent = 'Calcul...';
+        return;
+      }
+      
+      // Assume 50km remaining if we don't know (placeholder logic)
+      const assumedRemainingKm = 50; 
+      const hoursRemaining = assumedRemainingKm / pos.speed;
+      const eta = new Date(Date.now() + hoursRemaining * 3600000);
+      
+      document.getElementById('etaValue').textContent = 
+        eta.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Earth's radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+    
+    function formatTimeAgo(timestamp) {
+      if (!timestamp) return '--';
+      const date = new Date(timestamp);
+      const now = new Date();
+      const seconds = Math.round((now - date) / 1000);
+      
+      if (seconds < 60) return 'À l\'instant';
+      if (seconds < 3600) return `Il y a ${Math.round(seconds/60)} min`;
+      return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    function showError(title, message) {
+      document.getElementById('loadingOverlay').innerHTML = `
+        <div class="error-state">
+          <i class="fas fa-exclamation-circle"></i>
+          <h3>${title}</h3>
+          <p>${message}</p>
+          <a href="/" class="btn">
+            <i class="fas fa-home"></i>
+            Retour à l'accueil
+          </a>
+        </div>
+      `;
+    }
+    
+    // Logout function
+    async function logout() {
+      if (STATE.supabase) {
+        await STATE.supabase.auth.signOut();
+      }
+      window.location.href = '/login.html';
+    }
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (STATE.unsubscribe) {
+        window._off && window._off(STATE.unsubscribe);
+      }
+    });
+  </script>
+</body>
+</html>
