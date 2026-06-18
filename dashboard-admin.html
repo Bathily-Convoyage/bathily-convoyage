@@ -2356,6 +2356,32 @@ Cadeau premium personnalisé</textarea>
   </div>
 
   <script>
+    // Fonction globale pour le login (appelée par onclick inline)
+    window.handleLogin = async function() {
+      const email = document.getElementById('adminEmailInput').value.trim();
+      const password = document.getElementById('adminPasswordInput').value;
+      if (!email || !password) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire('Champs requis', 'Veuillez saisir email et mot de passe.', 'warning');
+        } else {
+          alert('Veuillez saisir email et mot de passe.');
+        }
+        return;
+      }
+      // Vérifier si signInWithEmail existe (défini plus tard dans DOMContentLoaded)
+      if (typeof window.signInWithEmail === 'function') {
+        const success = await window.signInWithEmail(email, password);
+        if (success) {
+          document.getElementById('authOverlay').classList.add('hidden');
+          document.querySelector('.topbar').style.display = 'flex';
+          document.querySelector('.dash-layout').style.display = 'flex';
+          if (typeof loadAllData === 'function') loadAllData();
+        }
+      } else {
+        console.error('Auth not ready');
+        alert('Erreur: Le système d\'authentification n\'est pas encore chargé. Attendez 2 secondes et réessayez.');
+      }
+    };
 
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 DOMContentLoaded triggered');
@@ -2443,7 +2469,7 @@ Cadeau premium personnalisé</textarea>
     });
 
     // ========== INITIALISATION GLOBALE ==========
-    async function loadAllData() {
+    window.loadAllData = async function() {
       loadClients();
       loadConvoyeurs();
       loadMissions();
@@ -2488,7 +2514,7 @@ Cadeau premium personnalisé</textarea>
       }
     }
 
-    async function signInWithEmail(email, password) {
+    window.signInWithEmail = async function(email, password) {
       const sb = getSupabase();
       if (!sb) return false;
       try {
