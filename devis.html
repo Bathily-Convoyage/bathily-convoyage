@@ -404,6 +404,51 @@
       color: var(--bordeaux);
     }
 
+    .btn-siv {
+      background: var(--bordeaux);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+
+    .btn-siv:hover {
+      background: var(--bordeaux-dark);
+    }
+
+    .siv-result {
+      background: #F0FAF5;
+      border: 1px solid #4A7C6B;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-top: 8px;
+    }
+
+    .siv-success {
+      color: #4A7C6B;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+    }
+
+    .siv-specs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.75rem;
+      color: var(--gray-mid);
+    }
+
+    .siv-specs span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .f-row {
@@ -495,6 +540,39 @@
               <button type="button" class="veh-tab" data-value="Moto" onclick="setVehicleType('Moto')">🏍️ Moto</button>
             </div>
             <input type="hidden" id="vehiculeType" value="Automobile">
+          </div>
+
+          <!-- Identification véhicule (SIV + Marque/Modèle) -->
+          <div class="f-grp">
+            <label>Plaque d'immatriculation</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input type="text" id="plaqueInput" placeholder="AB-123-CD" maxlength="9" style="flex:1; text-transform:uppercase;" oninput="formatPlaque(this)">
+              <button type="button" onclick="lookupDevisPlaque()" class="btn-siv"><i class="fas fa-search"></i> Identifier (SIV)</button>
+            </div>
+            <div class="siv-result" id="sivResult" style="display:none;">
+              <div class="siv-success"><i class="fas fa-check-circle"></i> <strong id="sivVehicleName">—</strong></div>
+              <div class="siv-specs">
+                <span><i class="fas fa-calendar"></i> <span id="sivYear">—</span></span>
+                <span><i class="fas fa-gas-pump"></i> <span id="sivEnergy">—</span></span>
+                <span><i class="fas fa-bolt"></i> <span id="sivPower">—</span> CV</span>
+                <span><i class="fas fa-palette"></i> <span id="sivColor">—</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="f-row">
+            <div class="f-grp">
+              <label>Marque du véhicule</label>
+              <select id="marqueSelect" onchange="onMarqueChange(this.value)">
+                <option value="">— Choisir une marque —</option>
+              </select>
+            </div>
+            <div class="f-grp">
+              <label>Modèle</label>
+              <select id="modeleSelect" disabled>
+                <option value="">— Choisir un modèle —</option>
+              </select>
+            </div>
           </div>
 
           <!-- Trajet -->
@@ -624,6 +702,118 @@
       });
       calculatePrice();
     }
+
+    // ========== IDENTIFICATION VÉHICULE (SIV + MARQUES/MODÈLES) ==========
+    let _vehiculesDB = null;
+
+    function formatPlaque(input) {
+      let v = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (v.length > 2 && v.length <= 5) v = v.slice(0, 2) + '-' + v.slice(2);
+      if (v.length > 6) v = v.slice(0, 6) + '-' + v.slice(6);
+      input.value = v.slice(0, 9);
+    }
+
+    async function lookupDevisPlaque() {
+      const plaque = document.getElementById('plaqueInput')?.value || '';
+      if (!plaque || plaque.length < 5) {
+        Swal.fire('Attention', "Veuillez saisir une plaque d'immatriculation valide.", 'warning');
+        return;
+      }
+
+      Swal.fire({
+        title: 'Recherche SIV en cours...',
+        text: 'Identification du véhicule...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      try {
+        const response = await fetch(`/.netlify/functions/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error || 'Erreur SIV');
+
+        if (data.marque) {
+          document.getElementById('sivVehicleName').textContent = `${data.marque} ${data.modele || ''}`;
+          document.getElementById('sivYear').textContent = data.annee || '—';
+          document.getElementById('sivEnergy').textContent = data.energie || '—';
+          document.getElementById('sivPower').textContent = data.puissance || '—';
+          document.getElementById('sivColor').textContent = data.couleur || '—';
+          document.getElementById('sivResult').style.display = 'block';
+
+          // Pré-remplir les selects marque/modèle
+          const marqueSelect = document.getElementById('marqueSelect');
+          const option = Array.from(marqueSelect.options).find(o => o.value.toLowerCase() === data.marque.toLowerCase());
+          if (option) {
+            marqueSelect.value = option.value;
+            await onMarqueChange(option.value);
+            const modeleSelect = document.getElementById('modeleSelect');
+            const modOption = Array.from(modeleSelect.options).find(o => o.value.toUpperCase() === (data.modele || '').toUpperCase());
+            if (modOption) modeleSelect.value = modOption.value;
+          }
+
+          Swal.fire({
+            title: 'Véhicule identifié !',
+            html: `<strong>${data.marque} ${data.modele || ''}</strong><br>${data.energie || ''} • ${data.annee || ''}`,
+            icon: 'success',
+            confirmButtonColor: 'var(--bordeaux)'
+          });
+        } else {
+          throw new Error('Aucun véhicule trouvé.');
+        }
+      } catch (err) {
+        Swal.fire({
+          title: 'Identification impossible',
+          text: err.message || 'Le service SIV est indisponible. Sélectionnez manuellement.',
+          icon: 'error',
+          confirmButtonColor: 'var(--bordeaux)'
+        });
+      }
+    }
+
+    async function loadVehiculesDB() {
+      if (_vehiculesDB) return _vehiculesDB;
+      try {
+        const response = await fetch('data/vehicules-fr.json');
+        _vehiculesDB = await response.json();
+        return _vehiculesDB;
+      } catch (err) {
+        console.warn('Erreur chargement base véhicules:', err);
+        return null;
+      }
+    }
+
+    async function populateMarques() {
+      const db = await loadVehiculesDB();
+      if (!db) return;
+      const select = document.getElementById('marqueSelect');
+      db.marques.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.nom;
+        opt.textContent = m.nom;
+        select.appendChild(opt);
+      });
+    }
+
+    async function onMarqueChange(marqueNom) {
+      const db = await loadVehiculesDB();
+      const select = document.getElementById('modeleSelect');
+      select.innerHTML = '<option value="">— Choisir un modèle —</option>';
+      if (!marqueNom || !db) { select.disabled = true; return; }
+      const marque = db.marques.find(m => m.nom === marqueNom);
+      if (marque && marque.modeles) {
+        marque.modeles.forEach(mod => {
+          const opt = document.createElement('option');
+          opt.value = mod;
+          opt.textContent = mod;
+          select.appendChild(opt);
+        });
+        select.disabled = false;
+      }
+    }
+
+    // Charger les marques au DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', populateMarques);
 
     // ========== AUTOCOMPLÉTION ADRESSES (API BAN) ==========
     let debounceTimer;
@@ -787,6 +977,9 @@
       const message = document.getElementById('messageDevis').value.trim();
       const isUrgence = document.getElementById('optUrgence').checked;
       const isGardiennage = document.getElementById('optGardiennage').checked;
+      const plaque = document.getElementById('plaqueInput').value.trim();
+      const marque = document.getElementById('marqueSelect').value;
+      const modele = document.getElementById('modeleSelect').value;
 
       // Calcul du prix total
       const totalHt = calculatePrice();
@@ -806,6 +999,9 @@
         depart: depart,
         arrivee: arrivee,
         vehicule: vehicule,
+        immatriculation: plaque || null,
+        marque: marque || null,
+        modele: modele || null,
         mode_transport: mode,
         pack: pack,
         total_ht: totalHt,
@@ -813,6 +1009,9 @@
           coordonnees: { prenom, nom, email, telephone: tel || '' },
           dep: depart,
           arr: arrivee,
+          immatriculation: plaque || '',
+          marque: marque || '',
+          modele: modele || '',
           mode: mode,
           pack: pack,
           opts: { urgence: isUrgence, gardiennage: isGardiennage },
