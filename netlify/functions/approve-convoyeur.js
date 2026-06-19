@@ -16,28 +16,57 @@ exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
 
   try {
-    const { candidat_id } = JSON.parse(event.body || '{}');
-    if (!candidat_id) return { statusCode: 400, headers, body: JSON.stringify({ error: 'candidat_id requis' }) };
+    // ===== VÉRIFICATION ADMIN =====
+    const authHeader = event.headers.authorization || event.headers.Authorization || '';
+    if (!authHeader.startsWith('Bearer ')) {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Token manquant' }) };
+    }
+    const token = authHeader.split(' ')[1];
 
-    // Client admin (service_role) — bypass RLS total
+    // Client standard pour vérifier le token
+    const sbAdmin = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY // Utiliser la clé anonyme, ou service_role selon besoin
+    );
+    const { data: { user }, error: userError } = await sbAdmin.auth.getUser(token);
+
+    if (userError || !user) {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Token invalide' }) };
+    }
+
+    // Vérifier que l'utilisateur a le rôle admin dans la table clients
+    const { data: profile, error: profileError } = await sbAdmin
+      .from('clients')
+      .select('role')
+      .eq('auth_user_id', user.id)
+      .maybeSingle();
+
+    if (profileError || !profile || profile.role !== 'admin') {
+      return { statusCode: 403, headers, body: JSON.stringify({ error: 'Accès réservé aux administrateurs' }) };
+    }
+
+    // ===== TRAITEMENT DE LA CANDIDATURE =====
+    const { candidat_id } = JSON.parse(event.body || '{}');
+    if (!candidat_id) {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: 'candidat_id requis' }) };
+    }
+
+    // Client service_role pour opérations d'écriture (bypass RLS)
     const sb = createClient(
       process.env.SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
-    // 1. Récupérer le candidat
+    // 1. Récupérer le candidat (uniquement si statut 'pending')
     const { data: candidat, error: candError } = await sb
       .from('convoyeurs_candidats')
       .select('*')
       .eq('id', candidat_id)
+      .eq('statut', 'pending')
       .single();
 
     if (candError || !candidat) {
-      return { statusCode: 404, headers, body: JSON.stringify({ error: 'Candidat introuvable' }) };
-    }
-
-    if (candidat.statut === 'approved') {
-      return { statusCode: 409, headers, body: JSON.stringify({ error: 'Candidat déjà approuvé' }) };
+      return { statusCode: 404, headers, body: JSON.stringify({ error: 'Candidature introuvable ou déjà traitée' }) };
     }
 
     // 2. Générer un mot de passe temporaire sécurisé
@@ -69,7 +98,7 @@ exports.handler = async (event) => {
       email: candidat.email,
       telephone: candidat.telephone,
       ville: candidat.ville,
-      zone: candidat.ville,
+      zone: candidat.zone || candidat.ville,
       niveau: 'Standard',
       disponible: true,
       type_permis: candidat.type_permis || null
@@ -84,7 +113,7 @@ exports.handler = async (event) => {
     // 5. Mettre à jour le statut de la candidature
     await sb.from('convoyeurs_candidats').update({ statut: 'approved' }).eq('id', candidat_id);
 
-    // 6. Envoyer l'email avec les accès (via send-email)
+    // 6. Envoyer l'email avec les accès
     try {
       const baseUrl = process.env.URL || 'https://www.bathily-convoyage.fr';
       await fetch(`${baseUrl}/.netlify/functions/send-email`, {

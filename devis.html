@@ -1,6 +1,5 @@
 ﻿<!DOCTYPE html>
 <html lang="fr">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -21,20 +20,17 @@
       padding: 0;
       box-sizing: border-box;
     }
-
     body {
       font-family: 'Inter', sans-serif;
       background: #FDFBF7;
       color: #2D2A24;
       line-height: 1.5;
     }
-
     .container {
       max-width: 1280px;
       margin: 0 auto;
       padding: 0 24px;
     }
-
     :root {
       --bordeaux: #0A4D68;
       --bordeaux-dark: #063244;
@@ -47,8 +43,6 @@
       --success: #4A7C6B;
       --warning: #F5A623;
     }
-
-    /* Topbar */
     .topbar {
       background: white;
       border-bottom: 1px solid var(--border-light);
@@ -61,7 +55,6 @@
       top: 0;
       z-index: 100;
     }
-
     .topbar-logo {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.4rem;
@@ -70,11 +63,7 @@
       text-decoration: none;
       letter-spacing: -0.02em;
     }
-
-    .topbar-logo span {
-      color: var(--bordeaux);
-    }
-
+    .topbar-logo span { color: var(--bordeaux); }
     .topbar-center {
       font-size: 0.75rem;
       font-weight: 600;
@@ -82,20 +71,17 @@
       letter-spacing: 0.1em;
       color: var(--gray-mid);
     }
-
     .topbar-right {
       display: flex;
       align-items: center;
       gap: 16px;
     }
-
     .topbar-user {
       display: flex;
       align-items: center;
       gap: 8px;
       cursor: pointer;
     }
-
     .user-avatar {
       width: 34px;
       height: 34px;
@@ -109,7 +95,6 @@
       font-size: 0.75rem;
       color: var(--bordeaux);
     }
-
     .topbar-logout {
       background: none;
       border: none;
@@ -123,17 +108,11 @@
       align-items: center;
       gap: 6px;
     }
-
-    .topbar-logout:hover {
-      color: var(--bordeaux);
-    }
-
-    /* Hero Section */
+    .topbar-logout:hover { color: var(--bordeaux); }
     .hero-devis {
       padding: 60px 0 40px;
       background: linear-gradient(135deg, var(--cream) 0%, var(--beige) 100%);
     }
-
     .hero-devis h1 {
       font-family: 'Montserrat', sans-serif;
       font-size: 2.8rem;
@@ -141,19 +120,13 @@
       margin-bottom: 16px;
       color: var(--gray-dark);
     }
-
-    .hero-devis h1 span {
-      color: var(--bordeaux);
-    }
-
+    .hero-devis h1 span { color: var(--bordeaux); }
     .hero-devis p {
       font-size: 1.125rem;
       color: var(--gray-mid);
       max-width: 600px;
       margin-bottom: 24px;
     }
-
-    /* Devis Form */
     .devis-form-wrapper {
       background: white;
       border-radius: 32px;
@@ -162,36 +135,27 @@
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
       margin-bottom: 60px;
     }
-
     .devis-form-wrapper .section-title {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.6rem;
       font-weight: 700;
       margin-bottom: 8px;
     }
-
-    .devis-form-wrapper .section-title em {
-      color: var(--bordeaux);
-      font-style: normal;
-    }
-
+    .devis-form-wrapper .section-title em { color: var(--bordeaux); font-style: normal; }
     .devis-form-wrapper .section-sub {
       color: var(--gray-mid);
       margin-bottom: 32px;
       font-size: 0.95rem;
     }
-
     .f-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
-
     .f-grp {
       margin-bottom: 20px;
       position: relative;
     }
-
     .f-grp label {
       display: block;
       font-size: 0.7rem;
@@ -201,10 +165,7 @@
       color: var(--gray-mid);
       margin-bottom: 6px;
     }
-
-    .f-grp input,
-    .f-grp select,
-    .f-grp textarea {
+    .f-grp input, .f-grp select, .f-grp textarea {
       width: 100%;
       padding: 12px 16px;
       border: 1px solid var(--border-light);
@@ -214,21 +175,15 @@
       background: #F9FAFB;
       transition: all 0.2s;
     }
-
-    .f-grp input:focus,
-    .f-grp select:focus,
-    .f-grp textarea:focus {
+    .f-grp input:focus, .f-grp select:focus, .f-grp textarea:focus {
       outline: none;
       border-color: var(--bordeaux);
       box-shadow: 0 0 0 2px rgba(122, 46, 26, 0.1);
     }
-
     .f-grp input:disabled {
       background: var(--beige);
       color: var(--gray-mid);
     }
-
-    /* Suggest box */
     .suggest-box {
       position: absolute;
       top: 100%;
@@ -243,26 +198,21 @@
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
       display: none;
     }
-
     .suggest-item {
       padding: 8px 12px;
       cursor: pointer;
       font-size: 0.8rem;
       transition: background 0.2s;
     }
-
     .suggest-item:hover {
       background: var(--bordeaux-light);
       color: var(--bordeaux);
     }
-
-    /* Vehicule type tabs */
     .veh-tabs {
       display: flex;
       gap: 16px;
       margin-bottom: 16px;
     }
-
     .veh-tab {
       padding: 10px 24px;
       border-radius: 40px;
@@ -273,29 +223,21 @@
       font-family: 'Inter', sans-serif;
       font-size: 0.8rem;
     }
-
     .veh-tab.active {
       background: var(--bordeaux);
       color: white;
     }
-
     .veh-tab:not(.active) {
       background: #E8E1D9;
       color: var(--bordeaux);
     }
-
-    .veh-tab:not(.active):hover {
-      background: var(--bordeaux-light);
-    }
-
-    /* Options grid */
+    .veh-tab:not(.active):hover { background: var(--bordeaux-light); }
     .opts-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       margin-top: 8px;
     }
-
     .opt-item {
       display: flex;
       align-items: center;
@@ -306,26 +248,21 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-
     .opt-item:hover {
       border-color: var(--bordeaux-light);
       background: var(--bordeaux-light);
     }
-
     .opt-item input[type="checkbox"] {
       width: 18px;
       height: 18px;
       accent-color: var(--bordeaux);
     }
-
     .opt-item label {
       font-size: 0.8rem;
       font-weight: 600;
       color: var(--gray-dark);
       cursor: pointer;
     }
-
-    /* Price display */
     .price-display {
       background: var(--bordeaux-light);
       border-radius: 20px;
@@ -337,27 +274,32 @@
       flex-wrap: wrap;
       gap: 16px;
     }
-
     .price-display .price-label {
       font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;
       color: var(--gray-mid);
     }
-
     .price-display .price-amount {
       font-family: 'Montserrat', sans-serif;
       font-size: 2.2rem;
       font-weight: 800;
       color: var(--bordeaux);
     }
-
     .price-display .price-amount span {
       font-size: 1rem;
       font-weight: 500;
       color: var(--gray-mid);
     }
-
+    .price-display .distance-badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gray-mid);
+      background: rgba(255,255,255,0.7);
+      padding: 4px 12px;
+      border-radius: 40px;
+      margin-left: 8px;
+    }
     .btn-red {
       background: var(--bordeaux);
       color: white;
@@ -373,19 +315,16 @@
       align-items: center;
       gap: 8px;
     }
-
     .btn-red:hover {
       background: var(--bordeaux-dark);
       transform: translateY(-2px);
       box-shadow: 0 8px 20px rgba(10, 77, 104, 0.15);
     }
-
     .btn-red:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       transform: none;
     }
-
     .btn-outline {
       background: transparent;
       border: 1px solid var(--border-light);
@@ -398,12 +337,10 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-
     .btn-outline:hover {
       border-color: var(--bordeaux);
       color: var(--bordeaux);
     }
-
     .btn-siv {
       background: var(--bordeaux);
       color: white;
@@ -416,25 +353,20 @@
       white-space: nowrap;
       transition: background 0.2s;
     }
-
-    .btn-siv:hover {
-      background: var(--bordeaux-dark);
-    }
-
+    .btn-siv:hover { background: var(--bordeaux-dark); }
     .siv-result {
       background: #F0FAF5;
       border: 1px solid #4A7C6B;
       border-radius: 12px;
       padding: 12px 16px;
       margin-top: 8px;
+      display: none;
     }
-
     .siv-success {
       color: #4A7C6B;
       font-size: 0.85rem;
       margin-bottom: 6px;
     }
-
     .siv-specs {
       display: flex;
       flex-wrap: wrap;
@@ -442,38 +374,11 @@
       font-size: 0.75rem;
       color: var(--gray-mid);
     }
-
     .siv-specs span {
       display: flex;
       align-items: center;
       gap: 4px;
     }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .f-row {
-        grid-template-columns: 1fr;
-      }
-
-      .devis-form-wrapper {
-        padding: 24px;
-      }
-
-      .hero-devis h1 {
-        font-size: 2rem;
-      }
-
-      .opts-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .price-display {
-        flex-direction: column;
-        text-align: center;
-      }
-    }
-
-    /* Checkbox */
     .checkbox-label {
       display: flex;
       align-items: center;
@@ -482,34 +387,34 @@
       color: var(--gray-mid);
       cursor: pointer;
     }
-
     .checkbox-label input[type="checkbox"] {
       width: 18px;
       height: 18px;
       accent-color: var(--bordeaux);
     }
-
     .checkbox-label a {
       color: var(--bordeaux);
       text-decoration: underline;
     }
-
     .field-err {
       color: #DC2626;
       font-size: 0.7rem;
       margin-top: 4px;
       display: none;
     }
-
-    .field-err.show {
-      display: block;
+    .field-err.show { display: block; }
+    @media (max-width: 768px) {
+      .f-row { grid-template-columns: 1fr; }
+      .devis-form-wrapper { padding: 24px; }
+      .hero-devis h1 { font-size: 2rem; }
+      .opts-grid { grid-template-columns: 1fr; }
+      .price-display { flex-direction: column; text-align: center; }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- Topbar -->
   <div class="topbar">
     <a href="index.html" class="topbar-logo">Bathily-convoyage<span>.</span></a>
     <span class="topbar-center">Devis Express</span>
@@ -549,7 +454,7 @@
               <input type="text" id="plaqueInput" placeholder="AB-123-CD" maxlength="9" style="flex:1; text-transform:uppercase;" oninput="formatPlaque(this)">
               <button type="button" onclick="lookupDevisPlaque()" class="btn-siv"><i class="fas fa-search"></i> Identifier (SIV)</button>
             </div>
-            <div class="siv-result" id="sivResult" style="display:none;">
+            <div class="siv-result" id="sivResult">
               <div class="siv-success"><i class="fas fa-check-circle"></i> <strong id="sivVehicleName">—</strong></div>
               <div class="siv-specs">
                 <span><i class="fas fa-calendar"></i> <span id="sivYear">—</span></span>
@@ -563,16 +468,18 @@
           <div class="f-row">
             <div class="f-grp">
               <label>Marque du véhicule</label>
-              <select id="marqueSelect" onchange="onMarqueChange(this.value)">
-                <option value="">— Choisir une marque —</option>
-              </select>
+              <input type="text" id="marqueInput" placeholder="Ex: Peugeot" autocomplete="off" oninput="suggestMarque(this.value)">
+              <div class="suggest-box" id="marqueSuggests"></div>
             </div>
             <div class="f-grp">
               <label>Modèle</label>
-              <select id="modeleSelect" disabled>
-                <option value="">— Choisir un modèle —</option>
-              </select>
+              <input type="text" id="modeleInput" placeholder="Ex: 207" autocomplete="off" oninput="suggestModele(this.value)">
+              <div class="suggest-box" id="modeleSuggests"></div>
             </div>
+          </div>
+          <div class="f-grp" id="manualVehicleBlock" style="display:none;">
+            <label>Véhicule non listé ? Saisissez-le manuellement</label>
+            <input type="text" id="vehiculeManuel" placeholder="Ex: Dodge RAM 1500, Camping-car Fiat...">
           </div>
 
           <!-- Trajet -->
@@ -670,7 +577,10 @@
             <div>
               <div class="price-label">Estimation de votre convoyage</div>
               <div class="price-amount" id="priceDisplay">— <span>€ HT</span></div>
-              <div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">Sous réserve de validation définitive</div>
+              <div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">
+                Sous réserve de validation définitive
+                <span id="distanceDisplay" style="font-weight:600; margin-left:8px;"></span>
+              </div>
             </div>
             <button type="submit" class="btn-red" id="submitBtn"><i class="fas fa-paper-plane"></i> Envoyer la demande</button>
           </div>
@@ -705,6 +615,7 @@
 
     // ========== IDENTIFICATION VÉHICULE (SIV + MARQUES/MODÈLES) ==========
     let _vehiculesDB = null;
+    let _selectedMarque = '';
 
     function formatPlaque(input) {
       let v = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -741,16 +652,9 @@
           document.getElementById('sivColor').textContent = data.couleur || '—';
           document.getElementById('sivResult').style.display = 'block';
 
-          // Pré-remplir les selects marque/modèle
-          const marqueSelect = document.getElementById('marqueSelect');
-          const option = Array.from(marqueSelect.options).find(o => o.value.toLowerCase() === data.marque.toLowerCase());
-          if (option) {
-            marqueSelect.value = option.value;
-            await onMarqueChange(option.value);
-            const modeleSelect = document.getElementById('modeleSelect');
-            const modOption = Array.from(modeleSelect.options).find(o => o.value.toUpperCase() === (data.modele || '').toUpperCase());
-            if (modOption) modeleSelect.value = modOption.value;
-          }
+          document.getElementById('marqueInput').value = data.marque;
+          document.getElementById('modeleInput').value = data.modele || '';
+          _selectedMarque = data.marque;
 
           Swal.fire({
             title: 'Véhicule identifié !',
@@ -783,37 +687,104 @@
       }
     }
 
-    async function populateMarques() {
-      const db = await loadVehiculesDB();
-      if (!db) return;
-      const select = document.getElementById('marqueSelect');
-      db.marques.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m.nom;
-        opt.textContent = m.nom;
-        select.appendChild(opt);
-      });
-    }
+    document.addEventListener('DOMContentLoaded', loadVehiculesDB);
 
-    async function onMarqueChange(marqueNom) {
-      const db = await loadVehiculesDB();
-      const select = document.getElementById('modeleSelect');
-      select.innerHTML = '<option value="">— Choisir un modèle —</option>';
-      if (!marqueNom || !db) { select.disabled = true; return; }
-      const marque = db.marques.find(m => m.nom === marqueNom);
-      if (marque && marque.modeles) {
-        marque.modeles.forEach(mod => {
-          const opt = document.createElement('option');
-          opt.value = mod;
-          opt.textContent = mod;
-          select.appendChild(opt);
-        });
-        select.disabled = false;
+    function suggestMarque(query) {
+      const box = document.getElementById('marqueSuggests');
+      if (!query || query.length < 1 || !_vehiculesDB) { box.style.display = 'none'; return; }
+      const q = query.toLowerCase();
+      const matches = _vehiculesDB.marques.filter(m => m.nom.toLowerCase().includes(q)).slice(0, 8);
+
+      if (matches.length === 0) {
+        box.style.display = 'none';
+        document.getElementById('manualVehicleBlock').style.display = 'block';
+        return;
       }
+
+      document.getElementById('manualVehicleBlock').style.display = 'none';
+      box.innerHTML = '';
+      matches.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'suggest-item';
+        div.textContent = m.nom;
+        div.addEventListener('mousedown', () => {
+          document.getElementById('marqueInput').value = m.nom;
+          _selectedMarque = m.nom;
+          box.style.display = 'none';
+          document.getElementById('modeleInput').value = '';
+          document.getElementById('modeleInput').focus();
+        });
+        box.appendChild(div);
+      });
+      box.style.display = 'block';
     }
 
-    // Charger les marques au DOMContentLoaded
-    document.addEventListener('DOMContentLoaded', populateMarques);
+    function suggestModele(query) {
+      const box = document.getElementById('modeleSuggests');
+      if (!_vehiculesDB) { box.style.display = 'none'; return; }
+
+      let allModeles = [];
+      if (_selectedMarque) {
+        const marque = _vehiculesDB.marques.find(m => m.nom.toLowerCase() === _selectedMarque.toLowerCase());
+        if (marque) allModeles = marque.modeles.map(mod => ({ marque: marque.nom, modele: mod }));
+      } else {
+        _vehiculesDB.marques.forEach(m => {
+          m.modeles.forEach(mod => allModeles.push({ marque: m.nom, modele: mod }));
+        });
+      }
+
+      if (!query || query.length < 1) { box.style.display = 'none'; return; }
+      const q = query.toLowerCase();
+      const matches = allModeles.filter(item => item.modele.toLowerCase().includes(q)).slice(0, 10);
+
+      if (matches.length === 0) {
+        box.style.display = 'none';
+        document.getElementById('manualVehicleBlock').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('manualVehicleBlock').style.display = 'none';
+      box.innerHTML = '';
+      matches.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'suggest-item';
+        div.textContent = _selectedMarque ? item.modele : `${item.marque} ${item.modele}`;
+        div.addEventListener('mousedown', () => {
+          document.getElementById('modeleInput').value = item.modele;
+          if (!_selectedMarque) {
+            document.getElementById('marqueInput').value = item.marque;
+            _selectedMarque = item.marque;
+          }
+          box.style.display = 'none';
+        });
+        box.appendChild(div);
+      });
+      box.style.display = 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      ['marqueInput', 'modeleInput'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+          input.addEventListener('blur', () => {
+            setTimeout(() => {
+              document.getElementById(id === 'marqueInput' ? 'marqueSuggests' : 'modeleSuggests').style.display = 'none';
+            }, 200);
+          });
+        }
+      });
+      const marqueInput = document.getElementById('marqueInput');
+      if (marqueInput) {
+        marqueInput.addEventListener('blur', () => {
+          setTimeout(() => {
+            const val = marqueInput.value.trim();
+            if (val && !_vehiculesDB?.marques.find(m => m.nom.toLowerCase() === val.toLowerCase())) {
+              document.getElementById('manualVehicleBlock').style.display = 'block';
+            }
+          }, 300);
+        });
+      }
+    });
 
     // ========== AUTOCOMPLÉTION ADRESSES (API BAN) ==========
     let debounceTimer;
@@ -877,8 +848,69 @@
     setupAutocomplete('depart', 'departSuggests');
     setupAutocomplete('arrivee', 'arriveeSuggests');
 
-    // ========== CALCUL DU PRIX ==========
-    function calculatePrice() {
+    // ========== GÉOCODAGE ET CALCUL DE DISTANCE ==========
+    let _currentDistance = 0;
+    let _currentPrice = 0;
+    let isCalculatingDistance = false;
+
+    async function geocodeAddress(query) {
+      if (!query || query.length < 2) return null;
+      try {
+        const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=1`);
+        const data = await response.json();
+        if (data.features && data.features.length > 0) {
+          const [lon, lat] = data.features[0].geometry.coordinates;
+          return { lat, lon };
+        }
+        return null;
+      } catch (err) {
+        console.warn("Erreur géocodage:", err);
+        return null;
+      }
+    }
+
+    function haversine(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      let dist = R * c;
+      dist = Math.round(dist * 1.22);
+      return dist;
+    }
+
+    async function calculateDistance(depart, arrivee) {
+      if (!depart || !arrivee) return 0;
+      try {
+        const coord1 = await geocodeAddress(depart);
+        const coord2 = await geocodeAddress(arrivee);
+        if (!coord1 || !coord2) return 0;
+
+        // Tentative OSRM
+        try {
+          const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${coord1.lon},${coord1.lat};${coord2.lon},${coord2.lat}?overview=false`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.routes && data.routes.length > 0) {
+              return Math.round(data.routes[0].distance / 1000);
+            }
+          }
+        } catch (osrmErr) {
+          console.warn("OSRM échoué, fallback Haversine:", osrmErr);
+        }
+        // Fallback Haversine
+        return haversine(coord1.lat, coord1.lon, coord2.lat, coord2.lon);
+      } catch (err) {
+        console.warn("Erreur calcul distance:", err);
+        return 0;
+      }
+    }
+
+    // ========== CALCUL DU PRIX (avec distance réelle) ==========
+    let priceDebounce = null;
+
+    async function calculatePrice() {
       const depart = document.getElementById('depart').value.trim();
       const arrivee = document.getElementById('arrivee').value.trim();
       const type = document.getElementById('vehiculeType').value;
@@ -888,28 +920,45 @@
       const isGardiennage = document.getElementById('optGardiennage').checked;
 
       const priceDisplay = document.getElementById('priceDisplay');
+      const distanceDisplay = document.getElementById('distanceDisplay');
 
       if (!depart || !arrivee) {
         priceDisplay.innerHTML = '— <span>€ HT</span>';
+        distanceDisplay.textContent = '';
+        _currentDistance = 0;
+        _currentPrice = 0;
         return;
       }
 
-      // Estimation simplifiée basée sur une distance approximative
+      // Afficher "Calcul en cours..."
+      priceDisplay.innerHTML = '... <span>€ HT</span>';
+      distanceDisplay.textContent = '🔄 Calcul...';
+
+      // Calculer la distance
+      const dist = await calculateDistance(depart, arrivee);
+      _currentDistance = dist;
+
+      if (dist === 0) {
+        priceDisplay.innerHTML = '— <span>€ HT</span>';
+        distanceDisplay.textContent = '⚠️ Distance non calculable';
+        _currentPrice = 0;
+        return;
+      }
+
+      // Tarifs
       const baseRates = {
         'Automobile': { route: 1.00, plateau: 1.40 },
         'Moto': { route: 0.85, plateau: 1.20 }
       };
       const rate = baseRates[type]?.[mode] || 1.00;
 
-      // Forfait plateau si plateau
       let basePrice = 0;
       if (mode === 'plateau') {
         basePrice = type === 'Moto' ? 300 : 350;
       } else {
-        // Estimation distance approximative (simplifiée)
-        const dist = Math.floor(Math.random() * 300 + 200); // Simulation
         basePrice = Math.round(dist * rate);
-        if (basePrice < (type === 'Moto' ? 100 : 120)) basePrice = type === 'Moto' ? 100 : 120;
+        const min = type === 'Moto' ? 100 : 120;
+        if (basePrice < min) basePrice = min;
       }
 
       // Pack
@@ -920,8 +969,10 @@
       if (isUrgence) total = Math.round(total * 1.3);
       if (isGardiennage) total += 100;
 
+      _currentPrice = total;
+
       priceDisplay.innerHTML = `${total} <span>€ HT</span>`;
-      return total;
+      distanceDisplay.textContent = `📏 ${dist} km`;
     }
 
     // Écouteurs pour recalculer
@@ -929,8 +980,6 @@
     document.getElementById('packSelect').addEventListener('change', calculatePrice);
     document.getElementById('optUrgence').addEventListener('change', calculatePrice);
     document.getElementById('optGardiennage').addEventListener('change', calculatePrice);
-    document.getElementById('depart').addEventListener('blur', calculatePrice);
-    document.getElementById('arrivee').addEventListener('blur', calculatePrice);
 
     // ========== SOUMISSION DU DEVIS ==========
     async function submitDevis(event) {
@@ -978,12 +1027,12 @@
       const isUrgence = document.getElementById('optUrgence').checked;
       const isGardiennage = document.getElementById('optGardiennage').checked;
       const plaque = document.getElementById('plaqueInput').value.trim();
-      const marque = document.getElementById('marqueSelect').value;
-      const modele = document.getElementById('modeleSelect').value;
+      const marque = document.getElementById('marqueInput').value.trim();
+      const modele = document.getElementById('modeleInput').value.trim();
+      const vehiculeManuel = document.getElementById('vehiculeManuel').value.trim();
 
-      // Calcul du prix total
-      const totalHt = calculatePrice();
-      if (!totalHt) {
+      const totalHt = _currentPrice || 0;
+      if (totalHt === 0) {
         Swal.fire('Erreur', 'Veuillez renseigner le trajet pour obtenir une estimation.', 'warning');
         return;
       }
@@ -1002,9 +1051,11 @@
         immatriculation: plaque || null,
         marque: marque || null,
         modele: modele || null,
-        mode_transport: mode,
+        vehicule_manuel: vehiculeManuel || null,
+        mode: mode,
         pack: pack,
         total_ht: totalHt,
+        distance: _currentDistance || null,
         details: {
           coordonnees: { prenom, nom, email, telephone: tel || '' },
           dep: depart,
@@ -1012,6 +1063,7 @@
           immatriculation: plaque || '',
           marque: marque || '',
           modele: modele || '',
+          vehicule_manuel: vehiculeManuel || '',
           mode: mode,
           pack: pack,
           opts: { urgence: isUrgence, gardiennage: isGardiennage },
@@ -1032,15 +1084,14 @@
 
       if (error) {
         console.warn('Erreur Supabase, fallback localStorage:', error);
-        // Fallback localStorage
         const devis = JSON.parse(localStorage.getItem('bathily_devis_list') || '[]');
         devis.push(devisData);
         localStorage.setItem('bathily_devis_list', JSON.stringify(devis));
       }
 
-      // Envoyer un email de notification (via Netlify Functions)
+      // Envoyer un email de notification
       try {
-        const response = await fetch('/.netlify/functions/send-email', {
+        await fetch('/.netlify/functions/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1051,13 +1102,11 @@
             nom: nom,
             depart: depart,
             arrivee: arrivee,
-            total: totalHt
+            total: totalHt,
+            distance: _currentDistance || 0
           })
         });
-        if (!response.ok) console.warn('Email notification failed');
-      } catch (e) {
-        console.warn('Email notification error:', e);
-      }
+      } catch (e) { console.warn('Email notification error:', e); }
 
       // Succès
       const confirmBtn = document.getElementById('submitBtn');
@@ -1066,17 +1115,19 @@
 
       Swal.fire({
         title: 'Devis envoyé ! ⭐',
-        html: `Votre devis <strong>${ref}</strong> a bien été enregistré.<br><br>Nous vous répondrons sous 24h ouvrées.<br><br><small>Un email de confirmation vous a été envoyé.</small>`,
+        html: `Votre devis <strong>${ref}</strong> a bien été enregistré.<br><br>Distance estimée : <strong>${_currentDistance || '?'} km</strong><br>Montant estimé : <strong>${totalHt} € HT</strong><br><br>Nous vous répondrons sous 24h ouvrées.<br><br><small>Un email de confirmation vous a été envoyé.</small>`,
         icon: 'success',
         confirmButtonColor: 'var(--bordeaux)',
         confirmButtonText: 'OK'
       }).then(() => {
-        // Réinitialiser le formulaire
         document.getElementById('devisForm').reset();
         document.getElementById('priceDisplay').innerHTML = '— <span>€ HT</span>';
+        document.getElementById('distanceDisplay').textContent = '';
         document.querySelectorAll('.veh-tab').forEach(t => t.classList.remove('active'));
         document.querySelector('.veh-tab[data-value="Automobile"]').classList.add('active');
         document.getElementById('vehiculeType').value = 'Automobile';
+        _currentDistance = 0;
+        _currentPrice = 0;
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer la demande';
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1084,5 +1135,4 @@
     }
   </script>
 </body>
-
 </html>

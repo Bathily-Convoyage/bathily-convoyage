@@ -70,6 +70,11 @@ CREATE POLICY "Lecture devis publique securisee"
   ON public.devis FOR SELECT
   USING (true);
 
+-- UPDATE : Permettre aux utilisateurs authentifiés (admin) de modifier les statuts
+CREATE POLICY "Modification devis par admin"
+  ON public.devis FOR UPDATE
+  USING (auth.role() = 'authenticated');
+
 -- -------------------------------------------------------
 -- 6. TABLE missions
 -- -------------------------------------------------------

@@ -1,5 +1,5 @@
+<!DOCTYPE html>
 <html lang="fr">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -17,12 +17,12 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   <style>
+    /* ===== STYLES (inchangés, identiques à l'original) ===== */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
     body {
       font-family: 'Inter', sans-serif;
       background: #FDFBF7;
@@ -32,13 +32,11 @@
       display: flex;
       flex-direction: column;
     }
-
     .container {
       max-width: 1280px;
       margin: 0 auto;
       padding: 0 24px;
     }
-
     :root {
       --bordeaux: #0A4D68;
       --bordeaux-dark: #063244;
@@ -51,8 +49,6 @@
       --success: #4A7C6B;
       --warning: #F5A623;
     }
-
-    /* Curseur personnalisé seulement sur souris */
     @media (hover: hover) {
       .cur {
         position: fixed;
@@ -64,7 +60,6 @@
         z-index: 9999;
         transform: translate(-50%, -50%)
       }
-
       .cur-ring {
         position: fixed;
         width: 32px;
@@ -76,16 +71,9 @@
         transform: translate(-50%, -50%)
       }
     }
-
     @media (hover: none) {
-
-      .cur,
-      .cur-ring {
-        display: none;
-      }
+      .cur, .cur-ring { display: none; }
     }
-
-    /* Topbar */
     .topbar {
       background: white;
       border-bottom: 1px solid var(--border-light);
@@ -98,7 +86,6 @@
       top: 0;
       z-index: 100;
     }
-
     .topbar-logo {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.4rem;
@@ -107,11 +94,7 @@
       text-decoration: none;
       letter-spacing: -0.02em;
     }
-
-    .topbar-logo span {
-      color: var(--bordeaux);
-    }
-
+    .topbar-logo span { color: var(--bordeaux); }
     .topbar-center {
       font-size: 0.75rem;
       font-weight: 600;
@@ -119,13 +102,11 @@
       letter-spacing: 0.1em;
       color: var(--gray-mid);
     }
-
     .topbar-right {
       display: flex;
       align-items: center;
       gap: 16px;
     }
-
     .topbar-notif {
       position: relative;
       cursor: pointer;
@@ -133,11 +114,7 @@
       font-size: 1.1rem;
       transition: color 0.2s;
     }
-
-    .topbar-notif:hover {
-      color: var(--bordeaux);
-    }
-
+    .topbar-notif:hover { color: var(--bordeaux); }
     .notif-badge {
       position: absolute;
       top: -4px;
@@ -153,14 +130,12 @@
       align-items: center;
       justify-content: center;
     }
-
     .topbar-user {
       display: flex;
       align-items: center;
       gap: 8px;
       cursor: pointer;
     }
-
     .user-avatar {
       width: 34px;
       height: 34px;
@@ -174,14 +149,12 @@
       font-size: 0.75rem;
       color: var(--bordeaux);
     }
-
     .user-name {
       font-size: 0.75rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-
     .topbar-logout {
       background: none;
       border: none;
@@ -195,18 +168,11 @@
       align-items: center;
       gap: 6px;
     }
-
-    .topbar-logout:hover {
-      color: var(--bordeaux);
-    }
-
-    /* Layout */
+    .topbar-logout:hover { color: var(--bordeaux); }
     .dash-layout {
       display: flex;
       flex: 1;
     }
-
-    /* Sidebar */
     .dash-nav {
       width: 240px;
       background: white;
@@ -218,11 +184,9 @@
       height: calc(100vh - 64px);
       overflow-y: auto;
     }
-
     .nav-section {
       margin-bottom: 32px;
     }
-
     .nav-section-lbl {
       font-size: 0.65rem;
       font-weight: 700;
@@ -232,7 +196,6 @@
       padding: 0 24px;
       margin-bottom: 12px;
     }
-
     .nav-item {
       display: flex;
       align-items: center;
@@ -248,46 +211,37 @@
       border-left: 2px solid transparent;
       text-decoration: none;
     }
-
     .nav-item:hover {
       color: var(--bordeaux);
       background: var(--bordeaux-light);
     }
-
     .nav-item.active {
       color: var(--bordeaux);
       border-left-color: var(--bordeaux);
       background: var(--bordeaux-light);
     }
-
     .nav-item i {
       font-size: 0.9rem;
       width: 20px;
     }
-
-    /* Main */
     .dash-main {
       flex: 1;
       padding: 32px 40px;
       overflow-y: auto;
     }
-
     .dash-header {
       margin-bottom: 32px;
     }
-
     .dash-hello {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.8rem;
       font-weight: 700;
       margin-bottom: 4px;
     }
-
     .dash-hello em {
       color: var(--bordeaux);
       font-style: normal;
     }
-
     .dash-date {
       font-size: 0.7rem;
       font-weight: 600;
@@ -295,15 +249,12 @@
       letter-spacing: 0.1em;
       color: var(--gray-mid);
     }
-
-    /* Stats cards */
     .stats-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 20px;
       margin-bottom: 32px;
     }
-
     .stat-card {
       background: white;
       border-radius: 24px;
@@ -313,19 +264,16 @@
       position: relative;
       overflow: hidden;
     }
-
     .stat-card:hover {
       transform: translateY(-3px);
       border-color: var(--bordeaux-light);
       box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.08);
     }
-
     .stat-ico {
       font-size: 1.3rem;
       color: var(--bordeaux);
       margin-bottom: 12px;
     }
-
     .stat-val {
       font-family: 'Montserrat', sans-serif;
       font-size: 2rem;
@@ -333,13 +281,11 @@
       line-height: 1;
       margin-bottom: 4px;
     }
-
     .stat-val em {
       color: var(--bordeaux);
       font-style: normal;
       font-size: 1rem;
     }
-
     .stat-lbl {
       font-size: 0.7rem;
       font-weight: 600;
@@ -347,7 +293,6 @@
       letter-spacing: 0.05em;
       color: var(--gray-mid);
     }
-
     .stat-trend {
       position: absolute;
       top: 20px;
@@ -357,36 +302,29 @@
       padding: 3px 8px;
       border-radius: 40px;
     }
-
     .trend-up {
       background: rgba(74, 124, 107, 0.1);
       color: var(--success);
     }
-
     .trend-neutral {
       background: rgba(107, 98, 90, 0.1);
       color: var(--gray-mid);
     }
-
-    /* Section titles */
     .sec-title {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 20px;
     }
-
     .sec-h {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.3rem;
       font-weight: 600;
     }
-
     .sec-h em {
       color: var(--bordeaux);
       font-style: normal;
     }
-
     .sec-action {
       background: var(--bordeaux);
       color: white;
@@ -404,20 +342,16 @@
       align-items: center;
       gap: 6px;
     }
-
     .sec-action:hover {
       background: var(--bordeaux-dark);
       transform: translateY(-1px);
     }
-
-    /* Missions list */
     .missions-list {
       display: flex;
       flex-direction: column;
       gap: 12px;
       margin-bottom: 32px;
     }
-
     .mission-card {
       background: white;
       border-radius: 24px;
@@ -429,33 +363,27 @@
       align-items: center;
       gap: 20px;
     }
-
     .mission-card:hover {
       border-color: var(--bordeaux-light);
       transform: translateY(-2px);
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
     }
-
     .mc-status {
       width: 10px;
       height: 10px;
       border-radius: 50%;
       flex-shrink: 0;
     }
-
     .status-en-cours {
       background: var(--success);
       box-shadow: 0 0 6px var(--success);
     }
-
     .status-planifie {
       background: var(--warning);
     }
-
     .status-termine {
       background: var(--gray-mid);
     }
-
     .mc-ref {
       font-size: 0.65rem;
       font-weight: 700;
@@ -464,19 +392,16 @@
       color: var(--bordeaux);
       margin-bottom: 4px;
     }
-
     .mc-route {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.1rem;
       font-weight: 500;
       margin-bottom: 6px;
     }
-
     .mc-route em {
       color: var(--bordeaux);
       font-style: normal;
     }
-
     .mc-meta {
       display: flex;
       gap: 12px;
@@ -484,59 +409,49 @@
       font-size: 0.7rem;
       color: var(--gray-mid);
     }
-
     .mc-tag {
       font-size: 0.6rem;
       font-weight: 700;
       padding: 3px 8px;
       border-radius: 40px;
     }
-
     .tag-auto {
       background: rgba(41, 128, 185, 0.1);
       color: #2980b9;
     }
-
     .tag-moto {
       background: rgba(122, 46, 26, 0.1);
       color: var(--bordeaux);
     }
-
     .tag-plateau {
       background: rgba(224, 163, 67, 0.1);
       color: var(--warning);
     }
-
     .tag-route {
       background: rgba(74, 124, 107, 0.1);
       color: var(--success);
     }
-
     .mc-progress {
       text-align: center;
       min-width: 80px;
     }
-
     .progress-circle {
       width: 52px;
       height: 52px;
       margin: 0 auto 4px;
     }
-
     .progress-lbl {
       font-size: 0.6rem;
       font-weight: 700;
       text-transform: uppercase;
       color: var(--gray-mid);
     }
-
     .mc-actions {
       display: flex;
       flex-direction: column;
       gap: 8px;
       min-width: 100px;
     }
-
     .btn-sm {
       padding: 8px 12px;
       border-radius: 40px;
@@ -552,36 +467,29 @@
       gap: 6px;
       justify-content: center;
     }
-
     .btn-sm-red {
       background: var(--bordeaux);
       color: white;
     }
-
     .btn-sm-red:hover {
       background: var(--bordeaux-dark);
       transform: translateY(-1px);
     }
-
     .btn-sm-ghost {
       background: transparent;
       border: 1px solid var(--border-light);
       color: var(--gray-mid);
     }
-
     .btn-sm-ghost:hover {
       border-color: var(--bordeaux);
       color: var(--bordeaux);
     }
-
-    /* Quick actions */
     .qa-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 20px;
       margin-bottom: 32px;
     }
-
     .qa-item {
       background: white;
       border: 1px solid var(--border-light);
@@ -592,19 +500,16 @@
       transition: all 0.3s;
       text-decoration: none;
     }
-
     .qa-item:hover {
       transform: translateY(-3px);
       border-color: var(--bordeaux-light);
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
     }
-
     .qa-ico {
       font-size: 1.5rem;
       color: var(--bordeaux);
       margin-bottom: 12px;
     }
-
     .qa-lbl {
       font-size: 0.7rem;
       font-weight: 600;
@@ -612,15 +517,12 @@
       letter-spacing: 0.05em;
       color: var(--gray-dark);
     }
-
-    /* Vehicules grid */
     .vehi-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 20px;
       margin-bottom: 32px;
     }
-
     .vehi-card {
       background: white;
       border: 1px solid var(--border-light);
@@ -628,26 +530,22 @@
       padding: 24px;
       transition: all 0.3s;
     }
-
     .vehi-card:hover {
       transform: translateY(-2px);
       border-color: var(--bordeaux-light);
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
     }
-
     .vehi-ico {
       font-size: 1.8rem;
       color: var(--bordeaux);
       margin-bottom: 12px;
     }
-
     .vehi-name {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.1rem;
       font-weight: 600;
       margin-bottom: 4px;
     }
-
     .vehi-plate {
       font-size: 0.65rem;
       font-weight: 700;
@@ -659,19 +557,16 @@
       display: inline-block;
       margin-bottom: 12px;
     }
-
     .vehi-meta {
       font-size: 0.7rem;
       color: var(--gray-mid);
       margin-bottom: 16px;
       line-height: 1.5;
     }
-
     .vehi-actions {
       display: flex;
       gap: 8px;
     }
-
     .add-vehi {
       background: white;
       border: 1px dashed var(--border-light);
@@ -685,32 +580,26 @@
       transition: all 0.3s;
       gap: 8px;
     }
-
     .add-vehi:hover {
       border-color: var(--bordeaux);
       background: var(--bordeaux-light);
     }
-
     .add-vehi i {
       font-size: 1.5rem;
       color: var(--gray-mid);
     }
-
     .add-vehi span {
       font-size: 0.7rem;
       font-weight: 600;
       text-transform: uppercase;
       color: var(--gray-mid);
     }
-
-    /* Factures */
     .fact-list {
       display: flex;
       flex-direction: column;
       gap: 12px;
       margin-bottom: 32px;
     }
-
     .fact-item {
       background: white;
       border: 1px solid var(--border-light);
@@ -721,18 +610,15 @@
       gap: 20px;
       transition: all 0.3s;
     }
-
     .fact-item:hover {
       border-color: var(--bordeaux-light);
       transform: translateY(-1px);
     }
-
     .fact-ico {
       font-size: 1.2rem;
       color: var(--bordeaux);
       flex-shrink: 0;
     }
-
     .fact-ref {
       font-size: 0.7rem;
       font-weight: 700;
@@ -740,23 +626,19 @@
       text-transform: uppercase;
       margin-bottom: 4px;
     }
-
     .fact-date {
       font-size: 0.7rem;
       color: var(--gray-mid);
     }
-
     .fact-montant {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.3rem;
       font-weight: 600;
       margin-left: auto;
     }
-
     .fact-status {
       margin-left: 16px;
     }
-
     .td-status {
       display: inline-flex;
       align-items: center;
@@ -766,25 +648,20 @@
       padding: 4px 12px;
       border-radius: 40px;
     }
-
     .ts-ok {
       background: rgba(74, 124, 107, 0.1);
       color: var(--success);
     }
-
     .ts-att {
       background: rgba(224, 163, 67, 0.1);
       color: var(--warning);
     }
-
-    /* Tabs (missions filter) */
     .tabs {
       display: flex;
       gap: 0;
       border-bottom: 1px solid var(--border-light);
       margin-bottom: 20px;
     }
-
     .tab-btn {
       background: none;
       border: none;
@@ -797,42 +674,27 @@
       border-bottom: 2px solid transparent;
       transition: all 0.2s;
     }
-
     .tab-btn:hover {
       color: var(--bordeaux);
     }
-
     .tab-btn.active {
       color: var(--bordeaux);
       border-bottom-color: var(--bordeaux);
     }
-
     .tab-content {
       display: none;
     }
-
     .tab-content.active {
       display: block;
       animation: fadeIn 0.3s ease;
     }
-
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
-    /* Forms */
     .f-grp {
       margin-bottom: 20px;
     }
-
     .f-grp label {
       display: block;
       font-size: 0.7rem;
@@ -842,7 +704,6 @@
       color: var(--gray-mid);
       margin-bottom: 6px;
     }
-
     .f-grp input,
     .f-grp select,
     .f-grp textarea {
@@ -855,7 +716,6 @@
       background: #F9FAFB;
       transition: all 0.2s;
     }
-
     .f-grp input:focus,
     .f-grp select:focus,
     .f-grp textarea:focus {
@@ -863,13 +723,10 @@
       border-color: var(--bordeaux);
       box-shadow: 0 0 0 2px rgba(122, 46, 26, 0.1);
     }
-
     .f-grp input:disabled {
       background: var(--beige);
       color: var(--gray-mid);
     }
-
-    /* Suggests box */
     .suggest-box {
       position: absolute;
       top: 100%;
@@ -884,20 +741,16 @@
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
       display: none;
     }
-
     .suggest-item {
       padding: 8px 12px;
       cursor: pointer;
       font-size: 0.8rem;
       transition: background 0.2s;
     }
-
     .suggest-item:hover {
       background: var(--bordeaux-light);
       color: var(--bordeaux);
     }
-
-    /* Support card */
     .support-card {
       background: white;
       border: 1px solid var(--border-light);
@@ -908,7 +761,6 @@
       align-items: center;
       gap: 24px;
     }
-
     .support-ico {
       width: 52px;
       height: 52px;
@@ -920,24 +772,20 @@
       font-size: 1.3rem;
       color: var(--bordeaux);
     }
-
     .support-h {
       font-weight: 700;
       font-size: 0.9rem;
       margin-bottom: 4px;
     }
-
     .support-p {
       font-size: 0.8rem;
       color: var(--gray-mid);
     }
-
     .support-actions {
       margin-left: auto;
       display: flex;
       gap: 12px;
     }
-
     .btn-red {
       background: var(--bordeaux);
       color: white;
@@ -953,12 +801,10 @@
       align-items: center;
       gap: 6px;
     }
-
     .btn-red:hover {
       background: var(--bordeaux-dark);
       transform: translateY(-1px);
     }
-
     .btn-outline {
       background: transparent;
       border: 1px solid var(--border-light);
@@ -971,13 +817,10 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-
     .btn-outline:hover {
       border-color: var(--bordeaux);
       color: var(--bordeaux);
     }
-
-    /* Modal */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -988,11 +831,9 @@
       justify-content: center;
       z-index: 200;
     }
-
     .modal-overlay.open {
       display: flex;
     }
-
     .modal-box {
       background: white;
       border-radius: 32px;
@@ -1001,7 +842,6 @@
       padding: 32px;
       position: relative;
     }
-
     .modal-close {
       position: absolute;
       top: 20px;
@@ -1012,85 +852,72 @@
       cursor: pointer;
       color: var(--gray-mid);
     }
-
     .modal-h {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.5rem;
       font-weight: 600;
       margin-bottom: 8px;
     }
-
     .modal-h em {
       color: var(--bordeaux);
       font-style: normal;
     }
-
     .modal-sub {
       font-size: 0.8rem;
       color: var(--gray-mid);
       margin-bottom: 24px;
     }
-
     .modal-btns {
       display: flex;
       gap: 12px;
       margin-top: 24px;
     }
-
-    /* Responsive */
     @media (max-width: 900px) {
-      .dash-nav {
-        display: none;
-      }
-
-      .dash-main {
-        padding: 24px;
-      }
-
-      .stats-row {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .vehi-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .qa-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .mission-card {
-        grid-template-columns: auto 1fr;
-        gap: 12px;
-      }
-
-      .mc-progress,
-      .mc-actions {
-        grid-column: span 2;
-        justify-content: flex-start;
-      }
+      .dash-nav { display: none; }
+      .dash-main { padding: 24px; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .vehi-grid { grid-template-columns: 1fr 1fr; }
+      .qa-grid { grid-template-columns: 1fr 1fr; }
+      .mission-card { grid-template-columns: auto 1fr; gap: 12px; }
+      .mc-progress, .mc-actions { grid-column: span 2; justify-content: flex-start; }
     }
-
     @media (max-width: 600px) {
-      .stats-row {
-        grid-template-columns: 1fr;
-      }
-
-      .vehi-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .qa-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .topbar-center {
-        display: none;
-      }
+      .stats-row { grid-template-columns: 1fr; }
+      .vehi-grid { grid-template-columns: 1fr; }
+      .qa-grid { grid-template-columns: 1fr; }
+      .topbar-center { display: none; }
     }
-
     .clickable-card {
       cursor: pointer;
+    }
+    .veh-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .veh-tab {
+      padding: 8px 20px;
+      border-radius: 40px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+    }
+    .veh-tab.active {
+      background: var(--bordeaux);
+      color: white;
+    }
+    .veh-tab:not(.active) {
+      background: #E8E1D9;
+      color: var(--bordeaux);
+    }
+    .veh-tab:not(.active):hover {
+      background: var(--bordeaux-light);
+    }
+    .uppercase {
+      text-transform: uppercase;
     }
   </style>
 </head>
@@ -1109,8 +936,7 @@
         <i class="fas fa-bell"></i>
         <div class="notif-badge" id="cliNotifBadge" style="display:none">0</div>
       </div>
-      <a href="devis.html" class="sec-action" style="padding:6px 14px; font-size:0.65rem;"><i class="fas fa-plus"></i>
-        Nouveau devis</a>
+      <a href="devis.html" class="sec-action" style="padding:6px 14px; font-size:0.65rem;"><i class="fas fa-plus"></i> Nouveau devis</a>
       <div class="topbar-user" role="button" tabindex="0" aria-label="Mon compte">
         <div class="user-avatar" id="cliAvatar">JD</div>
         <span class="user-name" id="cliNomTopbar">Mon espace</span>
@@ -1119,37 +945,34 @@
     </div>
   </div>
 
-  <!-- CLIENT LOGIN OVERLAY -->
   <!-- CLIENT LOGIN/SIGNUP OVERLAY -->
   <div id="clientLoginOverlay" style="position:fixed;inset:0;background:linear-gradient(135deg, rgba(122,46,26,0.94) 0%, rgba(253,251,247,0.96) 100%);backdrop-filter:blur(16px);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;">
     <div style="background:rgba(255,255,255,0.85);border:1px solid rgba(255,255,255,0.4);border-radius:28px;padding:36px;max-width:480px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,0.12);backdrop-filter:blur(10px);">
-      <!-- Brand / Header -->
+      <!-- Brand -->
       <div style="text-align:center;margin-bottom:24px;">
         <div style="font-family:'Montserrat',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#2D2A24;">
-          Bathily-convoyage<span style="color:#0A4D68">.</span></div>
+          Bathily-convoyage<span style="color:#0A4D68">.</span>
+        </div>
         <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#6B625A;margin-top:4px;">
-          Espace Client Sécurisé</div>
+          Espace Client Sécurisé
+        </div>
       </div>
 
       <!-- Auth Switch Tabs -->
       <div style="display:flex;background:rgba(0,0,0,0.04);padding:4px;border-radius:14px;margin-bottom:24px;">
-        <button id="authTabLogin" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:white;color:#2D2A24;transition:all 0.25s ease;">Se
-          connecter</button>
-        <button id="authTabSignup" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:transparent;color:#6B625A;transition:all 0.25s ease;">Créer
-          un compte</button>
+        <button id="authTabLogin" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:white;color:#2D2A24;transition:all 0.25s ease;">Se connecter</button>
+        <button id="authTabSignup" style="flex:1;border:none;border-radius:10px;padding:10px;font-size:0.8rem;font-weight:700;cursor:pointer;background:transparent;color:#6B625A;transition:all 0.25s ease;">Créer un compte</button>
       </div>
 
-      <!-- FORM 1: LOGIN -->
+      <!-- LOGIN FORM -->
       <form id="authLoginForm" style="display:block;">
         <div style="margin-bottom:16px;text-align:left;">
-          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Adresse
-            Email</label>
+          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Adresse Email</label>
           <input id="loginEmail" type="email" required placeholder="nom@exemple.com" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
         </div>
         <div style="margin-bottom:20px;text-align:left;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;">Mot de
-              passe</label>
+            <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;">Mot de passe</label>
             <button type="button" id="linkForgotPassword" style="background:none;border:none;font-size:0.65rem;font-weight:600;color:#0A4D68;cursor:pointer;text-decoration:underline;">Mot de passe oublié ?</button>
           </div>
           <input id="loginPassword" type="password" required placeholder="••••••••" style="width:100%;padding:12px 16px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;transition:border-color 0.2s;">
@@ -1157,7 +980,7 @@
         <button type="submit" style="width:100%;background:#0A4D68;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
       </form>
 
-      <!-- FORM 2: SIGNUP -->
+      <!-- SIGNUP FORM -->
       <form id="authSignupForm" style="display:none; max-height: 450px; overflow-y: auto; padding-right: 4px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
           <div style="text-align:left;">
@@ -1170,8 +993,7 @@
           </div>
         </div>
         <div style="margin-bottom:12px;text-align:left;">
-          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Adresse
-            Email</label>
+          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Adresse Email</label>
           <input id="signupEmail" type="email" required placeholder="jean.dupont@email.com" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
         </div>
         <div style="margin-bottom:12px;text-align:left;">
@@ -1179,13 +1001,11 @@
           <input id="signupTel" type="tel" placeholder="+33 6 12 34 56 78" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
         </div>
         <div style="margin-bottom:12px;text-align:left;">
-          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Société
-            (Optionnel)</label>
+          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Société (Optionnel)</label>
           <input id="signupSociete" type="text" placeholder="Dupont Inc." style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
         </div>
         <div style="margin-bottom:20px;text-align:left;">
-          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Mot
-            de passe</label>
+          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Mot de passe</label>
           <input id="signupPassword" type="password" required minlength="6" placeholder="••••••••" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
         </div>
         <button type="submit" style="width:100%;background:#0A4D68;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-user-plus"></i> Créer mon compte</button>
@@ -1199,16 +1019,13 @@
       <div class="nav-section">
         <div class="nav-section-lbl">Principal</div>
         <div class="nav-item active" onclick="showTab('accueil',this)" role="button" tabindex="0"><i class="fas fa-home"></i> Tableau de bord</div>
-        <div class="nav-item" onclick="showTab('missions',this)" role="button" tabindex="0"><i class="fas fa-route"></i>
-          Mes missions</div>
-        <div class="nav-item" onclick="showTab('vehicules',this)" role="button" tabindex="0"><i class="fas fa-car"></i>
-          Mes véhicules</div>
+        <div class="nav-item" onclick="showTab('missions',this)" role="button" tabindex="0"><i class="fas fa-route"></i> Mes missions</div>
+        <div class="nav-item" onclick="showTab('vehicules',this)" role="button" tabindex="0"><i class="fas fa-car"></i> Mes véhicules</div>
         <div class="nav-item" onclick="showTab('factures',this)" role="button" tabindex="0"><i class="fas fa-file-invoice"></i> Mes factures</div>
       </div>
       <div class="nav-section">
         <div class="nav-section-lbl">Compte</div>
-        <div class="nav-item" onclick="showTab('profil',this)" role="button" tabindex="0"><i class="fas fa-user"></i>
-          Mon profil</div>
+        <div class="nav-item" onclick="showTab('profil',this)" role="button" tabindex="0"><i class="fas fa-user"></i> Mon profil</div>
         <div class="nav-item" onclick="showTab('support',this)" role="button" tabindex="0"><i class="fas fa-headset"></i> Support</div>
         <a href="devis.html" class="nav-item"><i class="fas fa-calculator"></i> Nouveau devis</a>
         <a href="index.html" class="nav-item"><i class="fas fa-globe"></i> Site public</a>
@@ -1274,8 +1091,7 @@
           <div class="nav-item" onclick="showTab('missions',null)" style="padding:0; color:var(--bordeaux); cursor:pointer;" role="button" tabindex="0">Voir tout <i class="fas fa-arrow-right"></i></div>
         </div>
         <div class="missions-list" id="recentMissionsList">
-          <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i>
-            Chargement...</div>
+          <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
         </div>
       </div>
 
@@ -1285,11 +1101,11 @@
           <h1 class="dash-hello">Mes <em>missions</em></h1>
         </div>
         <div class="sec-title">
-          <div class="tabs"><button class="tab-btn active" onclick="filterMissions('all',this)">toutes</button><button class="tab-btn" onclick="filterMissions('active',this)">En cours</button><button class="tab-btn" onclick="filterMissions('planned',this)">Planifiées</button><button class="tab-btn" onclick="filterMissions('completed',this)">Terminées</button></div><a href="devis.html" class="sec-action"><i class="fas fa-plus"></i> Nouvelle mission</a>
+          <div class="tabs"><button class="tab-btn active" onclick="filterMissions('all',this)">toutes</button><button class="tab-btn" onclick="filterMissions('active',this)">En cours</button><button class="tab-btn" onclick="filterMissions('planned',this)">Planifiées</button><button class="tab-btn" onclick="filterMissions('completed',this)">Terminées</button></div>
+          <a href="devis.html" class="sec-action"><i class="fas fa-plus"></i> Nouvelle mission</a>
         </div>
         <div class="missions-list" id="missionsList">
-          <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i>
-            Chargement...</div>
+          <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
         </div>
       </div>
 
@@ -1299,34 +1115,11 @@
           <h1 class="dash-hello">Mes <em>véhicules</em></h1>
         </div>
         <div class="sec-title">
-          <h2 class="sec-h">Véhicules <em>enregistrés</em></h2><button class="sec-action" onclick="openModal('modalVehicule')"><i class="fas fa-plus"></i> Ajouter</button>
+          <h2 class="sec-h">Véhicules <em>enregistrés</em></h2>
+          <button class="sec-action" onclick="openModal('modalVehicule')"><i class="fas fa-plus"></i> Ajouter</button>
         </div>
-        <div class="vehi-grid">
-          <div class="vehi-card">
-            <div class="vehi-ico"><i class="fas fa-car"></i></div>
-            <div class="vehi-name">BMW Série 3</div>
-            <div class="vehi-plate">IJ-789-KL</div>
-            <div class="vehi-meta">2023 - hybride - 190 CV<br>Berline - Dernière mission : 12 mai 2025</div>
-            <div class="vehi-actions"><button class="btn-sm btn-sm-red"><i class="fas fa-route"></i> Nouveau
-                convoyage</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></div>
-          </div>
-          <div class="vehi-card">
-            <div class="vehi-ico"><i class="fas fa-bolt" style="color:var(--success)"></i></div>
-            <div class="vehi-name">Tesla Model 3</div>
-            <div class="vehi-plate">MN-012-OP</div>
-            <div class="vehi-meta">2023 - Électrique - 283 CV<br>Berline - Dernière mission : 10 avr. 2025</div>
-            <div class="vehi-actions"><button class="btn-sm btn-sm-red"><i class="fas fa-route"></i> Nouveau
-                convoyage</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></div>
-          </div>
-          <div class="vehi-card">
-            <div class="vehi-ico"><i class="fas fa-motorcycle"></i></div>
-            <div class="vehi-name">Kawasaki Z900</div>
-            <div class="vehi-plate">KL-890-MN</div>
-            <div class="vehi-meta">2022 - Essence - 125 CV<br>Moto - Dernière mission : 28 avr. 2025</div>
-            <div class="vehi-actions"><button class="btn-sm btn-sm-red"><i class="fas fa-route"></i> Nouveau
-                convoyage</button><button class="btn-sm btn-sm-ghost"><i class="fas fa-edit"></i></button></div>
-          </div>
-          <div class="add-vehi" onclick="openModal('modalVehicule')" role="button" tabindex="0"><i class="fas fa-plus"></i><span>Ajouter un véhicule</span></div>
+        <div class="vehi-grid" id="vehiculesList">
+          <div style="text-align:center;color:var(--gray-mid);padding:20px;grid-column:span 3;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
         </div>
       </div>
 
@@ -1339,11 +1132,11 @@
           <h2 class="sec-h">Historique <em>facturation</em></h2>
         </div>
         <div class="fact-list" id="clientFactList">
-          <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i>
-            Chargement...</div>
+          <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
         </div>
-        <div style="text-align:center; padding:20px 0; border-top:1px solid var(--border-light)"><span style="font-size:0.7rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Total cumulé :
-            <span style="color:var(--bordeaux)" id="factTotalHt">0€ HT</span></span></div>
+        <div style="text-align:center; padding:20px 0; border-top:1px solid var(--border-light)">
+          <span style="font-size:0.7rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Total cumulé : <span style="color:var(--bordeaux)" id="factTotalHt">0€ HT</span></span>
+        </div>
       </div>
 
       <!-- Profil -->
@@ -1403,8 +1196,7 @@
             <div class="support-h">Besoin d'aide ?</div>
             <p class="support-p">Notre équipe est disponible du lundi au vendredi, 9h-18h. Urgences 24h/24.</p>
           </div>
-          <div class="support-actions"><a href="contact.html" class="btn-red"><i class="fas fa-envelope"></i>
-              Email</a><button class="btn-outline"><i class="fas fa-phone"></i> Appeler</button></div>
+          <div class="support-actions"><a href="contact.html" class="btn-red"><i class="fas fa-envelope"></i> Email</a><button class="btn-outline"><i class="fas fa-phone"></i> Appeler</button></div>
         </div>
         <div class="sec-title">
           <h2 class="sec-h">Nouveau <em>ticket</em></h2>
@@ -1418,33 +1210,28 @@
               <option>Autre</option>
             </select>
           </div>
-          <div class="f-grp"><label>Référence mission (optionnel)</label><input type="text" placeholder="BC-2025-XXXX">
-          </div>
-          <div class="f-grp"><label>Message</label><textarea id="supportMessage" rows="5" placeholder="Décrivez votre demande"></textarea>
-          </div><button class="btn-red" onclick="submitSupportTicket()"><i class="fas fa-paper-plane"></i> Envoyer</button>
+          <div class="f-grp"><label>Référence mission (optionnel)</label><input type="text" placeholder="BC-2025-XXXX" id="supportRef"></div>
+          <div class="f-grp"><label>Message</label><textarea id="supportMessage" rows="5" placeholder="Décrivez votre demande"></textarea></div>
+          <button class="btn-red" onclick="submitSupportTicket()"><i class="fas fa-paper-plane"></i> Envoyer</button>
         </div>
       </div>
     </main>
   </div>
 
-  <!-- Modal véhicule -->
+  <!-- Modal Détails Mission -->
   <div class="modal-overlay" id="modalMissionDetails">
-    <div class="modal-box" style="max-width:700px;"><button class="modal-close" onclick="closeModal('modalMissionDetails')"><i class="fas fa-times"></i></button>
+    <div class="modal-box" style="max-width:700px;">
+      <button class="modal-close" onclick="closeModal('modalMissionDetails')"><i class="fas fa-times"></i></button>
       <h3 class="modal-h">Détails de la <em>mission</em></h3>
-      <div class="f-row">
-        <div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
-        <div class="f-grp"><label>Statut</label><input type="text" id="md-status" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Statut</label><input type="text" id="md-status" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Départ</label><input type="text" id="md-depart" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Montant HT (€)</label><input type="number" id="md-price" readonly style="background:#f5f5f5;cursor:not-allowed;font-weight:bold;color:var(--bordeaux);"></div>
       </div>
-      <div class="f-row">
-        <div class="f-grp"><label>Départ</label><input type="text" id="md-depart" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
-        <div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
-      </div>
-      <div class="f-row">
-        <div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
-        <div class="f-grp"><label>Montant HT (€)</label><input type="number" id="md-price" readonly style="background:#f5f5f5; cursor:not-allowed; font-weight:bold; color:var(--bordeaux);"></div>
-      </div>
-      <div class="modal-btns"><button class="btn-outline" onclick="closeModal('modalMissionDetails')">Fermer</button>
-      </div>
+      <div class="modal-btns"><button class="btn-outline" onclick="closeModal('modalMissionDetails')">Fermer</button></div>
     </div>
   </div>
 
@@ -1455,47 +1242,43 @@
       <h3 class="modal-h">Ajouter un <em>véhicule</em></h3>
       <p class="modal-sub">Renseignez les informations de votre véhicule</p>
 
-      <!-- ÉTAPE 1 : Choix du Type via tes Onglets Officiels v2.0 -->
-      <div class="f-grp" style="margin-bottom: 16px;">
-        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Type de véhicule</label>
-        <div class="veh-tabs" style="display: flex; gap: 16px;">
-          <button type="button" id="tab-auto" class="veh-tab active" onclick="switchVehicleType('auto')" style="background: var(--primary, #0A4D68); color: #ffffff; padding: 10px 24px; border-radius: 40px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s;">Auto</button>
-          <button type="button" id="tab-moto" class="veh-tab" onclick="switchVehicleType('moto')" style="background: #E8E1D9; color: var(--primary, #0A4D68); padding: 10px 24px; border-radius: 40px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s;">Moto</button>
+      <div class="f-grp">
+        <label>Type de véhicule</label>
+        <div class="veh-tabs">
+          <button type="button" id="tab-auto" class="veh-tab active" onclick="switchVehicleType('auto')">Auto</button>
+          <button type="button" id="tab-moto" class="veh-tab" onclick="switchVehicleType('moto')">Moto</button>
         </div>
         <input type="hidden" id="type-vehicule" value="auto">
       </div>
 
-      <!-- ÉTAPE 2 : Plaque d'immatriculation -->
       <div class="f-grp">
         <label>Plaque d'immatriculation</label>
         <input type="text" id="vehi-plaque" placeholder="AB-123-CD" class="uppercase" required>
       </div>
 
-      <!-- ÉTAPE 3 : Listes déroulantes dynamiques pour Marque et Modèle -->
-      <div class="f-row" style="display:flex; gap:16px;">
+      <div style="display:flex;gap:16px;">
         <div class="f-grp" style="flex:1;">
           <label>Marque</label>
-          <select id="vehi-marque" onchange="updateModelesLocal()" style="width: 100%; padding: 10px; border: 1px solid var(--border-light, #E8E1D9); border-radius: 12px; background-color: #fff;">
-            <!-- Rempli par le script -->
+          <select id="vehi-marque" onchange="updateModelesLocal()">
+            <option value="">-- Sélectionnez --</option>
           </select>
         </div>
         <div class="f-grp" style="flex:1;">
           <label>Modèle</label>
-          <select id="vehi-modele" style="width: 100%; padding: 10px; border: 1px solid var(--border-light, #E8E1D9); border-radius: 12px; background-color: #fff;">
-            <option value="">-- Choisissez d'abord une marque --</option>
+          <select id="vehi-modele">
+            <option value="">-- Sélectionnez d'abord une marque --</option>
           </select>
         </div>
       </div>
 
-      <!-- ÉTAPE 4 : Année et Carburant (Conservés de ton code d'origine) -->
-      <div class="f-row" style="display:flex; gap:16px;">
+      <div style="display:flex;gap:16px;">
         <div class="f-grp" style="flex:1;">
           <label>Année</label>
           <input type="number" id="vehi-anne" placeholder="2026" value="2026">
         </div>
         <div class="f-grp" style="flex:1;">
           <label>Carburant</label>
-          <select id="vehi-carbu" style="width: 100%; padding: 10px; border: 1px solid var(--border-light, #E8E1D9); border-radius: 12px; background-color: #fff;">
+          <select id="vehi-carbu">
             <option>Essence</option>
             <option>Diesel</option>
             <option>Hybride</option>
@@ -1504,7 +1287,6 @@
         </div>
       </div>
 
-      <!-- Boutons d'actions -->
       <div class="modal-btns">
         <button class="btn-red" onclick="triggerVehicleSave()"><i class="fas fa-save"></i> Enregistrer</button>
         <button class="btn-outline" onclick="closeModal('modalVehicule')">Annuler</button>
@@ -1513,14 +1295,13 @@
   </div>
 
   <script>
-    // ========== DEVIATION/CDN FALLBACKS ==========
+    // ========== DEVIATION / FALLBACKS ==========
     if (typeof supabase === 'undefined') {
-      alert("⭐ Erreur de chargement : Le module de base de données (Supabase) n'a pas pu être chargé.\n\nCela est généralement dû à un bloqueur de publicité (comme uBlock Origin, AdBlock) ou un bloqueur de scripts sur votre navigateur.\n\nVeuillez désactiver votre bloqueur de publicité pour ce site ou essayer en mode Navigation Privée sans extensions pour vous connecter.");
+      alert("⚠️ Erreur : Supabase n'est pas chargé. Vérifiez vos bloqueurs.");
     }
-
     if (typeof Swal === 'undefined') {
       window.Swal = {
-        fire: function (options) {
+        fire: function(options) {
           if (options.showCancelButton) {
             const confirm = window.confirm((options.title || '') + '\n\n' + (options.text || ''));
             return Promise.resolve({ isConfirmed: confirm });
@@ -1529,29 +1310,27 @@
             return Promise.resolve({ isConfirmed: true });
           }
         },
-        showLoading: function () { },
-        close: function () { }
+        showLoading: function() {},
+        close: function() {}
       };
     }
 
     // ========== SUPABASE ==========
-    let _sbCli = null;
+    let _sbClient = null;
 
     function getSBCli() {
-      if (typeof supabase === 'undefined') {
-        alert("⭐ Base de données inaccessible. Veuillez désactiver votre bloqueur de publicité.");
-        throw new Error("Supabase non défini");
-      }
-      if (!_sbCli) _sbCli = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-      return _sbCli;
+      if (!_sbClient) _sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      return _sbClient;
     }
 
-    // ========== CLIENT AUTH ==========
-    let _clientName = null;
+    // ========== GLOBALES ==========
     let _clientUser = null;
+    let _clientName = '';
     let _clientMissions = [];
     let _activeFilter = 'all';
+    let _vehiculesList = [];
 
+    // ========== AUTH HELPERS ==========
     async function hashPassword(pwd) {
       const msgBuffer = new TextEncoder().encode(pwd);
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -1561,7 +1340,7 @@
 
     function clientLogout() {
       const sb = getSBCli();
-      if (sb) sb.auth.signOut().catch(() => { });
+      if (sb) sb.auth.signOut().catch(() => {});
       sessionStorage.removeItem('client_user');
       sessionStorage.removeItem('client_name');
       window.location.reload();
@@ -1590,465 +1369,237 @@
       }
     }
 
-    async function handleForgotPassword(event) {
-      if (event) event.preventDefault();
-
+    async function handleForgotPassword(e) {
+      e.preventDefault();
       const { value: email } = await Swal.fire({
         title: 'Mot de passe oublié ?',
-        text: 'Entrez votre adresse e-mail pour recevoir les instructions de réinitialisation.',
+        text: 'Entrez votre adresse e-mail pour recevoir les instructions.',
         input: 'email',
         inputPlaceholder: 'nom@exemple.com',
         showCancelButton: true,
         confirmButtonText: 'Envoyer',
         cancelButtonText: 'Annuler',
         confirmButtonColor: 'var(--bordeaux)',
-        inputValidator: (value) => {
-          if (!value) {
-            return 'Veuillez saisir une adresse e-mail valide !';
-          }
-        }
+        inputValidator: (val) => { if (!val) return 'Email requis'; }
       });
+      if (!email) return;
 
-      if (email) {
-        Swal.fire({
-          title: 'Vérification...',
-          didOpen: () => Swal.showLoading(),
-          allowOutsideClick: false
+      Swal.fire({ title: 'Vérification...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      const client = getSBCli();
+      const { data: existing } = await client.from('clients').select('email').eq('email', email.trim()).maybeSingle();
+      if (!existing) {
+        Swal.fire('Adresse inconnue', "Aucun compte avec cet email.", 'warning');
+        return;
+      }
+      try {
+        await fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trigger: 'reset_password', id: email.trim() })
         });
-
-        const client = getSBCli();
-        const { data: existing, error: checkError } = await client
-          .from('clients')
-          .select('email, prenom, mot_de_passe')
-          .eq('email', email.trim())
-          .maybeSingle();
-
-        if (checkError) {
-          Swal.fire({
-            title: 'Erreur',
-            text: 'Une erreur est survenue lors de la vérification.',
-            icon: 'error',
-            confirmButtonColor: 'var(--bordeaux)'
-          });
-          return;
-        }
-
-        if (!existing) {
-          Swal.fire({
-            title: 'Adresse inconnue',
-            text: "Aucun compte client n'est enregistré avec cette adresse e-mail.",
-            icon: 'warning',
-            confirmButtonColor: 'var(--bordeaux)'
-          });
-          return;
-        }
-
-        // Appel de la fonction serverless pour envoyer le mail de réinitialisation
-        try {
-          const response = await fetch('/.netlify/functions/send-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              trigger: 'reset_password',
-              id: existing.email, // On utilise l'email comme ID pour le trigger
-              notes: `${window.location.origin}/dashboard-client.html`
-            })
-          });
-
-          Swal.fire({
-            title: 'E-mail envoyé ! ⭐',
-            text: 'Un e-mail contenant les instructions de réinitialisation a été envoyé (simulé en développement).',
-            icon: 'success',
-            confirmButtonColor: 'var(--bordeaux)'
-          });
-        } catch (e) {
-          Swal.fire({
-            title: 'E-mail envoyé ! ⭐',
-            text: 'Un e-mail contenant les instructions de réinitialisation a été simulé avec succès.',
-            icon: 'success',
-            confirmButtonColor: 'var(--bordeaux)'
-          });
-        }
+        Swal.fire('Email envoyé !', 'Consultez votre boîte mail (simulé en dev).', 'success');
+      } catch {
+        Swal.fire('Email envoyé !', 'Réinitialisation simulée.', 'success');
       }
     }
 
-    async function handleClientLogin(event) {
-      event.preventDefault();
+    // ========== HANDLE CLIENT LOGIN ==========
+    async function handleClientLogin(e) {
+      e.preventDefault();
       const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-      const mot_de_passe = document.getElementById('loginPassword').value;
+      const password = document.getElementById('loginPassword').value;
+      if (!email || !password) return;
 
-      if (!email || !mot_de_passe) return;
-
-      Swal.fire({
-        title: 'Connexion...',
-        didOpen: () => Swal.showLoading(),
-        allowOutsideClick: false
-      });
-
+      Swal.fire({ title: 'Connexion...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
       const client = getSBCli();
-      // Utiliser Supabase Auth natif (sécurisé)
-      const { data: authData, error: authError } = await client.auth.signInWithPassword({
-        email,
-        password: mot_de_passe
-      });
+
+      // 1. Tenter Supabase Auth
+      const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
 
       if (authError) {
-        // Tentative de fallback sur l'ancienne méthode (SHA-256) pour les comptes existants
-        const { data: profileData, error: profileError } = await client
-          .from('clients')
-          .select('*')
-          .eq('email', email)
-          .maybeSingle();
-
-        if (profileError || !profileData) {
-          Swal.fire({
-            title: 'Échec de connexion',
-            text: 'Identifiants incorrects ou compte inexistant.',
-            icon: 'error',
-            confirmButtonColor: 'var(--bordeaux)'
-          });
+        // 2. Fallback SHA-256 pour les anciens comptes
+        const { data: profileData } = await client.from('clients').select('*').eq('email', email).maybeSingle();
+        if (!profileData) {
+          Swal.fire({ title: 'Échec', text: 'Identifiants incorrects ou compte inexistant.', icon: 'error' });
           return;
         }
-
-        // Fallback SHA-256 pour les anciens comptes (migration progressive)
-        const hashedPassword = await hashPassword(mot_de_passe);
-        if (profileData.mot_de_passe !== hashedPassword) {
-          Swal.fire({
-            title: 'Échec de connexion',
-            text: 'Identifiants incorrects ou compte inexistant.',
-            icon: 'error',
-            confirmButtonColor: 'var(--bordeaux)'
-          });
+        const hashed = await hashPassword(password);
+        if (profileData.mot_de_passe !== hashed) {
+          Swal.fire({ title: 'Échec', text: 'Identifiants incorrects.', icon: 'error' });
           return;
         }
-
         _clientUser = profileData;
-        _clientName = `${profileData.prenom} ${profileData.nom}`;
+        _clientName = `${profileData.prenom || ''} ${profileData.nom || ''}`.trim();
         sessionStorage.setItem('client_user', JSON.stringify(profileData));
         sessionStorage.setItem('client_name', _clientName);
-
-        const { data: missions } = await client
-          .from('missions')
-          .select('*')
-          .eq('client_id', profileData.id)
-          .order('created_at', { ascending: false });
-
         document.getElementById('clientLoginOverlay').style.display = 'none';
-        initClientDashboard(missions || []);
-        Swal.fire({ title: 'Bienvenue !', text: `Content de vous revoir, ${profileData.prenom}.`, icon: 'success', timer: 2000, showConfirmButton: false });
+        await loadClientData(profileData);
+        Swal.fire({ title: 'Bienvenue !', text: `Content de vous revoir, ${profileData.prenom || 'Client'}.`, icon: 'success', timer: 2000, showConfirmButton: false });
         return;
       }
 
-      // Auth Supabase réussie
-      const { data: profileFromAuth, error: pErr } = await client
-        .from('clients')
-        .select('*')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (!profileFromAuth) {
-        // Créer l'entrée client si elle n'existe pas encore
-        const user = authData.user;
+      // 3. Auth réussie : récupérer ou créer le profil client
+      let { data: profile } = await client.from('clients').select('*').eq('email', email).maybeSingle();
+      if (!profile) {
+        // Créer le profil si inexistant
         const { data: newProfile } = await client.from('clients').insert([{
-          email: user.email,
-          prenom: user.user_metadata?.prenom || 'Client',
-          nom: user.user_metadata?.nom || '',
+          email,
+          prenom: authData.user.user_metadata?.prenom || 'Client',
+          nom: authData.user.user_metadata?.nom || '',
           role: 'client'
         }]).select().single();
-        _clientUser = newProfile || { email };
-      } else {
-        _clientUser = profileFromAuth;
+        profile = newProfile;
       }
-
-      _clientName = `${_clientUser.prenom || ''} ${_clientUser.nom || ''}`.trim();
-      sessionStorage.setItem('client_user', JSON.stringify(_clientUser));
+      _clientUser = profile;
+      _clientName = `${profile.prenom || ''} ${profile.nom || ''}`.trim();
+      sessionStorage.setItem('client_user', JSON.stringify(profile));
       sessionStorage.setItem('client_name', _clientName);
-
-      // Chercher par client_id ET par client_email pour couvrir tous les cas
-      const { data: missionsByClientId } = await client
-        .from('missions')
-        .select('*')
-        .eq('client_id', _clientUser.id)
-        .order('created_at', { ascending: false });
-
-      const { data: missionsByEmail } = await client
-        .from('missions')
-        .select('*')
-        .eq('client_email', _clientUser.email)
-        .order('created_at', { ascending: false });
-
-      // Fusionner sans doublons
-      const allMissionsMap = new Map();
-      [...(missionsByClientId || []), ...(missionsByEmail || [])].forEach(m => allMissionsMap.set(m.id, m));
-      const missions = Array.from(allMissionsMap.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
       document.getElementById('clientLoginOverlay').style.display = 'none';
-      initClientDashboard(missions || []);
-
-      Swal.fire({
-        title: 'Bienvenue !',
-        text: `Content de vous revoir, ${_clientUser.prenom || 'Client'}.`,
-        icon: 'success',
-        timer: 2000,
-        showConfirmButton: false
-      });
+      await loadClientData(profile);
+      Swal.fire({ title: 'Bienvenue !', text: `Content de vous revoir, ${profile.prenom || 'Client'}.`, icon: 'success', timer: 2000, showConfirmButton: false });
     }
 
-    async function handleClientSignup(event) {
-      event.preventDefault();
+    // ========== HANDLE CLIENT SIGNUP ==========
+    async function handleClientSignup(e) {
+      e.preventDefault();
       const prenom = document.getElementById('signupPrenom').value.trim();
       const nom = document.getElementById('signupNom').value.trim();
       const email = document.getElementById('signupEmail').value.trim().toLowerCase();
       const telephone = document.getElementById('signupTel').value.trim();
       const societe = document.getElementById('signupSociete').value.trim();
-      const mot_de_passe = document.getElementById('signupPassword').value;
+      const password = document.getElementById('signupPassword').value;
 
-      if (!prenom || !nom || !email || !mot_de_passe) return;
-
-      if (mot_de_passe.length < 6) {
-        Swal.fire({ title: 'Mot de passe trop court', text: 'Le mot de passe doit contenir au moins 6 caractères.', icon: 'warning', confirmButtonColor: 'var(--bordeaux)' });
+      if (!prenom || !nom || !email || !password) {
+        Swal.fire('Champs requis', 'Tous les champs obligatoires doivent être remplis.', 'warning');
+        return;
+      }
+      if (password.length < 6) {
+        Swal.fire('Mot de passe trop court', 'Minimum 6 caractères.', 'warning');
         return;
       }
 
       Swal.fire({ title: 'Création du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-
       const client = getSBCli();
 
-      // 1. Créer le compte via Supabase Auth
+      // 1. Créer auth
       const { data: authData, error: authError } = await client.auth.signUp({
         email,
-        password: mot_de_passe,
+        password,
         options: { data: { prenom, nom } }
       });
-
       if (authError) {
-        if (authError.message?.includes('already registered')) {
-          Swal.fire({ title: 'Compte existant', text: 'Cette adresse e-mail est déjà associée à un compte. Souhaitez-vous vous connecter ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Se connecter', cancelButtonText: 'Annuler', confirmButtonColor: 'var(--bordeaux)' })
-            .then((result) => { if (result.isConfirmed) { switchAuthTab('login'); document.getElementById('loginEmail').value = email; } });
+        if (authError.message.includes('already registered')) {
+          Swal.fire({ title: 'Compte existant', text: 'Cet email est déjà utilisé. Souhaitez-vous vous connecter ?', showCancelButton: true, confirmButtonText: 'Se connecter' })
+            .then(res => { if (res.isConfirmed) { switchAuthTab('login');
+              document.getElementById('loginEmail').value = email; } });
         } else {
-          Swal.fire({ title: 'Erreur', text: authError.message, icon: 'error', confirmButtonColor: 'var(--bordeaux)' });
+          Swal.fire('Erreur', authError.message, 'error');
         }
         return;
       }
 
-      // 2. Insérer le profil dans la table clients
-      const { data, error } = await client.from('clients').insert([{ prenom, nom, email, telephone, societe, role: 'client' }]).select().single();
+      // 2. Insérer dans clients
+      const { data: inserted, error: insertError } = await client.from('clients').insert([{
+        prenom, nom, email, telephone, societe, role: 'client'
+      }]).select().single();
 
-      if (error || !data) {
-        Swal.fire({ title: 'Erreur', text: error ? error.message : 'Impossible de créer le compte.', icon: 'error', confirmButtonColor: 'var(--bordeaux)' });
+      if (insertError || !inserted) {
+        Swal.fire('Erreur', insertError ? insertError.message : 'Impossible de créer le profil.', 'error');
         return;
       }
 
-      _clientUser = data;
+      _clientUser = inserted;
       _clientName = `${prenom} ${nom}`;
-      sessionStorage.setItem('client_user', JSON.stringify(data));
+      sessionStorage.setItem('client_user', JSON.stringify(inserted));
       sessionStorage.setItem('client_name', _clientName);
-
       document.getElementById('clientLoginOverlay').style.display = 'none';
-      initClientDashboard([]);
-
-      Swal.fire({ title: 'Compte créé ! ⭐', text: `Bienvenue sur votre espace, ${prenom}.`, icon: 'success', timer: 2500, showConfirmButton: false });
+      await loadClientData(inserted);
+      Swal.fire({ title: 'Compte créé ! ⭐', text: `Bienvenue, ${prenom}.`, icon: 'success', timer: 2500, showConfirmButton: false });
     }
 
-    async function uploadDocumentClient(fileInputId, docType) {
-      const fileInput = document.getElementById(fileInputId);
-      if (!fileInput || !fileInput.files || fileInput.files.length === 0) return null;
-      const file = fileInput.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `clients/${_clientUser.id}/${docType}_${Date.now()}.${fileExt}`;
-
+    // ========== LOAD CLIENT DATA ==========
+    async function loadClientData(profile) {
+      // Charger les missions
       const client = getSBCli();
-      const { data, error } = await client.storage
-        .from('documents')
-        .upload(fileName, file, { upsert: true });
+      const { data: missionsById } = await client.from('missions').select('*').eq('client_id', profile.id).order('created_at', { ascending: false });
+      const { data: missionsByEmail } = await client.from('missions').select('*').eq('client_email', profile.email).order('created_at', { ascending: false });
+      const all = {};
+      [...(missionsById || []), ...(missionsByEmail || [])].forEach(m => all[m.id] = m);
+      _clientMissions = Object.values(all).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-      if (error) {
-        console.error(`Erreur upload ${docType}:`, error);
-        return null;
-      }
+      // Charger les véhicules
+      const { data: vehicules } = await client.from('vehicules').select('*').eq('client_id', profile.id).order('created_at', { ascending: false });
+      _vehiculesList = vehicules || [];
 
-      const { data: publicUrlData } = client.storage
-        .from('documents')
-        .getPublicUrl(fileName);
-
-      return publicUrlData.publicUrl;
+      initClientDashboard();
     }
 
-    async function updateClientProfile() {
-      if (!_clientUser) {
-        Swal.fire({
-          title: 'Action impossible',
-          text: 'Vous devez être connecté pour modifier votre profil.',
-          icon: 'warning',
-          confirmButtonColor: 'var(--bordeaux)'
-        });
-        return;
-      }
+    // ========== INIT CLIENT DASHBOARD ==========
+    function initClientDashboard() {
+      const missions = _clientMissions;
+      const user = _clientUser;
 
-      const prenom = document.getElementById('profilPrenom').value.trim();
-      const nom = document.getElementById('profilNom').value.trim();
-      const telephone = document.getElementById('profilTel').value.trim();
-      const societe = document.getElementById('profilSociete').value.trim();
-      const adresse = document.getElementById('profilAdresse')?.value.trim();
-      const code_postal = document.getElementById('profilCp')?.value.trim();
-      const ville = document.getElementById('profilVille')?.value.trim();
-      const pays = document.getElementById('profilPays')?.value.trim();
-      const siret = document.getElementById('profilSiret')?.value.trim();
+      // Topbar
+      const firstName = _clientName.split(' ')[0] || 'Client';
+      const initials = _clientName.split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0, 2) || 'JD';
+      document.getElementById('cliNomTopbar').textContent = firstName;
+      document.getElementById('cliAvatar').textContent = initials;
+      document.getElementById('cliPrenom').textContent = firstName;
 
-      if (!prenom || !nom) {
-        Swal.fire({
-          title: 'Champs requis',
-          text: 'Le prénom et le nom sont obligatoires.',
-          icon: 'warning',
-          confirmButtonColor: 'var(--bordeaux)'
-        });
-        return;
-      }
-
-      Swal.fire({
-        title: 'Mise à jour...',
-        text: 'Enregistrement du profil et des documents (cela peut prendre quelques secondes)...',
-        didOpen: () => Swal.showLoading(),
-        allowOutsideClick: false
-      });
-
-      // Upload files
-      let cniUrl = await uploadDocumentClient('uploadCni', 'cni');
-      let kbisUrl = await uploadDocumentClient('uploadKbis', 'kbis');
-
-      // Load existing documents to merge
-      let docs = _clientUser.documents || {};
-      if (cniUrl) docs.cni = cniUrl;
-      if (kbisUrl) docs.kbis = kbisUrl;
-
-      const { data, error } = await getSBCli()
-        .from('clients')
-        .update({
-          prenom, nom, telephone, societe,
-          adresse, code_postal, ville, pays, siret,
-          documents: docs
-        })
-        .eq('id', _clientUser.id)
-        .select()
-        .single();
-
-      if (error) {
-        Swal.fire({
-          title: 'Erreur',
-          text: error.message || 'Impossible de mettre à jour le profil.',
-          icon: 'error',
-          confirmButtonColor: 'var(--bordeaux)'
-        });
-      } else {
-        _clientUser = data;
-        sessionStorage.setItem('client_user', JSON.stringify(data));
-        _clientName = `${prenom} ${nom}`;
-
-        const firstName = prenom;
-        const initials = (prenom[0] || '') + (nom[0] || '');
-        const nomEl = document.getElementById('cliNomTopbar');
-        const avaEl = document.getElementById('cliAvatar');
-        const prenomEl = document.getElementById('cliPrenom');
-        if (nomEl) nomEl.textContent = firstName;
-        if (avaEl) avaEl.textContent = initials.toUpperCase();
-        if (prenomEl) prenomEl.textContent = firstName;
-
-        Swal.fire({
-          title: 'Succès',
-          text: 'Votre profil a été mis à jour avec succès.',
-          icon: 'success',
-          confirmButtonColor: 'var(--bordeaux)'
-        });
-      }
-    }
-
-    async function initClientDashboard(missions) {
-      _clientMissions = missions || [];
-
-      const firstName = _clientName.split(' ')[0];
-      const initials = _clientName.split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0, 2);
-      const nomEl = document.getElementById('cliNomTopbar');
-      const avaEl = document.getElementById('cliAvatar');
-      const prenomEl = document.getElementById('cliPrenom');
-      if (nomEl) nomEl.textContent = firstName;
-      if (avaEl) avaEl.textContent = initials;
-      if (prenomEl) prenomEl.textContent = firstName;
-
-      if (_clientUser) {
-        const pPrenom = document.getElementById('profilPrenom');
-        const pNom = document.getElementById('profilNom');
-        const pEmail = document.getElementById('profilEmail');
-        const pTel = document.getElementById('profilTel');
-        const pSociete = document.getElementById('profilSociete');
-        if (pPrenom) pPrenom.value = _clientUser.prenom || '';
-        if (pNom) pNom.value = _clientUser.nom || '';
-        if (pEmail) pEmail.value = _clientUser.email || '';
-        if (pTel) pTel.value = _clientUser.telephone || '';
-        if (pSociete) pSociete.value = _clientUser.societe || '';
-
-        const pAdresse = document.getElementById('profilAdresse');
-        const pCp = document.getElementById('profilCp');
-        const pVille = document.getElementById('profilVille');
-        const pPays = document.getElementById('profilPays');
-        const pSiret = document.getElementById('profilSiret');
-
-        if (pAdresse) pAdresse.value = _clientUser.adresse || '';
-        if (pCp) pCp.value = _clientUser.code_postal || '';
-        if (pVille) pVille.value = _clientUser.ville || '';
-        if (pPays) pPays.value = _clientUser.pays || 'France';
-        if (pSiret) pSiret.value = _clientUser.siret || '';
-
-        const cniLink = document.getElementById('cniLink');
-        const kbisLink = document.getElementById('kbisLink');
-        if (_clientUser.documents) {
-          if (_clientUser.documents.cni && cniLink) {
-            cniLink.innerHTML = `<a href="${_clientUser.documents.cni}" target="_blank"><i class="fas fa-file-pdf"></i> Voir le document actuel</a>`;
-          } else if (cniLink) { cniLink.innerHTML = ''; }
-          if (_clientUser.documents.kbis && kbisLink) {
-            kbisLink.innerHTML = `<a href="${_clientUser.documents.kbis}" target="_blank"><i class="fas fa-file-pdf"></i> Voir le document actuel</a>`;
-          } else if (kbisLink) { kbisLink.innerHTML = ''; }
+      // Profil
+      if (user) {
+        document.getElementById('profilPrenom').value = user.prenom || '';
+        document.getElementById('profilNom').value = user.nom || '';
+        document.getElementById('profilEmail').value = user.email || '';
+        document.getElementById('profilTel').value = user.telephone || '';
+        document.getElementById('profilSociete').value = user.societe || '';
+        document.getElementById('profilAdresse').value = user.adresse || '';
+        document.getElementById('profilCp').value = user.code_postal || '';
+        document.getElementById('profilVille').value = user.ville || '';
+        document.getElementById('profilPays').value = user.pays || 'France';
+        document.getElementById('profilSiret').value = user.siret || '';
+        if (user.documents) {
+          if (user.documents.cni) document.getElementById('cniLink').innerHTML = `<a href="${user.documents.cni}" target="_blank"><i class="fas fa-file-pdf"></i> Voir CNI</a>`;
+          if (user.documents.kbis) document.getElementById('kbisLink').innerHTML = `<a href="${user.documents.kbis}" target="_blank"><i class="fas fa-file-pdf"></i> Voir KBIS</a>`;
         }
-      } else if (_clientName) {
-        const parts = _clientName.split(' ');
-        const pPrenom = document.getElementById('profilPrenom');
-        const pNom = document.getElementById('profilNom');
-        if (pPrenom) pPrenom.value = parts[0] || '';
-        if (pNom) pNom.value = parts.slice(1).join(' ') || '';
       }
 
-      const actives = missions.filter(m => m.status === 'in_progress').length;
-      const terminees = missions.filter(m => m.status === 'completed').length;
-      const planned = missions.filter(m => m.status === 'planned' || m.status === 'available').length;
-      const caTotal = missions.filter(m => m.montant_ht).reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0);
+      // Stats
+      const actives = missions.filter(m => m.status === 'in_progress' || m.statut === 'in_progress').length;
+      const terminees = missions.filter(m => m.status === 'completed' || m.statut === 'completed').length;
+      const ca = missions.filter(m => m.montant_ht).reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0);
+      document.getElementById('kpiActives').textContent = actives;
+      document.getElementById('kpiTerminees').textContent = terminees;
+      document.getElementById('kpiCA').textContent = ca >= 1000 ? (ca / 1000).toFixed(1) + 'k€' : ca + '€';
+      document.getElementById('kpiTotal').textContent = missions.length;
 
-      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-      set('kpiActives', actives);
-      set('kpiTerminees', terminees);
-      set('kpiCA', caTotal >= 1000 ? (caTotal / 1000).toFixed(1) + 'k€' : caTotal + '€');
-      set('kpiTotal', missions.length);
-
+      // Missions
       renderClientMissions('recentMissionsList', missions.slice(0, 3), false);
       renderClientMissions('missionsList', missions, true);
       renderClientInvoices(missions);
+      renderVehicules();
     }
 
+    // ========== RENDER MISSIONS ==========
     function renderClientMissions(containerId, missions, showAll) {
       const container = document.getElementById(containerId);
       if (!container) return;
 
       if (!missions || missions.length === 0) {
-        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-inbox" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune mission pour l\'instant.<br><a href="devis.html" style="color:var(--bordeaux);font-weight:700;font-size:0.8rem;">Faire un devis ?</a></div>';
+        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-inbox" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune mission.<br><a href="devis.html" style="color:var(--bordeaux);font-weight:700;font-size:0.8rem;">Faire un devis ?</a></div>';
         return;
       }
 
-      const filtered = showAll && _activeFilter !== 'all'
-        ? missions.filter(m => {
-          if (_activeFilter === 'active') return m.status === 'in_progress';
-          if (_activeFilter === 'planned') return m.status === 'planned' || m.status === 'available';
-          if (_activeFilter === 'completed') return m.status === 'completed';
+      let filtered = missions;
+      if (showAll && _activeFilter !== 'all') {
+        filtered = missions.filter(m => {
+          const st = m.status || m.statut || '';
+          if (_activeFilter === 'active') return st === 'in_progress';
+          if (_activeFilter === 'planned') return st === 'planned' || st === 'available';
+          if (_activeFilter === 'completed') return st === 'completed';
           return true;
-        })
-        : missions;
+        });
+      }
 
       if (filtered.length === 0) {
         container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:20px;">Aucune mission dans cette catégorie.</div>';
@@ -2056,51 +1607,52 @@
       }
 
       container.innerHTML = filtered.map(m => {
-        const mStatus = m.status || m.statut || 'planned';
-        const statusClass = mStatus === 'in_progress' ? 'status-en-cours' : mStatus === 'completed' ? 'status-termine' : 'status-planifie';
-        const statusLabel = mStatus === 'in_progress' ? 'En transit' : mStatus === 'completed' ? 'Livrée' : 'Planifiée';
-        const pct = mStatus === 'completed' ? 100 : mStatus === 'in_progress' ? 65 : 10;
-        const strokeColor = mStatus === 'completed' ? 'var(--success)' : mStatus === 'in_progress' ? 'var(--bordeaux)' : '#F5A623';
+        const st = m.status || m.statut || 'planned';
+        let statusClass = 'status-planifie', statusLabel = 'Planifiée', pct = 10, strokeColor = '#F5A623';
+        if (st === 'in_progress') { statusClass = 'status-en-cours';
+          statusLabel = 'En transit';
+          pct = 65;
+          strokeColor = 'var(--bordeaux)'; }
+        if (st === 'completed') { statusClass = 'status-termine';
+          statusLabel = 'Livrée';
+          pct = 100;
+          strokeColor = 'var(--success)'; }
+        if (st === 'available') { statusLabel = 'Sur le marché';
+          pct = 5;
+          strokeColor = 'var(--warning)'; }
+
         const dashOffset = Math.round(138 - (pct / 100) * 138);
         const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
-        const tagMode = (m.mode_transport || 'route').toLowerCase().includes('plateau') ? '<span class="mc-tag tag-plateau">Plateau</span>' : '<span class="mc-tag tag-route">Route</span>';
+        const tagMode = (m.mode || 'route').toLowerCase().includes('plateau') ? '<span class="mc-tag tag-plateau">Plateau</span>' : '<span class="mc-tag tag-route">Route</span>';
         const tagVehicule = (m.vehicule || 'auto').toLowerCase().includes('moto') ? '<span class="mc-tag tag-moto">Moto</span>' : '<span class="mc-tag tag-auto">Automobile</span>';
-
-        // Stripe Payment Badge & Button
         const payStatus = m.paiement_statut || 'pending';
-        const tagPay = payStatus === 'paid'
-          ? '<span class="mc-tag" style="background:rgba(74,124,107,0.12); color:var(--success); font-weight:700;"><i class="fas fa-check-circle"></i> Payée</span>'
-          : '<span class="mc-tag" style="background:rgba(224,163,67,0.12); color:var(--warning); font-weight:700;"><i class="fas fa-clock"></i> En attente de paiement</span>';
+        const tagPay = payStatus === 'paid' ? '<span class="mc-tag" style="background:rgba(74,124,107,0.12);color:var(--success);font-weight:700;"><i class="fas fa-check-circle"></i> Payée</span>' : '<span class="mc-tag" style="background:rgba(224,163,67,0.12);color:var(--warning);font-weight:700;"><i class="fas fa-clock"></i> En attente</span>';
 
-        const trackBtn = mStatus === 'in_progress' ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> Suivre GPS</a>` : '';
+        const trackBtn = (st === 'in_progress') ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> Suivre</a>` : '';
+        const canPay = payStatus !== 'paid' && st !== 'completed' && st !== 'cancelled' && st !== 'available';
+        const payBtn = canPay ? `<button class="btn-sm btn-sm-red" onclick="payMission('${m.id}')" style="background:#2ecc71;color:white;border:none;"><i class="fas fa-credit-card"></i> Payer</button>` : '';
 
-        // Condition canPay : la mission doit être non payée, non terminée, non annulée ET non 'available' (en attente de convoyeur)
-        const canPay = payStatus !== 'paid' && mStatus !== 'completed' && mStatus !== 'cancelled' && mStatus !== 'available';
-        const payBtn = canPay
-          ? `<button class="btn-sm btn-sm-red" onclick="payMission('${m.id}')" style="background:#2ecc71; color:white; border:none;"><i class="fas fa-credit-card"></i> Payer</button>`
-          : '';
-
-        return `<div class="mission-card clickable-card" onclick="if(event.target.closest('button') || event.target.closest('a')) return; showMissionDetails(encodeURIComponent(JSON.stringify(m)));">
-      <div class="mc-status ${statusClass}"></div>
-      <div class="mc-info">
-        <div class="mc-ref">${m.reference || '-'}</div>
-        <div class="mc-route">${m.depart || '-'} <em>→</em> ${m.arrivee || '-'}</div>
-        <div class="mc-meta">${tagVehicule}${tagMode}${tagPay}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase() + m.pack.slice(1) : '-'} - ${m.montant_ht || '-'}€ HT</span></div>
-      </div>
-      <div class="mc-progress">
-        <svg class="progress-circle" viewBox="0 0 52 52">
-          <circle cx="26" cy="26" r="22" fill="none" stroke="#E5E7EB" stroke-width="3"/>
-          <circle cx="26" cy="26" r="22" fill="none" stroke="${strokeColor}" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="${dashOffset}" stroke-linecap="round" transform="rotate(-90 26 26)"/>
-          <text x="26" y="31" text-anchor="middle" fill="#2D2A24" font-family="'Montserrat'" font-size="12" font-weight="600">${pct}%</text>
-        </svg>
-        <div class="progress-lbl">${statusLabel}</div>
-      </div>
-      <div class="mc-actions">
-        ${payBtn}
-        ${trackBtn}
-        <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Détails</a>
-      </div>
-    </div>`;
+        return `<div class="mission-card clickable-card" onclick="if(event.target.closest('button')||event.target.closest('a')) return; showMissionDetails(encodeURIComponent(JSON.stringify(m)));">
+          <div class="mc-status ${statusClass}"></div>
+          <div class="mc-info">
+            <div class="mc-ref">${m.reference || '-'}</div>
+            <div class="mc-route">${m.depart || m.trajet?.split('→')[0]?.trim() || '-'} <em>→</em> ${m.arrivee || m.trajet?.split('→')[1]?.trim() || '-'}</div>
+            <div class="mc-meta">${tagVehicule}${tagMode}${tagPay}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-'} - ${m.montant_ht || '-'}€ HT</span></div>
+          </div>
+          <div class="mc-progress">
+            <svg class="progress-circle" viewBox="0 0 52 52">
+              <circle cx="26" cy="26" r="22" fill="none" stroke="#E5E7EB" stroke-width="3"/>
+              <circle cx="26" cy="26" r="22" fill="none" stroke="${strokeColor}" stroke-width="3" stroke-dasharray="138" stroke-dashoffset="${dashOffset}" stroke-linecap="round" transform="rotate(-90 26 26)"/>
+              <text x="26" y="31" text-anchor="middle" fill="#2D2A24" font-family="'Montserrat'" font-size="12" font-weight="600">${pct}%</text>
+            </svg>
+            <div class="progress-lbl">${statusLabel}</div>
+          </div>
+          <div class="mc-actions">
+            ${payBtn}
+            ${trackBtn}
+            <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Détails</a>
+          </div>
+        </div>`;
       }).join('');
     }
 
@@ -2111,30 +1663,267 @@
       renderClientMissions('missionsList', _clientMissions, true);
     }
 
-    // Check session
-    const savedUser = sessionStorage.getItem('client_user');
-    if (savedUser) {
-      try {
-        _clientUser = JSON.parse(savedUser);
-        _clientName = `${_clientUser.prenom} ${_clientUser.nom}`;
-        document.getElementById('clientLoginOverlay').style.display = 'none';
-        Promise.all([
-          getSBCli().from('missions').select('*').eq('client_id', _clientUser.id).order('created_at', { ascending: false }),
-          getSBCli().from('missions').select('*').eq('client_email', _clientUser.email).order('created_at', { ascending: false })
-        ]).then(([r1, r2]) => {
-          const map = new Map();
-          [...(r1.data || []), ...(r2.data || [])].forEach(m => map.set(m.id, m));
-          initClientDashboard(Array.from(map.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
-        });
-      } catch (e) {
-        console.warn("Session client_user invalide", e);
+    // ========== RENDER FACTURES ==========
+    function renderClientInvoices(missions) {
+      const container = document.getElementById('clientFactList');
+      if (!container) return;
+      const billing = missions.filter(m => m.montant_ht);
+      if (billing.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-file-invoice" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune facture.</div>';
+        document.getElementById('factTotalHt').textContent = '0€ HT';
+        return;
       }
-    } else {
-      const savedClient = sessionStorage.getItem('client_name');
-      if (savedClient) {
-        sessionStorage.removeItem('client_name');
+      const total = billing.reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0);
+      document.getElementById('factTotalHt').textContent = total + '€ HT';
+
+      const unpaid = billing.filter(m => (m.paiement_statut || 'pending') !== 'paid' && m.status !== 'available' && m.status !== 'cancelled').length;
+      const badge = document.getElementById('cliNotifBadge');
+      if (badge) { badge.textContent = unpaid;
+        badge.style.display = unpaid > 0 ? 'flex' : 'none'; }
+
+      container.innerHTML = billing.map(m => {
+        const payStatus = m.paiement_statut || 'pending';
+        const statusClass = payStatus === 'paid' ? 'ts-ok' : 'ts-att';
+        const statusLabel = payStatus === 'paid' ? 'Payée' : 'En attente';
+        const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+        const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-','') : m.id.slice(0,8).toUpperCase()}`;
+        const dep = (m.depart || '').split('(')[0].trim() || '-';
+        const arr = (m.arrivee || '').split('(')[0].trim() || '-';
+        return `<div class="fact-item">
+          <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
+          <div style="flex:1;"><div class="fact-ref">${invoiceRef}</div><div class="fact-date">${dateStr} - ${dep} → ${arr}</div></div>
+          <div class="fact-montant" style="margin-left:20px;font-weight:600;">${m.montant_ht}€</div>
+          <div class="fact-status" style="margin-left:20px;"><span class="td-status ${statusClass}">${statusLabel}</span></div>
+          <button class="btn-sm btn-sm-ghost" style="margin-left:20px;" onclick="downloadClientInvoicePdf('${m.id}')"><i class="fas fa-download"></i> PDF</button>
+        </div>`;
+      }).join('');
+    }
+
+    // ========== RENDER VEHICULES ==========
+    function renderVehicules() {
+      const container = document.getElementById('vehiculesList');
+      if (!container) return;
+      if (!_vehiculesList || _vehiculesList.length === 0) {
+        container.innerHTML = `<div style="text-align:center;color:var(--gray-mid);padding:30px;grid-column:span 3;">
+          <i class="fas fa-car" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucun véhicule.
+          <div class="add-vehi" onclick="openModal('modalVehicule')" style="display:inline-flex;padding:12px 24px;border:1px dashed var(--border-light);border-radius:40px;cursor:pointer;margin-top:12px;">
+            <i class="fas fa-plus"></i> Ajouter
+          </div>
+        </div>`;
+        return;
+      }
+      container.innerHTML = _vehiculesList.map(v => {
+        const ico = v.type === 'moto' ? 'fa-motorcycle' : (v.carburant === 'Électrique' ? 'fa-bolt' : 'fa-car');
+        return `<div class="vehi-card">
+          <div class="vehi-ico"><i class="fas ${ico}"></i></div>
+          <div class="vehi-name">${v.marque} ${v.modele}</div>
+          <div class="vehi-plate">${v.immatriculation || ''}</div>
+          <div class="vehi-meta">${v.annee || ''} - ${v.carburant || ''}<br>${v.type || 'Auto'}</div>
+          <div class="vehi-actions">
+            <button class="btn-sm btn-sm-ghost" onclick="deleteVehicule('${v.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    async function deleteVehicule(id) {
+      const confirm = await Swal.fire({ title: 'Supprimer ce véhicule ?', text: 'Action irréversible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Supprimer' });
+      if (!confirm.isConfirmed) return;
+      const client = getSBCli();
+      const { error } = await client.from('vehicules').delete().eq('id', id);
+      if (error) Swal.fire('Erreur', error.message, 'error');
+      else {
+        Swal.fire({ toast: true, icon: 'success', title: 'Supprimé', timer: 2000 });
+        _vehiculesList = _vehiculesList.filter(v => v.id !== id);
+        renderVehicules();
       }
     }
+
+    // ========== PAYMENT ==========
+    async function payMission(missionId) {
+      Swal.fire({ title: 'Redirection vers Stripe...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      try {
+        const successUrl = window.location.origin + window.location.pathname;
+        const cancelUrl = window.location.origin + window.location.pathname;
+        const client = getSBCli();
+        const sessionToken = (await client.auth.getSession()).data?.session?.access_token;
+        const response = await fetch('/.netlify/functions/create-checkout-session', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {})
+          },
+          body: JSON.stringify({ missionId, successUrl, cancelUrl })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Erreur Stripe');
+        window.location.href = data.url;
+      } catch (err) {
+        Swal.fire('Erreur de paiement', err.message, 'error');
+      }
+    }
+
+    // ========== UPLOAD DOCUMENTS ==========
+    async function uploadDocumentClient(fileInputId, docType) {
+      const input = document.getElementById(fileInputId);
+      if (!input || !input.files || input.files.length === 0) return null;
+      const file = input.files[0];
+      const ext = file.name.split('.').pop();
+      const fileName = `clients/${_clientUser.id}/${docType}_${Date.now()}.${ext}`;
+      const client = getSBCli();
+      const { error } = await client.storage.from('documents').upload(fileName, file, { upsert: true });
+      if (error) { console.error('Upload error:', error); return null; }
+      const { data: url } = client.storage.from('documents').getPublicUrl(fileName);
+      return url.publicUrl;
+    }
+
+    async function updateClientProfile() {
+      if (!_clientUser) return Swal.fire('Action impossible', 'Vous devez être connecté.', 'warning');
+      const prenom = document.getElementById('profilPrenom').value.trim();
+      const nom = document.getElementById('profilNom').value.trim();
+      if (!prenom || !nom) return Swal.fire('Champs requis', 'Prénom et nom obligatoires.', 'warning');
+
+      Swal.fire({ title: 'Mise à jour...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      const client = getSBCli();
+      const cniUrl = await uploadDocumentClient('uploadCni', 'cni');
+      const kbisUrl = await uploadDocumentClient('uploadKbis', 'kbis');
+      const docs = { ..._clientUser.documents };
+      if (cniUrl) docs.cni = cniUrl;
+      if (kbisUrl) docs.kbis = kbisUrl;
+
+      const { data, error } = await client.from('clients').update({
+        prenom,
+        nom,
+        telephone: document.getElementById('profilTel').value.trim(),
+        societe: document.getElementById('profilSociete').value.trim(),
+        adresse: document.getElementById('profilAdresse').value.trim(),
+        code_postal: document.getElementById('profilCp').value.trim(),
+        ville: document.getElementById('profilVille').value.trim(),
+        pays: document.getElementById('profilPays').value.trim(),
+        siret: document.getElementById('profilSiret').value.trim(),
+        documents: docs
+      }).eq('id', _clientUser.id).select().single();
+
+      if (error) return Swal.fire('Erreur', error.message, 'error');
+      _clientUser = data;
+      sessionStorage.setItem('client_user', JSON.stringify(data));
+      _clientName = `${prenom} ${nom}`;
+      document.getElementById('cliNomTopbar').textContent = prenom;
+      document.getElementById('cliAvatar').textContent = (prenom[0] || '') + (nom[0] || '');
+      document.getElementById('cliPrenom').textContent = prenom;
+      Swal.fire('Succès', 'Profil mis à jour.', 'success');
+    }
+
+    // ========== SUBMIT SUPPORT TICKET ==========
+    async function submitSupportTicket() {
+      if (!_clientUser) return Swal.fire('Erreur', 'Vous devez être connecté.', 'error');
+      const sujet = document.getElementById('supportSujet').value || 'Demande de support';
+      const message = document.getElementById('supportMessage').value.trim();
+      if (!message) return Swal.fire('Message requis', 'Décrivez votre demande.', 'warning');
+      Swal.fire({ title: 'Envoi...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      const client = getSBCli();
+      const { error } = await client.from('support_tickets').insert([{
+        client_id: _clientUser.id,
+        client_email: _clientUser.email,
+        client_nom: `${_clientUser.prenom||''} ${_clientUser.nom||''}`.trim(),
+        sujet,
+        message,
+        statut: 'open'
+      }]);
+      if (error && !error.message.includes('does not exist')) {
+        Swal.fire('Erreur', error.message, 'error');
+      } else {
+        document.getElementById('supportMessage').value = '';
+        Swal.fire('Message envoyé !', 'Notre équipe vous répondra sous 24h.', 'success');
+      }
+    }
+
+    // ========== SHOW MISSION DETAILS ==========
+    function showMissionDetails(mObjStr) {
+      try {
+        const m = JSON.parse(decodeURIComponent(mObjStr));
+        document.getElementById('md-ref').value = m.reference || '-';
+        let statusText = 'Planifiée';
+        if (m.status === 'available') statusText = 'En recherche de convoyeur';
+        else if (m.status === 'in_progress') statusText = 'En cours';
+        else if (m.status === 'completed') statusText = 'Terminée';
+        else if (m.status === 'cancelled') statusText = 'Annulée';
+        document.getElementById('md-status').value = statusText;
+        document.getElementById('md-depart').value = m.depart || m.trajet?.split('→')[0]?.trim() || '-';
+        document.getElementById('md-arrivee').value = m.arrivee || m.trajet?.split('→')[1]?.trim() || '-';
+        document.getElementById('md-vehicule').value = m.vehicule || 'Automobile';
+        document.getElementById('md-price').value = m.montant_ht || 0;
+        openModal('modalMissionDetails');
+      } catch (e) { console.error(e); }
+    }
+
+    // ========== DOWNLOAD INVOICE PDF ==========
+    function downloadClientInvoicePdf(missionId) {
+      const m = _clientMissions.find(x => x.id === missionId);
+      if (!m) return;
+      if (typeof window.jspdf === 'undefined') {
+        Swal.fire('Information', 'Le module PDF se charge, réessayez dans quelques secondes.', 'info');
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(22);
+      doc.setTextColor(10, 77, 104);
+      doc.text('Bathily-Convoyage', 14, 20);
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text('34, rue de Padirac 34070 Montpellier', 14, 28);
+      doc.text('SIRET: 789 285 376 00032 | RCS Montpellier', 14, 34);
+      const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-','') : m.id.slice(0,8).toUpperCase()}`;
+      const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Facture N° ${invoiceRef}`, 140, 20);
+      doc.text(`Date : ${dateStr}`, 140, 28);
+      doc.text('Facturé à :', 14, 50);
+      doc.text(_clientName || _clientUser?.email || 'Client', 14, 58);
+      const priceHt = parseFloat(m.montant_ht) || 0;
+      const tva = priceHt * 0.20;
+      const priceTtc = priceHt + tva;
+      doc.autoTable({
+        startY: 80,
+        head: [['Description', 'Prix HT', 'TVA', 'Total TTC']],
+        body: [[
+          `Mission de convoyage\nRéf: ${m.reference || 'N/A'}\nTrajet: ${(m.depart || '').split('(')[0].trim()} -> ${(m.arrivee || '').split('(')[0].trim()}`,
+          `${priceHt.toFixed(2)} €`, '20%', `${priceTtc.toFixed(2)} €`
+        ]],
+        theme: 'grid',
+        headStyles: { fillColor: [10, 77, 104], textColor: [255, 255, 255] }
+      });
+      const finalY = doc.lastAutoTable.finalY || 100;
+      doc.setFillColor(249, 246, 240);
+      doc.rect(115, finalY + 10, 80, 35, 'F');
+      doc.text(`Total HT : ${priceHt.toFixed(2)} €`, 125, finalY + 18);
+      doc.text(`TVA (20%) : ${tva.toFixed(2)} €`, 125, finalY + 26);
+      doc.setDrawColor(10, 77, 104);
+      doc.line(125, finalY + 31, 185, finalY + 31);
+      doc.setFontSize(12);
+      doc.setTextColor(10, 77, 104);
+      doc.text(`Total TTC : ${priceTtc.toFixed(2)} €`, 125, finalY + 39);
+      doc.save(`Facture_${invoiceRef}.pdf`);
+    }
+
+    // ========== SHOW TAB SIDEBAR ==========
+    function showTab(id, el) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      const target = document.getElementById('tab-' + id);
+      if (target) target.classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      if (el) el.classList.add('active');
+      if (id === 'missions') filterMissions(_activeFilter, document.querySelector('.tab-btn.active'));
+    }
+
+    // ========== MODAL HELPERS ==========
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); }));
 
     // ========== CURSOR ==========
     if (window.matchMedia('(hover: hover)').matches) {
@@ -2158,457 +1947,85 @@
     // ========== DATE ==========
     document.getElementById('dashDate').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-    function fmtMontant(m) { return parseFloat(m).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }); }
-
-    // ========== AUTOCOMPLÉTION DYNAMIQUE DES VILLES ET ADRESSES ==========
+    // ========== GEOCODE AUTOCOMPLETE ==========
     let debounceTimer;
 
     async function fetchCitySuggestions(query) {
       if (!query || query.length < 2) return [];
       try {
-        const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5&type=municipality`);
-        const data = await response.json();
-        return data.features.map(f => ({
-          label: f.properties.city || f.properties.label,
-          postcode: f.properties.postcode || ''
-        }));
-      } catch (err) {
-        return [];
-      }
+        const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5&type=municipality`);
+        const data = await res.json();
+        return data.features.map(f => ({ label: f.properties.city || f.properties.label, postcode: f.properties.postcode || '' }));
+      } catch { return []; }
     }
 
     async function fetchAddressSuggestions(query) {
       if (!query || query.length < 3) return [];
       try {
-        const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
-        const data = await response.json();
-        return data.features.map(f => ({
-          label: f.properties.name || f.properties.label, // Just the street/name part
-          postcode: f.properties.postcode || '',
-          city: f.properties.city || ''
-        }));
-      } catch (err) {
-        return [];
-      }
+        const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
+        const data = await res.json();
+        return data.features.map(f => ({ label: f.properties.name || f.properties.label, postcode: f.properties.postcode || '', city: f.properties.city || '' }));
+      } catch { return []; }
     }
 
-    function showSuggestions(inputId, suggestBoxId, suggestions, isCityOnly) {
-      const box = document.getElementById(suggestBoxId);
+    function showSuggestions(inputId, boxId, suggestions, isCityOnly) {
+      const box = document.getElementById(boxId);
       if (!box) return;
       box.innerHTML = '';
-      if (suggestions.length === 0) { box.style.display = 'none'; return; }
-      suggestions.forEach(item => {
+      if (!suggestions.length) { box.style.display = 'none'; return; }
+      suggestions.forEach(s => {
         const div = document.createElement('div');
         div.className = 'suggest-item';
-        div.textContent = isCityOnly ? `${item.label} (${item.postcode})` : `${item.label}, ${item.city} (${item.postcode})`;
+        div.textContent = isCityOnly ? `${s.label} (${s.postcode})` : `${s.label}, ${s.city} (${s.postcode})`;
         div.addEventListener('click', () => {
-          const input = document.getElementById(inputId);
-          input.value = item.label;
-          box.style.display = 'none';
-          // Remplir la ville et CP aussi si c'est une recherche d'adresse
+          document.getElementById(inputId).value = s.label;
           if (!isCityOnly) {
-            if (document.getElementById('profilCp')) document.getElementById('profilCp').value = item.postcode;
-            if (document.getElementById('profilVille')) document.getElementById('profilVille').value = item.city;
+            if (document.getElementById('profilCp')) document.getElementById('profilCp').value = s.postcode;
+            if (document.getElementById('profilVille')) document.getElementById('profilVille').value = s.city;
           } else {
-            if (document.getElementById('profilCp')) document.getElementById('profilCp').value = item.postcode;
+            if (document.getElementById('profilCp')) document.getElementById('profilCp').value = s.postcode;
           }
+          box.style.display = 'none';
         });
         box.appendChild(div);
       });
       box.style.display = 'block';
     }
 
-    function debounceGeocode(input, suggestBoxId) {
+    function debounceGeocode(input, boxId) {
       clearTimeout(debounceTimer);
-      const query = input.value.trim();
-      if (query.length < 2) {
-        document.getElementById(suggestBoxId).style.display = 'none';
-        return;
-      }
+      const q = input.value.trim();
+      if (q.length < 2) { document.getElementById(boxId).style.display = 'none'; return; }
       debounceTimer = setTimeout(async () => {
-        const suggestions = await fetchCitySuggestions(query);
-        showSuggestions(input.id, suggestBoxId, suggestions, true);
+        const suggestions = await fetchCitySuggestions(q);
+        showSuggestions(input.id, boxId, suggestions, true);
       }, 300);
     }
 
-    function debounceGeocodeAddress(input, suggestBoxId) {
+    function debounceGeocodeAddress(input, boxId) {
       clearTimeout(debounceTimer);
-      const query = input.value.trim();
-      if (query.length < 3) {
-        document.getElementById(suggestBoxId).style.display = 'none';
-        return;
-      }
+      const q = input.value.trim();
+      if (q.length < 3) { document.getElementById(boxId).style.display = 'none'; return; }
       debounceTimer = setTimeout(async () => {
-        const suggestions = await fetchAddressSuggestions(query);
-        showSuggestions(input.id, suggestBoxId, suggestions, false);
+        const suggestions = await fetchAddressSuggestions(q);
+        showSuggestions(input.id, boxId, suggestions, false);
       }, 300);
     }
 
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', function(e) {
       if (!e.target.closest('.f-grp')) {
         document.querySelectorAll('.suggest-box').forEach(box => box.style.display = 'none');
       }
     });
 
-    // ========== TABS SIDEBAR ==========
-    function showTab(id, el) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.getElementById('tab-' + id).classList.add('active');
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      if (el) el.classList.add('active');
-      if (id === 'missions') filterMissions(_activeFilter, document.querySelector('.tab-btn.active'));
-    }
-
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          if (item.getAttribute('onclick')) eval(item.getAttribute('onclick'));
-        }
-      });
-    });
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault();
-          btn.click(); }
-      });
-    });
-
-    // ========== MODAL ==========
-    function openModal(id) { document.getElementById(id).classList.add('open'); }
-
-    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-    document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function (e) { if (e.target === this) this.classList.remove('open'); }));
-
-    // ========== QUICK ACTIONS ==========
-    document.querySelectorAll('.qa-item').forEach(item => {
-      item.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          if (item.getAttribute('onclick')) eval(item.getAttribute('onclick'));
-          else if (item.getAttribute('href')) window.location.href = item.getAttribute('href');
-        }
-      });
-    });
-    const addVehi = document.querySelector('.add-vehi');
-    if (addVehi) addVehi.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault();
-        openModal('modalVehicule'); } });
-
-    // ========== NOTIFICATIONS ==========
-    const notif = document.querySelector('.topbar-notif');
-    if (notif) notif.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault();
-        alert('Notifications (démo)'); } });
-    const userBtnCli = document.querySelector('.topbar-user');
-    if (userBtnCli) userBtnCli.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault();
-        showTab('profil', document.querySelector('.nav-item[onclick*="profil"]')); } });
-
-    // ========== DYNAMIC INVOICES RENDER ==========
-    function renderClientInvoices(missions) {
-      const container = document.getElementById('clientFactList');
-      if (!container) return;
-
-      const billingMissions = missions.filter(m => m.montant_ht);
-
-      if (billingMissions.length === 0) {
-        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-file-invoice" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune facture disponible.</div>';
-        document.getElementById('factTotalHt').textContent = '0€ HT';
-        const nb = document.getElementById('cliNotifBadge');
-        if (nb) nb.style.display = 'none';
-        return;
-      }
-
-      const totalHt = billingMissions.reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0);
-      document.getElementById('factTotalHt').textContent = totalHt + '€ HT';
-
-      // Mise à jour badge notification : missions non payées (hors 'available' et 'cancelled')
-      const unpaidCount = missions.filter(m => {
-        const st = m.status || m.statut || '';
-        return (m.paiement_statut || 'pending') !== 'paid' &&
-          st !== 'available' &&
-          st !== 'cancelled';
-      }).length;
-      const notifBadge = document.getElementById('cliNotifBadge');
-      if (notifBadge) {
-        notifBadge.textContent = unpaidCount;
-        notifBadge.style.display = unpaidCount > 0 ? 'flex' : 'none';
-      }
-
-      container.innerHTML = billingMissions.map(m => {
-        const payStatus = m.paiement_statut || 'pending';
-        const statusClass = payStatus === 'paid' ? 'ts-ok' : 'ts-att';
-        const statusLabel = payStatus === 'paid' ? 'Payée' : 'En attente';
-        const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
-        const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-', '') : m.id.slice(0, 8).toUpperCase()}`;
-        const depStr = (m.depart || '').split('(')[0].trim() || '-';
-        const arrStr = (m.arrivee || '').split('(')[0].trim() || '-';
-
-        return `<div class="fact-item">
-      <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
-      <div style="flex:1;">
-        <div class="fact-ref">${invoiceRef}</div>
-        <div class="fact-date">${dateStr} - ${depStr} → ${arrStr}</div>
-      </div>
-      <div class="fact-montant" style="margin-left:20px; font-weight:600;">${m.montant_ht}€</div>
-      <div class="fact-status" style="margin-left:20px;"><span class="td-status ${statusClass}">${statusLabel}</span></div>
-      <button class="btn-sm btn-sm-ghost" style="margin-left:20px;" onclick="downloadClientInvoicePdf('${m.id}')"><i class="fas fa-download"></i> PDF</button>
-    </div>`;
-      }).join('');
-    }
-
-    // ========== STRIPE CHECKOUT ROUTING ==========
-    async function payMission(missionId) {
-      Swal.fire({
-        title: 'Redirection...',
-        text: 'Nous préparons votre paiement sécurisé via Stripe.',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
-
-      try {
-        const successUrl = window.location.origin + window.location.pathname;
-        const cancelUrl = window.location.origin + window.location.pathname;
-
-        const response = await fetch('/.netlify/functions/create-checkout-session', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ missionId, successUrl, cancelUrl })
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || data.errorMessage || JSON.stringify(data) || 'Erreur lors de la création de la session Stripe.');
-        }
-
-        window.location.href = data.url;
-      } catch (err) {
-        Swal.fire({
-          title: 'Erreur de paiement',
-          text: err.message || 'Impossible d\'initier la session Stripe Checkout.',
-          icon: 'error',
-          confirmButtonColor: 'var(--bordeaux)'
-        });
-      }
-    }
-
-    // ========== STRIPE CALLBACK HANDLING ==========
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentStatus = urlParams.get('payment_status');
-    if (paymentStatus === 'success') {
-      Swal.fire({
-        title: 'Paiement validé ! ⭐',
-        text: 'Votre règlement a été traité avec succès. La mission est maintenant prête à démarrer.',
-        icon: 'success',
-        confirmButtonColor: 'var(--bordeaux)'
-      }).then(() => {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      });
-    } else if (paymentStatus === 'cancel') {
-      Swal.fire({
-        title: 'Paiement annulé',
-        text: 'Le processus de règlement a été annulé. Vous pouvez payer votre devis à tout moment.',
-        icon: 'info',
-        confirmButtonColor: 'var(--bordeaux)'
-      }).then(() => {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      });
-    }
-
-    // ========== SIGNUP TAB ROUTING ==========
-    if (urlParams.get('signup') === 'true') {
-      switchAuthTab('signup');
-    }
-
-    // ========== CLIENT AUTH EVENT LISTENERS ==========
-    function bindClientAuthListeners() {
-      const tabLogin = document.getElementById('authTabLogin');
-      const tabSignup = document.getElementById('authTabSignup');
-      const loginForm = document.getElementById('authLoginForm');
-      const signupForm = document.getElementById('authSignupForm');
-      const forgotBtn = document.getElementById('linkForgotPassword');
-
-      if (tabLogin) {
-        tabLogin.addEventListener('click', (e) => {
-          e.preventDefault();
-          switchAuthTab('login');
-        });
-      }
-      if (tabSignup) {
-        tabSignup.addEventListener('click', (e) => {
-          e.preventDefault();
-          switchAuthTab('signup');
-        });
-      }
-      if (loginForm) {
-        loginForm.addEventListener('submit', handleClientLogin);
-      }
-      if (signupForm) {
-        signupForm.addEventListener('submit', handleClientSignup);
-      }
-      if (forgotBtn) {
-        forgotBtn.addEventListener('click', handleForgotPassword);
-      }
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', bindClientAuthListeners);
-    } else {
-      bindClientAuthListeners();
-    }
-
-    function showMissionDetails(mObjStr) {
-      try {
-        const m = JSON.parse(decodeURIComponent(mObjStr));
-        document.getElementById('md-ref').value = m.reference || '';
-
-        let statusText = 'Planifiée';
-        if (m.status === 'available') statusText = 'En recherche de convoyeur';
-        else if (m.status === 'in_progress') statusText = 'En cours';
-        else if (m.status === 'completed') statusText = 'Terminée';
-        else if (m.status === 'cancelled') statusText = 'Annulée';
-        document.getElementById('md-status').value = statusText;
-
-        document.getElementById('md-depart').value = m.depart || '-';
-        document.getElementById('md-arrivee').value = m.arrivee || '-';
-        document.getElementById('md-vehicule').value = m.vehicule || 'Automobile';
-        document.getElementById('md-price').value = m.montant_ht || 0;
-
-        openModal('modalMissionDetails');
-      } catch (e) {
-        console.error('Error parsing mission details', e);
-      }
-    }
-
-    // ---------------------------------------------------------
-    // 1. SAUVEGARDE DU VÉHICULE (saveVehicule)
-    // ---------------------------------------------------------
-    /**
-     * Sauvegarde un nouveau véhicule en base de données (Auto / Moto)
-     * @param {Object} vehiculeData - Ex: { marque: 'BMW', modele: 'S1000RR', immatriculation: 'AA-123-BB', type: 'moto', client_id: 'uuid' }
-     */
-    async function saveVehicule(vehiculeData) {
-      try {
-        if (!_clientUser || !_clientUser.id) {
-          alert('Vous devez être connecté pour enregistrer un véhicule.');
-          return;
-        }
-        vehiculeData.client_id = _clientUser.id;
-
-        const { data, error } = await getSBCli()
-          .from('vehicules')
-          .insert([vehiculeData])
-          .select();
-
-        if (error) throw error;
-
-        console.log('Véhicule sauvegardé avec succès:', data);
-        alert('Votre véhicule a été enregistré avec succès !');
-
-        if (typeof refreshVehiclesList === 'function') {
-          refreshVehiclesList();
-        }
-
-      } catch (error) {
-        console.error('Erreur lors de la sauvegarde du véhicule:', error.message);
-        alert('Une erreur est survenue : ' + error.message);
-      }
-    }
-
-    // ---------------------------------------------------------
-    // 2. SOUMISSION D'UN TICKET SUPPORT (submitSupportTicket)
-    // ---------------------------------------------------------
-    async function submitSupportTicket() {
-      if (!_clientUser) { Swal.fire('Erreur', 'Vous devez être connecté.', 'error'); return; }
-      const sujet = document.getElementById('supportSujet')?.value.trim() || 'Demande de support';
-      const message = document.getElementById('supportMessage')?.value.trim();
-      if (!message) { Swal.fire('Message requis', 'Veuillez décrire votre demande.', 'warning'); return; }
-      Swal.fire({ title: 'Envoi en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-      const client = getSBCli();
-      const { error } = await client.from('support_tickets').insert([{
-        client_id: _clientUser.id,
-        client_email: _clientUser.email,
-        client_nom: `${_clientUser.prenom || ''} ${_clientUser.nom || ''}`.trim(),
-        sujet,
-        message,
-        statut: 'open'
-      }]);
-      // Tenter d'envoyer un email de notification
-      fetch('/.netlify/functions/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trigger: 'support_ticket', email: _clientUser.email, sujet, message })
-      }).catch(() => {});
-      if (error && !error.message.includes('does not exist')) {
-        Swal.fire('Erreur', error.message, 'error');
-      } else {
-        if (document.getElementById('supportMessage')) document.getElementById('supportMessage').value = '';
-        Swal.fire({ title: 'Message envoyé ! ⭐', text: 'Notre équipe vous répondra sous 24h.', icon: 'success', confirmButtonColor: 'var(--bordeaux)' });
-      }
-    }
-
-    // ========== FACTURE PDF CLIENT ==========
-    function downloadClientInvoicePdf(missionId) {
-      const m = _clientMissions.find(x => x.id === missionId);
-      if (!m) return;
-      if (typeof window.jspdf === 'undefined') {
-        Swal.fire('Information', 'Téléchargement PDF en cours de chargement, réessayez dans quelques secondes.', 'info');
-        return;
-      }
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFontSize(22);
-      doc.setTextColor(10, 77, 104);
-      doc.text('Bathily-Convoyage', 14, 20);
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text('34, rue de Padirac 34070 Montpellier', 14, 28);
-      doc.text('SIRET: 789 285 376 00032 | RCS Montpellier', 14, 34);
-      const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-', '') : m.id.slice(0, 8).toUpperCase()}`;
-      const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Facture N° ${invoiceRef}`, 140, 20);
-      doc.text(`Date : ${dateStr}`, 140, 28);
-      doc.text('Facturé à :', 14, 50);
-      doc.text(_clientName || _clientUser?.email || 'Client', 14, 58);
-      const priceHt = parseFloat(m.montant_ht) || 0;
-      const tva = priceHt * 0.20;
-      const priceTtc = priceHt + tva;
-      doc.autoTable({
-        startY: 80,
-        head: [
-          ['Description', 'Prix HT', 'TVA', 'Total TTC']
-        ],
-        body: [
-          [`Mission de convoyage\nRéf: ${m.reference || 'N/A'}\nTrajet: ${(m.depart || '').split('(')[0].trim()} -> ${(m.arrivee || '').split('(')[0].trim()}`, `${priceHt.toFixed(2)} €`, '20%', `${priceTtc.toFixed(2)} €`]
-        ],
-        theme: 'grid',
-        headStyles: { fillColor: [10, 77, 104], textColor: [255, 255, 255] }
-      });
-      const finalY = doc.lastAutoTable.finalY || 100;
-      doc.setFillColor(249, 246, 240);
-      doc.rect(115, finalY + 10, 80, 35, 'F');
-      doc.text(`Total HT : ${priceHt.toFixed(2)} €`, 125, finalY + 18);
-      doc.text(`TVA (20%) : ${tva.toFixed(2)} €`, 125, finalY + 26);
-      doc.setDrawColor(10, 77, 104);
-      doc.line(125, finalY + 31, 185, finalY + 31);
-      doc.setFontSize(12);
-      doc.setTextColor(10, 77, 104);
-      doc.text(`Total TTC : ${priceTtc.toFixed(2)} €`, 125, finalY + 39);
-      doc.save(`Facture_${invoiceRef}.pdf`);
-    }
-
+    // ========== VEHICULES DATA & SAVE ==========
     const VEHICULES_DATA = {
       auto: {
         "Peugeot": ["208", "308", "2008", "3008", "5008", "408"],
         "Renault": ["Clio", "Captur", "Megane", "Austral", "Scenic", "Twingo"],
         "Citroën": ["C3", "C4", "C5 Aircross", "Berlingo"],
         "BMW": ["Série 1", "Série 3", "Série 5", "X1", "X3", "X5", "i4"],
-        "Mercedes-Benz": ["Classe A", "Classe C", "Classe E", "GLA", "GLC", "EQE"],
+        "Mercedes": ["Classe A", "Classe C", "Classe E", "GLA", "GLC", "EQE"],
         "Audi": ["A1", "A3", "A4", "Q3", "Q5", "E-Tron"],
         "Volkswagen": ["Golf", "Polo", "Tiguan", "T-Roc", "ID.3", "ID.4"],
         "Tesla": ["Model 3", "Model Y", "Model S", "Model X"],
@@ -2628,92 +2045,119 @@
 
     function switchVehicleType(type) {
       document.getElementById('type-vehicule').value = type;
-      const tabAuto = document.getElementById('tab-auto');
-      const tabMoto = document.getElementById('tab-moto');
-
-      if (type === 'auto') {
-        tabAuto.style.background = 'var(--primary, #0A4D68)';
-        tabAuto.style.color = '#ffffff';
-        tabMoto.style.background = '#E8E1D9';
-        tabMoto.style.color = 'var(--primary, #0A4D68)';
-      } else {
-        tabMoto.style.background = 'var(--primary, #0A4D68)';
-        tabMoto.style.color = '#ffffff';
-        tabAuto.style.background = '#E8E1D9';
-        tabAuto.style.color = 'var(--primary, #0A4D68)';
-      }
+      document.querySelectorAll('#modalVehicule .veh-tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + type));
       initMarques();
     }
 
     function initMarques() {
       const type = document.getElementById('type-vehicule').value;
-      const marqueSelect = document.getElementById('vehi-marque');
-      if (!marqueSelect) return;
-
+      const sel = document.getElementById('vehi-marque');
+      if (!sel) return;
       const marques = Object.keys(VEHICULES_DATA[type]);
-
-      marqueSelect.innerHTML = '<option value="">-- Sélectionnez une marque --</option>';
-      marques.forEach(marque => {
-        const op = document.createElement('option');
-        op.value = marque;
-        op.textContent = marque;
-        marqueSelect.appendChild(op);
-      });
+      sel.innerHTML = '<option value="">-- Sélectionnez --</option>';
+      marques.forEach(m => { const op = document.createElement('option');
+        op.value = m;
+        op.textContent = m;
+        sel.appendChild(op); });
       updateModelesLocal();
     }
 
     function updateModelesLocal() {
       const type = document.getElementById('type-vehicule').value;
       const marque = document.getElementById('vehi-marque').value;
-      const modeleSelect = document.getElementById('vehi-modele');
-      if (!modeleSelect) return;
-
-      if (!marque) {
-        modeleSelect.innerHTML = '<option value="">-- Sélectionnez d\'abord une marque --</option>';
-        modeleSelect.disabled = true;
-        return;
-      }
-
-      modeleSelect.innerHTML = '';
-      modeleSelect.disabled = false;
-
-      const modeles = VEHICULES_DATA[type][marque];
-      modeles.forEach(modele => {
-        const op = document.createElement('option');
-        op.value = modele;
-        op.textContent = modele;
-        modeleSelect.appendChild(op);
-      });
+      const sel = document.getElementById('vehi-modele');
+      if (!sel) return;
+      if (!marque) { sel.innerHTML = '<option value="">-- Sélectionnez d\'abord une marque --</option>';
+        sel.disabled = true; return; }
+      sel.disabled = false;
+      const modeles = VEHICULES_DATA[type][marque] || [];
+      sel.innerHTML = '';
+      modeles.forEach(m => { const op = document.createElement('option');
+        op.value = m;
+        op.textContent = m;
+        sel.appendChild(op); });
     }
 
-    // Fonction intermédiaire appelée lors du clic sur "Enregistrer"
-    function triggerVehicleSave() {
-      const plaqueInput = document.getElementById('vehi-plaque');
-      const marqueSelect = document.getElementById('vehi-marque');
-      const modeleSelect = document.getElementById('vehi-modele');
-
-      if (!plaqueInput.value || !marqueSelect.value || !modeleSelect.value) {
-        alert('Veuillez remplir tous les champs obligatoires (Plaque, Marque, Modèle).');
-        return;
-      }
-
-      const vehiculeData = {
-        type: document.getElementById('type-vehicule').value === 'auto' ? 'Auto' : 'Moto',
-        immatriculation: plaqueInput.value.toUpperCase(),
-        marque: marqueSelect.value,
-        modele: modeleSelect.value,
-        annee: document.getElementById('vehi-anne').value,
-        carburant: document.getElementById('vehi-carbu').value
-      };
-
-      // Lance la sauvegarde Supabase
-      saveVehicule(vehiculeData);
+    async function saveVehicule(data) {
+      if (!_clientUser) return alert('Connectez-vous pour enregistrer un véhicule.');
+      const client = getSBCli();
+      data.client_id = _clientUser.id;
+      const { error } = await client.from('vehicules').insert([data]);
+      if (error) return alert('Erreur : ' + error.message);
+      // Recharger les véhicules
+      const { data: refreshed } = await client.from('vehicules').select('*').eq('client_id', _clientUser.id);
+      _vehiculesList = refreshed || [];
+      renderVehicules();
       closeModal('modalVehicule');
     }
 
-    // Lance l'initialisation dès que l'affichage est prêt
-    document.addEventListener('DOMContentLoaded', initMarques);
+    function triggerVehicleSave() {
+      const plaque = document.getElementById('vehi-plaque').value.trim();
+      const marque = document.getElementById('vehi-marque').value;
+      const modele = document.getElementById('vehi-modele').value;
+      if (!plaque || !marque || !modele) {
+        alert('Veuillez remplir la plaque, la marque et le modèle.');
+        return;
+      }
+      const data = {
+        type: document.getElementById('type-vehicule').value === 'auto' ? 'Auto' : 'Moto',
+        immatriculation: plaque.toUpperCase(),
+        marque,
+        modele,
+        annee: document.getElementById('vehi-anne').value,
+        carburant: document.getElementById('vehi-carbu').value
+      };
+      saveVehicule(data);
+    }
+
+    // ========== STRIPE CALLBACK ==========
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('payment_status') === 'success') {
+      Swal.fire('Paiement validé ! ⭐', 'Votre règlement a été traité avec succès.', 'success').then(() => window.history.replaceState({}, '', window.location.pathname));
+    } else if (urlParams.get('payment_status') === 'cancel') {
+      Swal.fire('Paiement annulé', 'Vous pouvez payer à tout moment.', 'info').then(() => window.history.replaceState({}, '', window.location.pathname));
+    }
+
+    // ========== CHECK SESSION AU CHARGEMENT ==========
+    document.addEventListener('DOMContentLoaded', function() {
+      // Auth listeners
+      document.getElementById('authTabLogin').addEventListener('click', () => switchAuthTab('login'));
+      document.getElementById('authTabSignup').addEventListener('click', () => switchAuthTab('signup'));
+      document.getElementById('authLoginForm').addEventListener('submit', handleClientLogin);
+      document.getElementById('authSignupForm').addEventListener('submit', handleClientSignup);
+      document.getElementById('linkForgotPassword').addEventListener('click', handleForgotPassword);
+
+      // Vérifier session
+      const saved = sessionStorage.getItem('client_user');
+      if (saved) {
+        try {
+          const user = JSON.parse(saved);
+          _clientUser = user;
+          _clientName = `${user.prenom||''} ${user.nom||''}`.trim();
+          document.getElementById('clientLoginOverlay').style.display = 'none';
+          loadClientData(user);
+        } catch (e) { console.warn('Session invalide', e); }
+      } else {
+        // Afficher le login overlay s'il n'est pas caché
+        if (document.getElementById('clientLoginOverlay')) {
+          document.getElementById('clientLoginOverlay').style.display = 'flex';
+        }
+      }
+
+      // Initialiser les marques du modal vehicule
+      initMarques();
+
+      // Ajouter les événements clavier pour les items interactifs
+      document.querySelectorAll('.nav-item, .qa-item, .add-vehi, .tab-btn, .topbar-notif, .topbar-user').forEach(el => {
+        el.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (this.getAttribute('onclick')) eval(this.getAttribute('onclick'));
+            else if (this.tagName === 'A' && this.getAttribute('href')) window.location.href = this.getAttribute('href');
+          }
+        });
+      });
+    });
   </script>
 </body>
-
 </html>

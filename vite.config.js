@@ -6,14 +6,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default defineConfig({
+  publicDir: 'public',
   build: {
+    copyPublicDir: true,
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
         devis: resolve(__dirname, 'devis.html'),
         contact: resolve(__dirname, 'contact.html'),
-        // Dashboards exclus du build - servis comme fichiers statiques via public/
-        // dashboardAdmin: resolve(__dirname, 'dashboard-admin.html'),
+        // Dashboards
+        dashboardAdmin: resolve(__dirname, 'dashboard-admin.html'),
         // dashboardClient: resolve(__dirname, 'dashboard-client.html'),
         // dashboardConvoyeur: resolve(__dirname, 'dashboard-convoyeur.html'),
         bonDeMission: resolve(__dirname, 'bon-de-mission.html'),

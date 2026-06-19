@@ -1,13 +1,12 @@
-
+<!DOCTYPE html>
 <html lang="fr">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Suivi de émission € Bathily convoyage</title>
-  <meta name="description" content="Suivez votre émission de convoyage en temps réel : position GPS, progression, ETA, photos et notifications.">
-  <meta property="og:title" content="Suivi de émission € Bathily Convoyage">
-  <meta property="og:description" content="Page de suivi en direct de votre émission de convoyage. Carte interactive, progression et notifications.">
+  <title>Suivi de mission — Bathily Convoyage</title>
+  <meta name="description" content="Suivez votre mission de convoyage en temps réel : position GPS, progression, ETA, photos et notifications.">
+  <meta property="og:title" content="Suivi de mission — Bathily Convoyage">
+  <meta property="og:description" content="Page de suivi en direct de votre mission de convoyage. Carte interactive, progression et notifications.">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⭐%3C/text%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -17,12 +16,8 @@
   <script src="/supabase-config.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    /* ====== STYLES (corrigés) ====== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif;
       background: #FDFBF7;
@@ -31,7 +26,6 @@
       overflow-x: hidden;
       min-height: 100vh;
     }
-
     :root {
       --bordeaux: #0A4D68;
       --bordeaux-dark: #063244;
@@ -44,41 +38,11 @@
       --success: #4A7C6B;
       --warning: #F5A623;
     }
-
-    /* Curseur personnalisé seulement sur souris */
     @media (hover: hover) {
-      .cur {
-        position: fixed;
-        width: 8px;
-        height: 8px;
-        background: var(--bordeaux);
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 9999;
-        transform: translate(-50%, -50%)
-      }
-
-      .cur-ring {
-        position: fixed;
-        width: 32px;
-        height: 32px;
-        border: 1px solid rgba(122, 46, 26, .45);
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 9998;
-        transform: translate(-50%, -50%)
-      }
+      .cur { position: fixed; width: 8px; height: 8px; background: var(--bordeaux); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%) }
+      .cur-ring { position: fixed; width: 32px; height: 32px; border: 1px solid rgba(122,46,26,.45); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%, -50%) }
     }
-
-    @media (hover: none) {
-
-      .cur,
-      .cur-ring {
-        display: none;
-      }
-    }
-
-    /* Topbar */
+    @media (hover: none) { .cur, .cur-ring { display: none; } }
     .topbar {
       background: white;
       border-bottom: 1px solid var(--border-light);
@@ -91,7 +55,6 @@
       top: 0;
       z-index: 200;
     }
-
     .topbar-logo {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.3rem;
@@ -100,97 +63,30 @@
       text-decoration: none;
       letter-spacing: -0.02em;
     }
-
-    .topbar-logo span {
-      color: var(--bordeaux);
-    }
-
-    .topbar-mid {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .topbar-title {
-      font-size: 0.7rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--gray-mid);
-    }
-
-    .topbar-ref {
-      font-size: 0.65rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      color: var(--bordeaux);
-    }
-
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
+    .topbar-logo span { color: var(--bordeaux); }
+    .topbar-mid { display: flex; flex-direction: column; align-items: center; }
+    .topbar-title { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-mid); }
+    .topbar-ref { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.05em; color: var(--bordeaux); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
     .live-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.65rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      background: rgba(74, 124, 107, 0.1);
-      border: 1px solid rgba(74, 124, 107, 0.3);
-      color: var(--success);
-      padding: 4px 10px;
-      border-radius: 40px;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      background: rgba(74,124,107,0.1); border: 1px solid rgba(74,124,107,0.3);
+      color: var(--success); padding: 4px 10px; border-radius: 40px;
     }
-
-    .live-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--success);
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1
-      }
-
-      50% {
-        opacity: 0.4
-      }
-    }
-
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
     .tb-btn {
-      background: transparent;
-      border: 1px solid var(--border-light);
-      border-radius: 40px;
-      padding: 6px 12px;
-      font-size: 0.65rem;
-      font-weight: 600;
-      color: var(--gray-mid);
-      cursor: pointer;
-      transition: all 0.2s;
+      background: transparent; border: 1px solid var(--border-light); border-radius: 40px;
+      padding: 6px 12px; font-size: 0.65rem; font-weight: 600; color: var(--gray-mid);
+      cursor: pointer; transition: all 0.2s;
     }
-
-    .tb-btn:hover {
-      border-color: var(--bordeaux);
-      color: var(--bordeaux);
-    }
-
-    /* Layout */
+    .tb-btn:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
     .tracking-layout {
       display: grid;
       grid-template-columns: 400px 1fr;
       min-height: calc(100vh - 60px);
     }
-
-    /* Panneau gauche */
     .info-panel {
       background: white;
       border-right: 1px solid var(--border-light);
@@ -201,162 +97,43 @@
       position: sticky;
       top: 60px;
     }
-
-    .status-hero {
-      padding: 24px;
-      border-bottom: 1px solid var(--border-light);
-    }
-
-    .sh-émission-ref {
-      font-size: 0.65rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--bordeaux);
-      margin-bottom: 8px;
-    }
-
-    .sh-status {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
+    .status-hero { padding: 24px; border-bottom: 1px solid var(--border-light); }
+    .sh-mission-ref { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--bordeaux); margin-bottom: 8px; }
+    .sh-status { display: flex; gap: 8px; margin-bottom: 12px; }
     .sh-status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 40px;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.7rem; font-weight: 700; padding: 4px 12px; border-radius: 40px;
     }
-
-    .status-transit {
-      background: rgba(74, 124, 107, 0.1);
-      color: var(--success);
-    }
-
-    .status-termine {
-      background: rgba(107, 98, 90, 0.1);
-      color: var(--gray-mid);
-    }
-
-    .sh-vehicle {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.3rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .sh-vehicle em {
-      color: var(--bordeaux);
-      font-style: normal;
-    }
-
+    .status-transit { background: rgba(74,124,107,0.1); color: var(--success); }
+    .status-termine { background: rgba(107,98,90,0.1); color: var(--gray-mid); }
+    .status-attente { background: rgba(245,166,35,0.1); color: var(--warning); }
+    .sh-vehicle { font-family: 'Montserrat', sans-serif; font-size: 1.3rem; font-weight: 600; margin-bottom: 4px; }
+    .sh-vehicle em { color: var(--bordeaux); font-style: normal; }
     .sh-plate {
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      background: var(--bordeaux-light);
-      padding: 2px 8px;
-      border-radius: 40px;
-      display: inline-block;
-      color: var(--bordeaux);
-      margin-bottom: 16px;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+      background: var(--bordeaux-light); padding: 2px 8px; border-radius: 40px;
+      display: inline-block; color: var(--bordeaux); margin-bottom: 16px;
     }
-
-    .route-progress {
-      margin-bottom: 16px;
-    }
-
-    .rp-cities {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-
-    .rp-city {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .rp-city.done {
-      color: var(--bordeaux);
-    }
-
-    .rp-city.active {
-      color: var(--success);
-    }
-
-    .rp-bar-wrap {
-      position: relative;
-      height: 4px;
-      background: var(--border-light);
-      border-radius: 4px;
-      margin-bottom: 8px;
-    }
-
-    .rp-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--bordeaux), var(--success));
-      border-radius: 4px;
-      width: 0%;
-      transition: width 1s ease;
-      position: relative;
-    }
-
-    .rp-car {
-      position: absolute;
-      top: -12px;
-      right: -10px;
-      font-size: 1.2rem;
-      color: var(--bordeaux);
-      filter: drop-shadow(0 0 4px var(--bordeaux));
-    }
-
-    .rp-pct {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.65rem;
-      font-weight: 600;
-    }
-
-    /* Quick sétats */
-    .quick-sétats {
+    .route-progress { margin-bottom: 16px; }
+    .rp-cities { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .rp-city { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+    .rp-city.done { color: var(--bordeaux); }
+    .rp-city.active { color: var(--success); }
+    .rp-bar-wrap { position: relative; height: 4px; background: var(--border-light); border-radius: 4px; margin-bottom: 8px; }
+    .rp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--bordeaux), var(--success)); border-radius: 4px; width: 0%; transition: width 1s ease; position: relative; }
+    .rp-car { position: absolute; top: -12px; right: -10px; font-size: 1.2rem; color: var(--bordeaux); filter: drop-shadow(0 0 4px var(--bordeaux)); }
+    .rp-pct { display: flex; justify-content: space-between; font-size: 0.65rem; font-weight: 600; }
+    .quick-stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1px;
       background: var(--border-light);
-      margin: 0 0 0 0;
+      margin: 0;
     }
-
-    .qs-item {
-      background: white;
-      padding: 16px;
-    }
-
-    .qs-lbl {
-      font-size: 0.6rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--gray-mid);
-      margin-bottom: 4px;
-    }
-
-    .qs-val {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.3rem;
-      font-weight: 600;
-    }
-
-    .qs-val em {
-      font-size: 0.8rem;
-      font-weight: 400;
-      color: var(--bordeaux);
-    }
-
-    /* ETA */
+    .qs-item { background: white; padding: 16px; }
+    .qs-lbl { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 4px; }
+    .qs-val { font-family: 'Montserrat', sans-serif; font-size: 1.3rem; font-weight: 600; }
+    .qs-val em { font-size: 0.8rem; font-weight: 400; color: var(--bordeaux); }
     .eta-card {
       background: var(--bordeaux-light);
       margin: 16px;
@@ -365,540 +142,201 @@
       display: flex;
       justify-content: space-between;
     }
-
-    .eta-lbl {
-      font-size: 0.6rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--gray-mid);
-    }
-
-    .eta-time {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.3rem;
-      font-weight: 700;
-    }
-
-    .eta-countdown {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--success);
-    }
-
-    /* Convoyeur */
-    .conv-section {
-      padding: 16px;
-      border-top: 1px solid var(--border-light);
-      border-bottom: 1px solid var(--border-light);
-    }
-
-    .cs-title {
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-      color: var(--gray-mid);
-    }
-
-    .conv-card {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
+    .eta-lbl { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid); }
+    .eta-time { font-family: 'Montserrat', sans-serif; font-size: 1.3rem; font-weight: 700; }
+    .eta-sub { font-size: 0.65rem; color: var(--gray-mid); }
+    .eta-countdown { font-family: 'Montserrat', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--success); }
+    .conv-section { padding: 16px; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); }
+    .cs-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; color: var(--gray-mid); }
+    .conv-card { display: flex; gap: 12px; align-items: center; }
     .conv-ava {
-      width: 44px;
-      height: 44px;
-      background: var(--bordeaux-light);
-      border: 1px solid var(--bordeaux);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: var(--bordeaux);
-      position: relative;
+      width: 44px; height: 44px; background: var(--bordeaux-light);
+      border: 1px solid var(--bordeaux); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: var(--bordeaux); position: relative;
     }
-
-    .conv-online {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 10px;
-      height: 10px;
-      background: var(--success);
-      border-radius: 50%;
-      border: 2px solid white;
-    }
-
-    .conv-name {
-      font-weight: 700;
-      font-size: 0.9rem;
-    }
-
-    .conv-meta {
-      font-size: 0.7rem;
-      color: var(--gray-mid);
-    }
-
-    .conv-rating {
-      font-size: 0.7rem;
-      color: var(--warning);
-    }
-
-    /* étapes */
-    .steps-section {
-      padding: 16px;
-      flex: 1;
-    }
-
-    .steps-title {
-      font-weight: 700;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-
-    .steps-list {
-      position: relative;
-      padding-left: 16px;
-    }
-
-    .steps-list::before {
-      content: '';
-      position: absolute;
-      left: 6px;
-      top: 8px;
-      bottom: 8px;
-      width: 1px;
-      background: var(--border-light);
-    }
-
-    .step-item {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
-      position: relative;
-    }
-
+    .conv-online { position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; background: var(--success); border-radius: 50%; border: 2px solid white; }
+    .conv-name { font-weight: 700; font-size: 0.9rem; }
+    .conv-meta { font-size: 0.7rem; color: var(--gray-mid); }
+    .conv-rating { font-size: 0.7rem; color: var(--warning); }
+    .steps-section { padding: 16px; flex: 1; }
+    .steps-title { font-weight: 700; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 16px; }
+    .steps-list { position: relative; padding-left: 16px; }
+    .steps-list::before { content: ''; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 1px; background: var(--border-light); }
+    .step-item { display: flex; gap: 12px; margin-bottom: 20px; position: relative; }
     .step-dot {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: white;
+      width: 24px; height: 24px; border-radius: 50%; background: white;
       border: 1px solid var(--border-light);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.6rem;
-      z-index: 1;
+      display: flex; align-items: center; justify-content: center; font-size: 0.6rem; z-index: 1;
     }
-
-    .step-dot.done {
-      background: var(--success);
-      border-color: var(--success);
-      color: white;
-    }
-
-    .step-dot.active {
-      background: var(--bordeaux-light);
-      border-color: var(--bordeaux);
-      color: var(--bordeaux);
-      animation: pulseBorder 1.5s infinite;
-    }
-
-    @keyframes pulseBorder {
-      0% {
-        box-shadow: 0 0 0 0 rgba(122, 46, 26, 0.4);
-      }
-
-      70% {
-        box-shadow: 0 0 0 6px rgba(122, 46, 26, 0);
-      }
-
-      100% {
-        box-shadow: 0 0 0 0 rgba(122, 46, 26, 0);
-      }
-    }
-
-    .step-content {
-      flex: 1;
-    }
-
-    .step-label {
-      font-weight: 700;
-      font-size: 0.8rem;
-      margin-bottom: 2px;
-    }
-
-    .step-label.done {
-      color: var(--gray-mid);
-    }
-
-    .step-label.active {
-      color: var(--bordeaux);
-    }
-
-    .step-time {
-      font-size: 0.7rem;
-      color: var(--gray-mid);
-    }
-
-    /* Notifications */
-    .notif-section {
-      padding: 16px;
-      border-top: 1px solid var(--border-light);
-    }
-
-    .notif-title {
-      font-weight: 700;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-
-    .notif-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-
+    .step-dot.done { background: var(--success); border-color: var(--success); color: white; }
+    .step-dot.active { background: var(--bordeaux-light); border-color: var(--bordeaux); color: var(--bordeaux); animation: pulseBorder 1.5s infinite; }
+    @keyframes pulseBorder { 0% { box-shadow: 0 0 0 0 rgba(122,46,26,0.4); } 70% { box-shadow: 0 0 0 6px rgba(122,46,26,0); } 100% { box-shadow: 0 0 0 0 rgba(122,46,26,0); } }
+    .step-content { flex: 1; }
+    .step-label { font-weight: 700; font-size: 0.8rem; margin-bottom: 2px; }
+    .step-label.done { color: var(--gray-mid); }
+    .step-label.active { color: var(--bordeaux); }
+    .step-time { font-size: 0.7rem; color: var(--gray-mid); }
+    .notif-section { padding: 16px; border-top: 1px solid var(--border-light); }
+    .notif-title { font-weight: 700; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 12px; }
+    .notif-list { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
     .notif-item {
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
-      font-size: 0.7rem;
-      padding: 8px;
-      background: var(--beige);
-      border-radius: 16px;
+      display: flex; gap: 8px; align-items: flex-start;
+      font-size: 0.7rem; padding: 8px; background: var(--beige); border-radius: 16px;
     }
-
-    .notif-item.new {
-      background: var(--bordeaux-light);
-    }
-
-    .notif-ico {
-      font-size: 0.8rem;
-      margin-top: 2px;
-    }
-
-    .notif-text {
-      flex: 1;
-      color: var(--gray-dark);
-    }
-
-    .notif-time {
-      font-size: 0.6rem;
-      color: var(--gray-mid);
-      white-space: nowrap;
-    }
-
-    /* Actions */
-    .actions-section {
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
+    .notif-item.new { background: var(--bordeaux-light); }
+    .notif-ico { font-size: 0.8rem; margin-top: 2px; }
+    .notif-text { flex: 1; color: var(--gray-dark); }
+    .notif-time { font-size: 0.6rem; color: var(--gray-mid); white-space: nowrap; }
+    .actions-section { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
     .action-btn {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 16px;
-      border: 1px solid var(--border-light);
-      border-radius: 40px;
-      background: white;
-      cursor: pointer;
-      transition: all 0.2s;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px; border: 1px solid var(--border-light);
+      border-radius: 40px; background: white; cursor: pointer; transition: all 0.2s;
     }
-
-    .action-btn:hover {
-      border-color: var(--bordeaux);
-      background: var(--bordeaux-light);
-    }
-
-    .action-btn i {
-      color: var(--bordeaux);
-      width: 20px;
-    }
-
-    .action-btn-title {
-      font-weight: 700;
-      font-size: 0.8rem;
-    }
-
-    .action-btn-sub {
-      font-size: 0.65rem;
-      color: var(--gray-mid);
-    }
-
-    /* Carte */
-    .map-panel {
-      position: relative;
-      background: var(--beige);
-    }
-
-    .map-container {
-      height: 100%;
-      width: 100%;
-      position: relative;
-    }
-
-    #realMap {
-      height: 100%;
-      width: 100%;
-      min-height: 500px;
-    }
-
-    .map-controls {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      z-index: 20;
-    }
-
+    .action-btn:hover { border-color: var(--bordeaux); background: var(--bordeaux-light); }
+    .action-btn i { color: var(--bordeaux); width: 20px; }
+    .action-btn-title { font-weight: 700; font-size: 0.8rem; }
+    .action-btn-sub { font-size: 0.65rem; color: var(--gray-mid); }
+    .map-panel { position: relative; background: var(--beige); }
+    .map-container { height: 100%; width: 100%; position: relative; }
+    #realMap { height: 100%; width: 100%; min-height: 500px; }
+    .map-controls { position: absolute; top: 16px; left: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 20; }
     .map-ctrl-btn {
-      width: 36px;
-      height: 36px;
-      background: white;
-      border: 1px solid var(--border-light);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      transition: all 0.2s;
+      width: 36px; height: 36px; background: white; border: 1px solid var(--border-light);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); transition: all 0.2s;
     }
-
-    .map-ctrl-btn:hover {
-      border-color: var(--bordeaux);
-      color: var(--bordeaux);
-    }
-
+    .map-ctrl-btn:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
     .current-pos {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      background: white;
-      border-radius: 16px;
-      padding: 8px 16px;
-      border: 1px solid var(--border-light);
-      z-index: 20;
-      font-size: 0.7rem;
+      position: absolute; bottom: 16px; left: 16px;
+      background: white; border-radius: 16px; padding: 8px 16px;
+      border: 1px solid var(--border-light); z-index: 20; font-size: 0.7rem;
     }
-
-    .cp-title {
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
+    .cp-title { font-weight: 700; display: flex; align-items: center; gap: 6px; }
     .map-bottom-bar {
-      position: absolute;
-      bottom: 16px;
-      right: 16px;
-      background: white;
-      border-radius: 40px;
-      padding: 8px 20px;
-      display: flex;
-      gap: 24px;
-      border: 1px solid var(--border-light);
-      z-index: 20;
-      font-size: 0.7rem;
+      position: absolute; bottom: 16px; right: 16px;
+      background: white; border-radius: 40px; padding: 8px 20px;
+      display: flex; gap: 24px; border: 1px solid var(--border-light);
+      z-index: 20; font-size: 0.7rem;
     }
-
-    .mbb-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .mbb-ico {
-      color: var(--bordeaux);
-    }
-
-    .refresh-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 0.8rem;
-    }
-
-    /* Modal */
+    .mbb-item { display: flex; align-items: center; gap: 6px; }
+    .mbb-ico { color: var(--bordeaux); }
+    .refresh-btn { background: none; border: none; cursor: pointer; font-size: 0.8rem; }
     .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 300;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 300;
     }
-
-    .modal-overlay.open {
-      display: flex;
-    }
-
+    .modal-overlay.open { display: flex; }
     .modal-box {
-      background: white;
-      border-radius: 28px;
-      max-width: 480px;
-      width: 90%;
-      padding: 24px;
-      position: relative;
+      background: white; border-radius: 28px; max-width: 480px; width: 90%;
+      padding: 24px; position: relative;
     }
-
-    .modal-close {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      background: none;
-      border: none;
-      font-size: 1.2rem;
-      cursor: pointer;
+    .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 1.2rem; cursor: pointer; }
+    .modal-h { font-family: 'Montserrat', sans-serif; font-size: 1.3rem; font-weight: 600; margin-bottom: 8px; }
+    .modal-h em { color: var(--bordeaux); font-style: normal; }
+    .modal-sub { font-size: 0.8rem; color: var(--gray-mid); margin-bottom: 16px; }
+    .f-grp { margin-bottom: 16px; }
+    .f-grp label { display: block; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 4px; }
+    .f-grp input, .f-grp select, .f-grp textarea {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border-light);
+      border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 0.8rem;
+      background: #F9FAFB; transition: all 0.2s;
     }
-
-    .modal-h {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.3rem;
-      font-weight: 600;
-      margin-bottom: 8px;
+    .f-grp input:focus, .f-grp select:focus, .f-grp textarea:focus {
+      outline: none; border-color: var(--bordeaux); box-shadow: 0 0 0 2px rgba(122,46,26,0.1);
     }
-
-    .modal-h em {
-      color: var(--bordeaux);
-      font-style: normal;
+    .modal-btns { display: flex; gap: 12px; margin-top: 20px; }
+    .btn-red {
+      background: var(--bordeaux); color: white; border: none; border-radius: 40px;
+      padding: 10px 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
     }
-
-    .photos-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin: 16px 0;
+    .btn-red:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent; border: 1px solid var(--border-light); border-radius: 40px;
+      padding: 10px 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      color: var(--gray-mid); cursor: pointer; transition: all 0.2s;
     }
-
+    .btn-outline:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
+    .photos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0; }
     .photo-thumb {
-      aspect-ratio: 1;
-      background: var(--beige);
-      border: 1px solid var(--border-light);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
+      aspect-ratio: 1; background: var(--beige); border: 1px solid var(--border-light);
+      border-radius: 12px; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; cursor: pointer; transition: all 0.2s;
     }
-
-    .photo-thumb i {
-      font-size: 1.2rem;
-      color: var(--gray-mid);
+    .photo-thumb:hover { border-color: var(--bordeaux); background: var(--bordeaux-light); }
+    .photo-thumb i { font-size: 1.2rem; color: var(--gray-mid); }
+    .photo-thumb span { font-size: 0.6rem; margin-top: 4px; }
+    .share-link-box {
+      display: flex; gap: 8px; align-items: center;
+      background: var(--beige); padding: 8px 12px; border-radius: 12px;
+      margin: 12px 0; word-break: break-all;
     }
-
-    .photo-thumb span {
-      font-size: 0.6rem;
-      margin-top: 4px;
-    }
-
-    /* Reveal animation */
-    .reveal {
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* Responsive */
+    .share-link-box input { flex: 1; border: none; background: transparent; font-size: 0.8rem; padding: 4px; }
+    .share-link-box button { background: var(--bordeaux); color: white; border: none; border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 0.7rem; font-weight: 600; }
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
     @media (max-width: 900px) {
-      .tracking-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .info-panel {
-        max-height: none;
-        position: relative;
-        top: 0;
-      }
-
-      .map-container {
-        min-height: 400px;
-      }
+      .tracking-layout { grid-template-columns: 1fr; }
+      .info-panel { max-height: none; position: relative; top: 0; }
+      .map-container { min-height: 400px; }
     }
-
     @media (max-width: 600px) {
-      .topbar-mid {
-        display: none;
-      }
-
-      .map-bottom-bar {
-        display: none;
-      }
+      .topbar-mid { display: none; }
+      .map-bottom-bar { display: none; }
     }
   </style>
 </head>
-
 <body>
 
   <div class="cur" id="cur"></div>
   <div class="cur-ring" id="cring"></div>
 
+  <!-- TOPBAR -->
   <div class="topbar">
     <a href="index.html" class="topbar-logo">Bathily-convoyage<span>.</span></a>
     <div class="topbar-mid">
-      <div class="topbar-title">Suivi de émission en temps réel</div>
-      <div class="topbar-ref" id="topRef">BC-2025-0847 € BMW S€rie 3 € Paris ? Lyon</div>
+      <div class="topbar-title">Suivi de mission en temps réel</div>
+      <div class="topbar-ref" id="topRef">Chargement...</div>
     </div>
     <div class="topbar-right">
-      <div class="live-badge">
-        <div class="live-dot"></div> EN DIRECT
-      </div>
+      <div class="live-badge"><div class="live-dot"></div> EN DIRECT</div>
       <button class="tb-btn" onclick="openModal('modalShare')"><i class="fas fa-share-alt"></i> Partager</button>
     </div>
   </div>
 
+  <!-- LAYOUT -->
   <div class="tracking-layout">
+
     <!-- PANNEAU INFO GAUCHE -->
     <div class="info-panel">
       <div class="status-hero reveal">
-        <div class="sh-émission-ref">Mission € BC-2025-0847</div>
+        <div class="sh-mission-ref" id="missionRef">Mission —</div>
         <div class="sh-status">
-          <div class="sh-status-badge status-transit"><i class="fas fa-circle" style="font-size:0.5rem"></i> En transit
-          </div>
+          <div class="sh-status-badge status-transit" id="statusBadge"><i class="fas fa-circle" style="font-size:0.5rem"></i> En transit</div>
         </div>
-        <div class="sh-vehicle">BMW <em>S€rie 3</em></div>
-        <div class="sh-plate">IJ-789-KL</div>
+        <div class="sh-vehicle" id="vehicleName">Véhicule <em>—</em></div>
+        <div class="sh-plate" id="plateNumber">—</div>
         <div class="route-progress">
           <div class="rp-cities">
             <div>
-              <div class="rp-city done">Paris</div>
-              <div style="font-size:0.6rem">Départ 09:00</div>
+              <div class="rp-city done" id="cityDepart">Départ</div>
+              <div style="font-size:0.6rem" id="departTime">—</div>
             </div>
             <div style="text-align:right">
-              <div class="rp-city active">Lyon</div>
-              <div style="font-size:0.6rem">Arrivée ~15:30</div>
+              <div class="rp-city active" id="cityArrivee">Arrivée</div>
+              <div style="font-size:0.6rem" id="arriveeTime">—</div>
             </div>
           </div>
           <div class="rp-bar-wrap">
-            <div class="rp-bar-fill" id="progressBar" style="width:65%">
-              <div class="rp-car" id="carMarker"><i class="fas fa-car"></i></div>
+            <div class="rp-bar-fill" id="progressBar" style="width:0%">
+              <div class="rp-car" id="carMarkerIcon"><i class="fas fa-car"></i></div>
             </div>
           </div>
           <div class="rp-pct">
-            <span id="kmDone">305 km parcourus</span>
-            <strong id="pctDone">65% € 165 km restants</strong>
+            <span id="kmDone">0 km parcourus</span>
+            <strong id="pctDone">0% — 0 km restants</strong>
           </div>
         </div>
       </div>
@@ -906,164 +344,95 @@
       <div class="eta-card reveal">
         <div>
           <div class="eta-lbl">Arrivée estimée</div>
-          <div class="eta-time" id="etaTime">15:28</div>
-          <div class="eta-sub">Lyon Part-Dieu</div>
+          <div class="eta-time" id="etaTime">—</div>
+          <div class="eta-sub" id="etaLocation">—</div>
         </div>
         <div class="eta-right">
           <div class="eta-lbl">Temps restant</div>
-          <div class="eta-countdown" id="countdown">2h 14min</div>
-          <div class="eta-sub">Mise € jour récente</div>
+          <div class="eta-countdown" id="countdown">—</div>
+          <div class="eta-sub">Mise à jour récente</div>
         </div>
       </div>
 
-      <div class="quick-sétats reveal">
+      <div class="quick-stats reveal">
         <div class="qs-item">
           <div class="qs-lbl">Vitesse moyenne</div>
-          <div class="qs-val" id="speedVal">98<em> km/h</em></div>
+          <div class="qs-val" id="speedVal">—<em> km/h</em></div>
         </div>
         <div class="qs-item">
           <div class="qs-lbl">Distance restante</div>
-          <div class="qs-val" id="distRest">165<em> km</em></div>
+          <div class="qs-val" id="distRest">—<em> km</em></div>
         </div>
         <div class="qs-item">
           <div class="qs-lbl">Dernière position</div>
-          <div class="qs-val" id="lastPos">Beaune</div>
+          <div class="qs-val" id="lastPos">—</div>
         </div>
         <div class="qs-item">
           <div class="qs-lbl">Carburant / Charge</div>
-          <div class="qs-val" id="fuelLevel">48<em>%</em></div>
+          <div class="qs-val" id="fuelLevel">—<em>%</em></div>
         </div>
       </div>
 
       <div class="conv-section reveal">
-        <div class="cs-title">convoyeur assigné</div>
+        <div class="cs-title">Convoyeur assigné</div>
         <div class="conv-card">
-          <div class="conv-ava">MB<div class="conv-online"></div>
-          </div>
+          <div class="conv-ava" id="convAva">—<div class="conv-online"></div></div>
           <div>
-            <div class="conv-name">M. Bathily</div>
-            <div class="conv-meta">convoyeur senior € Certifi€ SIV</div>
-            <div class="conv-rating">⭐⭐? 4.9 / 5</div>
+            <div class="conv-name" id="convName">—</div>
+            <div class="conv-meta" id="convMeta">—</div>
+            <div class="conv-rating" id="convRating">⭐ 5.0 / 5</div>
           </div>
         </div>
       </div>
 
       <div class="steps-section reveal">
-        <div class="steps-title">étapes de la émission</div>
+        <div class="steps-title">Étapes de la mission</div>
         <div class="steps-list" id="stepsList">
-          <!-- steps dynamiques ou statiques -->
-          <div class="step-item">
-            <div class="step-dot done"><i class="fas fa-check"></i></div>
-            <div class="step-content">
-              <div class="step-label done">Prise en charge</div>
-              <div class="step-time">09:14 € Paris 1er</div>
-            </div>
-          </div>
-          <div class="step-item">
-            <div class="step-dot done"><i class="fas fa-check"></i></div>
-            <div class="step-content">
-              <div class="step-label done">EDL départ signé</div>
-              <div class="step-time">09:32 € 20 photos</div>
-            </div>
-          </div>
-          <div class="step-item">
-            <div class="step-dot done"><i class="fas fa-check"></i></div>
-            <div class="step-content">
-              <div class="step-label done">Départ effectué</div>
-              <div class="step-time">09:38 € GPS activé</div>
-            </div>
-          </div>
-          <div class="step-item">
-            <div class="step-dot done"><i class="fas fa-check"></i></div>
-            <div class="step-content">
-              <div class="step-label done">Pause € Auxerre</div>
-              <div class="step-time">11:22 € 15min</div>
-            </div>
-          </div>
-          <div class="step-item">
-            <div class="step-dot active"><i class="fas fa-truck"></i></div>
-            <div class="step-content">
-              <div class="step-label active">En transit € Beaune</div>
-              <div class="step-time" id="currentStepTime">A6 € 165 km restants</div>
-            </div>
-          </div>
-          <div class="step-item">
-            <div class="step-dot"></div>
-            <div class="step-content">
-              <div class="step-label">Nettoyage (Sérénité)</div>
-              <div class="step-time">Prévu ~14:30</div>
-            </div>
-          </div>
-          <div class="step-item">
-            <div class="step-dot"></div>
-            <div class="step-content">
-              <div class="step-label">Livraison</div>
-              <div class="step-time">Estimée 15:28</div>
-            </div>
-          </div>
+          <!-- Rempli dynamiquement -->
         </div>
       </div>
 
       <div class="notif-section reveal">
         <div class="notif-title">Dernières notifications</div>
         <div class="notif-list" id="notifList" aria-live="polite">
-          <div class="notif-item new"><i class="fas fa-map-marker-alt notif-ico" style="color:var(--bordeaux)"></i>
-            <div class="notif-text"><strong>Position mise € jour</strong> € A6 km 301, Beaune</div>
-            <div class="notif-time">13:14</div>
-          </div>
-          <div class="notif-item"><i class="fas fa-pause-circle notif-ico" style="color:var(--success)"></i>
-            <div class="notif-text"><strong>Pause effectuée</strong> € Aire d'Auxerre, 15min</div>
-            <div class="notif-time">11:22</div>
-          </div>
+          <div style="text-align:center;color:var(--gray-mid);padding:8px;font-size:0.7rem;">Aucune notification pour l'instant</div>
         </div>
       </div>
 
       <div class="actions-section reveal">
         <button class="action-btn" onclick="openModal('modalContact')"><i class="fas fa-phone-alt"></i>
-          <div>
-            <div class="action-btn-title">Contacter le convoyeur</div>
-            <div class="action-btn-sub">Via dispatch € réponse immédiate</div>
-          </div>
+          <div><div class="action-btn-title">Contacter le dispatch</div><div class="action-btn-sub">Via chat ou téléphone</div></div>
         </button>
         <button class="action-btn" onclick="openModal('modalPhotos')"><i class="fas fa-images"></i>
-          <div>
-            <div class="action-btn-title">Photos EDL départ</div>
-            <div class="action-btn-sub">20 photos € sign€ 09:32</div>
-          </div>
+          <div><div class="action-btn-title">Photos EDL départ</div><div class="action-btn-sub">20 photos certifiées</div></div>
         </button>
         <button class="action-btn" onclick="openModal('modalSignalement')"><i class="fas fa-exclamation-triangle"></i>
-          <div>
-            <div class="action-btn-title">Signaler un problème</div>
-            <div class="action-btn-sub">Support urgence 24h/24</div>
-          </div>
+          <div><div class="action-btn-title">Signaler un problème</div><div class="action-btn-sub">Support urgence 24h/24</div></div>
         </button>
         <button class="action-btn" onclick="openModal('modalShare')"><i class="fas fa-share-alt"></i>
-          <div>
-            <div class="action-btn-title">Partager le suivi</div>
-            <div class="action-btn-sub">Envoyer le lien</div>
-          </div>
+          <div><div class="action-btn-title">Partager le suivi</div><div class="action-btn-sub">Envoyer le lien</div></div>
         </button>
       </div>
     </div>
 
-    <!-- PANNEAU CARTE -->
+    <!-- CARTE -->
     <div class="map-panel">
       <div class="map-container">
-        <div id="realMap" style="height: 100%; min-height: 600px;"></div>
+        <div id="realMap" style="height:100%;min-height:600px;"></div>
         <div class="map-controls">
           <div class="map-ctrl-btn" onclick="centerOnCar()" title="Centrer sur le véhicule"><i class="fas fa-crosshairs"></i></div>
-          <div class="map-ctrl-btn" onclick="toggleFullscreen()" title="Plein €écran"><i class="fas fa-expand"></i></div>
+          <div class="map-ctrl-btn" onclick="toggleFullscreen()" title="Plein écran"><i class="fas fa-expand"></i></div>
         </div>
         <div class="current-pos">
           <div class="cp-title"><i class="fas fa-location-dot"></i> Position actuelle</div>
-          <div id="currentLoc">A6 € Hauteur de Beaune</div>
-          <div id="currentCoords">47€01'N € 4€50'E</div>
-          <div>Mis € jour il y a <span id="lastUpdate">32</span>s</div>
+          <div id="currentLoc">En attente de données...</div>
+          <div id="currentCoords">—</div>
+          <div>Mis à jour il y a <span id="lastUpdate">0</span>s</div>
         </div>
         <div class="map-bottom-bar">
-          <div class="mbb-item"><i class="fas fa-tachometer-alt mbb-ico"></i><span id="speedBar">112 km/h</span></div>
-          <div class="mbb-item"><i class="fas fa-route mbb-ico"></i><span id="distRestBar">165 km</span></div>
-          <div class="mbb-item"><i class="fas fa-gas-pump mbb-ico"></i><span id="fuelBar">48%</span></div>
+          <div class="mbb-item"><i class="fas fa-tachometer-alt mbb-ico"></i><span id="speedBar">—</span></div>
+          <div class="mbb-item"><i class="fas fa-route mbb-ico"></i><span id="distRestBar">—</span></div>
+          <div class="mbb-item"><i class="fas fa-gas-pump mbb-ico"></i><span id="fuelBar">—</span></div>
           <button class="refresh-btn" onclick="refreshData()"><i class="fas fa-sync-alt"></i></button>
         </div>
       </div>
@@ -1074,14 +443,15 @@
   <div class="modal-overlay" id="modalContact">
     <div class="modal-box"><button class="modal-close" onclick="closeModal('modalContact')"><i class="fas fa-times"></i></button>
       <h3 class="modal-h">Contacter le <em>dispatch</em></h3>
-      <p class="modal-sub">Pour joindre le convoyeur, passez par notre dispatch.</p>
-      <div class="f-grp"><label>Votre message</label><textarea rows="3"></textarea></div>
+      <p class="modal-sub">Pour toute question, notre équipe est disponible 24h/24.</p>
+      <div class="f-grp"><label>Votre message</label><textarea id="contactMsg" rows="3"></textarea></div>
       <div class="modal-btns"><button class="btn-red" onclick="closeModal('modalContact')">Envoyer</button><button class="btn-outline" onclick="closeModal('modalContact')">Annuler</button></div>
     </div>
   </div>
+
   <div class="modal-overlay" id="modalPhotos">
     <div class="modal-box"><button class="modal-close" onclick="closeModal('modalPhotos')"><i class="fas fa-times"></i></button>
-      <h3 class="modal-h">Photos <em>€tat des lieux départ</em></h3>
+      <h3 class="modal-h">Photos <em>état des lieux départ</em></h3>
       <div class="photos-grid">
         <div class="photo-thumb"><i class="fas fa-car"></i><span>Avant</span></div>
         <div class="photo-thumb"><i class="fas fa-car"></i><span>Arrière</span></div>
@@ -1097,51 +467,90 @@
       <div class="modal-btns"><button class="btn-outline" onclick="closeModal('modalPhotos')">Fermer</button></div>
     </div>
   </div>
+
   <div class="modal-overlay" id="modalSignalement">
     <div class="modal-box"><button class="modal-close" onclick="closeModal('modalSignalement')"><i class="fas fa-times"></i></button>
       <h3 class="modal-h">Signaler un <em>problème</em></h3>
-      <div class="f-grp"><label>Type</label><select>
-          <option>Retard</option>
-          <option>Contact impossible</option>
-          <option>Urgence</option>
-        </select></div>
-      <div class="f-grp"><label>Description</label><textarea rows="3"></textarea></div>
+      <div class="f-grp"><label>Type</label>
+        <select id="signalType"><option>Retard</option><option>Contact impossible</option><option>Urgence</option></select>
+      </div>
+      <div class="f-grp"><label>Description</label><textarea id="signalDesc" rows="3"></textarea></div>
       <div class="modal-btns"><button class="btn-red" onclick="closeModal('modalSignalement')">Signaler</button><button class="btn-outline" onclick="closeModal('modalSignalement')">Annuler</button></div>
     </div>
   </div>
+
   <div class="modal-overlay" id="modalShare">
     <div class="modal-box"><button class="modal-close" onclick="closeModal('modalShare')"><i class="fas fa-times"></i></button>
       <h3 class="modal-h">Partager le <em>suivi</em></h3>
-      <div>
-        <div id="shareLink">bathily-convoyage.fr/tracking/BC-2025-0847</div><button onclick="copyLink()">Copier le
-          lien</button>
+      <div class="share-link-box">
+        <input type="text" id="shareLink" value="Chargement..." readonly>
+        <button onclick="copyLink()"><i class="fas fa-copy"></i> Copier</button>
       </div>
       <div class="modal-btns"><button class="btn-outline" onclick="closeModal('modalShare')">Fermer</button></div>
     </div>
   </div>
 
   <script>
-    // ========== €TAPE 1 : €TAT GLOBAL & CONFIGURATION ==========
-    const STATE = {
-      émissionRef: ""
-    };
+    // ============================================================
+    // PARTIE 1 : ÉTAT GLOBAL & CONFIGURATION
+    // ============================================================
     let _supabaseClient = null;
-    let simTimers = []; // Tableau pour stocker et d€truire les timers de simulation
+    let _missionRef = null;
+    let _missionData = null;
+    let simTimers = [];
+    let isSimulating = false;
+    let map = null;
+    let carMarker = null;
+    let startMarker = null;
+    let endMarker = null;
+    let routeLine = null;
+    let lastUpdateSec = 0;
+    let updateInterval = null;
+
+    // Données de simulation (parcours Paris → Lyon)
+    const SIM_LOCATIONS = [
+      { pct: 0, loc: 'Paris (départ)', coords: [48.8566, 2.3522], km: 0, speed: 0, fuel: 85 },
+      { pct: 15, loc: 'A6 • sortie Fontainebleau', coords: [48.4, 2.7], km: 70, speed: 95, fuel: 80 },
+      { pct: 30, loc: 'A6 • Auxerre', coords: [47.8, 3.55], km: 141, speed: 108, fuel: 72 },
+      { pct: 45, loc: 'A6 • Avallon', coords: [47.48, 3.85], km: 212, speed: 110, fuel: 65 },
+      { pct: 60, loc: 'A6 • Beaune', coords: [47.02, 4.83], km: 282, speed: 112, fuel: 55 },
+      { pct: 75, loc: 'A6 • Mâcon', coords: [46.3, 4.82], km: 353, speed: 110, fuel: 45 },
+      { pct: 90, loc: 'A6 • Villefranche-sur-Saône', coords: [45.99, 4.72], km: 423, speed: 95, fuel: 35 },
+      { pct: 100, loc: 'Lyon (arrivée)', coords: [45.7640, 4.8357], km: 470, speed: 0, fuel: 30 }
+    ];
+
+    const NOTIF_MESSAGES = [
+      { ico: 'fas fa-map-marker-alt', color: 'var(--bordeaux)', text: 'Position mise à jour • A6 km 70, Fontainebleau', time: '09:45' },
+      { ico: 'fas fa-map-marker-alt', color: 'var(--bordeaux)', text: 'Position mise à jour • A6 km 141, Auxerre', time: '10:30' },
+      { ico: 'fas fa-pause-circle', color: 'var(--success)', text: 'Pause effectuée • Aire d\'Auxerre, 15min', time: '11:22' },
+      { ico: 'fas fa-map-marker-alt', color: 'var(--bordeaux)', text: 'Position mise à jour • A6 km 212, Avallon', time: '11:45' },
+      { ico: 'fas fa-map-marker-alt', color: 'var(--bordeaux)', text: 'Position mise à jour • A6 km 282, Beaune', time: '12:30' },
+      { ico: 'fas fa-gas-pump', color: 'var(--warning)', text: 'Carburant 55%, autonomie suffisante', time: '12:45' },
+      { ico: 'fas fa-map-marker-alt', color: 'var(--bordeaux)', text: 'Position mise à jour • A6 km 353, Mâcon', time: '13:18' },
+      { ico: 'fas fa-map-marker-alt', color: 'var(--bordeaux)', text: 'Position mise à jour • A46, Villefranche', time: '14:02' },
+      { ico: 'fas fa-check-circle', color: 'var(--success)', text: 'Mission livrée avec succès !', time: '15:28' }
+    ];
 
     function getSupabase() {
       if (!_supabaseClient) {
+        if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+          console.warn("Supabase non configuré.");
+          return null;
+        }
         _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
       }
       return _supabaseClient;
     }
 
-    // Aide au g€ocodage des adresses (API Gouvernementale)
+    // ============================================================
+    // PARTIE 2 : GÉOCODAGE (API BAN)
+    // ============================================================
     async function geocodeAddress(query) {
-      if (!query.trim()) return null;
-      const cleanQuery = query.split('(')[0].trim();
+      if (!query || query.length < 2) return null;
+      const clean = query.split('(')[0].trim();
       try {
-        const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(cleanQuery)}&limit=1`);
-        const data = await response.json();
+        const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(clean)}&limit=1`);
+        const data = await res.json();
         if (data.features && data.features.length > 0) {
           const [lon, lat] = data.features[0].geometry.coordinates;
           return [lat, lon];
@@ -1153,283 +562,471 @@
       }
     }
 
-    // ========== €TAPE 2 : CHARGEMENT SUPABASE ==========
+    // ============================================================
+    // PARTIE 3 : INITIALISATION DE LA CARTE
+    // ============================================================
+    function initMap() {
+      map = L.map('realMap').setView([46.5, 2.5], 6);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB',
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(map);
+
+      // Marqueurs par défaut (seront mis à jour par loadMissionDetails)
+      startMarker = L.marker([48.8566, 2.3522]).addTo(map).bindPopup('Départ');
+      endMarker = L.marker([45.7640, 4.8357]).addTo(map).bindPopup('Arrivée');
+      routeLine = L.polyline([[48.8566, 2.3522], [45.7640, 4.8357]], { color: '#0A4D68', weight: 4, opacity: 0.7 }).addTo(map);
+
+      // Marqueur véhicule
+      const carIcon = L.divIcon({
+        className: 'custom-car-marker',
+        html: '<i class="fas fa-car" style="color:#0A4D68;font-size:28px;"></i>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+      carMarker = L.marker([48.8566, 2.3522], { icon: carIcon }).addTo(map).bindPopup('Véhicule');
+    }
+
+    // ============================================================
+    // PARTIE 4 : CHARGEMENT DE LA MISSION DEPUIS SUPABASE
+    // ============================================================
     async function loadMissionDetails() {
-      const refParam = new URLSearchParams(window.location.search).get('ref');
-      if (!refParam) return;
+      const params = new URLSearchParams(window.location.search);
+      const refParam = params.get('ref') || params.get('id');
+      if (!refParam) {
+        document.getElementById('topRef').textContent = 'Aucune mission spécifiée';
+        return;
+      }
+
+      const sb = getSupabase();
+      if (!sb) return;
 
       try {
-        const client = getSupabase();
-        const { data: m, error } = await client
-          .from('émissions')
+        const { data: m, error } = await sb
+          .from('missions')
           .select('*')
           .eq('reference', refParam)
           .maybeSingle();
 
         if (error || !m) {
-          console.warn("Mission introuvable ou erreur Supabase:", error);
+          document.getElementById('topRef').textContent = `Mission ${refParam} non trouvée`;
           return;
         }
 
-        // Sécurisation de la référence pour Firebase
-        STATE.émissionRef = m.reference;
+        _missionData = m;
+        _missionRef = m.reference;
 
-        // Mise € jour des éléments de l'interface (UI)
-        const cleanDep = m.depart.split('(')[0].trim();
-        const cleanArr = m.arrivee.split('(')[0].trim();
+        // Mise à jour de l'interface
+        const cleanDep = (m.depart || '').split('(')[0].trim() || 'Départ';
+        const cleanArr = (m.arrivee || '').split('(')[0].trim() || 'Arrivée';
 
-        document.getElementById('topRef').textContent = `${m.reference} € ${m.vehicule} € ${cleanDep} ? ${cleanArr}`;
-        document.querySelector('.sh-émission-ref').textContent = `Mission € ${m.reference}`;
-        document.querySelector('.sh-vehicle').innerHTML = m.vehicule;
-        document.querySelector('.sh-plate').textContent = m.reference;
+        document.getElementById('topRef').textContent = `${m.reference} • ${m.vehicule || 'Véhicule'} • ${cleanDep} → ${cleanArr}`;
+        document.getElementById('missionRef').textContent = `Mission • ${m.reference}`;
+        document.getElementById('vehicleName').innerHTML = `${m.vehicule || 'Véhicule'}`;
+        document.getElementById('plateNumber').textContent = m.immatriculation || m.reference || '—';
+        document.getElementById('cityDepart').textContent = cleanDep;
+        document.getElementById('cityArrivee').textContent = cleanArr;
 
-        // Gestion dynamique des statuts
-        const mStatus = m.status || m.statut || 'planned';
-        const badge = document.querySelector('.sh-status-badge');
-        if (badge) {
-          if (mStatus === 'completed') {
-            badge.className = 'sh-status-badge status-termine';
-            badge.innerHTML = '<i class="fas fa-check-circle"></i> Mission termin€e';
-          } else if (mStatus === 'in_progress') {
-            badge.className = 'sh-status-badge status-transit';
-            badge.innerHTML = '<i class="fas fa-circle" style="font-size:0.5rem"></i> En transit';
-          } else {
-            badge.className = 'sh-status-badge';
-            badge.style.background = 'rgba(245, 166, 35, 0.1)'; // Couleur Or v2.0
-            badge.style.color = 'var(--warning, #F5A623)';
-            badge.innerHTML = '<i class="fas fa-circle" style="font-size:0.5rem"></i> En attente';
-          }
+        // Statut
+        const status = m.statut || m.status || 'planned';
+        const badge = document.getElementById('statusBadge');
+        if (status === 'in_progress' || status === 'en_cours') {
+          badge.className = 'sh-status-badge status-transit';
+          badge.innerHTML = '<i class="fas fa-circle" style="font-size:0.5rem"></i> En transit';
+        } else if (status === 'completed' || status === 'termine') {
+          badge.className = 'sh-status-badge status-termine';
+          badge.innerHTML = '<i class="fas fa-check-circle"></i> Mission terminée';
+        } else {
+          badge.className = 'sh-status-badge status-attente';
+          badge.innerHTML = '<i class="fas fa-circle" style="font-size:0.5rem"></i> En attente';
         }
 
-        document.getElementById('shareLink').textContent = window.location.href;
+        // Convoyeur
+        const convNom = m.convoyeur_nom || 'Non assigné';
+        const initials = convNom.split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0, 2);
+        document.getElementById('convAva').innerHTML = initials || '?';
+        document.getElementById('convName').textContent = convNom;
+        document.getElementById('convMeta').textContent = m.zone_convoyeur || 'Convoyeur certifié';
 
-        // G€ocodage et placement des marqueurs sur la carte Leaflet
+        // Lien de partage
+        document.getElementById('shareLink').value = window.location.href;
+
+        // Géocodage et mise à jour de la carte
         const startCoords = await geocodeAddress(m.depart);
         const endCoords = await geocodeAddress(m.arrivee);
 
         if (startCoords && endCoords) {
-          if (startMarker) map.removeLayer(startMarker);
-          if (endMarker) map.removeLayer(endMarker);
-          if (routeLine) map.removeLayer(routeLine);
-
-          startMarker = L.marker(startCoords).addTo(map).bindPopup(`${cleanDep} (départ)`);
-          endMarker = L.marker(endCoords).addTo(map).bindPopup(`${cleanArr} (arrivée)`);
-
-          const routePoints = [startCoords, endCoords];
-          routeLine = L.polyline(routePoints, { color: 'var(--primary, #0A4D68)', weight: 4, opacity: 0.7 }).addTo(map);
-
+          if (startMarker) {
+            startMarker.setLatLng(startCoords).setPopupContent(`${cleanDep} (départ)`);
+          } else {
+            startMarker = L.marker(startCoords).addTo(map).bindPopup(`${cleanDep} (départ)`);
+          }
+          if (endMarker) {
+            endMarker.setLatLng(endCoords).setPopupContent(`${cleanArr} (arrivée)`);
+          } else {
+            endMarker = L.marker(endCoords).addTo(map).bindPopup(`${cleanArr} (arrivée)`);
+          }
+          if (routeLine) {
+            map.removeLayer(routeLine);
+          }
+          routeLine = L.polyline([startCoords, endCoords], { color: '#0A4D68', weight: 4, opacity: 0.7 }).addTo(map);
           const bounds = L.latLngBounds(startCoords, endCoords);
           map.fitBounds(bounds, { padding: [50, 50] });
 
-          if (carMarker) carMarker.setLatLng(startCoords);
+          if (carMarker) {
+            carMarker.setLatLng(startCoords);
+          }
         }
 
-        // Une fois Supabase charg€, on initialise Firebase
-        initRealtimeTracking();
+        // Mettre à jour le lien de partage
+        document.getElementById('shareLink').value = window.location.href;
+
+        // Démarrer la simulation ou le suivi en temps réel
+        const simulate = params.get('simulate') === 'true';
+        if (simulate) {
+          startSimulation();
+        } else {
+          // Essayer Firebase pour le live
+          initRealtimeTracking();
+          // Fallback : simulation lente si pas de données Firebase
+          setTimeout(() => {
+            if (document.getElementById('lastUpdate').innerText === '0') {
+              // Pas de données Firebase, démarrer la simulation
+              startSimulation();
+            }
+          }, 5000);
+        }
 
       } catch (err) {
-        console.error("Erreur lors du chargement des détails de la émission:", err);
+        console.error("Erreur chargement mission:", err);
+        document.getElementById('topRef').textContent = 'Erreur de chargement';
       }
     }
 
-    // ========== €TAPE 3 : CURSEUR VISUEL PREMIUM ==========
-    if (window.matchMedia('(hover: hover)').matches) {
-      const cur = document.getElementById('cur'), cring = document.getElementById('cring');
-      let mx = 0, my = 0, rx = 0, ry = 0;
-      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cur.style.left = mx + 'px'; cur.style.top = my + 'px' });
-      (function loop() { rx += (mx - rx) * .11; ry += (my - ry) * .11; cring.style.left = rx + 'px'; cring.style.top = ry + 'px'; requestAnimationFrame(loop) })();
-    }
+    // ============================================================
+    // PARTIE 5 : SIMULATION DE SUIVI GPS
+    // ============================================================
+    let simIndex = 0;
 
-    // ========== €TAPE 4 : INITIALISATION DE LA CARTE LEAFLET ==========
-    let map = L.map('realMap').setView([46.5, 2.5], 7);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB',
-      subdomains: 'abcd',
-      maxZoom: 19
-    }).addTo(map);
+    function startSimulation() {
+      if (isSimulating) return;
+      isSimulating = true;
+      simIndex = 0;
 
-    let routeLine = null;
-    let carMarker = null;
-    let startMarker = L.marker([48.8566, 2.3522]).addTo(map).bindPopup('Paris (départ)');
-    let endMarker = L.marker([45.7640, 4.8357]).addTo(map).bindPopup('Lyon (arrivée)');
+      // Ajouter une notification de démarrage
+      addNotif({ ico: 'fas fa-play', color: 'var(--success)', text: 'Simulation de suivi GPS démarrée', time: new Date().toLocaleTimeString().slice(0,5) });
 
-    const defaultPoints = [[48.8566, 2.3522], [46.5, 2.5], [45.7640, 4.8357]];
-    routeLine = L.polyline(defaultPoints, { color: '#0A4D68', weight: 4, opacity: 0.7 }).addTo(map);
-    carMarker = L.marker([48.8566, 2.3522], { icon: L.divIcon({ className: 'custom-car-marker', html: '<i class="fas fa-car" style="color:#0A4D68; font-size:24px;"></i>', iconSize: [24, 24] }) }).addTo(map).bindPopup('Véhicule');
-
-    // ========== €TAPE 5 : MOCK DE SIMULATION PAR URL ==========
-    let locIndex = 0;
-    let locations = [
-      { pct: 65, loc: 'A6 € Hauteur de Beaune', coords: [47.016, 4.833], km: 305, speed: 112, fuel: 48 },
-      { pct: 70, loc: 'A6 € Avant M€con', coords: [46.42, 4.85], km: 329, speed: 115, fuel: 46 },
-      { pct: 77, loc: 'A6 € Villefranche-sur-Sa€ne', coords: [45.99, 4.72], km: 362, speed: 112, fuel: 43 },
-      { pct: 88, loc: 'A46 € Périphérique Lyon', coords: [45.75, 4.85], km: 414, speed: 78, fuel: 38 },
-      { pct: 100, loc: 'Lyon 3€me € Livraison', coords: [45.75, 4.92], km: 470, speed: 0, fuel: 35 }
-    ];
-    let notifIndex = 0;
-    let notifMessages = [
-      { ico: 'fas fa-map-marker-alt', color: 'var(--primary, #0A4D68)', text: 'Position mise € jour € A6 km 315, sortie Beaune', time: '13:18' },
-      { ico: 'fas fa-gas-pump', color: 'var(--warning, #F5A623)', text: 'Carburant € 45%, autonomie suffisante', time: '13:22' },
-      { ico: 'fas fa-map-marker-alt', color: 'var(--primary, #0A4D68)', text: 'Position mise € jour € A6 km 329, avant M€con', time: '13:31' },
-    ];
-
-    function updateUIfromLocation(loc) {
-      document.getElementById('progressBar').style.width = loc.pct + '%';
-      document.getElementById('pctDone').innerText = loc.pct + '% € ' + (470 - loc.km) + ' km restants';
-      document.getElementById('kmDone').innerText = loc.km + ' km parcourus';
-      document.getElementById('speedVal').innerHTML = loc.speed + '<em> km/h</em>';
-      document.getElementById('speedBar').innerText = loc.speed + ' km/h';
-      document.getElementById('distRest').innerHTML = (470 - loc.km) + '<em> km</em>';
-      document.getElementById('distRestBar').innerText = (470 - loc.km) + ' km';
-      document.getElementById('fuelLevel').innerHTML = loc.fuel + '<em>%</em>';
-      document.getElementById('fuelBar').innerText = loc.fuel + '%';
-      document.getElementById('currentLoc').innerText = loc.loc;
-      document.getElementById('currentCoords').innerText = loc.coords[0].toFixed(4) + '€N, ' + loc.coords[1].toFixed(4) + '€E';
-
-      let remaining = 470 - loc.km;
-      let etaMin = Math.max(0, Math.round(remaining / (loc.speed || 80) * 60));
-      let eta = new Date(Date.now() + etaMin * 60000);
-      document.getElementById('etaTime').innerText = eta.getHours().toString().padStart(2, '0') + ':' + eta.getMinutes().toString().padStart(2, '0');
-
-      let h = Math.floor(etaMin / 60), m = etaMin % 60;
-      document.getElementById('countdown').innerText = (h > 0 ? h + 'h ' : '') + m + 'min';
-      document.getElementById('currentStepTime').innerText = new Date().toLocaleTimeString().slice(0, 5) + ' € ' + loc.loc;
-
-      if (carMarker) carMarker.setLatLng(loc.coords);
-    }
-
-    function addNotif(n) {
-      const list = document.getElementById('notifList');
-      if (!list) return;
-      const div = document.createElement('div');
-      div.className = 'notif-item new';
-      div.innerHTML = `<i class="${n.ico} notif-ico" style="color:${n.color}"></i><div class="notif-text">${n.text}</div><div class="notif-time">${n.time}</div>`;
-      list.prepend(div);
-      setTimeout(() => div.classList.remove('new'), 3000);
-      if (list.children.length > 6) list.removeChild(list.lastChild);
-    }
-
-    function simulateProgress() {
-      if (locIndex >= locations.length - 1) {
-        showMissionDone();
-        return;
+      // Fonction de mise à jour progressive
+      function stepSimulation() {
+        if (simIndex >= SIM_LOCATIONS.length) {
+          showMissionDone();
+          return;
+        }
+        const loc = SIM_LOCATIONS[simIndex];
+        updateUIFromLocation(loc);
+        if (simIndex < NOTIF_MESSAGES.length) {
+          addNotif(NOTIF_MESSAGES[simIndex]);
+        }
+        simIndex++;
+        if (simIndex < SIM_LOCATIONS.length) {
+          const delay = simIndex === 1 ? 3000 : 6000 + Math.random() * 2000;
+          simTimers.push(setTimeout(stepSimulation, delay));
+        } else {
+          setTimeout(showMissionDone, 2000);
+        }
       }
-      locIndex++;
-      updateUIfromLocation(locations[locIndex]);
-      if (notifIndex < notifMessages.length) {
-        addNotif(notifMessages[notifIndex]);
-        notifIndex++;
-      }
-      lastUpdateSec = 0;
+
+      // Premier délai
+      simTimers.push(setTimeout(stepSimulation, 1000));
     }
 
     function stopSimulation() {
+      isSimulating = false;
       simTimers.forEach(t => clearTimeout(t));
       simTimers = [];
-      console.log("Simulation arr€t€e : Relais pris par le live GPS.");
+      console.log("Simulation arrêtée");
     }
 
-    // Déclenchement de la simulation uniquement si ?simulate=true est pr€sent
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('simulate') === 'true') {
-      simTimers.push(setTimeout(simulateProgress, 8000));
-      simTimers.push(setTimeout(simulateProgress, 16000));
-      simTimers.push(setTimeout(simulateProgress, 24000));
-      simTimers.push(setTimeout(simulateProgress, 32000));
-      simTimers.push(setTimeout(() => showMissionDone(), 48000));
+    function updateUIFromLocation(loc) {
+      const totalDist = 470;
+      const pct = Math.min(loc.pct, 100);
+      const rest = Math.max(totalDist - loc.km, 0);
+
+      document.getElementById('progressBar').style.width = pct + '%';
+      document.getElementById('pctDone').innerText = pct + '% — ' + Math.round(rest) + ' km restants';
+      document.getElementById('kmDone').innerText = Math.round(loc.km) + ' km parcourus';
+
+      document.getElementById('speedVal').innerHTML = Math.round(loc.speed) + '<em> km/h</em>';
+      document.getElementById('speedBar').innerText = Math.round(loc.speed) + ' km/h';
+      document.getElementById('distRest').innerHTML = Math.round(rest) + '<em> km</em>';
+      document.getElementById('distRestBar').innerText = Math.round(rest) + ' km';
+      document.getElementById('fuelLevel').innerHTML = Math.round(loc.fuel) + '<em>%</em>';
+      document.getElementById('fuelBar').innerText = Math.round(loc.fuel) + '%';
+      document.getElementById('lastPos').innerText = loc.loc;
+      document.getElementById('currentLoc').innerText = loc.loc;
+      document.getElementById('currentCoords').innerText = loc.coords[0].toFixed(4) + '°N, ' + loc.coords[1].toFixed(4) + '°E';
+
+      // ETA
+      const remaining = totalDist - loc.km;
+      const speed = Math.max(loc.speed, 1);
+      const etaMin = Math.round(remaining / speed * 60);
+      const eta = new Date(Date.now() + etaMin * 60000);
+      document.getElementById('etaTime').innerText = eta.getHours().toString().padStart(2,'0') + ':' + eta.getMinutes().toString().padStart(2,'0');
+      document.getElementById('etaLocation').innerText = SIM_LOCATIONS[SIM_LOCATIONS.length-1].loc;
+      const h = Math.floor(etaMin / 60), m = etaMin % 60;
+      document.getElementById('countdown').innerText = (h > 0 ? h + 'h ' : '') + m + 'min';
+
+      if (carMarker) {
+        carMarker.setLatLng(loc.coords);
+      }
+      if (routeLine) {
+        // Mettre à jour la ligne si besoin
+      }
+
+      // Centrer la carte sur le véhicule si pas déjà centré
+      if (map && pct > 5) {
+        // Ne pas forcer le centrage pour ne pas déranger l'utilisateur
+      }
+
+      lastUpdateSec = 0;
     }
 
-    let lastUpdateSec = 32;
+    function showMissionDone() {
+      document.getElementById('progressBar').style.width = '100%';
+      document.getElementById('pctDone').innerText = '100% — Mission terminée';
+      document.getElementById('kmDone').innerText = '470 km parcourus';
+      document.getElementById('speedVal').innerHTML = '0<em> km/h</em>';
+      document.getElementById('speedBar').innerText = '0 km/h';
+      document.getElementById('distRest').innerHTML = '0<em> km</em>';
+      document.getElementById('distRestBar').innerText = '0 km';
+      document.getElementById('countdown').innerText = 'Livrée !';
+
+      const badge = document.getElementById('statusBadge');
+      badge.className = 'sh-status-badge status-termine';
+      badge.innerHTML = '<i class="fas fa-check-circle"></i> Mission terminée';
+
+      addNotif({ ico: 'fas fa-check-circle', color: 'var(--success)', text: 'Mission livrée avec succès !', time: new Date().toLocaleTimeString().slice(0,5) });
+    }
+
+    // ============================================================
+    // PARTIE 6 : NOTIFICATIONS
+    // ============================================================
+    function addNotif(n) {
+      const list = document.getElementById('notifList');
+      if (!list) return;
+      // Supprimer le message "Aucune notification"
+      if (list.querySelector('.empty-notif')) {
+        list.innerHTML = '';
+      }
+      const div = document.createElement('div');
+      div.className = 'notif-item new';
+      div.innerHTML = `
+        <i class="${n.ico} notif-ico" style="color:${n.color}"></i>
+        <div class="notif-text">${n.text}</div>
+        <div class="notif-time">${n.time || new Date().toLocaleTimeString().slice(0,5)}</div>
+      `;
+      list.prepend(div);
+      setTimeout(() => div.classList.remove('new'), 3000);
+      if (list.children.length > 10) list.removeChild(list.lastChild);
+    }
+
+    // ============================================================
+    // PARTIE 7 : FIREBASE (GPS LIVE)
+    // ============================================================
+    function initRealtimeTracking() {
+      if (!_missionRef) return;
+
+      // Chargement dynamique de Firebase
+      Promise.all([
+        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js')
+      ]).then(([{ initializeApp }, { getDatabase, ref, onValue }]) => {
+        const firebaseConfig = {
+          apiKey: "AIzaSyAbPM7pM4umkuG1k_MAUYxddHQMNP9UebM",
+          authDomain: "bathily-convoyage-c211b.firebaseapp.com",
+          databaseURL: "https://bathily-convoyage-c211b-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "bathily-convoyage-c211b",
+          storageBucket: "bathily-convoyage-c211b.firebasestorage.app",
+          messagingSenderId: "115133170172",
+          appId: "1:115133170172:web:5fcdc2b835f6df157b3279"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const tripRef = ref(db, `missions/${_missionRef}/gps/current`);
+
+        onValue(tripRef, (snapshot) => {
+          const data = snapshot.val();
+          if (data && data.lat && data.lng) {
+            // Arrêter la simulation
+            stopSimulation();
+            isSimulating = false;
+
+            // Mettre à jour la position
+            const coords = [data.lat, data.lng];
+            if (carMarker) carMarker.setLatLng(coords);
+
+            // Mettre à jour l'interface
+            if (data.speed) {
+              const speed = Math.round(data.speed);
+              document.getElementById('speedVal').innerHTML = speed + '<em> km/h</em>';
+              document.getElementById('speedBar').innerText = speed + ' km/h';
+            }
+            if (data.fuel !== undefined) {
+              const fuel = Math.round(data.fuel);
+              document.getElementById('fuelLevel').innerHTML = fuel + '<em>%</em>';
+              document.getElementById('fuelBar').innerText = fuel + '%';
+            }
+            if (data.accuracy) {
+              document.getElementById('currentCoords').innerText =
+                `${data.lat.toFixed(4)}°N, ${data.lng.toFixed(4)}°E (±${data.accuracy}m)`;
+            } else {
+              document.getElementById('currentCoords').innerText =
+                `${data.lat.toFixed(4)}°N, ${data.lng.toFixed(4)}°E`;
+            }
+            if (data.location) {
+              document.getElementById('currentLoc').innerText = data.location;
+              document.getElementById('lastPos').innerText = data.location;
+            }
+            if (data.pct !== undefined) {
+              const pct = Math.min(data.pct, 100);
+              document.getElementById('progressBar').style.width = pct + '%';
+              document.getElementById('pctDone').innerText = pct + '% — ' + (data.km_restant || '?') + ' km restants';
+              if (data.km_parcourus !== undefined) {
+                document.getElementById('kmDone').innerText = Math.round(data.km_parcourus) + ' km parcourus';
+              }
+            }
+            if (data.eta) {
+              document.getElementById('etaTime').innerText = data.eta;
+            }
+            if (data.countdown) {
+              document.getElementById('countdown').innerText = data.countdown;
+            }
+
+            lastUpdateSec = 0;
+
+            // Ajouter une notification si c'est la première position
+            if (data.firstPosition === true) {
+              addNotif({
+                ico: 'fas fa-satellite',
+                color: 'var(--bordeaux)',
+                text: 'GPS activé • Suivi en temps réel',
+                time: new Date().toLocaleTimeString().slice(0,5)
+              });
+            }
+          }
+        });
+      }).catch(err => {
+        console.warn("Firebase non disponible, utilisation de la simulation", err);
+        // Si Firebase échoue, démarrer la simulation
+        if (!isSimulating && !document.querySelector('.notif-item')) {
+          startSimulation();
+        }
+      });
+    }
+
+    // ============================================================
+    // PARTIE 8 : CONTRÔLES & MODALES
+    // ============================================================
+    function centerOnCar() {
+      if (carMarker) {
+        map.setView(carMarker.getLatLng(), 12);
+      } else if (startMarker) {
+        map.setView(startMarker.getLatLng(), 8);
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    function refreshData() {
+      lastUpdateSec = 0;
+      document.getElementById('lastUpdate').innerText = '0';
+      // Recharger les données de la mission
+      loadMissionDetails();
+    }
+
+    function copyLink() {
+      const input = document.getElementById('shareLink');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(input.value).then(() => {
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Lien copié !', timer: 1500, showConfirmButton: false });
+        }).catch(() => {
+          input.select();
+          document.execCommand('copy');
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Lien copié !', timer: 1500, showConfirmButton: false });
+        });
+      } else {
+        input.select();
+        document.execCommand('copy');
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Lien copié !', timer: 1500, showConfirmButton: false });
+      }
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    // Fermer les modales en cliquant à l'extérieur
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+      m.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('open');
+      });
+    });
+
+    // ============================================================
+    // PARTIE 9 : TIMER DE MISE À JOUR
+    // ============================================================
     setInterval(() => {
       lastUpdateSec++;
       const el = document.getElementById('lastUpdate');
       if (el) el.innerText = lastUpdateSec;
     }, 1000);
 
-    function showMissionDone() {
-      document.getElementById('progressBar').style.width = '100%';
-      const badge = document.querySelector('.sh-status-badge');
-      if (badge) {
-        badge.className = 'sh-status-badge status-termine';
-        badge.innerHTML = '<i class="fas fa-check-circle"></i> Mission termin€e';
+    // ============================================================
+    // PARTIE 10 : INITIALISATION
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+      // Curseur personnalisé
+      if (window.matchMedia('(hover: hover)').matches) {
+        const cur = document.getElementById('cur'), cring = document.getElementById('cring');
+        let mx = 0, my = 0, rx = 0, ry = 0;
+        document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cur.style.left = mx + 'px'; cur.style.top = my + 'px' });
+        (function loop() { rx += (mx - rx) * .11; ry += (my - ry) * .11; cring.style.left = rx + 'px'; cring.style.top = ry + 'px'; requestAnimationFrame(loop) })();
       }
-      addNotif({ ico: 'fas fa-check-circle', color: 'var(--success)', text: 'Mission livr€e avec succ€s !', time: new Date().toLocaleTimeString().slice(0, 5) });
-    }
 
-    // ========== €TAPE 6 : INTÉGRATION LIVE FIREBASE SECTEUR CONTROLED ==========
-    function initRealtimeTracking() {
-      if (!STATE.émissionRef) return;
+      // Initialiser la carte
+      initMap();
 
-      try {
-        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js").then(({ initializeApp }) => {
-          import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(({ getDatabase, ref, onValue }) => {
+      // Charger les détails de la mission
+      loadMissionDetails();
 
-            const firebaseConfig = {
-              apiKey: "AIzaSyAbPM7pM4umkuG1k_MAUYxddHQMNP9UebM",
-              authDomain: "bathily-convoyage-c211b.firebaseapp.com",
-              databaseURL: "https://bathily-convoyage-c211b-default-rtdb.europe-west1.firebasedatabase.app",
-              projectId: "bathily-convoyage-c211b",
-              storageBucket: "bathily-convoyage-c211b.firebasestorage.app",
-              messagingSenderId: "115133170172",
-              appId: "1:115133170172:web:5fcdc2b835f6df157b3279"
-            };
+      // Reveal animations
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+      }, { threshold: 0.1 });
+      document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-            const app = initializeApp(firebaseConfig);
-            const db = getDatabase(app);
-            const tripRef = ref(db, `émissions/${STATE.émissionRef}/gps/current`);
-
-            onValue(tripRef, (snapshot) => {
-              const data = snapshot.val();
-              if (data && data.lat && data.lng) {
-                stopSimulation(); // Coupe la simulation s'il y a de vraies coordonn€es GPS
-
-                if (carMarker) carMarker.setLatLng([data.lat, data.lng]);
-                if (data.speed) {
-                  document.getElementById('speedVal').innerHTML = Math.round(data.speed) + '<em> km/h</em>';
-                  document.getElementById('speedBar').innerText = Math.round(data.speed) + ' km/h';
-                }
-                if (data.accuracy) {
-                  document.getElementById('currentCoords').innerText = `${data.lat.toFixed(4)}€N € ${data.lng.toFixed(4)}€E (€${data.accuracy}m)`;
-                }
-                lastUpdateSec = 0;
-              }
-            });
-          });
-        }).catch(e => console.warn("Firebase non disponible", e));
-      } catch (e) {
-        console.error("Erreur d'initialisation Firebase:", e);
-      }
-    }
-
-    // ========== €TAPE 7 : CONTR€LES & MODALES ==========
-    function centerOnCar() {
-      if (carMarker) map.setView(carMarker.getLatLng(), 12);
-    }
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-      else document.exitFullscreen();
-    }
-    function refreshData() {
-      lastUpdateSec = 0;
-      document.getElementById('lastUpdate').innerText = '0';
-    }
-    function copyLink() {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Lien copi€ dans le presse-papier !');
-    }
-    function openModal(id) { document.getElementById(id).classList.add('open'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-    document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function (e) { if (e.target === this) this.classList.remove('open') }));
-
-    // Scroll Reveal Observer
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-    // Lancement au chargement du DOM
-    document.addEventListener('DOMContentLoaded', loadMissionDetails);
+      // Ajouter une notification de bienvenue
+      setTimeout(() => {
+        addNotif({
+          ico: 'fas fa-info-circle',
+          color: 'var(--bordeaux)',
+          text: 'Suivi GPS activé • Veuillez patienter...',
+          time: new Date().toLocaleTimeString().slice(0,5)
+        });
+      }, 500);
+    });
   </script>
 </body>
-
 </html>

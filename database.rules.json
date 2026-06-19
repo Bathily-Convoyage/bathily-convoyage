@@ -5,33 +5,32 @@
     
     "missions": {
       "$missionId": {
-        ".read": "auth != null && (data.child('convoyeurId').val() == auth.token.supabaseUid || data.child('clientId').val() == auth.token.supabaseUid || data.child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
-        ".write": "auth != null && (newData.child('convoyeurId').val() == auth.token.supabaseUid || data.child('convoyeurId').val() == auth.token.supabaseUid || newData.child('convoyeurId').val() == auth.uid || data.child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+        ".read": "auth != null && (data.child('convoyeurId').val() == auth.uid || data.child('clientId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+        ".write": "auth != null && (newData.child('convoyeurId').val() == auth.uid || data.child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
         
         "convoyeurId": {
           ".validate": "newData.isString() && newData.val().length > 0"
         },
-        
         "clientId": {
           ".validate": "newData.isString() && newData.val().length > 0"
         },
         
         "gps": {
           "current": {
-            ".read": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || data.parent().parent().parent().child('clientId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('clientId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
-            ".write": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
-            ".validate": "newData.hasChildren(['lat', 'lng', 'accuracy', 'timestamp', 'mission', 'status', 'convoyeurId'])"
+            ".read": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.uid || data.parent().parent().parent().child('clientId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            ".write": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            ".validate": "newData.hasChildren(['lat', 'lng', 'timestamp']) && newData.child('lat').isNumber() && newData.child('lng').isNumber()"
           },
           "history": {
-            ".read": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || data.parent().parent().parent().child('clientId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('clientId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
-            ".write": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            ".read": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.uid || data.parent().parent().parent().child('clientId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            ".write": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
             "$timestamp": {
-              ".validate": "newData.hasChildren(['lat', 'lng', 'accuracy', 'timestamp', 'mission', 'status', 'convoyeurId'])"
+              ".validate": "newData.hasChildren(['lat', 'lng', 'timestamp']) && newData.child('lat').isNumber() && newData.child('lng').isNumber()"
             }
           },
           "status": {
-            ".read": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || data.parent().parent().parent().child('clientId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('clientId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
-            ".write": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.token.supabaseUid || data.parent().parent().parent().child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            ".read": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.uid || data.parent().parent().parent().child('clientId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
+            ".write": "auth != null && (data.parent().parent().parent().child('convoyeurId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin')",
             ".validate": "newData.val() == 'online' || newData.val() == 'offline' || newData.val() == 'arrived' || newData.val() == 'in_transit'"
           }
         },

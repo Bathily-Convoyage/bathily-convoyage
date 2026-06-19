@@ -2,13 +2,13 @@ const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
 
 exports.handler = async (event, context) => {
-  // Configurer les headers CORS pour autoriser l'accès depuis le frontend
-  const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr'];
+  // Configurer les headers CORS
+  const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr', 'http://localhost:5173', 'http://localhost:3000'];
   const origin = event.headers.origin || event.headers.Origin || '';
   const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
   const headers = {
     'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Content-Type': 'application/json'
   };
@@ -35,11 +35,8 @@ exports.handler = async (event, context) => {
     if (!process.env.STRIPE_SECRET_KEY) {
       throw new Error("La variable d'environnement STRIPE_SECRET_KEY est manquante.");
     }
-    if (!process.env.SUPABASE_URL) {
-      throw new Error("La variable d'environnement SUPABASE_URL est manquante.");
-    }
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error("La variable d'environnement SUPABASE_SERVICE_ROLE_KEY est manquante.");
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Les variables d'environnement Supabase sont manquantes.");
     }
 
     const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -48,8 +45,35 @@ exports.handler = async (event, context) => {
       process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
+    // Récupérer les données et le token
     const { missionId, successUrl, cancelUrl } = JSON.parse(event.body);
+    const authHeader = event.headers.authorization || event.headers.Authorization || '';
 
+    if (!authHeader.startsWith('Bearer ')) {
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: 'Token d\'authentification requis.' })
+      };
+    }
+    const token = authHeader.split(' ')[1];
+
+    // Vérifier l'utilisateur authentifié
+    const supabaseAnon = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    const { data: { user }, error: userError } = await supabaseAnon.auth.getUser(token);
+
+    if (userError || !user) {
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: 'Session invalide. Veuillez vous reconnecter.' })
+      };
+    }
+
+    // Vérifier les paramètres requis
     if (!missionId || !successUrl || !cancelUrl) {
       return {
         statusCode: 400,
@@ -58,7 +82,7 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // 1. Récupérer la mission en base de données de manière sécurisée
+    // 1. Récupérer la mission en base de données
     const { data: mission, error: selectError } = await supabase
       .from('missions')
       .select('*')
@@ -73,6 +97,43 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // 2. Vérifier que l'utilisateur est le client de la mission OU un admin
+    const { data: profile } = await supabaseAnon
+      .from('clients')
+      .select('role')
+      .eq('auth_user_id', user.id)
+      .maybeSingle();
+
+    const isAdmin = profile?.role === 'admin';
+    const isClient = mission.client_id === user.id;
+
+    if (!isClient && !isAdmin) {
+      return {
+        statusCode: 403,
+        headers,
+        body: JSON.stringify({ error: 'Vous n\'êtes pas autorisé à payer cette mission.' })
+      };
+    }
+
+    // 3. Vérifier que la mission n'est pas déjà payée
+    if (mission.paiement_statut === 'paid') {
+      return {
+        statusCode: 409,
+        headers,
+        body: JSON.stringify({ error: 'Cette mission est déjà payée.' })
+      };
+    }
+
+    // 4. Vérifier que la mission est dans un état paiement possible
+    const statut = mission.statut || mission.status || 'planned';
+    if (statut === 'cancelled' || statut === 'completed') {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Cette mission ne peut pas être payée (annulée ou terminée).' })
+      };
+    }
+
     const priceHt = parseFloat(mission.montant_ht);
     if (isNaN(priceHt) || priceHt <= 0) {
       return {
@@ -82,12 +143,18 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // 2. Calculer le montant TTC en centimes (TVA 20% incluse)
-    // Stripe requiert les montants en centimes (ex: 10,00 € = 1000)
+    // 5. Calculer le montant TTC en centimes (TVA 20% incluse)
     const amountTtcCents = Math.round(priceHt * 1.20 * 100);
 
-    // 3. Créer la session de paiement Stripe Checkout
-    const description = `Convoyage ${mission.vehicule || 'Véhicule'} : ${mission.depart.split('(')[0].trim()} ➔ ${mission.arrivee.split('(')[0].trim()} · Réf: ${mission.reference}`;
+    // 6. Forcer les URLs de succès et d'annulation depuis le serveur
+    const baseUrl = process.env.URL || 'https://www.bathily-convoyage.fr';
+    const successUrlFinal = `${baseUrl}/dashboard-client.html?payment_status=success&mission_id=${missionId}`;
+    const cancelUrlFinal = `${baseUrl}/dashboard-client.html?payment_status=cancel&mission_id=${missionId}`;
+
+    // 7. Créer la session de paiement Stripe Checkout
+    const dep = (mission.depart || '').split('(')[0].trim();
+    const arr = (mission.arrivee || '').split('(')[0].trim();
+    const description = `Convoyage ${mission.vehicule || 'Véhicule'} : ${dep} ➔ ${arr} · Réf: ${mission.reference}`;
     
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -105,15 +172,16 @@ exports.handler = async (event, context) => {
         },
       ],
       mode: 'payment',
-      success_url: `${successUrl}?payment_status=success&mission_id=${missionId}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${cancelUrl}?payment_status=cancel&mission_id=${missionId}`,
+      success_url: successUrlFinal,
+      cancel_url: cancelUrlFinal,
       metadata: {
         mission_id: missionId,
-        reference: mission.reference
+        reference: mission.reference,
+        client_id: user.id
       }
     });
 
-    // 4. Mettre à jour la mission avec l'ID de la session Stripe
+    // 8. Mettre à jour la mission avec l'ID de la session Stripe
     const { error: updateError } = await supabase
       .from('missions')
       .update({ stripe_session_id: session.id })
@@ -121,7 +189,6 @@ exports.handler = async (event, context) => {
 
     if (updateError) {
       console.error("Erreur lors de l'enregistrement de la session Stripe :", updateError.message);
-      // On continue quand même car la session Stripe est créée
     }
 
     return {

@@ -26,7 +26,7 @@ exports.handler = async (event, context) => {
 
   try {
     const parsedBody = JSON.parse(event.body);
-    const { trigger, id, notes, payment_url, temp_password } = parsedBody;
+    const { trigger, id, notes, payment_url, temp_password, prenom } = parsedBody;
 
     if (!trigger || !id) {
       return {
@@ -48,7 +48,7 @@ exports.handler = async (event, context) => {
       console.warn("Attention : RESEND_API_KEY manquante. Les e-mails seront loggés mais pas envoyés.");
     }
 
-    // Sender config (Use verified domain or Resend onboarding email)
+    // Sender config
     const FROM_EMAIL = process.env.EMAIL_FROM || 'onboarding@resend.dev';
     const ADMIN_EMAIL = process.env.EMAIL_ADMIN || 'contact@bathily-convoyage.fr';
 
@@ -125,9 +125,46 @@ Corps: ${html.substring(0, 300)}...`);
     let resultData = {};
 
     // ==========================================
+    // 0. ÉVÉNEMENT : CONVOYEUR APPROUVÉ
+    // ==========================================
+    if (trigger === 'convoyeur_approved') {
+      const email = id; // id est en fait l'email du convoyeur
+      const convoyeurPrenom = prenom || 'Convoyeur';
+      const tempPwd = temp_password;
+
+      const welcomeHtml = wrapEmailLayout(
+        "Votre compte convoyeur est activé ! 🚚",
+        `<p>Bonjour ${convoyeurPrenom},</p>
+         <p>Nous avons le plaisir de vous annoncer que votre compte convoyeur a été **activé** !</p>
+         <p>Vous pouvez désormais vous connecter à votre espace convoyeur et postuler aux missions disponibles.</p>
+         <div class="highlight-box">
+           <strong>Vos identifiants de connexion :</strong><br>
+           <strong>Email :</strong> ${email}<br>
+           <strong>Mot de passe temporaire :</strong> <code style="background:#F9F6F0;padding:2px 8px;border-radius:4px;font-size:14px;font-weight:bold;">${tempPwd}</code>
+           <br><br>
+           <small>Nous vous recommandons de modifier ce mot de passe lors de votre première connexion.</small>
+         </div>
+         <p style="text-align: center;">
+           <a href="https://bathily-convoyage.fr/dashboard-convoyeur.html" class="btn">Accéder à mon Espace Convoyeur</a>
+         </p>
+         <h3>Pour bien démarrer :</h3>
+         <ul>
+           <li>✅ Consultez les missions disponibles dans l'onglet "Marché"</li>
+           <li>✅ Postulez aux missions qui vous correspondent</li>
+           <li>✅ Activez votre GPS lors de chaque prise en charge</li>
+           <li>✅ Réalisez les 20 photos d'état des lieux à chaque mission</li>
+         </ul>`
+      );
+
+      await sendEmail({ to: email, subject: "Votre compte convoyeur Bathily est activé ! 🚚", html: welcomeHtml });
+      resultData = { success: true, message: 'Email de bienvenue convoyeur envoyé.' };
+    }
+
+    // ==========================================
     // 1. ÉVÉNEMENT : DEVIS CRÉÉ
     // ==========================================
-    if (trigger === 'devis_created') {
+    else if (trigger === 'devis_created') {
+      // ... (identique à l'original)
       const { data: devis, error } = await supabase
         .from('devis')
         .select('*')
@@ -139,7 +176,6 @@ Corps: ${html.substring(0, 300)}...`);
       const details = devis.details || {};
       const devisURL = `https://bathily-convoyage.fr/dashboard-client.html`;
 
-      // Email client
       const clientHtml = wrapEmailLayout(
         "Votre demande de devis est bien reçue !",
         `<p>Bonjour ${devis.client_prenom || ''},</p>
@@ -161,7 +197,6 @@ Corps: ${html.substring(0, 300)}...`);
          </p>`
       );
 
-      // Email Admin
       const adminHtml = wrapEmailLayout(
         "Nouvelle demande de devis à valider",
         `<p>Bonjour l'administrateur,</p>
@@ -185,6 +220,7 @@ Corps: ${html.substring(0, 300)}...`);
     // 2. ÉVÉNEMENT : CANDIDATURE SOUMISE
     // ==========================================
     else if (trigger === 'candidature_submitted') {
+      // ... (identique à l'original)
       const { data: candidat, error } = await supabase
         .from('convoyeurs_candidats')
         .select('*')
@@ -193,7 +229,6 @@ Corps: ${html.substring(0, 300)}...`);
 
       if (error || !candidat) throw new Error(`Candidat introuvable: ${error?.message}`);
 
-      // Email candidat
       const candidatHtml = wrapEmailLayout(
         "Félicitations pour votre réussite au quiz !",
         `<p>Bonjour ${candidat.prenom},</p>
@@ -206,7 +241,6 @@ Corps: ${html.substring(0, 300)}...`);
          <p>Une fois votre compte validé, vous recevrez vos accès complets pour vous connecter à l'Espace Convoyeur.</p>`
       );
 
-      // Email admin
       const adminHtml = wrapEmailLayout(
         "Nouveau candidat convoyeur à valider",
         `<p>Bonjour l'administrateur,</p>
@@ -231,6 +265,7 @@ Corps: ${html.substring(0, 300)}...`);
     // 3. ÉVÉNEMENT : STATUT CANDIDATURE MODIFIÉ
     // ==========================================
     else if (trigger === 'candidature_status_changed') {
+      // ... (identique à l'original)
       const { data: candidat, error } = await supabase
         .from('convoyeurs_candidats')
         .select('*')
@@ -278,6 +313,7 @@ Corps: ${html.substring(0, 300)}...`);
     // 4. ÉVÉNEMENT : ÉTAT DES LIEUX VALIDÉ
     // ==========================================
     else if (trigger === 'edl_completed') {
+      // ... (identique à l'original)
       const { data: edl, error } = await supabase
         .from('edls')
         .select('*, missions(*)')
@@ -291,13 +327,11 @@ Corps: ${html.substring(0, 300)}...`);
       
       const emailTo = edl.email_client || mission.client_email || 'client@email.fr';
       
-      // Build damages HTML
       let damagesHtml = '<p>Aucun dommage signalé.</p>';
       if (edl.dommages && edl.dommages.length > 0) {
         damagesHtml = '<ul>' + edl.dommages.map(d => `<li><strong>${d.zone}</strong> (${d.type}) : ${d.desc}</li>`).join('') + '</ul>';
       }
 
-      // Build signatures HTML
       let signaturesHtml = '';
       if (edl.signatures) {
         signaturesHtml = `
@@ -319,7 +353,6 @@ Corps: ${html.substring(0, 300)}...`);
         `;
       }
 
-      // Email client HTML
       const clientHtml = wrapEmailLayout(
         `Votre État des lieux d'${typeLabel} est disponible`,
         `<p>Bonjour,</p>
@@ -344,7 +377,6 @@ Corps: ${html.substring(0, 300)}...`);
          </p>`
       );
 
-      // Email Admin HTML
       const adminHtml = wrapEmailLayout(
         `État des lieux d'${typeLabel} complété - ${edl.reference}`,
         `<p>Bonjour l'administrateur,</p>
@@ -371,6 +403,7 @@ Corps: ${html.substring(0, 300)}...`);
     // 5. ÉVÉNEMENT : PAIEMENT VALIDÉ
     // ==========================================
     else if (trigger === 'payment_success') {
+      // ... (identique à l'original)
       const { data: mission, error } = await supabase
         .from('missions')
         .select('*')
@@ -383,7 +416,6 @@ Corps: ${html.substring(0, 300)}...`);
       const priceHt = parseFloat(mission.montant_ht) || 0;
       const priceTtc = priceHt * 1.20;
 
-      // Email client HTML
       const clientHtml = wrapEmailLayout(
         "Votre paiement a été validé ! 🎉",
         `<p>Bonjour ${mission.client_nom.split(' ')[0] || ''},</p>
@@ -407,7 +439,6 @@ Corps: ${html.substring(0, 300)}...`);
          </p>`
       );
 
-      // Email Admin HTML
       const adminHtml = wrapEmailLayout(
         `Paiement reçu pour la mission ${mission.reference}`,
         `<p>Bonjour l'administrateur,</p>
@@ -433,6 +464,7 @@ Corps: ${html.substring(0, 300)}...`);
     // 6. ÉVÉNEMENT : DEVIS CONFIRMÉ + LIEN PAIEMENT
     // ==========================================
     else if (trigger === 'devis_confirmed') {
+      // ... (identique à l'original)
       const paymentUrl = payment_url;
 
       const { data: devis, error } = await supabase
@@ -463,6 +495,28 @@ Corps: ${html.substring(0, 300)}...`);
 
       await sendEmail({ to: clientEmail, subject: `Bathily Convoyage - Votre devis ${devis.reference} est prêt`, html: clientHtml });
       resultData = { success: true, message: 'Email lien paiement envoyé.' };
+    }
+
+    // ==========================================
+    // 7. ÉVÉNEMENT : RÉINITIALISATION DE MOT DE PASSE
+    // ==========================================
+    else if (trigger === 'reset_password') {
+      const email = id; // id est l'email
+      const resetLink = `https://bathily-convoyage.fr/reset-password.html`;
+
+      const resetHtml = wrapEmailLayout(
+        "Réinitialisation de votre mot de passe",
+        `<p>Bonjour,</p>
+         <p>Vous avez demandé à réinitialiser votre mot de passe pour votre compte Bathily Convoyage.</p>
+         <p>Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :</p>
+         <p style="text-align: center;">
+           <a href="${resetLink}" class="btn">Réinitialiser mon mot de passe</a>
+         </p>
+         <p style="font-size:12px;color:#6B625A;text-align:center">Ce lien est valable 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email.</p>`
+      );
+
+      await sendEmail({ to: email, subject: "Bathily Convoyage - Réinitialisation de votre mot de passe", html: resetHtml });
+      resultData = { success: true, message: 'Email de réinitialisation envoyé.' };
     }
 
     return {

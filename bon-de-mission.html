@@ -1,1399 +1,854 @@
-﻿
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Bon de Mission réseau Bathily convoyage</title>
-<meta name="description" content="Bon de émission pour convoyeur Bathily : planning, checklist, instructions, signatures et dréseaumarrage officiel de la émission.">
-<meta property="og:title" content="Bon de Mission réseau Bathily Convoyage">
-<meta property="og:description" content="Document officiel de émission comprenant le trajet, le vréseauhicule, les instructions, la checklist et les signatures.">
-<meta property="og:type" content="website">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⭐%3C/text%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/supabase-config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-body {
-  font-family: 'Inter', sans-serif;
-  background: #FDFBF7;
-  color: #2D2A24;
-  line-height: 1.5;
-  overflow-x: hidden;
-}
-.container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-:root {
-  --bordeaux: #0A4D68;
-  --bordeaux-dark: #063244;
-  --bordeaux-light: #E6F0F4;
-  --cream: #FDFBF7;
-  --beige: #F9F6F0;
-  --gray-dark: #2D2A24;
-  --gray-mid: #6B625A;
-  --border-light: #E8E1D9;
-  --success: #4A7C6B;
-  --warning: #F5A623;
-}
-/* Curseur personnalisréseau seulement sur souris */
-@media (hover: hover) {
-  .cur{position:fixed;width:8px;height:8px;background:var(--bordeaux);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
-  .cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(122,46,26,.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
-}
-@media (hover: none) {
-  .cur, .cur-ring { display: none; }
-}
-/* Topbar */
-.topbar {
-  background: white;
-  border-bottom: 1px solid var(--border-light);
-  padding: 0 32px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  gap: 16px;
-}
-.topbar-logo {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--gray-dark);
-  text-decoration: none;
-  letter-spacing: -0.02em;
-  flex-shrink: 0;
-}
-.topbar-logo span { color: var(--bordeaux); }
-.topbar-mid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-}
-.topbar-title {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--gray-mid);
-}
-.topbar-ref {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--bordeaux);
-}
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-.tb-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 6px 12px;
-  border-radius: 40px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-}
-.tb-ghost {
-  background: transparent;
-  border: 1px solid var(--border-light);
-  color: var(--gray-mid);
-}
-.tb-ghost:hover {
-  border-color: var(--bordeaux);
-  color: var(--bordeaux);
-}
-.tb-green {
-  background: var(--success);
-  color: white;
-}
-.tb-green:hover {
-  background: #3a5f4f;
-  transform: translateY(-1px);
-}
-/* Status bar */
-.status-bar {
-  background: white;
-  border-bottom: 1px solid var(--border-light);
-  padding: 8px 32px;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-.sb-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--gray-mid);
-}
-.sb-item i { font-size: 0.75rem; }
-.sb-val { color: var(--gray-dark); font-weight: 700; }
-.sb-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 10px;
-  border-radius: 40px;
-  font-size: 0.65rem;
-  font-weight: 700;
-}
-.ss-planifie { background: rgba(41,128,185,0.1); border: 1px solid rgba(41,128,185,0.2); color: #2980b9; }
-.ss-cours { background: rgba(74,124,107,0.1); border: 1px solid rgba(74,124,107,0.25); color: var(--success); }
-.ss-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-/* Main */
-.bon-main {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 32px 24px 80px;
-}
-/* Document header */
-.doc-header {
-  background: white;
-  border: 1px solid var(--border-light);
-  border-radius: 24px;
-  padding: 32px;
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  gap: 32px;
-}
-.dh-logo {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 800;
-  margin-bottom: 4px;
-}
-.dh-logo span { color: var(--bordeaux); }
-.dh-tagline {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--gray-mid);
-  margin-bottom: 12px;
-}
-.dh-contact {
-  font-size: 0.7rem;
-  color: var(--gray-mid);
-  line-height: 1.6;
-}
-.dh-right { text-align: right; flex-shrink: 0; }
-.dh-doc-title {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-.dh-doc-title em { color: var(--bordeaux); font-style: normal; }
-.dh-ref {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  margin: 4px 0;
-}
-.dh-date { font-size: 0.7rem; color: var(--gray-mid); }
-.dh-badges {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 12px;
-}
-.dh-badge {
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 3px 10px;
-  border-radius: 40px;
-}
-.badge-depart { background: rgba(41,128,185,0.1); color: #2980b9; border: 1px solid rgba(41,128,185,0.2); }
-.badge-ev { background: rgba(74,124,107,0.1); color: var(--success); border: 1px solid rgba(74,124,107,0.2); }
-/* Sections */
-.section {
-  background: white;
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-.section-header {
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--border-light);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-.sh-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.sh-ico { font-size: 1rem; color: var(--bordeaux); }
-.sh-title {
-  font-weight: 700;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-}
-.sh-tag {
-  font-size: 0.6rem;
-  font-weight: 700;
-  background: var(--bordeaux-light);
-  border: 1px solid var(--bordeaux);
-  color: var(--bordeaux);
-  padding: 2px 10px;
-  border-radius: 40px;
-}
-.section-body { padding: 20px 24px; }
-/* Data grids */
-.data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.data-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
-.data-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
-.data-lbl {
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--gray-mid);
-  margin-bottom: 4px;
-}
-.data-val {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--gray-dark);
-}
-.data-val.highlight {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--bordeaux);
-}
-.data-val.green { color: var(--success); }
-/* Route visual */
-.route-visual {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin: 16px 0;
-  padding: 16px;
-  background: var(--beige);
-  border-radius: 20px;
-}
-.rv-point { flex-shrink: 0; text-align: center; }
-.rv-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin: 0 auto 6px;
-  border: 2px solid;
-}
-.rv-dot-dep { border-color: #2980b9; background: rgba(41,128,185,0.2); }
-.rv-dot-arr { border-color: var(--success); background: rgba(74,124,107,0.2); }
-.rv-city {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-.rv-addr {
-  font-size: 0.6rem;
-  color: var(--gray-mid);
-  max-width: 140px;
-  line-height: 1.3;
-}
-.rv-line-wrap {
-  flex: 1;
-  position: relative;
-  margin: 0 12px;
-  padding-top: 20px;
-}
-.rv-infos {
-  position: absolute;
-  top: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.55rem;
-  font-weight: 700;
-  background: white;
-  padding: 2px 8px;
-  border-radius: 40px;
-  white-space: nowrap;
-  color: var(--gray-mid);
-}
-.rv-line {
-  height: 2px;
-  background: linear-gradient(90deg, #2980b9, var(--success));
-  position: relative;
-}
-.rv-line::afêter {
-  content: '?';
-  position: absolute;
-  right: -10px;
-  top: -8px;
-  font-size: 0.8rem;
-  color: var(--success);
-}
-/* Vehicle card */
-.vehicule-card {
-  display: flex;
-  gap: 20px;
-  background: var(--beige);
-  border-radius: 20px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-.vc-ico {
-  width: 56px;
-  height: 56px;
-  background: white;
-  border: 1px solid var(--border-light);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: var(--bordeaux);
-}
-.vc-name {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-.vc-plate {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  background: var(--bordeaux-light);
-  padding: 2px 8px;
-  border-radius: 40px;
-  display: inline-block;
-  margin: 6px 0;
-  color: var(--bordeaux);
-}
-.vc-specs { display: flex; gap: 16px; flex-wrap: wrap; }
-.vc-spec {
-  font-size: 0.7rem;
-  color: var(--gray-mid);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.vc-spec i { color: var(--bordeaux); }
-/* Convoyeur card */
-.conv-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: var(--beige);
-  border-radius: 20px;
-  padding: 16px;
-}
-.conv-ava {
-  width: 48px;
-  height: 48px;
-  background: var(--bordeaux-light);
-  border: 1px solid var(--bordeaux);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--bordeaux);
-}
-.conv-name {
-  font-weight: 700;
-  font-size: 0.9rem;
-}
-.conv-meta {
-  font-size: 0.7rem;
-  color: var(--gray-mid);
-}
-/* Checklist */
-.checklist {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.check-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.check-item:hover {
-  border-color: var(--bordeaux-light);
-  background: var(--beige);
-}
-.check-item.checked {
-  border-color: var(--success);
-  background: rgba(74,124,107,0.05);
-}
-.check-box {
-  width: 20px;
-  height: 20px;
-  border: 1px solid var(--border-light);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 2px;
-  transition: all 0.2s;
-}
-.check-item.checked .check-box {
-  background: var(--success);
-  border-color: var(--success);
-}
-.check-item.checked .check-box::afêter {
-  content: '?';
-  font-size: 0.7rem;
-  color: white;
-}
-.check-title {
-  font-weight: 700;
-  font-size: 0.8rem;
-}
-.check-desc {
-  font-size: 0.7rem;
-  color: var(--gray-mid);
-}
-.check-required {
-  font-size: 0.55rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--bordeaux);
-  margin-left: auto;
-}
-/* Timeline */
-.timeline {
-  position: relative;
-  padding-left: 20px;
-}
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 8px;
-  top: 12px;
-  bottom: 12px;
-  width: 1px;
-  background: var(--border-light);
-}
-.tl-item {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-  position: relative;
-}
-.tl-dot {
-  width: 28px;
-  height: 28px;
-  background: white;
-  border: 1px solid var(--border-light);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
-  font-weight: 700;
-  z-index: 1;
-}
-.tl-dot.active {
-  border-color: var(--bordeaux);
-  background: var(--bordeaux-light);
-  color: var(--bordeaux);
-  animation: pulseBorder 1.5s infinite;
-}
-@keyframes pulseBorder {
-  0% { box-shadow: 0 0 0 0 rgba(122,46,26,0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(122,46,26,0); }
-  100% { box-shadow: 0 0 0 0 rgba(122,46,26,0); }
-}
-.tl-dot.done {
-  background: var(--success);
-  border-color: var(--success);
-  color: white;
-}
-.tl-time {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--bordeaux);
-  margin-bottom: 4px;
-}
-.tl-title {
-  font-weight: 700;
-  font-size: 0.8rem;
-  margin-bottom: 4px;
-}
-.tl-sub {
-  font-size: 0.7rem;
-  color: var(--gray-mid);
-}
-/* Tarif table */
-.tarif-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.tarif-table th {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--bordeaux);
-  padding: 8px 12px;
-  text-align: left;
-  border-bottom: 1px solid var(--border-light);
-}
-.tarif-table td {
-  padding: 8px 12px;
-  font-size: 0.75rem;
-  border-bottom: 1px solid var(--border-light);
-}
-.tarif-total td {
-  border-top: 1px solid var(--bordeaux);
-  font-weight: 700;
-}
-.price-td {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  color: var(--success);
-}
-.price-td-total {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 700;
-  color: var(--bordeaux);
-}
-/* Instructions */
-.instructions-list { display: flex; flex-direction: column; gap: 8px; }
-.instr-item {
-  display: flex;
-  gap: 12px;
-  padding: 12px;
-  border-left: 2px solid var(--border-light);
-  background: var(--beige);
-  border-radius: 12px;
-}
-.instr-item.important { border-left-color: var(--bordeaux); background: var(--bordeaux-light); }
-.instr-item.info { border-left-color: #2980b9; background: rgba(41,128,185,0.04); }
-.instr-item.success { border-left-color: var(--success); background: rgba(74,124,107,0.04); }
-.instr-ico { font-size: 0.9rem; flex-shrink: 0; margin-top: 2px; }
-.instr-item.important .instr-ico { color: var(--bordeaux); }
-.instr-text { font-size: 0.75rem; line-height: 1.5; }
-/* Urgence grid */
-.urgence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.urgence-card {
-  background: var(--beige);
-  border-radius: 16px;
-  padding: 12px;
-}
-.urg-title {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--bordeaux);
-  margin-bottom: 6px;
-}
-.urg-val {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-.urg-note { font-size: 0.6rem; color: var(--gray-mid); }
-/* QR section */
-.qr-section {
-  display: flex;
-  gap: 20px;
-  background: var(--beige);
-  border-radius: 20px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-.qr-code {
-  width: 64px;
-  height: 64px;
-  background: white;
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: var(--gray-mid);
-}
-.qr-title {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--bordeaux);
-}
-.qr-sub { font-size: 0.7rem; color: var(--gray-mid); line-height: 1.4; }
-/* Signature section */
-.sig-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.sig-block {
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 20px;
-}
-.sig-title {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--gray-mid);
-  margin-bottom: 8px;
-}
-.sig-name {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-}
-.sig-date {
-  font-size: 0.65rem;
-  color: var(--gray-mid);
-  margin-bottom: 12px;
-}
-.sig-area {
-  height: 80px;
-  border: 1px dashed var(--border-light);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.sig-area:hover {
-  border-color: var(--bordeaux);
-  background: var(--bordeaux-light);
-}
-.sig-area span {
-  font-size: 0.7rem;
-  color: var(--gray-mid);
-  font-style: italic;
-}
-.sig-done-badge {
-  display: none;
-  background: rgba(74,124,107,0.1);
-  border: 1px solid rgba(74,124,107,0.25);
-  border-radius: 40px;
-  padding: 4px 12px;
-  margin-top: 12px;
-  width: fit-content;
-  gap: 6px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--success);
-}
-.sig-done-badge.show { display: flex; }
-/* Alerts */
-.alert {
-  display: flex;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 16px;
-  font-size: 0.7rem;
-  margin-bottom: 16px;
-}
-.alert-warn {
-  background: rgba(224,163,67,0.08);
-  border: 1px solid rgba(224,163,67,0.2);
-  color: var(--warning);
-}
-.alert-info {
-  background: rgba(41,128,185,0.08);
-  border: 1px solid rgba(41,128,185,0.2);
-  color: #2980b9;
-}
-.alert-success {
-  background: rgba(74,124,107,0.08);
-  border: 1px solid rgba(74,124,107,0.2);
-  color: var(--success);
-}
-/* Map placeholder */
-.map-ph {
-  height: 160px;
-  background: var(--beige);
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: var(--gray-mid);
-}
-.map-ph i { font-size: 1.5rem; opacity: 0.5; }
-/* Sticky actions */
-.doc-actions {
-  position: sticky;
-  bottom: 0;
-  background: white;
-  border-top: 1px solid var(--border-light);
-  padding: 12px 24px;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  z-index: 100;
-}
-.da-left, .da-right {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-.da-progress {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--gray-mid);
-}
-.da-progress span { color: var(--success); }
-/* Reveal animation */
-.reveal {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-/* Print */
-@media print {
-  .topbar, .status-bar, .doc-actions { display: none !important; }
-  body { background: white; color: black; }
-  .section, .doc-header, .qr-section { border-color: #ddd !important; background: white !important; }
-}
-/* Responsive */
-@media (max-width: 768px) {
-  .topbar-mid { display: none; }
-  .doc-header { flex-direction: column; }
-  .dh-right { text-align: left; }
-  .dh-badges { justify-content: flex-start; }
-  .data-grid, .data-grid-3, .data-grid-4, .sig-section, .urgence-grid { grid-template-columns: 1fr; }
-  .bon-main { padding: 16px; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Bon de Mission — Bathily Convoyage</title>
+  <meta name="description" content="Bon de mission officiel pour le convoyeur Bathily : planning, checklist, instructions, signatures et démarrage de la mission.">
+  <meta property="og:title" content="Bon de Mission — Bathily Convoyage">
+  <meta property="og:description" content="Document officiel de mission comprenant le trajet, le véhicule, les instructions, la checklist et les signatures.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⭐%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    /* ========== STYLES (inchangés, identiques à l'original) ========== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #FDFBF7; color: #2D2A24; line-height: 1.5; overflow-x: hidden; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    :root {
+      --bordeaux: #0A4D68;
+      --bordeaux-dark: #063244;
+      --bordeaux-light: #E6F0F4;
+      --cream: #FDFBF7;
+      --beige: #F9F6F0;
+      --gray-dark: #2D2A24;
+      --gray-mid: #6B625A;
+      --border-light: #E8E1D9;
+      --success: #4A7C6B;
+      --warning: #F5A623;
+    }
+    @media (hover: hover) {
+      .cur{position:fixed;width:8px;height:8px;background:var(--bordeaux);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+      .cur-ring{position:fixed;width:32px;height:32px;border:1px solid rgba(122,46,26,.45);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+    }
+    @media (hover: none) { .cur, .cur-ring { display: none; } }
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--border-light);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      gap: 16px;
+    }
+    .topbar-logo { font-family: 'Montserrat', sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--gray-dark); text-decoration: none; letter-spacing: -0.02em; flex-shrink: 0; }
+    .topbar-logo span { color: var(--bordeaux); }
+    .topbar-mid { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .topbar-title { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-mid); }
+    .topbar-ref { font-size: 0.65rem; font-weight: 600; color: var(--bordeaux); }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .tb-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 6px 12px; border-radius: 40px; border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+    .tb-ghost { background: transparent; border: 1px solid var(--border-light); color: var(--gray-mid); }
+    .tb-ghost:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
+    .tb-green { background: var(--success); color: white; }
+    .tb-green:hover { background: #3a5f4f; transform: translateY(-1px); }
+    .status-bar {
+      background: white;
+      border-bottom: 1px solid var(--border-light);
+      padding: 8px 32px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .sb-item { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--gray-mid); }
+    .sb-item i { font-size: 0.75rem; }
+    .sb-val { color: var(--gray-dark); font-weight: 700; }
+    .sb-status { display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px; border-radius: 40px; font-size: 0.65rem; font-weight: 700; }
+    .ss-planifie { background: rgba(41,128,185,0.1); border: 1px solid rgba(41,128,185,0.2); color: #2980b9; }
+    .ss-cours { background: rgba(74,124,107,0.1); border: 1px solid rgba(74,124,107,0.25); color: var(--success); }
+    .ss-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .bon-main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
+    .doc-header {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 32px;
+    }
+    .dh-logo { font-family: 'Montserrat', sans-serif; font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
+    .dh-logo span { color: var(--bordeaux); }
+    .dh-tagline { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 12px; }
+    .dh-contact { font-size: 0.7rem; color: var(--gray-mid); line-height: 1.6; }
+    .dh-right { text-align: right; flex-shrink: 0; }
+    .dh-doc-title { font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 600; }
+    .dh-doc-title em { color: var(--bordeaux); font-style: normal; }
+    .dh-ref { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin: 4px 0; }
+    .dh-date { font-size: 0.7rem; color: var(--gray-mid); }
+    .dh-badges { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+    .dh-badge { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; padding: 3px 10px; border-radius: 40px; }
+    .badge-depart { background: rgba(41,128,185,0.1); color: #2980b9; border: 1px solid rgba(41,128,185,0.2); }
+    .badge-ev { background: rgba(74,124,107,0.1); color: var(--success); border: 1px solid rgba(74,124,107,0.2); }
+    .section { background: white; border: 1px solid var(--border-light); border-radius: 20px; margin-bottom: 16px; overflow: hidden; }
+    .section-header { padding: 16px 24px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .sh-left { display: flex; align-items: center; gap: 10px; }
+    .sh-ico { font-size: 1rem; color: var(--bordeaux); }
+    .sh-title { font-weight: 700; font-size: 0.8rem; text-transform: uppercase; }
+    .sh-tag { font-size: 0.6rem; font-weight: 700; background: var(--bordeaux-light); border: 1px solid var(--bordeaux); color: var(--bordeaux); padding: 2px 10px; border-radius: 40px; }
+    .section-body { padding: 20px 24px; }
+    .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .data-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .data-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    .data-lbl { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 4px; }
+    .data-val { font-size: 0.8rem; font-weight: 500; color: var(--gray-dark); }
+    .data-val.highlight { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: var(--bordeaux); }
+    .data-val.green { color: var(--success); }
+    .route-visual { display: flex; align-items: center; gap: 0; margin: 16px 0; padding: 16px; background: var(--beige); border-radius: 20px; }
+    .rv-point { flex-shrink: 0; text-align: center; }
+    .rv-dot { width: 12px; height: 12px; border-radius: 50%; margin: 0 auto 6px; border: 2px solid; }
+    .rv-dot-dep { border-color: #2980b9; background: rgba(41,128,185,0.2); }
+    .rv-dot-arr { border-color: var(--success); background: rgba(74,124,107,0.2); }
+    .rv-city { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+    .rv-addr { font-size: 0.6rem; color: var(--gray-mid); max-width: 140px; line-height: 1.3; }
+    .rv-line-wrap { flex: 1; position: relative; margin: 0 12px; padding-top: 20px; }
+    .rv-infos { position: absolute; top: -4px; left: 50%; transform: translateX(-50%); font-size: 0.55rem; font-weight: 700; background: white; padding: 2px 8px; border-radius: 40px; white-space: nowrap; color: var(--gray-mid); }
+    .rv-line { height: 2px; background: linear-gradient(90deg, #2980b9, var(--success)); position: relative; }
+    .vehicule-card { display: flex; gap: 20px; background: var(--beige); border-radius: 20px; padding: 16px; margin-bottom: 16px; }
+    .vc-ico { width: 56px; height: 56px; background: white; border: 1px solid var(--border-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--bordeaux); }
+    .vc-name { font-family: 'Montserrat', sans-serif; font-size: 1.1rem; font-weight: 600; }
+    .vc-plate { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; background: var(--bordeaux-light); padding: 2px 8px; border-radius: 40px; display: inline-block; margin: 6px 0; color: var(--bordeaux); }
+    .vc-specs { display: flex; gap: 16px; flex-wrap: wrap; }
+    .vc-spec { font-size: 0.7rem; color: var(--gray-mid); display: flex; align-items: center; gap: 5px; }
+    .vc-spec i { color: var(--bordeaux); }
+    .conv-card { display: flex; align-items: center; gap: 16px; background: var(--beige); border-radius: 20px; padding: 16px; }
+    .conv-ava { width: 48px; height: 48px; background: var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; color: var(--bordeaux); }
+    .conv-name { font-weight: 700; font-size: 0.9rem; }
+    .conv-meta { font-size: 0.7rem; color: var(--gray-mid); }
+    .checklist { display: flex; flex-direction: column; gap: 8px; }
+    .check-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border: 1px solid var(--border-light); border-radius: 16px; cursor: pointer; transition: all 0.2s; }
+    .check-item:hover { border-color: var(--bordeaux-light); background: var(--beige); }
+    .check-item.checked { border-color: var(--success); background: rgba(74,124,107,0.05); }
+    .check-box { width: 20px; height: 20px; border: 1px solid var(--border-light); border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-top: 2px; transition: all 0.2s; }
+    .check-item.checked .check-box { background: var(--success); border-color: var(--success); }
+    .check-item.checked .check-box::after { content: '✓'; font-size: 0.8rem; color: white; }
+    .check-title { font-weight: 700; font-size: 0.8rem; }
+    .check-desc { font-size: 0.7rem; color: var(--gray-mid); }
+    .check-required { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; color: var(--bordeaux); margin-left: auto; }
+    .timeline { position: relative; padding-left: 20px; }
+    .timeline::before { content: ''; position: absolute; left: 8px; top: 12px; bottom: 12px; width: 1px; background: var(--border-light); }
+    .tl-item { display: flex; gap: 16px; margin-bottom: 20px; position: relative; }
+    .tl-dot { width: 28px; height: 28px; background: white; border: 1px solid var(--border-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; z-index: 1; }
+    .tl-dot.active { border-color: var(--bordeaux); background: var(--bordeaux-light); color: var(--bordeaux); animation: pulseBorder 1.5s infinite; }
+    @keyframes pulseBorder { 0% { box-shadow: 0 0 0 0 rgba(122,46,26,0.4); } 70% { box-shadow: 0 0 0 6px rgba(122,46,26,0); } 100% { box-shadow: 0 0 0 0 rgba(122,46,26,0); } }
+    .tl-dot.done { background: var(--success); border-color: var(--success); color: white; }
+    .tl-time { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--bordeaux); margin-bottom: 4px; }
+    .tl-title { font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; }
+    .tl-sub { font-size: 0.7rem; color: var(--gray-mid); }
+    .tarif-table { width: 100%; border-collapse: collapse; }
+    .tarif-table th { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--bordeaux); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border-light); }
+    .tarif-table td { padding: 8px 12px; font-size: 0.75rem; border-bottom: 1px solid var(--border-light); }
+    .tarif-total td { border-top: 1px solid var(--bordeaux); font-weight: 700; }
+    .price-td { font-family: 'Montserrat', sans-serif; font-weight: 600; color: var(--success); }
+    .price-td-total { font-family: 'Montserrat', sans-serif; font-weight: 700; color: var(--bordeaux); }
+    .instructions-list { display: flex; flex-direction: column; gap: 8px; }
+    .instr-item { display: flex; gap: 12px; padding: 12px; border-left: 2px solid var(--border-light); background: var(--beige); border-radius: 12px; }
+    .instr-item.important { border-left-color: var(--bordeaux); background: var(--bordeaux-light); }
+    .instr-item.info { border-left-color: #2980b9; background: rgba(41,128,185,0.04); }
+    .instr-item.success { border-left-color: var(--success); background: rgba(74,124,107,0.04); }
+    .instr-ico { font-size: 0.9rem; flex-shrink: 0; margin-top: 2px; }
+    .instr-item.important .instr-ico { color: var(--bordeaux); }
+    .instr-text { font-size: 0.75rem; line-height: 1.5; }
+    .urgence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .urgence-card { background: var(--beige); border-radius: 16px; padding: 12px; }
+    .urg-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--bordeaux); margin-bottom: 6px; }
+    .urg-val { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; }
+    .urg-note { font-size: 0.6rem; color: var(--gray-mid); }
+    .qr-section { display: flex; gap: 20px; background: var(--beige); border-radius: 20px; padding: 16px; margin-bottom: 16px; }
+    .qr-code { width: 64px; height: 64px; background: white; border: 1px solid var(--border-light); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--gray-mid); }
+    .qr-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--bordeaux); }
+    .qr-sub { font-size: 0.7rem; color: var(--gray-mid); line-height: 1.4; }
+    .sig-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .sig-block { border: 1px solid var(--border-light); border-radius: 20px; padding: 20px; }
+    .sig-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 8px; }
+    .sig-name { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; }
+    .sig-date { font-size: 0.65rem; color: var(--gray-mid); margin-bottom: 12px; }
+    .sig-area { height: 80px; border: 1px dashed var(--border-light); border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+    .sig-area:hover { border-color: var(--bordeaux); background: var(--bordeaux-light); }
+    .sig-area span { font-size: 0.7rem; color: var(--gray-mid); font-style: italic; }
+    .sig-done-badge { display: none; background: rgba(74,124,107,0.1); border: 1px solid rgba(74,124,107,0.25); border-radius: 40px; padding: 4px 12px; margin-top: 12px; width: fit-content; gap: 6px; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--success); }
+    .sig-done-badge.show { display: flex; }
+    .alert { display: flex; gap: 12px; padding: 12px; border-radius: 16px; font-size: 0.7rem; margin-bottom: 16px; }
+    .alert-warn { background: rgba(224,163,67,0.08); border: 1px solid rgba(224,163,67,0.2); color: var(--warning); }
+    .alert-info { background: rgba(41,128,185,0.08); border: 1px solid rgba(41,128,185,0.2); color: #2980b9; }
+    .alert-success { background: rgba(74,124,107,0.08); border: 1px solid rgba(74,124,107,0.2); color: var(--success); }
+    .map-ph { height: 160px; background: var(--beige); border: 1px solid var(--border-light); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--gray-mid); }
+    .map-ph i { font-size: 1.5rem; opacity: 0.5; }
+    .doc-actions {
+      position: sticky;
+      bottom: 0;
+      background: white;
+      border-top: 1px solid var(--border-light);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      z-index: 100;
+    }
+    .da-left, .da-right { display: flex; gap: 12px; align-items: center; }
+    .da-progress { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--gray-mid); }
+    .da-progress span { color: var(--success); }
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media print { .topbar, .status-bar, .doc-actions { display: none !important; } body { background: white; color: black; } .section, .doc-header, .qr-section { border-color: #ddd !important; background: white !important; } }
+    @media (max-width: 768px) {
+      .topbar-mid { display: none; }
+      .doc-header { flex-direction: column; }
+      .dh-right { text-align: left; }
+      .dh-badges { justify-content: flex-start; }
+      .data-grid, .data-grid-3, .data-grid-4, .sig-section, .urgence-grid { grid-template-columns: 1fr; }
+      .bon-main { padding: 16px; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="cur" id="cur"></div>
-<div class="cur-ring" id="cring"></div>
+  <!-- Curseur personnalisé -->
+  <div class="cur" id="cur"></div>
+  <div class="cur-ring" id="cring"></div>
 
-<div class="topbar">
-  <a href="index.html" class="topbar-logo">Bathily-convoyage<span>.</span></a>
-  <div class="topbar-mid">
-    <div class="topbar-title">Bon de Mission</div>
-    <div class="topbar-ref" id="topRef">Chargement...</div>
-  </div>
-  <div class="topbar-right">
-    <button class="tb-btn tb-ghost" onclick="window.location.href='dashboard-convoyeur.html'"><i class="fas fa-arrow-left"></i> Retour</button>
-    <button class="tb-btn tb-ghost" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
-    <button class="tb-btn tb-green" id="startMissionBtn" onclick="startMission()"><i class="fas fa-play"></i> Dréseaumarrer</button>
-  </div>
-</div>
-
-<div class="status-bar">
-  <div class="sb-item"><i class="fas fa-hashtag"></i> Rréseauf : <span class="sb-val" id="sbRef">réseau</span></div>
-  <div class="sb-item"><i class="fas fa-calendar"></i> Date : <span class="sb-val" id="sbDate">réseau</span></div>
-  <div class="sb-item"><i class="fas fa-clock"></i> Dréseaupart : <span class="sb-val" id="sbHeure">réseau</span></div>
-  <div class="sb-item"><i class="fas fa-route"></i> Mode : <span class="sb-val" id="sbMode">réseau</span></div>
-  <div class="sb-item"><i class="fas fa-circle" style="color:#2980b9"></i>
-    <span class="sb-status ss-planifie" id="émissionStatus"><span class="ss-dot"></span> Planifiréseaue</span>
-  </div>
-  <div class="sb-item" style="margin-left:auto">
-    <div class="sb-val" id="checkCount" style="color:var(--gray-mid)">0 / 7 vréseaurifications</div>
-  </div>
-</div>
-
-<div class="bon-main">
-
-  <!-- En-tréseaute -->
-  <div class="doc-header reveal">
-    <div class="dh-left">
-      <div class="dh-logo">Bathily-convoyage<span>.</span></div>
-      <div class="dh-tagline">La solution digitale de convoyage automobile & moto</div>
-      <div class="dh-contact">
-        contact@bathily-convoyage.fr réseau France entiréseaure<br>
-        <strong style="color:var(--bordeaux)">Votre route, notre engagement.</strong>
-      </div>
+  <!-- Topbar -->
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo">Bathily-convoyage<span>.</span></a>
+    <div class="topbar-mid">
+      <div class="topbar-title">Bon de Mission</div>
+      <div class="topbar-ref" id="topRef">Chargement...</div>
     </div>
-    <div class="dh-right">
-      <div class="dh-doc-title">Bon de <em>Mission</em></div>
-      <div class="dh-ref" id="dhRef">Nréseau réseau</div>
-      <div class="dh-date">réseaumis le <span id="emitDate"></span></div>
-      <div class="dh-badges">
-        <span class="dh-badge badge-depart"><i class="fas fa-map-marker-alt"></i> Dréseaupart</span>
-        <span class="dh-badge badge-ev" id="dhModeBadge"><i class="fas fa-road"></i> Route</span>
-      </div>
+    <div class="topbar-right">
+      <button class="tb-btn tb-ghost" onclick="window.location.href='dashboard-convoyeur.html'"><i class="fas fa-arrow-left"></i> Retour</button>
+      <button class="tb-btn tb-ghost" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
+      <button class="tb-btn tb-green" id="startMissionBtn" onclick="startMission()"><i class="fas fa-play"></i> Démarrer</button>
     </div>
   </div>
 
-  <!-- Trajet -->
-  <div class="section reveal">
-    <div class="section-header">
-      <div class="sh-left"><i class="fas fa-route sh-ico"></i><span class="sh-title">Trajet & Horaires</span></div>
-      <span class="sh-tag">Mission principale</span>
+  <!-- Barre de statut -->
+  <div class="status-bar">
+    <div class="sb-item"><i class="fas fa-hashtag"></i> Réf : <span class="sb-val" id="sbRef">—</span></div>
+    <div class="sb-item"><i class="fas fa-calendar"></i> Date : <span class="sb-val" id="sbDate">—</span></div>
+    <div class="sb-item"><i class="fas fa-clock"></i> Départ : <span class="sb-val" id="sbHeure">—</span></div>
+    <div class="sb-item"><i class="fas fa-route"></i> Mode : <span class="sb-val" id="sbMode">—</span></div>
+    <div class="sb-item"><i class="fas fa-circle" style="color:#2980b9"></i>
+      <span class="sb-status ss-planifie" id="missionStatus"><span class="ss-dot"></span> Planifiée</span>
     </div>
-    <div class="section-body">
-      <div class="route-visual">
-        <div class="rv-point">
-          <div class="rv-dot rv-dot-dep"></div>
-          <div class="rv-city" id="rvDepart">réseau</div>
-          <div class="rv-addr" id="rvDepartAddr"></div>
-        </div>
-        <div class="rv-line-wrap">
-          <div class="rv-infos" id="rvInfos">réseau</div>
-          <div class="rv-line"></div>
-        </div>
-        <div class="rv-point" style="text-align:right">
-          <div class="rv-dot rv-dot-arr"></div>
-          <div class="rv-city" id="rvArrivee">réseau</div>
-          <div class="rv-addr" id="rvArriveeAddr"></div>
+    <div class="sb-item" style="margin-left:auto">
+      <div class="sb-val" id="checkCount" style="color:var(--gray-mid)">0 / 9 vérifications</div>
+    </div>
+  </div>
+
+  <div class="bon-main">
+
+    <!-- En-tête -->
+    <div class="doc-header reveal">
+      <div class="dh-left">
+        <div class="dh-logo">Bathily-convoyage<span>.</span></div>
+        <div class="dh-tagline">La solution digitale de convoyage automobile & moto</div>
+        <div class="dh-contact">
+          contact@bathily-convoyage.fr — France entière<br>
+          <strong style="color:var(--bordeaux)">Votre route, notre engagement.</strong>
         </div>
       </div>
-      <div class="data-grid-4">
-        <div class="data-item"><div class="data-lbl">Date</div><div class="data-val" id="dDate"><strong>réseau</strong></div></div>
-        <div class="data-item"><div class="data-lbl">Mode transport</div><div class="data-val highlight" id="dMode">réseau</div></div>
-        <div class="data-item"><div class="data-lbl">Pack</div><div class="data-val highlight" id="dPack">réseau</div></div>
-        <div class="data-item"><div class="data-lbl">Vréseauhicule</div><div class="data-val" id="dVehicule">réseau</div></div>
+      <div class="dh-right">
+        <div class="dh-doc-title">Bon de <em>Mission</em></div>
+        <div class="dh-ref" id="dhRef">N° —</div>
+        <div class="dh-date">Émis le <span id="emitDate"></span></div>
+        <div class="dh-badges">
+          <span class="dh-badge badge-depart"><i class="fas fa-map-marker-alt"></i> Départ</span>
+          <span class="dh-badge badge-ev" id="dhModeBadge"><i class="fas fa-road"></i> Route</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Vréseauhicule -->
-  <div class="section reveal">
-    <div class="section-header">
-      <div class="sh-left"><i class="fas fa-car sh-ico"></i><span class="sh-title">Vréseauhicule réseau convoyer</span></div>
-      <span class="sh-tag">Identification SIV</span>
+    <!-- Trajet -->
+    <div class="section reveal">
+      <div class="section-header">
+        <div class="sh-left"><i class="fas fa-route sh-ico"></i><span class="sh-title">Trajet & Horaires</span></div>
+        <span class="sh-tag">Mission principale</span>
+      </div>
+      <div class="section-body">
+        <div class="route-visual">
+          <div class="rv-point">
+            <div class="rv-dot rv-dot-dep"></div>
+            <div class="rv-city" id="rvDepart">—</div>
+            <div class="rv-addr" id="rvDepartAddr"></div>
+          </div>
+          <div class="rv-line-wrap">
+            <div class="rv-infos" id="rvInfos">—</div>
+            <div class="rv-line"></div>
+          </div>
+          <div class="rv-point" style="text-align:right">
+            <div class="rv-dot rv-dot-arr"></div>
+            <div class="rv-city" id="rvArrivee">—</div>
+            <div class="rv-addr" id="rvArriveeAddr"></div>
+          </div>
+        </div>
+        <div class="data-grid-4">
+          <div class="data-item"><div class="data-lbl">Date</div><div class="data-val" id="dDate"><strong>—</strong></div></div>
+          <div class="data-item"><div class="data-lbl">Mode transport</div><div class="data-val highlight" id="dMode">—</div></div>
+          <div class="data-item"><div class="data-lbl">Pack</div><div class="data-val highlight" id="dPack">—</div></div>
+          <div class="data-item"><div class="data-lbl">Véhicule</div><div class="data-val" id="dVehicule">—</div></div>
+        </div>
+      </div>
     </div>
-    <div class="section-body">
-      <div class="vehicule-card">
-        <div class="vc-ico"><i class="fas fa-car"></i></div>
-        <div class="vc-info">
-          <div class="vc-name">BMW Sréseaurie 3 réseau Gris Mineralgrau</div>
-          <div class="vc-plate">IJ-789-KL</div>
-          <div class="vc-specs">
-            <span class="vc-spec"><i class="fas fa-calendar"></i> 2023</span>
-            <span class="vc-spec"><i class="fas fa-gas-pump"></i> hybride</span>
-            <span class="vc-spec"><i class="fas fa-tachometer-alt"></i> 190 CV</span>
-            <span class="vc-spec"><i class="fas fa-cog"></i> Automatique</span>
-            <span class="vc-spec"><i class="fas fa-car-side"></i> Berline</span>
+
+    <!-- Véhicule -->
+    <div class="section reveal">
+      <div class="section-header">
+        <div class="sh-left"><i class="fas fa-car sh-ico"></i><span class="sh-title">Véhicule à convoyer</span></div>
+        <span class="sh-tag">Identification SIV</span>
+      </div>
+      <div class="section-body">
+        <div class="vehicule-card">
+          <div class="vc-ico"><i class="fas fa-car"></i></div>
+          <div class="vc-info">
+            <div class="vc-name" id="vcName">—</div>
+            <div class="vc-plate" id="vcPlate">—</div>
+            <div class="vc-specs">
+              <span class="vc-spec"><i class="fas fa-calendar"></i> <span id="vcYear">—</span></span>
+              <span class="vc-spec"><i class="fas fa-gas-pump"></i> <span id="vcEnergy">—</span></span>
+              <span class="vc-spec"><i class="fas fa-tachometer-alt"></i> <span id="vcPower">—</span> CV</span>
+              <span class="vc-spec"><i class="fas fa-car-side"></i> <span id="vcType">—</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="data-grid-4">
+          <div class="data-item"><div class="data-lbl">Kilométrage départ</div><div class="data-val highlight">À relevé</div></div>
+          <div class="data-item"><div class="data-lbl">Tolérance</div><div class="data-val orange">+470 km</div></div>
+          <div class="data-item"><div class="data-lbl">Carburant départ</div><div class="data-val highlight">À noter</div></div>
+          <div class="data-item"><div class="data-lbl">Prochain CT</div><div class="data-val">Octobre 2025</div></div>
+        </div>
+        <div class="alert alert-info" style="margin-top:12px">
+          <i class="fas fa-bolt"></i>
+          <p><strong>Véhicule hybride :</strong> Activez le mode éco-conduite. En cas de recharge, utilisez IONITY ou Fastned.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Client -->
+    <div class="section reveal">
+      <div class="section-header">
+        <div class="sh-left"><i class="fas fa-user sh-ico"></i><span class="sh-title">Informations client</span></div>
+        <span class="sh-tag">Contact prioritaire</span>
+      </div>
+      <div class="section-body">
+        <div class="data-grid">
+          <div class="data-item"><div class="data-lbl">Nom & Prénom</div><div class="data-val" id="cliNom"><strong>—</strong></div></div>
+          <div class="data-item"><div class="data-lbl">Email</div><div class="data-val" id="cliEmail">—</div></div>
+        </div>
+        <div class="data-grid" style="margin-top:16px">
+          <div class="data-item"><div class="data-lbl">Contact prise en charge</div><div class="data-val" id="cliContact1">—</div></div>
+          <div class="data-item"><div class="data-lbl">Contact livraison</div><div class="data-val" id="cliContact2">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Convoyeur -->
+    <div class="section reveal">
+      <div class="section-header">
+        <div class="sh-left"><i class="fas fa-truck sh-ico"></i><span class="sh-title">Convoyeur assigné</span></div>
+        <span class="sh-tag">Certifié SIV</span>
+      </div>
+      <div class="section-body">
+        <div class="conv-card">
+          <div class="conv-ava" id="convAva">—</div>
+          <div>
+            <div class="conv-name" id="convNom">—</div>
+            <div class="conv-meta" id="convMeta">—</div>
+          </div>
+        </div>
+        <div class="data-grid-3" style="margin-top:16px">
+          <div class="data-item"><div class="data-lbl">Permis</div><div class="data-val">XX-123456-XX</div></div>
+          <div class="data-item"><div class="data-lbl">Validité permis</div><div class="data-val">15 juin 2030</div></div>
+          <div class="data-item"><div class="data-lbl">RC Pro</div><div class="data-val">AXA-2025-XX-XXXX</div></div>
+          <div class="data-item"><div class="data-lbl">Missions</div><div class="data-val green">47 missions ★ 4.9</div></div>
+          <div class="data-item"><div class="data-lbl">Certification SIV</div><div class="data-val green">Valide 2025</div></div>
+          <div class="data-item"><div class="data-lbl">Expérience</div><div class="data-val">+3 ans</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pack & Tarification -->
+    <div class="section reveal">
+      <div class="section-header">
+        <div class="sh-left"><i class="fas fa-euro-sign sh-ico"></i><span class="sh-title">Pack & tarification</span></div>
+        <span class="sh-tag" id="packTag">—</span>
+      </div>
+      <div class="section-body">
+        <table class="tarif-table">
+          <thead><tr><th>Prestation</th><th>Détail</th><th>Montant HT</th></tr></thead>
+          <tbody id="tarifBody">
+            <tr><td colspan="3" style="text-align:center;color:var(--gray-mid);">Chargement...</td></tr>
+          </tbody>
+        </table>
+        <div class="data-grid" style="margin-top:16px">
+          <div class="data-item"><div class="data-lbl">Rémunération convoyeur (net)</div><div class="data-val highlight" id="remConvoyeur">—</div></div>
+          <div class="data-item"><div class="data-lbl">Paiement</div><div class="data-val">Virement sous 48h après validation EDL arrivée</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Planning détaillé -->
+    <div class="section reveal">
+      <div class="section-header">
+        <div class="sh-left"><i class="fas fa-calendar-alt sh-ico"></i><span class="sh-title">Planning détaillé</span></div>
+      </div>
+      <div class="section-body">
+        <div class="timeline">
+          <div class="tl-item"><div class="tl-dot active">1</div><div class="tl-content"><div class="tl-time">08:30</div><div class="tl-title">Briefing & vérification documents</div><div class="tl-sub">Consulter le bon de mission, vérifier coordonnées client et RC Pro.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">2</div><div class="tl-content"><div class="tl-time">09:00</div><div class="tl-title">Prise en charge</div><div class="tl-sub">15 Rue de Rivoli, Paris. Contacter Jean Dupont. Effectuer l'état des lieux de départ (20 photos + signature).</div></div></div>
+          <div class="tl-item"><div class="tl-dot">3</div><div class="tl-content"><div class="tl-time">09:30</div><div class="tl-title">Départ & activation GPS</div><div class="tl-sub">Activer le suivi GPS. Itinéraire A6 via Auxerre.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">4</div><div class="tl-content"><div class="tl-time">~11:30</div><div class="tl-title">Pause obligatoire</div><div class="tl-sub">15-20 min. Vérifier moteur, pneus, niveau carburant.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">5</div><div class="tl-content"><div class="tl-time">~14:00</div><div class="tl-title">Nettoyage (Pack Sérénité)</div><div class="tl-sub">Station de lavage à l'approche de Lyon. Mise à niveau carburant.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">6</div><div class="tl-content"><div class="tl-time">15:30</div><div class="tl-title">Livraison</div><div class="tl-sub">3 Rue Servient, Lyon. Contacter Marie Dupont 30 min avant. État des lieux arrivée.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">7</div><div class="tl-content"><div class="tl-time">Après livraison</div><div class="tl-title">Clôture de mission</div><div class="tl-sub">Soumettre rapport, envoyer documents signés.</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="section reveal">
+      <div class="section-header">
+        <div class="sh-left"><i class="fas fa-clipboard-check sh-ico"></i><span class="sh-title">Checklist convoyeur</span></div>
+        <span class="sh-tag">Obligatoire avant départ</span>
+      </div>
+      <div class="section-body">
+        <div class="alert alert-warn">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>Les 7 premières étapes sont <strong>obligatoires</strong> pour démarrer la mission.</p>
+        </div>
+        <div class="checklist" id="checklist">
+          <div class="check-item" onclick="toggleCheck(this,0)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Documents vérifiés</div><div class="check-desc">Bon de mission lu, coordonnées client notées, RC Pro en poche.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,1)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Prise en charge confirmée</div><div class="check-desc">Appel ou SMS de confirmation envoyé à Jean Dupont.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,2)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">État des lieux départ complété</div><div class="check-desc">20 photos prises, état général noté, dommages signalés.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,3)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Signature client obtenue</div><div class="check-desc">EDL de départ signé électroniquement.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,4)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Kilométrage départ noté</div><div class="check-desc">Relevé exact du compteur.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,5)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Niveau carburant noté</div><div class="check-desc">Niveau en % ou barre de jauge.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,6)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Suivi GPS activé</div><div class="check-desc">Application Bathily ouverte, position partagée.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,7)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Itinéraire vérifié</div><div class="check-desc">Bison Futé consulté, GPS paramétré.</div></div></div>
+          <div class="check-item" onclick="toggleCheck(this,8)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Contact livraison confirmé</div><div class="check-desc">Marie Dupont informée de l'heure d'arrivée.</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions spéciales -->
+    <div class="section reveal">
+      <div class="section-header">
+        <div class="sh-left"><i class="fas fa-info-circle sh-ico"></i><span class="sh-title">Instructions particulières</span></div>
+      </div>
+      <div class="section-body">
+        <div class="instructions-list">
+          <div class="instr-item important"><i class="fas fa-exclamation-triangle instr-ico"></i><div class="instr-text"><strong>Véhicule hybride :</strong> Ne pas laisser tourner à l'arrêt plus de 5min. Activer le mode éco-conduite.</div></div>
+          <div class="instr-item important"><i class="fas fa-camera instr-ico"></i><div class="instr-text"><strong>Pack Sérénité :</strong> Nettoyage extérieur haute pression avant livraison. Conserver les justificatifs.</div></div>
+          <div class="instr-item info"><i class="fas fa-parking instr-ico"></i><div class="instr-text"><strong>Livraison :</strong> Parking souterrain 3 Rue Servient, Lyon. Place réservée "DUPONT".</div></div>
+          <div class="instr-item info"><i class="fas fa-phone instr-ico"></i><div class="instr-text"><strong>Communication :</strong> Prévenir le client 30min avant l'arrivée. En cas de retard >30min, prévenir client ET dispatch.</div></div>
+          <div class="instr-item success"><i class="fas fa-check-circle instr-ico"></i><div class="instr-text"><strong>Objets :</strong> Sac de voyage bleu dans coffre, casque sur banquette arrière. Ne pas déplacer.</div></div>
+          <div class="instr-item"><i class="fas fa-shield-alt instr-ico"></i><div class="instr-text"><strong>Assurance :</strong> Double RC Pro active. En cas d'incident, ne pas admettre de responsabilité, contacter dispatch.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contacts urgence -->
+    <div class="section reveal">
+      <div class="section-header">
+        <div class="sh-left"><i class="fas fa-phone-alt sh-ico"></i><span class="sh-title">Contacts d'urgence</span></div>
+      </div>
+      <div class="section-body">
+        <div class="urgence-grid">
+          <div class="urgence-card"><div class="urg-title"><i class="fas fa-bolt"></i> Dispatch Bathily • Urgence 24h</div><div class="urg-val">disponible 24h/24</div><div class="urg-note">Pour tout incident, panne ou problème</div></div>
+          <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Client • Jean Dupont</div><div class="urg-val">+33 6 12 34 56 78</div><div class="urg-note">Prise en charge</div></div>
+          <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Contact livraison • Marie Dupont</div><div class="urg-val">+33 6 98 76 54 32</div><div class="urg-note">Livraison à partir de 14h</div></div>
+          <div class="urgence-card"><div class="urg-title"><i class="fas fa-car-crash"></i> Assistance routière</div><div class="urg-val">17 • 15 • 18</div><div class="urg-note">Police • SAMU • Pompiers</div></div>
+        </div>
+        <div class="alert alert-info" style="margin-top:12px">
+          <i class="fas fa-info-circle"></i>
+          <p>En cas d'accident : 1) Sécuriser 2) Appeler 15/17/18 3) Appeler dispatch 4) Ne pas déplacer 5) Constat amiable 6) Photos.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Code -->
+    <div class="qr-section reveal">
+      <div class="qr-code"><i class="fas fa-qrcode"></i></div>
+      <div class="qr-info">
+        <div class="qr-title">Lien de suivi client</div>
+        <div class="qr-sub" id="qrLink">bathily-convoyage.fr/tracking/...<br><span style="font-size:0.6rem">Lien valable 48h après livraison</span></div>
+      </div>
+    </div>
+
+    <!-- Signatures -->
+    <div class="section reveal">
+      <div class="section-header">
+        <div class="sh-left"><i class="fas fa-signature sh-ico"></i><span class="sh-title">Signatures & Acceptation</span></div>
+        <span class="sh-tag">Engagement contractuel</span>
+      </div>
+      <div class="section-body">
+        <div class="alert alert-success" style="margin-bottom:16px">
+          <i class="fas fa-check-circle"></i>
+          <p>En signant, le convoyeur certifie avoir lu et accepté les conditions et instructions. Le client confirme la remise du véhicule.</p>
+        </div>
+        <div class="sig-section">
+          <div class="sig-block">
+            <div class="sig-title">Signature du convoyeur</div>
+            <div class="sig-name" id="sigConvNom">—</div>
+            <div class="sig-date">Convoyeur le <span id="sigDate1"></span></div>
+            <div class="sig-area" id="sigArea1" onclick="signDoc(1)" role="button" tabindex="0"><span>Cliquer pour signer</span></div>
+            <div class="sig-done-badge" id="sigBadge1"><i class="fas fa-check-circle"></i> Signé et accepté</div>
+          </div>
+          <div class="sig-block">
+            <div class="sig-title">Signature du client (prise en charge)</div>
+            <div class="sig-name" id="sigCliNom">—</div>
+            <div class="sig-date">Client le <span id="sigDate2"></span></div>
+            <div class="sig-area" id="sigArea2" onclick="signDoc(2)" role="button" tabindex="0"><span>Cliquer pour signer</span></div>
+            <div class="sig-done-badge" id="sigBadge2"><i class="fas fa-check-circle"></i> Signé — véhicule remis</div>
           </div>
         </div>
       </div>
-      <div class="data-grid-4">
-        <div class="data-item"><div class="data-lbl">Kilomréseautrage dréseaupart</div><div class="data-val highlight">réseau reélevéer</div></div>
-        <div class="data-item"><div class="data-lbl">Tolréseaurance</div><div class="data-val orange">+470 km</div></div>
-        <div class="data-item"><div class="data-lbl">Carburant dréseaupart</div><div class="data-val highlight">réseau noter</div></div>
-        <div class="data-item"><div class="data-lbl">Prochain CT</div><div class="data-val">Octobre 2025</div></div>
-        <div class="data-item"><div class="data-lbl">VIN</div><div class="data-val" style="font-size:0.7rem">WBA3D31050F890123</div></div>
-        <div class="data-item"><div class="data-lbl">Assurance</div><div class="data-val">31 dréseauc. 2025</div></div>
-        <div class="data-item"><div class="data-lbl">Clréseaus</div><div class="data-val">Principale + Secours</div></div>
-        <div class="data-item"><div class="data-lbl">Documents</div><div class="data-val green">Carte grise + Assurance</div></div>
-      </div>
-      <div class="alert alert-info" style="margin-top:12px">
-        <i class="fas fa-bolt"></i>
-        <p><strong>Vréseauhicule hybride :</strong> Activez le mode réseauco-conduite. En cas de recharge, utilisez IONITY ou Fastned.</p>
-      </div>
+    </div>
+
+    <!-- Mentions légales -->
+    <div style="background: var(--beige); border-radius: 16px; padding: 16px; margin-top: 16px;">
+      <p style="font-size: 0.65rem; color: var(--gray-mid); line-height: 1.6; text-align: justify;">
+        Ce bon de mission constitue un document contractuel entre Bathily Convoyage, le convoyeur assigné et le client. Il est régi par les CGV disponibles sur bathily-convoyage.fr/cgv. 
+        La double assurance RC Pro couvre les dommages survenus au véhicule pendant la durée de la mission. Toute modification doit être validée par le dispatch Bathily. 
+        © 2025 Bathily Convoyage — Document confidentiel — Réf. <span id="footerRef">—</span>
+      </p>
     </div>
   </div>
 
-  <!-- Client -->
-  <div class="section reveal">
-    <div class="section-header">
-      <div class="sh-left"><i class="fas fa-user sh-ico"></i><span class="sh-title">informations client</span></div>
-      <span class="sh-tag">Contact prioritaire</span>
+  <div class="doc-actions">
+    <div class="da-left">
+      <a href="dashboard-convoyeur.html" class="tb-btn tb-ghost"><i class="fas fa-arrow-left"></i> Dashboard</a>
+      <button class="tb-btn tb-ghost" onclick="window.location.href='etat-des-lieux.html'"><i class="fas fa-clipboard-list"></i> État des lieux</button>
+      <button class="tb-btn tb-ghost" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
     </div>
-    <div class="section-body">
-      <div class="data-grid">
-        <div class="data-item"><div class="data-lbl">Nom & Prréseaunom</div><div class="data-val" id="cliNom"><strong>réseau</strong></div></div>
-        <div class="data-item"><div class="data-lbl">Email</div><div class="data-val" id="cliEmail">réseau</div></div>
-      </div>
-      <div class="data-grid" style="margin-top:16px">
-        <div class="data-item"><div class="data-lbl">Contact prise en charge</div><div class="data-val"><strong>Jean Dupont</strong> réseau +33 6 12 34 56 78<br><span style="font-size:0.65rem">Sonnette "Dupont" 2réseaume</span></div></div>
-        <div class="data-item"><div class="data-lbl">Contact livraison</div><div class="data-val"><strong>Marie Dupont</strong> réseau +33 6 98 76 54 32<br><span style="font-size:0.65rem">Prréseausente réseau partir de 14h</span></div></div>
-      </div>
+    <div class="da-right">
+      <div class="da-progress" id="progressLabel">Checklist : <span>0 / 9</span></div>
+      <button class="tb-btn tb-green" id="startBtn" onclick="startMission()"><i class="fas fa-play"></i> Démarrer</button>
     </div>
   </div>
 
-  <!-- Convoyeur -->
-  <div class="section reveal">
-    <div class="section-header">
-      <div class="sh-left"><i class="fas fa-truck sh-ico"></i><span class="sh-title">convoyeur assignréseau</span></div>
-      <span class="sh-tag">Certifiréseau SIV</span>
-    </div>
-    <div class="section-body">
-      <div class="conv-card">
-        <div class="conv-ava" id="convAva">MB</div>
-        <div>
-          <div class="conv-name" id="convNom">réseau</div>
-          <div class="conv-meta" id="convMeta">réseau</div>
-        </div>
-      </div>
-      <div class="data-grid-3" style="margin-top:16px">
-        <div class="data-item"><div class="data-lbl">Permis</div><div class="data-val">XX-123456-XX</div></div>
-        <div class="data-item"><div class="data-lbl">Validitréseau permis</div><div class="data-val">15 juin 2030</div></div>
-        <div class="data-item"><div class="data-lbl">RC Pro</div><div class="data-val">AXA-2025-XX-XXXX</div></div>
-        <div class="data-item"><div class="data-lbl">Missions</div><div class="data-val green">47 émissions réseau 4.9?</div></div>
-        <div class="data-item"><div class="data-lbl">Certification SIV</div><div class="data-val green">Valide 2025</div></div>
-        <div class="data-item"><div class="data-lbl">Expréseaurience</div><div class="data-val">+3 ans</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Pack & Tarification -->
-  <div class="section reveal">
-    <div class="section-header">
-      <div class="sh-left"><i class="fas fa-euro-sign sh-ico"></i><span class="sh-title">Pack & tarification</span></div>
-      <span class="sh-tag">Pack Sréseaurréseaunitréseau</span>
-    </div>
-    <div class="section-body">
-      <table class="tarif-table">
-        <thead><tr><th>Prestation</th><th>Dréseautail</th><th>montant HT</th></tr></thead>
-        <tbody id="tarifBody">
-          <tr><td colspan="3" style="text-align:center;color:var(--gray-mid);">Chargement...</td></tr>
-        </tbody>
-      </table>
-      <div class="data-grid" style="margin-top:16px">
-        <div class="data-item"><div class="data-lbl">Rréseaumunréseauration convoyeur (net)</div><div class="data-val highlight" id="remConvoyeur">réseau</div></div>
-        <div class="data-item"><div class="data-lbl">Paiement</div><div class="data-val">Virement sous 48h aprréseaus validation EDL arrivréseaue</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Planning dréseautaillréseau -->
-  <div class="section reveal">
-    <div class="section-header">
-      <div class="sh-left"><i class="fas fa-calendar-alt sh-ico"></i><span class="sh-title">Planning dréseautaillréseau</span></div>
-    </div>
-    <div class="section-body">
-      <div class="timeline">
-        <div class="tl-item"><div class="tl-dot active">1</div><div class="tl-content"><div class="tl-time">08:30</div><div class="tl-title">Briefing & vréseaurification documents</div><div class="tl-sub">Consulter le bon de émission, vréseaurifier coordonnréseaues client et RC Pro.</div></div></div>
-        <div class="tl-item"><div class="tl-dot">2</div><div class="tl-content"><div class="tl-time">09:00</div><div class="tl-title">Prise en charge</div><div class="tl-sub">15 Rue de Rivoli, Paris. Contacter Jean Dupont. Effectuer l'réseautat des lieux de dréseaupart (20 photos + signature).</div></div></div>
-        <div class="tl-item"><div class="tl-dot">3</div><div class="tl-content"><div class="tl-time">09:30</div><div class="tl-title">Dréseaupart réseau Activation GPS</div><div class="tl-sub">Activer le suivi GPS. Itinréseauraire A6 via Auxerre.</div></div></div>
-        <div class="tl-item"><div class="tl-dot">4</div><div class="tl-content"><div class="tl-time">~11:30</div><div class="tl-title">Pause obligatoire</div><div class="tl-sub">15-20 min. Vréseaurifier moteur, pneus, niveau carburant.</div></div></div>
-        <div class="tl-item"><div class="tl-dot">5</div><div class="tl-content"><div class="tl-time">~14:00</div><div class="tl-title">Nettoyage (Pack Sréseaurréseaunitréseau)</div><div class="tl-sub">Station de lavage réseau l'approche de Lyon. Mise réseau niveau carburant.</div></div></div>
-        <div class="tl-item"><div class="tl-dot">6</div><div class="tl-content"><div class="tl-time">15:30</div><div class="tl-title">Livraison</div><div class="tl-sub">3 Rue Servient, Lyon. Contacter Marie Dupont 30 min avant. réseautat des lieux arrivréseaue.</div></div></div>
-        <div class="tl-item"><div class="tl-dot">7</div><div class="tl-content"><div class="tl-time">Aprréseaus livraison</div><div class="tl-title">Clréseauture de émission</div><div class="tl-sub">Soumettre rapport, envoyer documents signréseaus.</div></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Checklist -->
-  <div class="section reveal">
-    <div class="section-header">
-      <div class="sh-left"><i class="fas fa-clipboard-check sh-ico"></i><span class="sh-title">Checklist convoyeur</span></div>
-      <span class="sh-tag">Obligatoire avant dréseaupart</span>
-    </div>
-    <div class="section-body">
-      <div class="alert alert-warn">
-        <i class="fas fa-exclamation-triangle"></i>
-        <p>Les 7 premiréseaures réseautapes sont <strong>obligatoires</strong> pour dréseaumarrer la émission.</p>
-      </div>
-      <div class="checklist" id="checklist">
-        <div class="check-item" onclick="toggleCheck(this,0)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Documents vréseaurifiréseaus</div><div class="check-desc">Bon de émission lu, coordonnréseaues client notréseaues, RC Pro en poche.</div></div><div class="check-required">Obligatoire</div></div>
-        <div class="check-item" onclick="toggleCheck(this,1)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Prise en charge confirmréseaue</div><div class="check-desc">Appel ou SMS de confirmation envoyréseau réseau Jean Dupont.</div></div><div class="check-required">Obligatoire</div></div>
-        <div class="check-item" onclick="toggleCheck(this,2)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">réseautat des lieux dréseaupart complréseautréseau</div><div class="check-desc">20 photos prises, réseautat gréseaunréseaural notréseau, dommages signalréseaus.</div></div><div class="check-required">Obligatoire</div></div>
-        <div class="check-item" onclick="toggleCheck(this,3)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Signature client obtenue</div><div class="check-desc">EDL de dréseaupart signréseau réseaulectroniquement.</div></div><div class="check-required">Obligatoire</div></div>
-        <div class="check-item" onclick="toggleCheck(this,4)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Kilomréseautrage dréseaupart notréseau</div><div class="check-desc">Reélevéréseau exact du compâteur.</div></div><div class="check-required">Obligatoire</div></div>
-        <div class="check-item" onclick="toggleCheck(this,5)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">niveau carburant notréseau</div><div class="check-desc">niveau en % ou barre de jauge.</div></div><div class="check-required">Obligatoire</div></div>
-        <div class="check-item" onclick="toggleCheck(this,6)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Suivi GPS activréseau</div><div class="check-desc">Application Bathily ouverte, position partagréseaue.</div></div><div class="check-required">Obligatoire</div></div>
-        <div class="check-item" onclick="toggleCheck(this,7)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Itinréseauraire vréseaurifiréseau</div><div class="check-desc">Bison Futréseau consultréseau, GPS paramréseautrréseau.</div></div></div>
-        <div class="check-item" onclick="toggleCheck(this,8)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Contact livraison confirmréseau</div><div class="check-desc">Marie Dupont informréseaue de l'heure d'arrivréseaue.</div></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Instructions spréseauciales -->
-  <div class="section reveal">
-    <div class="section-header">
-      <div class="sh-left"><i class="fas fa-info-circle sh-ico"></i><span class="sh-title">Instructions particuliréseaures</span></div>
-    </div>
-    <div class="section-body">
-      <div class="instructions-list">
-        <div class="instr-item important"><i class="fas fa-exclamation-triangle instr-ico"></i><div class="instr-text"><strong>Vréseauhicule hybride :</strong> Ne pas laisser tourner réseau l'arrréseaut plus de 5min. Activer le mode réseauco-conduite.</div></div>
-        <div class="instr-item important"><i class="fas fa-camera instr-ico"></i><div class="instr-text"><strong>Pack Sréseaurréseaunitréseau :</strong> Nettoyage extréseaurieur haute pression avant livraison. Conserver les justificatifs.</div></div>
-        <div class="instr-item info"><i class="fas fa-parking instr-ico"></i><div class="instr-text"><strong>Livraison :</strong> Parking souterrain 3 Rue Servient, Lyon. Place rréseauservréseaue "DUPONT".</div></div>
-        <div class="instr-item info"><i class="fas fa-phone instr-ico"></i><div class="instr-text"><strong>Communication :</strong> Prréseauvenir le client 30min avant l'arrivréseaue. En cas de retard >30min, prréseauvenir client ET dispatch.</div></div>
-        <div class="instr-item success"><i class="fas fa-check-circle instr-ico"></i><div class="instr-text"><strong>Objets :</strong> Sac de voyage bleu dans coffre, casque sur banquette arriréseaure. Ne pas dréseauplacer.</div></div>
-        <div class="instr-item"><i class="fas fa-shield-alt instr-ico"></i><div class="instr-text"><strong>Assurance :</strong> Double RC Pro active. En cas d'incident, ne pas admettre de responsabilitréseau, contacter dispatch.</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Contacts urgence -->
-  <div class="section reveal">
-    <div class="section-header">
-      <div class="sh-left"><i class="fas fa-phone-alt sh-ico"></i><span class="sh-title">Contacts d'urgence</span></div>
-    </div>
-    <div class="section-body">
-      <div class="urgence-grid">
-        <div class="urgence-card"><div class="urg-title"><i class="fas fa-bolt"></i> Dispatch Bathily réseau Urgence 24h</div><div class="urg-val">disponible 24h/24</div><div class="urg-note">Pour tout incident, panne ou problréseaume</div></div>
-        <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Client réseau Jean Dupont</div><div class="urg-val">+33 6 12 34 56 78</div><div class="urg-note">Prise en charge</div></div>
-        <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Contact livraison réseau Marie Dupont</div><div class="urg-val">+33 6 98 76 54 32</div><div class="urg-note">Livraison réseau partir de 14h</div></div>
-        <div class="urgence-card"><div class="urg-title"><i class="fas fa-car-crash"></i> assistance routiréseaure</div><div class="urg-val">17 réseau 15 réseau 18</div><div class="urg-note">Police réseau SAMU réseau Pompiers</div></div>
-      </div>
-      <div class="alert alert-info" style="margin-top:12px">
-        <i class="fas fa-info-circle"></i>
-        <p>En cas d'accident : 1) Sréseaucuriser 2) Appeler 15/17/18 3) Appeler dispatch 4) Ne pas dréseauplacer 5) Constat amiable 6) Photos.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- QR Code -->
-  <div class="qr-section reveal">
-    <div class="qr-code"><i class="fas fa-qrcode"></i></div>
-    <div class="qr-info">
-      <div class="qr-title">Lien de suivi client</div>
-      <div class="qr-sub">bathily-convoyage.fr/tracking/BC-2025-0847<br><span style="font-size:0.6rem">Lien valable 48h aprréseaus livraison</span></div>
-    </div>
-  </div>
-
-  <!-- Signatures -->
-  <div class="section reveal">
-    <div class="section-header">
-      <div class="sh-left"><i class="fas fa-signature sh-ico"></i><span class="sh-title">Signatures & Acceptation</span></div>
-      <span class="sh-tag">Engagement contractuel</span>
-    </div>
-    <div class="section-body">
-      <div class="alert alert-success" style="margin-bottom:16px">
-        <i class="fas fa-check-circle"></i>
-        <p>En signant, le convoyeur certifie avoir lu et acceptréseau les conditions et instructions. Le client confirme la remise du vréseauhicule.</p>
-      </div>
-      <div class="sig-section">
-        <div class="sig-block">
-          <div class="sig-title">Signature du convoyeur</div>
-          <div class="sig-name" id="sigConvNom">réseau</div>
-          <div class="sig-date">convoyeur réseau <span id="sigDate1"></span></div>
-          <div class="sig-area" id="sigArea1" onclick="signDoc(1)" role="button" tabindex="0"><span>Cliquer pour signer</span></div>
-          <div class="sig-done-badge" id="sigBadge1"><i class="fas fa-check-circle"></i> Signréseau et acceptréseau</div>
-        </div>
-        <div class="sig-block">
-          <div class="sig-title">Signature du client (prise en charge)</div>
-          <div class="sig-name" id="sigCliNom">réseau</div>
-          <div class="sig-date">Client réseau <span id="sigDate2"></span></div>
-          <div class="sig-area" id="sigArea2" onclick="signDoc(2)" role="button" tabindex="0"><span>Cliquer pour signer</span></div>
-          <div class="sig-done-badge" id="sigBadge2"><i class="fas fa-check-circle"></i> Signréseau réseau vréseauhicule remis</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Mentions lréseaugales -->
-  <div style="background: var(--beige); border-radius: 16px; padding: 16px; margin-top: 16px;">
-    <p style="font-size: 0.65rem; color: var(--gray-mid); line-height: 1.6; text-align: justify;">
-      Ce bon de émission constitue un document contractuel entre Bathily convoyage, le convoyeur assignréseau et le client. Il est rréseaugi par les CGV disponibles sur bathily-convoyage.fr/cgv. 
-      La double assurance RC Pro couvre les dommages survenus au vréseauhicule pendant la durréseaue de la émission. Toute modification doit réseautre validréseaue par le dispatch Bathily. 
-      réseau 2025 Bathily convoyage réseau Document confidentiel réseau Rréseauf. BC-2025-0847
-    </p>
-  </div>
-</div>
-
-<div class="doc-actions">
-  <div class="da-left">
-    <a href="dashboard-convoyeur.html" class="tb-btn tb-ghost"><i class="fas fa-arrow-left"></i> Dashboard</a>
-    <button class="tb-btn tb-ghost" onclick="window.location.href='etat-des-lieux.html'"><i class="fas fa-clipboard-list"></i> réseautat des lieux</button>
-    <button class="tb-btn tb-ghost" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
-  </div>
-  <div class="da-right">
-    <div class="da-progress" id="progressLabel">Checklist : <span>0 / 9</span></div>
-    <button class="tb-btn tb-green" id="startBtn" onclick="startMission()"><i class="fas fa-play"></i> Dréseaumarrer</button>
-  </div>
-</div>
-
-<script>
-// ========== SUPABASE ==========
-let _sbClient = null;
-function getSB() {
-  if (!_sbClient) _sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-  return _sbClient;
-}
-
-// ========== CURSOR ==========
-if(window.matchMedia('(hover: hover)').matches) {
-  const cur=document.getElementById('cur'),cring=document.getElementById('cring');
-  let mx=0,my=0,rx=0,ry=0;
-  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
-  (function loop(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(loop)})();
-}
-
-// ========== LOAD FROM SUPABASE ==========
-let _émissionId = null;
-let _émissionRef = null;
-let _paiementStatut = 'pending';
-let _vehicle = 'Vréseauhicule';
-let _route = 'Paris ? Lyon';
-
-document.addEventListener('DOMContentLoaded', async () => {
-  const now = new Date();
-  document.getElementById('emitDate').textContent = now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
-  document.getElementById('sigDate1').textContent = now.toLocaleDateString('fr-FR');
-  document.getElementById('sigDate2').textContent = now.toLocaleDateString('fr-FR');
-
-  const params = new URLSearchParams(window.location.search);
-  const émissionId = params.get('id');
-
-  if (!émissionId) {
-    // No ID réseau show fallback demo message
-    document.getElementById('topRef').textContent = 'Mode dréseaumo réseau aucune émission sréseaulectionnréseaue';
-    return;
-  }
-
-  _émissionId = émissionId;
-
-  const client = getSB();
-  const { data: m, error } = await client.from('émissions').select('*').eq('id', émissionId).single();
-
-  if (error || !m) {
-    document.getElementById('topRef').textContent = 'Mission introuvable';
-    Swal.fire('Erreur', 'Mission non trouvréseaue en base de donnréseaues.', 'error');
-    return;
-  }
-
-  _émissionRef = m.reference || `BC-${émissionId.slice(0,8).toUpperCase()}`;
-  _paiementStatut = m.paiement_statut || 'pending';
-  _vehicle = m.vehicule || 'Vréseauhicule';
-  _route = (m.depart || 'Paris').split('(')[0].trim() + ' ? ' + (m.arrivee || 'Lyon').split('(')[0].trim();
-
-  // ---- Status bar ----
-  document.getElementById('topRef').textContent = `${m.reference || 'réseau'} réseau ${m.depart} ? ${m.arrivee} réseau ${m.date_émission ? new Date(m.date_émission).toLocaleDateString('fr-FR') : 'réseau'}`;
-  document.getElementById('sbRef').textContent = m.reference || 'réseau';
-  document.getElementById('sbDate').textContent = m.date_émission ? new Date(m.date_émission).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}) : 'réseau';
-  document.getElementById('sbHeure').textContent = m.heure_depart || 'réseau';
-  document.getElementById('sbMode').textContent = m.mode_transport || 'Route';
-
-  // ---- Document header ----
-  document.getElementById('dhRef').textContent = `Nréseau ${m.reference || 'réseau'}`;
-  const modeBadge = document.getElementById('dhModeBadge');
-  if (modeBadge) {
-    const isPlateau = (m.mode_transport || '').toLowerCase().includes('plateau');
-    modeBadge.innerHTML = isPlateau ? '<i class="fas fa-truck"></i> Plateau' : '<i class="fas fa-road"></i> Route';
-  }
-
-  // ---- Trajet ----
-  document.getElementById('rvDepart').textContent = m.depart || 'réseau';
-  document.getElementById('rvArrivee').textContent = m.arrivee || 'réseau';
-  document.getElementById('rvInfos').textContent = `${m.mode_transport || 'Route'} réseau ${m.vehicule || 'Auto'}`;
-  document.getElementById('dDate').innerHTML = m.date_émission ? `<strong>${new Date(m.date_émission).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</strong>` : 'réseau';
-  document.getElementById('dMode').textContent = m.mode_transport || 'Route';
-  document.getElementById('dPack').textContent = m.pack ? (m.pack.charAt(0).toUpperCase() + m.pack.slice(1)) : 'réseau';
-  document.getElementById('dVehicule').textContent = m.vehicule || 'réseau';
-
-  // ---- Client ----
-  document.getElementById('cliNom').innerHTML = `<strong>${m.client_nom || 'réseau'}</strong>`;
-  document.getElementById('cliEmail').textContent = m.client_email || 'réseau';
-
-  // ---- Convoyeur ----
-  const convNom = m.convoyeur_nom || 'réseau';
-  const initials = convNom.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
-  document.getElementById('convAva').textContent = initials || '?';
-  document.getElementById('convNom').textContent = convNom;
-  document.getElementById('convMeta').textContent = m.zone_convoyeur || 'Convoyeur assignréseau';
-
-  // ---- Signatures ----
-  document.getElementById('sigConvNom').textContent = convNom;
-  document.getElementById('sigCliNom').textContent = m.client_nom || 'réseau';
-
-  // ---- Tarification ----
-  const price = parseFloat(m.montant_ht) || 0;
-  const rem = parseFloat(m.remuneration_convoyeur) || 0;
-  const tva = price * 0.20;
-  const ttc = price + tva;
-  const pack = m.pack ? (m.pack.charAt(0).toUpperCase() + m.pack.slice(1)) : 'Standard';
-  document.getElementById('tarifBody').innerHTML = `
-    <tr><td>Convoyage ${m.mode_transport || 'routier'}</td><td>${m.vehicule || 'Automobile'} réseau ${pack}</td><td class="price-td">${price.toFixed(2)}réseau</td></tr>
-    <tr><td>Pack ${pack}</td><td>Inclus selon pack</td><td class="price-td">0,00réseau</td></tr>
-    <tr><td>Double RC Pro</td><td>Inclus</td><td class="price-td">0,00réseau</td></tr>
-    <tr><td>réseautat des lieux</td><td>Photos dréseaupart + arrivréseaue</td><td class="price-td">0,00réseau</td></tr>
-    <tr class="tarif-total"><td><strong>Total HT</strong></td><td></td><td class="price-td-total">${price.toFixed(2)}réseau</td></tr>
-    <tr><td>TVA (20%)</td><td></td><td class="price-td">${tva.toFixed(2)}réseau</td></tr>
-    <tr class="tarif-total"><td><strong>Total TTC</strong></td><td></td><td class="price-td-total">${ttc.toFixed(2)}réseau</td></tr>
-  `;
-  document.getElementById('remConvoyeur').textContent = rem > 0 ? rem.toFixed(2) + 'réseau' : 'réseau';
-
-  // ---- Status ----
-  const statusEl = document.getElementById('émissionStatus');
-  const mStatus = m.status || m.statut || 'planned';
-  if (mStatus === 'in_progress') {
-    statusEl.className = 'sb-status ss-cours';
-    statusEl.innerHTML = '<span class="ss-dot"></span> En cours';
-  } else if (mStatus === 'completed') {
-    statusEl.className = 'sb-status ss-cours';
-    statusEl.innerHTML = '<span class="ss-dot"></span> Terminréseaue';
-    document.getElementById('startBtn').style.display = 'none';
-    document.getElementById('startMissionBtn').style.display = 'none';
-  }
-});
-
-// ========== CHECKLIST ==========
-let checkState=new Array(9).fill(false);
-const TOTAL_REQUIRED=7;
-
-function toggleCheck(el,i){
-  if(el.classList.contains('checked')) {
-    el.classList.remove('checked');
-    checkState[i]=false;
-    el.setAttribute('aria-checked', 'false');
-  } else {
-    el.classList.add('checked');
-    checkState[i]=true;
-    el.setAttribute('aria-checked', 'true');
-  }
-  const done=checkState.filter(Boolean).length;
-  document.getElementById('checkCount').textContent=done+' / 9';
-  document.getElementById('checkCount').style.color=done>=TOTAL_REQUIRED?'var(--success)':'var(--gray-mid)';
-  document.getElementById('progressLabel').innerHTML='Checklist : <span>'+done+' / 9</span>';
-  
-  const requiredDone=checkState.slice(0,7).every(Boolean);
-  const btn=document.getElementById('startBtn');
-  if(requiredDone){
-    btn.style.background='var(--success)';
-    btn.innerHTML='<i class="fas fa-check-circle"></i> Prréseaut';
-  } else {
-    btn.style.background='';
-    btn.innerHTML='<i class="fas fa-play"></i> Dréseaumarrer';
-  }
-}
-document.querySelectorAll('.check-item').forEach(item => {
-  item.addEventListener('keydown', (e) => {
-    if(e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      const idx = parseInt(item.getAttribute('onclick').match(/(\d+)/)[1]);
-      toggleCheck(item, idx);
+  <script>
+    // ========== SUPABASE ==========
+    let _sbClient = null;
+    function getSB() {
+      if (!_sbClient) _sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      return _sbClient;
     }
-  });
-});
 
-// ========== SIGNATURES ==========
-function signDoc(n){
-  const area=document.getElementById('sigArea'+n);
-  const badge=document.getElementById('sigBadge'+n);
-  const now=new Date().toLocaleString('fr-FR');
-  area.innerHTML=`<div style="text-align:center; color:var(--success); padding:10px;"><i class="fas fa-check-circle" style="font-size:1.5rem; margin-bottom:6px; display:block;"></i><div style="font-weight:700; font-size:0.7rem;">Signréseau le ${now}</div></div>`;
-  area.style.borderColor='rgba(74,124,107,0.35)';
-  area.style.background='rgba(74,124,107,0.05)';
-  area.style.cursor='default';
-  area.removeAttribute('onclick');
-  badge.classList.add('show');
-}
-document.querySelectorAll('.sig-area').forEach(area => {
-  area.addEventListener('keydown', (e) => {
-    if(e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      const n = parseInt(area.id.replace('sigArea', ''));
-      signDoc(n);
+    // ========== CURSOR ==========
+    if(window.matchMedia('(hover: hover)').matches) {
+      const cur=document.getElementById('cur'),cring=document.getElementById('cring');
+      let mx=0,my=0,rx=0,ry=0;
+      document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+      (function loop(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(loop)})();
     }
-  });
-});
 
-// ========== DréseauMARRER ==========
-async function startMission(){
-  const requiredDone=checkState.slice(0,7).every(Boolean);
-  if(!requiredDone){
-    Swal.fire('Checklist incomplréseaute', 'Veuillez complréseauter les 7 réseautapes obligatoires avant de dréseaumarrer.', 'warning');
-    document.getElementById('checklist').scrollIntoView({behavior:'smooth',block:'center'});
-    return;
-  }
+    // ========== VARIABLES GLOBALES ==========
+    let _missionId = null;
+    let _missionRef = null;
+    let _paiementStatut = 'pending';
+    let _vehicle = '—';
+    let _route = '— → —';
+    let _missionStatus = 'planned';
+    let _missionData = null;
 
-  // Vréseaurifier le statut de paiement en temps rréseauel avant d'autoriser le dréseaumarrage
-  if (_émissionId) {
-    const client = getSB();
-    const { data: payData, error: payError } = await client.from('émissions').select('paiement_statut').eq('id', _émissionId).single();
-    if (!payError && payData) {
-      _paiementStatut = payData.paiement_statut || 'pending';
-    }
-  }
+    // ========== LOAD FROM SUPABASE ==========
+    document.addEventListener('DOMContentLoaded', async () => {
+      const now = new Date();
+      document.getElementById('emitDate').textContent = now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+      document.getElementById('sigDate1').textContent = now.toLocaleDateString('fr-FR');
+      document.getElementById('sigDate2').textContent = now.toLocaleDateString('fr-FR');
 
-  if (_paiementStatut !== 'paid') {
-    Swal.fire({
-      title: 'Dréseaumarrage bloquréseau',
-      html: `Le paiement de cette émission n'a pas encore réseautréseau validréseau.<br><br>Le dréseaumarrage est bloquréseau. Veuillez contacter l'administrateur.`,
-      icon: 'warning',
-      confirmButtonColor: 'var(--bordeaux)'
+      const params = new URLSearchParams(window.location.search);
+      const missionId = params.get('id');
+
+      if (!missionId) {
+        document.getElementById('topRef').textContent = 'Aucune mission sélectionnée';
+        Swal.fire('Information', 'Aucun identifiant de mission fourni.', 'info');
+        return;
+      }
+
+      _missionId = missionId;
+
+      const client = getSB();
+      const { data: m, error } = await client.from('missions').select('*').eq('id', missionId).single();
+
+      if (error || !m) {
+        document.getElementById('topRef').textContent = 'Mission introuvable';
+        Swal.fire('Erreur', 'Mission non trouvée en base de données.', 'error');
+        return;
+      }
+
+      _missionData = m;
+      _missionRef = m.reference || `BC-${missionId.slice(0,8).toUpperCase()}`;
+      _paiementStatut = m.paiement_statut || 'pending';
+      _vehicle = m.vehicule || '—';
+      _route = (m.depart || '—') + ' → ' + (m.arrivee || '—');
+      _missionStatus = m.statut || m.status || 'planned';
+
+      // ---- Remplir les données ----
+      // Topbar
+      document.getElementById('topRef').textContent = `${m.reference || '—'} — ${m.depart || '—'} → ${m.arrivee || '—'}`;
+
+      // Status bar
+      document.getElementById('sbRef').textContent = m.reference || '—';
+      document.getElementById('sbDate').textContent = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}) : '—';
+      document.getElementById('sbHeure').textContent = m.heure_depart || '—';
+      document.getElementById('sbMode').textContent = m.mode_transport || (m.mode || 'Route');
+
+      // Document header
+      document.getElementById('dhRef').textContent = `N° ${m.reference || '—'}`;
+      const modeBadge = document.getElementById('dhModeBadge');
+      const isPlateau = (m.mode_transport || m.mode || '').toLowerCase().includes('plateau');
+      modeBadge.innerHTML = isPlateau ? '<i class="fas fa-truck"></i> Plateau' : '<i class="fas fa-road"></i> Route';
+
+      // Trajet
+      document.getElementById('rvDepart').textContent = m.depart || '—';
+      document.getElementById('rvArrivee').textContent = m.arrivee || '—';
+      document.getElementById('rvInfos').textContent = `${m.mode_transport || m.mode || 'Route'} • ${m.vehicule || 'Auto'}`;
+      document.getElementById('dDate').innerHTML = m.date_mission ? `<strong>${new Date(m.date_mission).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</strong>` : '—';
+      document.getElementById('dMode').textContent = m.mode_transport || m.mode || 'Route';
+      document.getElementById('dPack').textContent = m.pack ? (m.pack.charAt(0).toUpperCase() + m.pack.slice(1)) : '—';
+      document.getElementById('dVehicule').textContent = m.vehicule || '—';
+
+      // Véhicule (simplifié)
+      document.getElementById('vcName').textContent = m.vehicule || '—';
+      document.getElementById('vcPlate').textContent = m.immatriculation || '—';
+      document.getElementById('vcYear').textContent = m.annee || '—';
+      document.getElementById('vcEnergy').textContent = m.carburant || '—';
+      document.getElementById('vcPower').textContent = m.puissance || '—';
+      document.getElementById('vcType').textContent = m.type_vehicule || '—';
+
+      // Client
+      document.getElementById('cliNom').innerHTML = `<strong>${m.client_nom || '—'}</strong>`;
+      document.getElementById('cliEmail').textContent = m.client_email || '—';
+      document.getElementById('cliContact1').textContent = m.client_telephone || '—';
+      document.getElementById('cliContact2').textContent = m.client_telephone_livraison || '—';
+
+      // Convoyeur
+      const convNom = m.convoyeur_nom || '—';
+      const initials = convNom.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+      document.getElementById('convAva').textContent = initials || '?';
+      document.getElementById('convNom').textContent = convNom;
+      document.getElementById('convMeta').textContent = m.zone_convoyeur || 'Convoyeur assigné';
+
+      // Signatures
+      document.getElementById('sigConvNom').textContent = convNom;
+      document.getElementById('sigCliNom').textContent = m.client_nom || '—';
+
+      // Tarification
+      const price = parseFloat(m.montant_ht) || 0;
+      const rem = parseFloat(m.remuneration_convoyeur) || 0;
+      const tva = price * 0.20;
+      const ttc = price + tva;
+      const pack = m.pack ? (m.pack.charAt(0).toUpperCase() + m.pack.slice(1)) : 'Standard';
+      document.getElementById('packTag').textContent = `Pack ${pack}`;
+      document.getElementById('tarifBody').innerHTML = `
+        <tr><td>Convoyage ${m.mode_transport || m.mode || 'routier'}</td><td>${m.vehicule || 'Automobile'} • ${pack}</td><td class="price-td">${price.toFixed(2)} €</td></tr>
+        <tr><td>Pack ${pack}</td><td>Inclus selon pack</td><td class="price-td">0,00 €</td></tr>
+        <tr><td>Double RC Pro</td><td>Inclus</td><td class="price-td">0,00 €</td></tr>
+        <tr><td>État des lieux</td><td>Photos départ + arrivée</td><td class="price-td">0,00 €</td></tr>
+        <tr class="tarif-total"><td><strong>Total HT</strong></td><td></td><td class="price-td-total">${price.toFixed(2)} €</td></tr>
+        <tr><td>TVA (20%)</td><td></td><td class="price-td">${tva.toFixed(2)} €</td></tr>
+        <tr class="tarif-total"><td><strong>Total TTC</strong></td><td></td><td class="price-td-total">${ttc.toFixed(2)} €</td></tr>
+      `;
+      document.getElementById('remConvoyeur').textContent = rem > 0 ? rem.toFixed(2) + ' €' : 'À définir';
+
+      // QR link
+      document.getElementById('qrLink').innerHTML = `bathily-convoyage.fr/tracking/${m.reference || '...'}<br><span style="font-size:0.6rem">Lien valable 48h après livraison</span>`;
+
+      // Footer
+      document.getElementById('footerRef').textContent = m.reference || '—';
+
+      // Status
+      const statusEl = document.getElementById('missionStatus');
+      if (_missionStatus === 'in_progress') {
+        statusEl.className = 'sb-status ss-cours';
+        statusEl.innerHTML = '<span class="ss-dot"></span> En cours';
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('startMissionBtn').style.display = 'none';
+      } else if (_missionStatus === 'completed') {
+        statusEl.className = 'sb-status ss-cours';
+        statusEl.innerHTML = '<span class="ss-dot"></span> Terminée';
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('startMissionBtn').style.display = 'none';
+      }
+
+      // Si paiement non payé, on bloque le démarrage (le bouton sera désactivé via la logique)
     });
-    return;
-  }
 
-  const ref = _émissionRef || 'cette émission';
-  const result = await Swal.fire({
-    title: 'Dréseaumarrer la émission ?',
-    text: `Confirmer le dréseaumarrage de ${ref}. Le client et le dispatch seront notifiréseaus.`,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonColor: 'var(--bordeaux)',
-    confirmButtonText: 'Oui, dréseaumarrer',
-    cancelButtonText: 'Annuler'
-  });
+    // ========== CHECKLIST ==========
+    let checkState = new Array(9).fill(false);
+    const TOTAL_REQUIRED = 7;
 
-  if (!result.isConfirmed) return;
-
-  // Update status in Supabase if we have an ID
-  if (_émissionId) {
-    const client = getSB();
-    const { error } = await client.from('émissions').update({ status: 'in_progress' }).eq('id', _émissionId);
-    if (error) {
-      Swal.fire('Erreur', 'Impossible de dréseaumarrer la émission : ' + error.message, 'error');
-      return;
+    function toggleCheck(el, i){
+      if(el.classList.contains('checked')) {
+        el.classList.remove('checked');
+        checkState[i]=false;
+        el.setAttribute('aria-checked', 'false');
+      } else {
+        el.classList.add('checked');
+        checkState[i]=true;
+        el.setAttribute('aria-checked', 'true');
+      }
+      const done = checkState.filter(Boolean).length;
+      document.getElementById('checkCount').textContent = done+' / 9';
+      document.getElementById('checkCount').style.color = done >= TOTAL_REQUIRED ? 'var(--success)' : 'var(--gray-mid)';
+      document.getElementById('progressLabel').innerHTML = 'Checklist : <span>'+done+' / 9</span>';
+      
+      const requiredDone = checkState.slice(0,TOTAL_REQUIRED).every(Boolean);
+      const btn = document.getElementById('startBtn');
+      if(requiredDone){
+        btn.style.background = 'var(--success)';
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Prêt';
+      } else {
+        btn.style.background = '';
+        btn.innerHTML = '<i class="fas fa-play"></i> Démarrer';
+      }
     }
-  }
+    document.querySelectorAll('.check-item').forEach(item => {
+      item.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const idx = parseInt(item.getAttribute('onclick').match(/(\d+)/)[1]);
+          toggleCheck(item, idx);
+        }
+      });
+    });
 
-  const startBtn = document.getElementById('startBtn');
-  const startMissionBtn = document.getElementById('startMissionBtn');
-  if (startBtn) { startBtn.innerHTML='<i class="fas fa-check"></i> Mission dréseaumarrréseaue'; startBtn.style.background='var(--success)'; }
-  if (startMissionBtn) { startMissionBtn.innerHTML='<i class="fas fa-check"></i> Dréseaumarrréseaue'; startMissionBtn.style.background='var(--success)'; }
-  const statusSpan = document.querySelector('#émissionStatus');
-  if(statusSpan){ statusSpan.className='sb-status ss-cours'; statusSpan.innerHTML='<span class="ss-dot"></span> En cours'; }
+    // ========== SIGNATURES ==========
+    function signDoc(n){
+      const area = document.getElementById('sigArea'+n);
+      const badge = document.getElementById('sigBadge'+n);
+      const now = new Date().toLocaleString('fr-FR');
+      area.innerHTML = `<div style="text-align:center; color:var(--success); padding:10px;"><i class="fas fa-check-circle" style="font-size:1.5rem; margin-bottom:6px; display:block;"></i><div style="font-weight:700; font-size:0.7rem;">Signé le ${now}</div></div>`;
+      area.style.borderColor = 'rgba(74,124,107,0.35)';
+      area.style.background = 'rgba(74,124,107,0.05)';
+      area.style.cursor = 'default';
+      area.removeAttribute('onclick');
+      badge.classList.add('show');
+    }
+    document.querySelectorAll('.sig-area').forEach(area => {
+      area.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const n = parseInt(area.id.replace('sigArea', ''));
+          signDoc(n);
+        }
+      });
+    });
 
-  Swal.fire({
-    toast: true, position: 'top-end', icon: 'success',
-    title: 'Mission dréseaumarrréseaue ! ⭐', timer: 3000, showConfirmButton: false
-  });
+    // ========== DÉMARRER LA MISSION ==========
+    async function startMission(){
+      const requiredDone = checkState.slice(0, TOTAL_REQUIRED).every(Boolean);
+      if(!requiredDone){
+        Swal.fire('Checklist incomplète', 'Veuillez compléter les 7 étapes obligatoires avant de démarrer.', 'warning');
+        document.getElementById('checklist').scrollIntoView({behavior:'smooth',block:'center'});
+        return;
+      }
 
-  setTimeout(() => {
-    Swal.fire({
-      title: 'Activer le GPS ?',
-      text: 'Partagez votre position en temps rréseauel au client.',
-      icon: 'info',
-      showCancelButton: true,
-      confirmButtonColor: 'var(--bordeaux)',
-      confirmButtonText: 'Oui, activer GPS',
-      cancelButtonText: 'Plus tard'
-    }).then(r => { if (r.isConfirmed) window.location.href = 'gps-emitter.html?id=' + _émissionId + '&ref=' + encodeURIComponent(_émissionRef) + '&route=' + encodeURIComponent(_route) + '&vehicle=' + encodeURIComponent(_vehicle); });
-  }, 800);
-}
+      // Vérifier le statut de paiement en temps réel
+      if (_missionId) {
+        const client = getSB();
+        const { data: payData, error: payError } = await client.from('missions').select('paiement_statut').eq('id', _missionId).single();
+        if (!payError && payData) {
+          _paiementStatut = payData.paiement_statut || 'pending';
+        }
+      }
 
-// ========== REVEAL ON SCROLL ==========
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-}, { threshold: 0.1 });
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-</script>
+      if (_paiementStatut !== 'paid') {
+        Swal.fire({
+          title: 'Démarrage bloqué',
+          html: `Le paiement de cette mission n'a pas encore été validé.<br><br>Le démarrage est bloqué. Veuillez contacter l'administrateur.`,
+          icon: 'warning',
+          confirmButtonColor: 'var(--bordeaux)'
+        });
+        return;
+      }
+
+      const ref = _missionRef || 'cette mission';
+      const result = await Swal.fire({
+        title: 'Démarrer la mission ?',
+        text: `Confirmer le démarrage de ${ref}. Le client et le dispatch seront notifiés.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--bordeaux)',
+        confirmButtonText: 'Oui, démarrer',
+        cancelButtonText: 'Annuler'
+      });
+
+      if (!result.isConfirmed) return;
+
+      // Update status in Supabase
+      if (_missionId) {
+        const client = getSB();
+        const { error } = await client.from('missions').update({ statut: 'in_progress' }).eq('id', _missionId);
+        if (error) {
+          Swal.fire('Erreur', 'Impossible de démarrer la mission : ' + error.message, 'error');
+          return;
+        }
+        // Mettre à jour localement
+        _missionStatus = 'in_progress';
+      }
+
+      const startBtn = document.getElementById('startBtn');
+      const startMissionBtn = document.getElementById('startMissionBtn');
+      if (startBtn) { startBtn.innerHTML='<i class="fas fa-check"></i> Mission démarrée'; startBtn.style.background='var(--success)'; }
+      if (startMissionBtn) { startMissionBtn.innerHTML='<i class="fas fa-check"></i> Démarrée'; startMissionBtn.style.background='var(--success)'; }
+      const statusSpan = document.getElementById('missionStatus');
+      if(statusSpan){ statusSpan.className='sb-status ss-cours'; statusSpan.innerHTML='<span class="ss-dot"></span> En cours'; }
+
+      Swal.fire({
+        toast: true, position: 'top-end', icon: 'success',
+        title: 'Mission démarrée ! ⭐', timer: 3000, showConfirmButton: false
+      });
+
+      setTimeout(() => {
+        Swal.fire({
+          title: 'Activer le GPS ?',
+          text: 'Partagez votre position en temps réel au client.',
+          icon: 'info',
+          showCancelButton: true,
+          confirmButtonColor: 'var(--bordeaux)',
+          confirmButtonText: 'Oui, activer GPS',
+          cancelButtonText: 'Plus tard'
+        }).then(r => {
+          if (r.isConfirmed) {
+            const id = _missionId || '';
+            const ref = encodeURIComponent(_missionRef || '');
+            const route = encodeURIComponent(_route || '');
+            const vehicle = encodeURIComponent(_vehicle || '');
+            window.location.href = `gps-emitter.html?id=${id}&ref=${ref}&route=${route}&vehicle=${vehicle}`;
+          }
+        });
+      }, 800);
+    }
+
+    // ========== REVEAL ON SCROLL ==========
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+  </script>
 </body>
 </html>

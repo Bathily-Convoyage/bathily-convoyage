@@ -1,337 +1,336 @@
-
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Mentions L€gales & Conditions G€n€rales € Bathily convoyage</title>
-<meta name="description" content="Consultez les mentions légales, la politique de confidentialit€ RGPD, les conditions g€n€rales de vente (CGV) et d'utilisation (CGU) de Bathily Convoyage.">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⭐%3C/text%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-body {
-  font-family: 'Inter', sans-serif;
-  background: #FDFBF7;
-  color: #2D2A24;
-  line-height: 1.6;
-  overflow-x: hidden;
-}
-.container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 32px;
-}
-:root {
-  --bordeaux: #0A4D68;
-  --bordeaux-dark: #063244;
-  --bordeaux-light: #E6F0F4;
-  --cream: #FDFBF7;
-  --beige: #F9F6F0;
-  --gray-dark: #2D2A24;
-  --gray-mid: #6B625A;
-  --border-light: #E8E1D9;
-  --success: #4A7C6B;
-  --warning: #F5A623;
-}
-/* Custom cursor */
-@media (hover: hover) {
-  .cur {
-    position: fixed;
-    width: 8px;
-    height: 8px;
-    background: var(--bordeaux);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%,-50%);
-  }
-  .cur-ring {
-    position: fixed;
-    width: 32px;
-    height: 32px;
-    border: 1px solid rgba(122,46,26,.45);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%,-50%);
-  }
-}
-@media (hover: none) {
-  .cur, .cur-ring { display: none; }
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Mentions Légales & Conditions Générales — Bathily Convoyage</title>
+  <meta name="description" content="Consultez les mentions légales, la politique de confidentialité RGPD, les conditions générales de vente (CGV) et d'utilisation (CGU) de Bathily Convoyage.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⭐%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FDFBF7;
+      color: #2D2A24;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+    :root {
+      --bordeaux: #0A4D68;
+      --bordeaux-dark: #063244;
+      --bordeaux-light: #E6F0F4;
+      --cream: #FDFBF7;
+      --beige: #F9F6F0;
+      --gray-dark: #2D2A24;
+      --gray-mid: #6B625A;
+      --border-light: #E8E1D9;
+      --success: #4A7C6B;
+      --warning: #F5A623;
+    }
+    /* Custom cursor */
+    @media (hover: hover) {
+      .cur {
+        position: fixed;
+        width: 8px;
+        height: 8px;
+        background: var(--bordeaux);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%,-50%);
+      }
+      .cur-ring {
+        position: fixed;
+        width: 32px;
+        height: 32px;
+        border: 1px solid rgba(122,46,26,.45);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9998;
+        transform: translate(-50%,-50%);
+      }
+    }
+    @media (hover: none) {
+      .cur, .cur-ring { display: none; }
+    }
 
-/* Header */
-header {
-  position: sticky;
-  top: 0;
-  background: rgba(253,251,247,0.96);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border-light);
-  z-index: 100;
-}
-.header-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 72px;
-}
-.logo {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--gray-dark);
-  text-decoration: none;
-  letter-spacing: -0.02em;
-}
-.logo span { color: var(--bordeaux); }
-.nav-links {
-  display: flex;
-  gap: 32px;
-  align-items: center;
-}
-.nav-links a {
-  text-decoration: none;
-  color: var(--gray-mid);
-  font-weight: 500;
-  transition: color 0.2s;
-}
-.nav-links a:hover { color: var(--bordeaux); }
-.btn-outline {
-  border: 1px solid var(--bordeaux);
-  background: transparent;
-  padding: 8px 20px;
-  border-radius: 40px;
-  color: var(--bordeaux);
-  font-weight: 600;
-  transition: all 0.2s;
-}
-.btn-outline:hover {
-  background: var(--bordeaux);
-  color: white;
-}
-.menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-dark); }
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      background: rgba(253,251,247,0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-light);
+      z-index: 100;
+    }
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 72px;
+    }
+    .logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--gray-dark);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--bordeaux); }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--gray-mid);
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--bordeaux); }
+    .btn-outline {
+      border: 1px solid var(--bordeaux);
+      background: transparent;
+      padding: 8px 20px;
+      border-radius: 40px;
+      color: var(--bordeaux);
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover {
+      background: var(--bordeaux);
+      color: white;
+    }
+    .menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-dark); }
 
-/* Hero Section */
-.hero {
-  padding: 60px 0 40px;
-  background: linear-gradient(135deg, var(--cream) 0%, var(--beige) 100%);
-  border-bottom: 1px solid var(--border-light);
-  text-align: center;
-}
-.hero-content {
-  max-width: 800px;
-  margin: 0 auto;
-}
-.hero h1 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2.8rem;
-  font-weight: 800;
-  color: var(--gray-dark);
-  margin-bottom: 16px;
-}
-.hero h1 span { color: var(--bordeaux); }
-.hero p {
-  font-size: 1.1rem;
-  color: var(--gray-mid);
-}
+    /* Hero Section */
+    .hero {
+      padding: 60px 0 40px;
+      background: linear-gradient(135deg, var(--cream) 0%, var(--beige) 100%);
+      border-bottom: 1px solid var(--border-light);
+      text-align: center;
+    }
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--gray-dark);
+      margin-bottom: 16px;
+    }
+    .hero h1 span { color: var(--bordeaux); }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--gray-mid);
+    }
 
-/* Legal Layout */
-.legal-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 48px;
-  padding: 60px 0 80px;
-}
+    /* Legal Layout */
+    .legal-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 48px;
+      padding: 60px 0 80px;
+    }
 
-/* Sidebar Tabs */
-.legal-tabs {
-  position: sticky;
-  top: 100px;
-  height: fit-content;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.tab-btn {
-  background: none;
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  padding: 16px 20px;
-  text-align: left;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--gray-mid);
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.tab-btn i {
-  font-size: 1.1rem;
-  color: var(--gray-mid);
-  transition: color 0.2s;
-}
-.tab-btn:hover {
-  border-color: var(--bordeaux);
-  color: var(--bordeaux);
-  background: white;
-}
-.tab-btn.active {
-  background: var(--bordeaux);
-  border-color: var(--bordeaux);
-  color: white;
-  box-shadow: 0 8px 16px rgba(122,46,26,0.15);
-}
-.tab-btn.active i {
-  color: white;
-}
+    /* Sidebar Tabs */
+    .legal-tabs {
+      position: sticky;
+      top: 100px;
+      height: fit-content;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .tab-btn {
+      background: none;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 16px 20px;
+      text-align: left;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--gray-mid);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .tab-btn i {
+      font-size: 1.1rem;
+      color: var(--gray-mid);
+      transition: color 0.2s;
+    }
+    .tab-btn:hover {
+      border-color: var(--bordeaux);
+      color: var(--bordeaux);
+      background: white;
+    }
+    .tab-btn.active {
+      background: var(--bordeaux);
+      border-color: var(--bordeaux);
+      color: white;
+      box-shadow: 0 8px 16px rgba(122,46,26,0.15);
+    }
+    .tab-btn.active i {
+      color: white;
+    }
 
-/* Content Panel */
-.legal-content {
-  background: white;
-  border: 1px solid var(--border-light);
-  border-radius: 32px;
-  padding: 48px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.01);
-}
-.content-panel {
-  display: none;
-}
-.content-panel.active {
-  display: block;
-  animation: fadeIn 0.3s ease-out;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+    /* Content Panel */
+    .legal-content {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: 32px;
+      padding: 48px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.01);
+    }
+    .content-panel {
+      display: none;
+    }
+    .content-panel.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-/* Typography in legal content */
-.content-panel h2 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--gray-dark);
-  margin-bottom: 24px;
-  border-bottom: 2px solid var(--bordeaux-light);
-  padding-bottom: 12px;
-}
-.content-panel h3 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--bordeaux);
-  margin: 28px 0 12px;
-}
-.content-panel p {
-  color: var(--gray-dark);
-  margin-bottom: 16px;
-  font-size: 0.95rem;
-}
-.content-panel ul {
-  list-style: none;
-  margin-bottom: 20px;
-  padding-left: 8px;
-}
-.content-panel ul li {
-  position: relative;
-  padding-left: 20px;
-  margin-bottom: 8px;
-  font-size: 0.95rem;
-}
-.content-panel ul li::before {
-  content: '€';
-  color: var(--bordeaux);
-  font-size: 1.5rem;
-  position: absolute;
-  left: 0;
-  top: -6px;
-}
-.content-panel strong {
-  color: var(--gray-dark);
-}
-.highlight-box {
-  background: var(--beige);
-  border-left: 3px solid var(--bordeaux);
-  border-radius: 12px;
-  padding: 20px;
-  margin: 24px 0;
-}
-.highlight-box p {
-  margin-bottom: 0;
-  font-size: 0.9rem;
-  font-style: italic;
-}
+    /* Typography in legal content */
+    .content-panel h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--gray-dark);
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--bordeaux-light);
+      padding-bottom: 12px;
+    }
+    .content-panel h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--bordeaux);
+      margin: 28px 0 12px;
+    }
+    .content-panel p {
+      color: var(--gray-dark);
+      margin-bottom: 16px;
+      font-size: 0.95rem;
+    }
+    .content-panel ul {
+      list-style: none;
+      margin-bottom: 20px;
+      padding-left: 8px;
+    }
+    .content-panel ul li {
+      position: relative;
+      padding-left: 20px;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+    .content-panel ul li::before {
+      content: '•';
+      color: var(--bordeaux);
+      font-size: 1.5rem;
+      position: absolute;
+      left: 0;
+      top: -6px;
+    }
+    .content-panel strong {
+      color: var(--gray-dark);
+    }
+    .highlight-box {
+      background: var(--beige);
+      border-left: 3px solid var(--bordeaux);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 24px 0;
+    }
+    .highlight-box p {
+      margin-bottom: 0;
+      font-size: 0.9rem;
+      font-style: italic;
+    }
 
-/* Footer */
-footer {
-  background: var(--beige);
-  border-top: 1px solid var(--border-light);
-  padding: 48px 0;
-  margin-top: 60px;
-}
-.footer-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 48px;
-}
-.footer-logo { font-weight: 800; font-size: 1.3rem; margin-bottom: 16px; font-family: 'Montserrat', sans-serif; }
-.footer-logo span { color: var(--bordeaux); }
-.footer-about p { color: var(--gray-mid); font-size: 0.875rem; }
-.footer-links h4 { font-weight: 600; margin-bottom: 16px; }
-.footer-links a {
-  display: block;
-  color: var(--gray-mid);
-  text-decoration: none;
-  font-size: 0.875rem;
-  margin-bottom: 8px;
-}
-.footer-links a:hover { color: var(--bordeaux); }
-.footer-bottom {
-  text-align: center;
-  margin-top: 48px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border-light);
-  color: var(--gray-mid);
-  font-size: 0.75rem;
-}
+    /* Footer */
+    footer {
+      background: var(--beige);
+      border-top: 1px solid var(--border-light);
+      padding: 48px 0;
+      margin-top: 60px;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+    }
+    .footer-logo { font-weight: 800; font-size: 1.3rem; margin-bottom: 16px; font-family: 'Montserrat', sans-serif; }
+    .footer-logo span { color: var(--bordeaux); }
+    .footer-about p { color: var(--gray-mid); font-size: 0.875rem; }
+    .footer-links h4 { font-weight: 600; margin-bottom: 16px; }
+    .footer-links a {
+      display: block;
+      color: var(--gray-mid);
+      text-decoration: none;
+      font-size: 0.875rem;
+      margin-bottom: 8px;
+    }
+    .footer-links a:hover { color: var(--bordeaux); }
+    .footer-bottom {
+      text-align: center;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-light);
+      color: var(--gray-mid);
+      font-size: 0.75rem;
+    }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .menu-toggle { display: block; }
-  .nav-links {
-    display: none;
-    position: absolute;
-    top: 72px;
-    left: 0;
-    right: 0;
-    background: var(--cream);
-    flex-direction: column;
-    padding: 24px;
-    border-bottom: 1px solid var(--border-light);
-  }
-  .nav-links.show { display: flex; }
-  .legal-layout { grid-template-columns: 1fr; gap: 32px; }
-  .legal-tabs { position: static; flex-direction: row; overflow-x: auto; padding-bottom: 8px; }
-  .tab-btn { white-space: nowrap; flex: 0 0 auto; }
-  .legal-content { padding: 32px 24px; }
-  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
-}
-@media (max-width: 600px) {
-  .hero h1 { font-size: 2rem; }
-  .legal-tabs { gap: 8px; }
-  .tab-btn { padding: 12px 16px; font-size: 0.8rem; }
-  .footer-grid { grid-template-columns: 1fr; }
-}
-</style>
-<script src="/js/lang-switcher.js" defer="None"></script>
+    /* Responsive */
+    @media (max-width: 900px) {
+      .menu-toggle { display: block; }
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 72px;
+        left: 0;
+        right: 0;
+        background: var(--cream);
+        flex-direction: column;
+        padding: 24px;
+        border-bottom: 1px solid var(--border-light);
+      }
+      .nav-links.show { display: flex; }
+      .legal-layout { grid-template-columns: 1fr; gap: 32px; }
+      .legal-tabs { position: static; flex-direction: row; overflow-x: auto; padding-bottom: 8px; }
+      .tab-btn { white-space: nowrap; flex: 0 0 auto; }
+      .legal-content { padding: 32px 24px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+    }
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 2rem; }
+      .legal-tabs { gap: 8px; }
+      .tab-btn { padding: 12px 16px; font-size: 0.8rem; }
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
 
@@ -341,7 +340,7 @@ footer {
 <header>
   <div class="container header-inner">
     <a href="index.html" class="logo">Bathily-convoyage<span>.</span></a>
-    <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">?</div>
+    <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</div>
     <div class="nav-links">
       <a href="index.html">Accueil</a>
       <a href="formation-convoyeur.html">Devenir convoyeur</a>
@@ -355,7 +354,7 @@ footer {
 <main class="container">
   <div class="hero">
     <div class="hero-content">
-      <h1>informations <span>L€gales</span></h1>
+      <h1>Informations <span>Légales</span></h1>
       <p>Retrouvez nos mentions légales, nos conditions de vente clients, d'utilisation convoyeurs et notre politique RGPD.</p>
     </div>
   </div>
@@ -364,7 +363,7 @@ footer {
     <!-- Sidebar Tabs -->
     <div class="legal-tabs" role="tablist">
       <button class="tab-btn active" onclick="switchTab('mentions')" role="tab" aria-selected="true" id="tab-mentions-btn">
-        <i class="fas fa-balance-scale"></i> Mentions L€gales
+        <i class="fas fa-balance-scale"></i> Mentions Légales
       </button>
       <button class="tab-btn" onclick="switchTab('privacy')" role="tab" aria-selected="false" id="tab-privacy-btn">
         <i class="fas fa-user-shield"></i> Politique RGPD
@@ -373,7 +372,7 @@ footer {
         <i class="fas fa-file-contract"></i> CGV Clients
       </button>
       <button class="tab-btn" onclick="switchTab('cgu')" role="tab" aria-selected="false" id="tab-cgu-btn">
-        <i class="fas fa-handshake"></i> CGU convoyeurs
+        <i class="fas fa-handshake"></i> CGU Convoyeurs
       </button>
     </div>
 
@@ -382,23 +381,23 @@ footer {
       
       <!-- TAB: MENTIONS -->
       <section class="content-panel active" id="panel-mentions" role="tabpanel">
-        <h2>Mentions L€gales</h2>
-        <p>En vertu de l'article 6 de la loi n€ 2004-575 du 21 juin 2004 pour la confiance dans l'€conomie num€rique, il est précis€ aux utilisateurs du site l'identit€ des diff€rents intervenants dans le cadre de sa r€alisation et de son suivi.</p>
+        <h2>Mentions Légales</h2>
+        <p>En vertu de l'article 6 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique, il est précisé aux utilisateurs du site l'identité des différents intervenants dans le cadre de sa réalisation et de son suivi.</p>
         
-        <h3>€diteur du site</h3>
+        <h3>Éditeur du site</h3>
         <p>
-          Le présent site est €dit€ par l'entreprise <strong>Bathily-convoyage</strong>.<br>
-          <strong>Si€ge social :</strong> 34, rue de Padirac, 34070 Montpellier<br>
-          <strong>Num€ro de SIRET :</strong> 78928537600032<br>
-          <strong>R.C.S. :</strong> immatriculé€e au Registre du Commerce et des Soci€t€s de Montpellier<br>
+          Le présent site est édité par l'entreprise <strong>Bathily-convoyage</strong>.<br>
+          <strong>Siège social :</strong> 34, rue de Padirac, 34070 Montpellier<br>
+          <strong>Numéro de SIRET :</strong> 78928537600032<br>
+          <strong>R.C.S. :</strong> immatriculée au Registre du Commerce et des Sociétés de Montpellier<br>
           <strong>Directeur de la publication :</strong> M. Bathily<br>
           <strong>Contact email :</strong> <a href="mailto:contact@bathily-convoyage.fr" style="color: var(--bordeaux); text-decoration: none; font-weight: 600;">contact@bathily-convoyage.fr</a><br>
           <strong>Téléphone :</strong> 07.67.21.51.00
         </p>
 
-        <h3>H€bergeur du site</h3>
+        <h3>Hébergeur du site</h3>
         <p>
-          Le site est h€berg€ par la soci€t€ <strong>Netlify</strong> :<br>
+          Le site est hébergé par la société <strong>Netlify</strong> :<br>
           Netlify, Inc.<br>
           44 Tehama Street, San Francisco, CA 94105, USA<br>
           Site Web : <a href="https://www.netlify.com" target="_blank" rel="noopener" style="color: var(--bordeaux); text-decoration: none;">www.netlify.com</a>
@@ -406,96 +405,96 @@ footer {
 
         <h3>Assurance professionnelle</h3>
         <p>
-          Les prestations de convoyage et de transport réalisées par Bathily-convoyage sont couvertes par un contrat de responsabilit€ civile professionnelle et d'assurance convoyage sp€cifique souscrit aupr€s de la compagénie <strong>Insify</strong>.
+          Les prestations de convoyage et de transport réalisées par Bathily-convoyage sont couvertes par un contrat de responsabilité civile professionnelle et d'assurance convoyage spécifique souscrit auprès de la compagnie <strong>Insify</strong>.
         </p>
 
-        <h3>Propri€t€ Intellectuelle</h3>
+        <h3>Propriété Intellectuelle</h3>
         <p>
-          L'ensemble du contenu de ce site (textes, images, graphismes, logo, ic€nes) est la propri€t€ exclusive de Bathily-convoyage ou de ses partenaires. Toute reproduction, distribution, modification ou adaptation de ces éléments, m€me partielle, est strictement interdite sans l'autorisation €crite pr€alable de l'€diteur.
+          L'ensemble du contenu de ce site (textes, images, graphismes, logo, icônes) est la propriété exclusive de Bathily-convoyage ou de ses partenaires. Toute reproduction, distribution, modification ou adaptation de ces éléments, même partielle, est strictement interdite sans l'autorisation écrite préalable de l'éditeur.
         </p>
       </section>
 
       <!-- TAB: PRIVACY -->
       <section class="content-panel" id="panel-privacy" role="tabpanel">
-        <h2>Politique de Confidentialit€ & RGPD</h2>
-        <p>Bathily-convoyage attache une importance particuli€re € la protection des donn€es personnelles de ses clients, convoyeurs et partenaires, conform€ment au R€glement G€n€ral sur la Protection des Donn€es (RGPD) n€ 2016/679 et € la loi Informatique et Libert€s.</p>
+        <h2>Politique de Confidentialité & RGPD</h2>
+        <p>Bathily-convoyage attache une importance particulière à la protection des données personnelles de ses clients, convoyeurs et partenaires, conformément au Règlement Général sur la Protection des Données (RGPD) n° 2016/679 et à la loi Informatique et Libertés.</p>
         
         <h3>Responsable du traitement</h3>
-        <p>Les donn€es personnelles sont collect€es et trait€es par :<br><strong>Bathily-convoyage</strong>, représent€e par M. Bathily.<br>Email : contact@bathily-convoyage.fr</p>
+        <p>Les données personnelles sont collectées et traitées par :<br><strong>Bathily-convoyage</strong>, représentée par M. Bathily.<br>Email : contact@bathily-convoyage.fr</p>
 
-        <h3>Donn€es personnelles collect€es</h3>
-        <p>Nous collectons uniquement les donn€es strictement nécessaires aux prestations propos€es :</p>
+        <h3>Données personnelles collectées</h3>
+        <p>Nous collectons uniquement les données strictement nécessaires aux prestations proposées :</p>
         <ul>
-          <li><strong>Donn€es clients :</strong> Nom, pr€nom, adresse email, numéro de téléphone, raison sociale (optionnel), adresses de prise en charge et de livraison.</li>
-          <li><strong>Donn€es véhicules :</strong> Plaque d'immatriculation (via le syst€me SIV pour identification automatique), marque, mod€le, ann€e, motorisation, valeur estim€e.</li>
-          <li><strong>Donn€es convoyeurs :</strong> Nom, pr€nom, permis de conduire, coordonn€es g€ographiques en temps réel (lors de l'ex€cution des émissions).</li>
-          <li><strong>Donn€es de émission :</strong> Photos de l'État des lieux (EDL) d€part et arriv€e, signatures num€riques.</li>
-          <li><strong>Donn€es de g€olocalisation :</strong> Durant la émission, le véhicule est g€olocalis€ en temps réel afin de fournir au client et au dispatch un lien de suivi en direct.</li>
+          <li><strong>Données clients :</strong> Nom, prénom, adresse email, numéro de téléphone, raison sociale (optionnel), adresses de prise en charge et de livraison.</li>
+          <li><strong>Données véhicules :</strong> Plaque d'immatriculation (via le système SIV pour identification automatique), marque, modèle, année, motorisation, valeur estimée.</li>
+          <li><strong>Données convoyeurs :</strong> Nom, prénom, permis de conduire, coordonnées géographiques en temps réel (lors de l'exécution des missions).</li>
+          <li><strong>Données de mission :</strong> Photos de l'État des lieux (EDL) départ et arrivée, signatures numériques.</li>
+          <li><strong>Données de géolocalisation :</strong> Durant la mission, le véhicule est géolocalisé en temps réel afin de fournir au client et au dispatch un lien de suivi en direct.</li>
         </ul>
 
         <div class="highlight-box">
-          <p><strong>Remarque sur la g€olocalisation :</strong> Les donn€es de g€olocalisation GPS en temps réel ne sont collect€es que pendant la dur€e stricte du trajet (du d€part € la livraison). Elles ne sont en aucun cas conserv€es apr€s la finalisation de la émission.</p>
+          <p><strong>Remarque sur la géolocalisation :</strong> Les données de géolocalisation GPS en temps réel ne sont collectées que pendant la durée stricte du trajet (du départ à la livraison). Elles ne sont en aucun cas conservées après la finalisation de la mission.</p>
         </div>
 
-        <h3>Finalit€ du traitement</h3>
-        <p>Ces donn€es sont trait€es pour :</p>
+        <h3>Finalité du traitement</h3>
+        <p>Ces données sont traitées pour :</p>
         <ul>
-          <li>Calculer vos devis de transport instantané€ment via notre algorithme.</li>
-          <li>Planifier, g€rer et valider les émissions de convoyage.</li>
+          <li>Calculer vos devis de transport instantanément via notre algorithme.</li>
+          <li>Planifier, gérer et valider les missions de convoyage.</li>
           <li>Assurer la sécurité des transports et le suivi client en temps réel.</li>
-          <li>G€n€rer les bons de émission, €états des lieux contradictoires et factures.</li>
-          <li>Permettre l'€valuation de la qualité€ de la prestation.</li>
+          <li>Générer les bons de mission, états des lieux contradictoires et factures.</li>
+          <li>Permettre l'évaluation de la qualité de la prestation.</li>
         </ul>
 
-        <h3>Dur€e de conservation</h3>
-        <p>Les donn€es de contact client sont conserv€es pendant 3 ans € compâter du dernier contact commercial. Les documents contractuels (factures, bons de émission) sont conserv€s pendant 10 ans conform€ment aux obligations comptables. Les photos d'État des lieux sont conserv€es pendant une dur€e de 3 mois apr€s la livraison, sauf litige en cours.</p>
+        <h3>Durée de conservation</h3>
+        <p>Les données de contact client sont conservées pendant 3 ans à compter du dernier contact commercial. Les documents contractuels (factures, bons de mission) sont conservés pendant 10 ans conformément aux obligations comptables. Les photos d'État des lieux sont conservées pendant une durée de 3 mois après la livraison, sauf litige en cours.</p>
 
         <h3>Vos droits</h3>
-        <p>Conform€ment au RGPD, vous disposez d'un droit d'acc€s, de rectification, de suppression, de portabilit€ de vos donn€es personnelles, ainsi que d'un droit de limitation et d'opposition au traitement. Vous pouvez exercer ces droits en nous €crivant € : <strong>contact@bathily-convoyage.fr</strong>.</p>
+        <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, de suppression, de portabilité de vos données personnelles, ainsi que d'un droit de limitation et d'opposition au traitement. Vous pouvez exercer ces droits en nous écrivant à : <strong>contact@bathily-convoyage.fr</strong>.</p>
       </section>
 
       <!-- TAB: CGV -->
       <section class="content-panel" id="panel-cgv" role="tabpanel">
-        <h2>Conditions G€n€rales de Vente (CGV)</h2>
-        <p>Les présentes Conditions G€n€rales de Vente r€gissent les relations contractuelles entre Bathily-convoyage et ses clients (particuliers ou professionnels) commandant des prestations de convoyage de véhicules.</p>
+        <h2>Conditions Générales de Vente (CGV)</h2>
+        <p>Les présentes Conditions Générales de Vente régissent les relations contractuelles entre Bathily-convoyage et ses clients (particuliers ou professionnels) commandant des prestations de convoyage de véhicules.</p>
         
-        <h3>1. Devis & R€servation</h3>
-        <p>Le client effectue une demande via l'outil <em>Smart Quote</em> ou par contact direct. Toute estimation tarifaire g€n€r€e en ligne est indicative et doit faire l'objet d'une confirmation ferme par notre €éééquipe sous 2 heures. La réservation devient d€finitive apr€s validation du devis par le client et acceptation par Bathily-convoyage.</p>
+        <h3>1. Devis & Réservation</h3>
+        <p>Le client effectue une demande via l'outil <em>Smart Quote</em> ou par contact direct. Toute estimation tarifaire générée en ligne est indicative et doit faire l'objet d'une confirmation ferme par notre équipe sous 2 heures. La réservation devient définitive après validation du devis par le client et acceptation par Bathily-convoyage.</p>
 
         <h3>2. Tarifs & Facturation</h3>
-        <p>Les prix s'entendent Hors Taxes (HT) en euros, soumis € la TVA en vigueur (20%). Ils comprennent le carburant (selon les conditions du pack choisi), les p€ages €ventuels et l'assurance du véhicule durant le transport par la route ou par plateau. Les factures sont €mises € la livraison et payables selon les conditions indiqu€es.</p>
+        <p>Les prix s'entendent Hors Taxes (HT) en euros, soumis à la TVA en vigueur (20%). Ils comprennent le carburant (selon les conditions du pack choisi), les péages éventuels et l'assurance du véhicule durant le transport par la route ou par plateau. Les factures sont émises à la livraison et payables selon les conditions indiquées.</p>
 
-        <h3>3. Transfert de Responsabilit€ & Assurances</h3>
-        <p>La garde juridique du véhicule est transf€r€e € Bathily-convoyage € compâter de la signature de l'État des Lieux (EDL) de d€part par le convoyeur et le client (ou son représentant). La responsabilit€ prend fin lors de la signature de l'EDL d'arriv€e € destination.</p>
-        <p>Tous les trajets de convoyage sont couverts en dommage et en responsabilit€ civile professionnelle par notre assurance souscrite aupr€s de **Insify**. En cas de sinistre responsable, une franchise € la charge du client peut s'appliquer selon le bar€me du pack souscrit (Starter, S€r€nit€ ou Excellence).</p>
+        <h3>3. Transfert de Responsabilité & Assurances</h3>
+        <p>La garde juridique du véhicule est transférée à Bathily-convoyage à compter de la signature de l'État des Lieux (EDL) de départ par le convoyeur et le client (ou son représentant). La responsabilité prend fin lors de la signature de l'EDL d'arrivée à destination.</p>
+        <p>Tous les trajets de convoyage sont couverts en dommage et en responsabilité civile professionnelle par notre assurance souscrite auprès de <strong>Insify</strong>. En cas de sinistre responsable, une franchise à la charge du client peut s'appliquer selon le barème du pack souscrit (Starter, Sérénité ou Excellence).</p>
 
         <h3>4. Annulation</h3>
-        <p>Toute annulation par le client moins de 48 heures avant la date pr€vue de prise en charge pourra donner lieu € la facturation de frais de d€dit €équivalents € 30% du montant HT du devis initial.</p>
+        <p>Toute annulation par le client moins de 48 heures avant la date prévue de prise en charge pourra donner lieu à la facturation de frais de dédit équivalents à 30% du montant HT du devis initial.</p>
       </section>
 
       <!-- TAB: CGU -->
       <section class="content-panel" id="panel-cgu" role="tabpanel">
-        <h2>Conditions G€n€rales d'Utilisation (CGU)</h2>
-        <p>Les présentes Conditions G€n€rales d'Utilisation s'appliquent aux convoyeurs professionnels et ind€pendants partenaires utilisant la plateforme Bathily-convoyage pour postuler et réaliser des prestations de convoyage.</p>
+        <h2>Conditions Générales d'Utilisation (CGU)</h2>
+        <p>Les présentes Conditions Générales d'Utilisation s'appliquent aux convoyeurs professionnels et indépendants partenaires utilisant la plateforme Bathily-convoyage pour postuler et réaliser des prestations de convoyage.</p>
         
-        <h3>1. Acc€s au March€ Collaboratif</h3>
-        <p>Les convoyeurs certifi€s ont acc€s € l'onglet "March€ des émissions" de leur espace d€di€. Ils peuvent postuler librement aux émissions publi€es. L'affectation finale d'une émission est d€cid€e exclusivement par l'administrateur de Bathily-convoyage sur la base de crit€res de fiabilit€ et d'optimisation des flux.</p>
+        <h3>1. Accès au Marché Collaboratif</h3>
+        <p>Les convoyeurs certifiés ont accès à l'onglet "Marché des missions" de leur espace dédié. Ils peuvent postuler librement aux missions publiées. L'affectation finale d'une mission est décidée exclusivement par l'administrateur de Bathily-convoyage sur la base de critères de fiabilité et d'optimisation des flux.</p>
 
         <h3>2. Obligations du convoyeur</h3>
-        <p>Le convoyeur s'engage € :</p>
+        <p>Le convoyeur s'engage à :</p>
         <ul>
-          <li>D€tenir un permis de conduire français valide, non suspendu, adapt€ au type de véhicule.</li>
-          <li>Pr€senter ses documents d'entreprise et d'assurance personnelle € jour sur demande.</li>
-          <li>R€aliser scrupuleusement la procédure contradictoire d'État des lieux (EDL) : prise obligatoire de 20 photographies du véhicule (d€part et arriv€e) et signatures num€riques correspondantes.</li>
-          <li>Activer le GPS de l'application mobile tout au long de la émission afin de transmettre le suivi de g€olocalisation en temps réel au client et au dispatch.</li>
-          <li>Respecter scrupuleusement le code de la route et les délais d'acheminement pr€vus.</li>
+          <li>Détenir un permis de conduire français valide, non suspendu, adapté au type de véhicule.</li>
+          <li>Présenter ses documents d'entreprise et d'assurance personnelle à jour sur demande.</li>
+          <li>Réaliser scrupuleusement la procédure contradictoire d'État des lieux (EDL) : prise obligatoire de 20 photographies du véhicule (départ et arrivée) et signatures numériques correspondantes.</li>
+          <li>Activer le GPS de l'application mobile tout au long de la mission afin de transmettre le suivi de géolocalisation en temps réel au client et au dispatch.</li>
+          <li>Respecter scrupuleusement le code de la route et les délais d'acheminement prévus.</li>
         </ul>
 
-        <h3>3. R€mun€ration</h3>
-        <p>Le montant vers€ pour chaque émission est convenu avant le démarrage de celle-ci, lors de l'attribution par l'administrateur. Les factures de prestation des convoyeurs partenaires sont trait€es et pay€es selon les €ch€ances contractuelles établies.</p>
+        <h3>3. Rémunération</h3>
+        <p>Le montant versé pour chaque mission est convenu avant le démarrage de celle-ci, lors de l'attribution par l'administrateur. Les factures de prestation des convoyeurs partenaires sont traitées et payées selon les échéances contractuelles établies.</p>
 
         <h3>4. Sanctions en cas de non-respect</h3>
-        <p>Tout manquement grave aux consignes (absence d'État des lieux photos, d€sactivation du GPS sans motif valable, retard injustifi€, comportement inappropri€) entra€nera le retrait imm€diat de la émission et la suspension d€finitive de l'acc€s € l'espace convoyeur.</p>
+        <p>Tout manquement grave aux consignes (absence d'État des lieux photos, désactivation du GPS sans motif valable, retard injustifié, comportement inapproprié) entraînera le retrait immédiat de la mission et la suspension définitive de l'accès à l'espace convoyeur.</p>
       </section>
 
     </div>
@@ -526,11 +525,11 @@ footer {
       <div class="footer-links">
         <h4>Contact</h4>
         <a href="mailto:contact@bathily-convoyage.fr">contact@bathily-convoyage.fr</a>
-        <span>Montpellier & France enti€re</span>
+        <span>Montpellier & France entière</span>
       </div>
     </div>
     <div class="footer-bottom">
-      € 2025 Bathily convoyage € Tous droits réservés € <a href="mentions-legales.html" style="color:inherit; text-decoration:underline;">Mentions L€gales & CGV/CGU</a>
+      © 2025 Bathily Convoyage — Tous droits réservés — <a href="mentions-legales.html" style="color:inherit; text-decoration:underline;">Mentions Légales & CGV/CGU</a>
     </div>
   </div>
 </footer>

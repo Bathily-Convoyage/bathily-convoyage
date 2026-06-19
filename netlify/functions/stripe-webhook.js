@@ -31,127 +31,168 @@ exports.handler = async (event, context) => {
     const sigHeader = event.headers['stripe-signature'] || event.headers['Stripe-Signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  if (!sigHeader || !webhookSecret) {
-    console.error("Signature Stripe ou secret de webhook manquant.");
-    return {
-      statusCode: 400,
-      body: 'En-tête stripe-signature ou configuration secrète manquante.'
-    };
-  }
-
-  let stripeEvent;
-
-  try {
-    // Reconstruire l'événement Stripe pour valider la signature cryptographique
-    stripeEvent = stripe.webhooks.constructEvent(
-      event.body,
-      sigHeader,
-      webhookSecret
-    );
-  } catch (err) {
-    console.error(`❌ Échec de la vérification de la signature du webhook: ${err.message}`);
-    return {
-      statusCode: 400,
-      body: `Erreur de signature: ${err.message}`
-    };
-  }
-
-  // Gérer l'événement checkout.session.completed
-  if (stripeEvent.type === 'checkout.session.completed') {
-    const session = stripeEvent.data.object;
-
-    // Récupérer l'ID de la mission dans les métadonnées de la session de paiement
-    const missionId = session.metadata.mission_id;
-    const reference = session.metadata.reference;
-
-    if (!missionId) {
-      console.error("⚠️ Webhook reçu mais pas de missionId dans les métadonnées de la session.");
+    if (!sigHeader || !webhookSecret) {
+      console.error("Signature Stripe ou secret de webhook manquant.");
       return {
-        statusCode: 200, // On renvoie 200 à Stripe car la signature est bonne
-        body: 'ID de mission manquant.'
+        statusCode: 400,
+        body: 'En-tête stripe-signature ou configuration secrète manquante.'
       };
     }
 
-    console.log(`💰 Paiement validé pour la mission ${reference} (ID: ${missionId}). Mise à jour en base...`);
+    let stripeEvent;
 
-    // Mettre à jour le statut du paiement dans Supabase en 'paid'
-    const { error: updateError } = await supabase
-      .from('missions')
-      .update({ paiement_statut: 'paid', status: 'confirmed' })
-      .eq('id', missionId);
-
-    if (updateError) {
-      console.error(`❌ Erreur lors de la mise à jour de la mission en base: ${updateError.message}`);
-      return {
-        statusCode: 500,
-        body: `Erreur BDD: ${updateError.message}`
-      };
-    }
-
-    console.log(`✅ Mission ${reference} marquée comme payée (status: confirmed).`);
-
-    // Récupérer la mission pour avoir les infos client
-    const { data: mission } = await supabase.from('missions').select('*').eq('id', missionId).single();
-
-    // Créer le compte client Supabase Auth si pas déjà existant
-    let tempPassword = null;
-    if (mission && mission.client_email) {
-      try {
-        // Vérifier si l'utilisateur auth existe déjà
-        const { data: existingUsers } = await supabase.auth.admin.listUsers();
-        const alreadyExists = existingUsers?.users?.some(u => u.email === mission.client_email);
-
-        if (!alreadyExists) {
-          // Générer un mot de passe temporaire
-          tempPassword = Math.random().toString(36).slice(2, 8).toUpperCase() + Math.random().toString(36).slice(2, 5) + '!';
-          const { data: newAuthUser, error: authError } = await supabase.auth.admin.createUser({
-            email: mission.client_email,
-            password: tempPassword,
-            email_confirm: true
-          });
-          if (authError) {
-            console.warn('⚠️ Erreur création compte auth client:', authError.message);
-          } else {
-            // Lier auth_user_id dans la table clients
-            await supabase.from('clients').update({ auth_user_id: newAuthUser.user.id }).eq('email', mission.client_email);
-            console.log(`✅ Compte client créé pour ${mission.client_email}`);
-          }
-        } else {
-          console.log(`ℹ️ Compte client déjà existant pour ${mission.client_email}`);
-        }
-      } catch (authErr) {
-        console.error('❌ Erreur création compte client:', authErr.message);
-      }
-    }
-
-    // Déclencher l'e-mail automatique de succès de paiement
     try {
-      const siteUrl = process.env.URL || 'https://bathily-convoyage.fr';
-      const emailResponse = await fetch(`${siteUrl}/.netlify/functions/send-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trigger: 'payment_success',
-          id: missionId,
-          temp_password: tempPassword
-        })
-      });
-      if (emailResponse.ok) {
-        console.log(`✉️ E-mail de confirmation de paiement déclenché avec succès.`);
-      } else {
-        const text = await emailResponse.text();
-        console.warn(`⚠️ Échec du déclenchement d'e-mail (Statut ${emailResponse.status}) : ${text}`);
-      }
-    } catch (emailErr) {
-      console.error("❌ Erreur de déclenchement d'e-mail :", emailErr.message);
+      // Reconstruire l'événement Stripe pour valider la signature cryptographique
+      stripeEvent = stripe.webhooks.constructEvent(
+        event.body,
+        sigHeader,
+        webhookSecret
+      );
+    } catch (err) {
+      console.error(`❌ Échec de la vérification de la signature du webhook: ${err.message}`);
+      return {
+        statusCode: 400,
+        body: `Erreur de signature: ${err.message}`
+      };
     }
-  }
 
-  // Renvoyer un statut de succès à Stripe pour acquitter la réception du webhook
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ received: true })
-  };
+    // Gérer l'événement checkout.session.completed
+    if (stripeEvent.type === 'checkout.session.completed') {
+      const session = stripeEvent.data.object;
+
+      // Récupérer l'ID de la mission dans les métadonnées de la session de paiement
+      const missionId = session.metadata.mission_id;
+      const reference = session.metadata.reference;
+
+      if (!missionId) {
+        console.error("⚠️ Webhook reçu mais pas de missionId dans les métadonnées de la session.");
+        return {
+          statusCode: 200, // On renvoie 200 à Stripe car la signature est bonne
+          body: 'ID de mission manquant.'
+        };
+      }
+
+      console.log(`💰 Paiement validé pour la mission ${reference} (ID: ${missionId}). Mise à jour en base...`);
+
+      // 1. Vérifier que la mission existe
+      const { data: mission, error: missionError } = await supabase
+        .from('missions')
+        .select('*')
+        .eq('id', missionId)
+        .single();
+
+      if (missionError || !mission) {
+        console.error(`❌ Mission ${missionId} introuvable: ${missionError?.message}`);
+        return {
+          statusCode: 404,
+          body: `Mission ${missionId} introuvable`
+        };
+      }
+
+      // 2. Mettre à jour le statut du paiement dans Supabase
+      // Ne pas toucher à `statut` (statut de la mission) — seulement paiement_statut
+      const { error: updateError } = await supabase
+        .from('missions')
+        .update({ paiement_statut: 'paid' })
+        .eq('id', missionId);
+
+      if (updateError) {
+        console.error(`❌ Erreur lors de la mise à jour de la mission en base: ${updateError.message}`);
+        return {
+          statusCode: 500,
+          body: `Erreur BDD: ${updateError.message}`
+        };
+      }
+
+      console.log(`✅ Mission ${reference} marquée comme payée.`);
+
+      // 3. Créer le compte client Supabase Auth si pas déjà existant
+      let tempPassword = null;
+      const clientEmail = mission.client_email;
+
+      if (clientEmail) {
+        try {
+          // Vérifier si l'utilisateur auth existe déjà
+          const { data: existingUsers } = await supabase.auth.admin.listUsers();
+          const alreadyExists = existingUsers?.users?.some(u => u.email === clientEmail);
+
+          if (!alreadyExists) {
+            // Générer un mot de passe temporaire
+            tempPassword = Math.random().toString(36).slice(2, 8).toUpperCase() + 
+                           Math.random().toString(36).slice(2, 5) + '!';
+            
+            const { data: newAuthUser, error: authError } = await supabase.auth.admin.createUser({
+              email: clientEmail,
+              password: tempPassword,
+              email_confirm: true,
+              user_metadata: {
+                prenom: mission.client_nom?.split(' ')[0] || 'Client',
+                nom: mission.client_nom?.split(' ').slice(1).join(' ') || '',
+                role: 'client'
+              }
+            });
+
+            if (authError) {
+              console.warn('⚠️ Erreur création compte auth client:', authError.message);
+            } else {
+              // Lier auth_user_id dans la table clients
+              const { error: linkError } = await supabase
+                .from('clients')
+                .update({ 
+                  auth_user_id: newAuthUser.user.id,
+                  prenom: mission.client_nom?.split(' ')[0] || 'Client',
+                  nom: mission.client_nom?.split(' ').slice(1).join(' ') || '',
+                  email: clientEmail,
+                  role: 'client'
+                })
+                .eq('email', clientEmail);
+
+              if (linkError) {
+                console.warn('⚠️ Erreur liaison auth_user_id:', linkError.message);
+              } else {
+                console.log(`✅ Compte client créé et lié pour ${clientEmail}`);
+              }
+            }
+          } else {
+            console.log(`ℹ️ Compte client déjà existant pour ${clientEmail}`);
+          }
+        } catch (authErr) {
+          console.error('❌ Erreur création compte client:', authErr.message);
+        }
+      } else {
+        console.warn('⚠️ Aucun email client associé à la mission. Compte non créé.');
+      }
+
+      // 4. Déclencher l'e-mail automatique de succès de paiement
+      try {
+        const siteUrl = process.env.URL || 'https://www.bathily-convoyage.fr';
+        const emailResponse = await fetch(`${siteUrl}/.netlify/functions/send-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            trigger: 'payment_success',
+            id: missionId,
+            temp_password: tempPassword
+          })
+        });
+
+        if (emailResponse.ok) {
+          console.log(`✉️ E-mail de confirmation de paiement déclenché avec succès.`);
+        } else {
+          const text = await emailResponse.text();
+          console.warn(`⚠️ Échec du déclenchement d'e-mail (Statut ${emailResponse.status}) : ${text}`);
+        }
+      } catch (emailErr) {
+        console.error("❌ Erreur de déclenchement d'e-mail :", emailErr.message);
+      }
+    }
+
+    // Renvoyer un statut de succès à Stripe pour acquitter la réception du webhook
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ received: true })
+    };
+
   } catch (error) {
     console.error("Erreur dans stripe-webhook :", error);
     return {
