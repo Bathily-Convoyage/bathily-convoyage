@@ -1947,7 +1947,7 @@ async function run() {
 
       // Charger le code HTML
       await page.setContent(visual.html, {
-        waitUntil: 'networkidle0'
+        waitUntil: 'load'
       });
 
       // Attendre le chargement des polices Google
