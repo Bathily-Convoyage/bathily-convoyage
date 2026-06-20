@@ -1,4 +1,4 @@
-﻿
+
 <html lang="fr">
 
 <head>
@@ -62,7 +62,7 @@
       background: rgba(253, 251, 247, 0.96);
       backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--border-light);
-      z-index: 100;
+      z-index: 9999;
     }
 
     .header-inner {
@@ -1428,17 +1428,17 @@
           <h4 style="font-family: 'Montserrat', sans-serif; font-size: 1.2rem; margin-bottom: 16px; color: var(--gray-dark);">
             niveaux de service optionnels</h4>
           <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;">
-            <div style="background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+            <div onclick="window.location.href='devis.html?pack=starter'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
               <strong id="idx_pack_starter_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Formule Starter</strong>
               <span id="idx_pack_starter_desc" style="font-size: 0.8rem; color: var(--gray-mid);">Inclus par défaut. convoyeur certifié, service
                 client standard.</span>
             </div>
-            <div style="background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+            <div onclick="window.location.href='devis.html?pack=serenite'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
               <strong id="idx_pack_serenite_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Sérénité (+49€)</strong>
               <span id="idx_pack_serenite_desc" style="font-size: 0.8rem; color: var(--gray-mid);">Nettoyage intérieur/extérieur, rendez-vous
                 planifié précis, support VIP.</span>
             </div>
-            <div style="background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+            <div onclick="window.location.href='devis.html?pack=excellence'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
               <strong id="idx_pack_excellence_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Excellence (+129€)</strong>
               <span id="idx_pack_excellence_desc" style="font-size: 0.8rem; color: var(--gray-mid);">Plein de carburant offert, nettoyage complet
                 prestige, priorité d'affectation.</span>

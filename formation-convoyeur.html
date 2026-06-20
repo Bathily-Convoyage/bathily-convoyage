@@ -958,7 +958,7 @@ function selectAnswer(idx) {
   if (isCorrect) quizScore++;
 
   feedback.className = `q-feedback show ${isCorrect ? 'good' : 'bad'}`;
-  feedback.innerHTML = `<strong>${isCorrect ? '? Correct !' : '? Incorrect.'}</strong> ${q.expl}`;
+  feedback.innerHTML = `<strong>${isCorrect ? '✅ Correct !' : '⚠️ Incorrect.'}</strong> ${q.expl}`;
 
   document.getElementById('livreScore').textContent = `${quizScore} / 12`;
   document.getElementById('btnQuizNext').disabled = false;
@@ -1026,8 +1026,8 @@ function showResults() {
       if (!a) return '';
       const ok = a.isCorrect;
       return `<div class="ra-item">
-        <div class="ra-icon ${ok?'ok':'ko'}">${ok?'?':'?'}</div>
-        <div style="flex:1;"><div style="font-weight:600; font-size:0.8rem; margin-bottom:2px;">${i+1}. ${q.q.substring(0,60)}...</div><div style="font-size:0.72rem; color:${ok?'var(--success)':'#c0392b'};">${ok?'Bonne réponse':'Mauvaise réponse À ' + q.opts[q.correct]}</div></div>
+        <div class="ra-icon ${ok?'ok':'ko'}">${ok?'✅':'⚠️'}</div>
+        <div style="flex:1;"><div style="font-weight:600; font-size:0.8rem; margin-bottom:2px;">${i+1}. ${q.q.substring(0,60)}...</div><div style="font-size:0.72rem; color:${ok?'var(--success)':'#c0392b'};">${ok?'Bonne réponse':'Mauvaise réponse : ' + q.opts[q.correct]}</div></div>
       </div>`;
     }).join('');
 }

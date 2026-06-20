@@ -532,6 +532,13 @@
             </div>
           </div>
 
+          <!-- Code Promo -->
+          <div class="f-grp" style="margin-top: 16px;">
+            <label>Code Promo</label>
+            <input type="text" id="promoCodeInput" placeholder="Ex: HELLO10" style="text-transform: uppercase;">
+            <div class="field-err" id="promoCodeMessage" style="color:var(--success); display:none; margin-top:6px; font-weight:600;"></div>
+          </div>
+
           <!-- Coordonnées client -->
           <div class="f-row">
             <div class="f-grp">
@@ -968,9 +975,32 @@
       if (isUrgence) total = Math.round(total * 1.3);
       if (isGardiennage) total += 100;
 
+      // Promo Code
+      const promoInput = document.getElementById('promoCodeInput') ? document.getElementById('promoCodeInput').value.trim().toUpperCase() : '';
+      const promoMsg = document.getElementById('promoCodeMessage');
+      
+      const PROMO_CODES = {
+        'HELLO10': { type: 'percent', value: 10 }
+      };
+
+      let discount = 0;
+      if (promoInput && PROMO_CODES[promoInput]) {
+        promoMsg.style.display = 'block';
+        promoMsg.style.color = 'var(--success)';
+        promoMsg.textContent = `Code appliqué : -${PROMO_CODES[promoInput].value}% !`;
+        discount = Math.round(total * (PROMO_CODES[promoInput].value / 100));
+        total -= discount;
+      } else if (promoInput) {
+        promoMsg.style.display = 'block';
+        promoMsg.style.color = '#DC2626';
+        promoMsg.textContent = 'Code invalide ou expiré';
+      } else if (promoMsg) {
+        promoMsg.style.display = 'none';
+      }
+
       _currentPrice = total;
 
-      priceDisplay.innerHTML = `${total} <span>€ HT</span>`;
+      priceDisplay.innerHTML = `${total} <span>€ HT</span>${discount > 0 ? `<br><span style="font-size:0.75rem; color:var(--success); font-weight:600;">Remise de ${discount}€ appliquée</span>` : ''}`;
       distanceDisplay.textContent = `📏 ${dist} km`;
     }
 
@@ -979,6 +1009,7 @@
     document.getElementById('packSelect').addEventListener('change', calculatePrice);
     document.getElementById('optUrgence').addEventListener('change', calculatePrice);
     document.getElementById('optGardiennage').addEventListener('change', calculatePrice);
+    document.getElementById('promoCodeInput').addEventListener('input', calculatePrice);
 
     // ========== SOUMISSION DU DEVIS ==========
     async function submitDevis(event) {
@@ -1029,6 +1060,7 @@
       const marque = document.getElementById('marqueInput').value.trim();
       const modele = document.getElementById('modeleInput').value.trim();
       const vehiculeManuel = document.getElementById('vehiculeManuel').value.trim();
+      const promoCode = document.getElementById('promoCodeInput').value.trim().toUpperCase();
 
       const totalHt = _currentPrice || 0;
       if (totalHt === 0) {
@@ -1066,7 +1098,8 @@
           mode: mode,
           pack: pack,
           opts: { urgence: isUrgence, gardiennage: isGardiennage },
-          message: message || ''
+          message: message || '',
+          promo_code: promoCode || null
         },
         status: 'pending',
         created_at: new Date().toISOString()
