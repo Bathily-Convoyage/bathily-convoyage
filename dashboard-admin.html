@@ -2795,6 +2795,13 @@ Cadeau premium personnalisé</textarea></div>
         const { data: devis, error: devisErr } = await sb.from('devis').select('*').eq('id', id).single();
         if (devisErr || !devis) throw new Error("Devis introuvable.");
 
+        // Chercher si le client a déjà un compte pour lier la mission
+        let matchedClientId = devis.client_id || null;
+        if (!matchedClientId && devis.client_email) {
+          const { data: existingClient } = await sb.from('clients').select('id').eq('email', devis.client_email).maybeSingle();
+          if (existingClient) matchedClientId = existingClient.id;
+        }
+
         const ref = 'BC-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
         const missionData = {
           reference: ref,
@@ -2810,7 +2817,7 @@ Cadeau premium personnalisé</textarea></div>
           statut: 'planned',
           paiement_statut: 'pending',
           date_mission: devis.date_depart || new Date().toISOString().split('T')[0],
-          client_id: devis.client_id || null
+          client_id: matchedClientId
         };
 
         const { data: newMission, error: missionErr } = await sb.from('missions').insert([missionData]).select().single();

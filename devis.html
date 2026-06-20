@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -952,11 +952,10 @@
       };
       const rate = baseRates[type]?.[mode] || 1.00;
 
-      let basePrice = 0;
+      let basePrice = Math.round(dist * rate);
       if (mode === 'plateau') {
-        basePrice = type === 'Moto' ? 300 : 350;
+        basePrice += (type === 'Moto' ? 300 : 350);
       } else {
-        basePrice = Math.round(dist * rate);
         const min = type === 'Moto' ? 100 : 120;
         if (basePrice < min) basePrice = min;
       }
