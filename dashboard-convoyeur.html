@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -1296,7 +1296,7 @@
       // 2. Insérer dans convoyeurs
       const { data: inserted, error: insertError } = await client.from('convoyeurs').insert([{
         prenom, nom, email, telephone, zone, taux_auto: tauxAuto, taux_moto: tauxMoto,
-        disponible: true, niveau: 'Standard'
+        disponible: true, niveau: 'Standard', auth_user_id: authData.user.id
       }]).select().single();
 
       if (insertError || !inserted) {

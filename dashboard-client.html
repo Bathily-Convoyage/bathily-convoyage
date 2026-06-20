@@ -1500,7 +1500,7 @@
 
       // 2. Insérer dans clients
       const { data: inserted, error: insertError } = await client.from('clients').insert([{
-        prenom, nom, email, telephone, societe, role: 'client'
+        prenom, nom, email, telephone, societe, role: 'client', auth_user_id: authData.user.id
       }]).select().single();
 
       if (insertError || !inserted) {
