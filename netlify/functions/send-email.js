@@ -1,4 +1,4 @@
-﻿const { createClient } = require('@supabase/supabase-js');
+const { createClient } = require('@supabase/supabase-js');
 
 exports.handler = async (event, context) => {
   // CORS Headers
@@ -168,7 +168,7 @@ Corps: ${html.substring(0, 300)}...`);
       const { data: devis, error } = await supabase
         .from('devis')
         .select('*')
-        .eq('id', id)
+        .eq('reference', id)
         .single();
 
       if (error || !devis) throw new Error(`Devis introuvable: ${error?.message}`);
