@@ -1131,7 +1131,45 @@
         confirmBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer la demande';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
-    }
+    } // <-- Missing brace
+    
+    // ========== AUTO-FILL DEPUIS LOCALSTORAGE OU URL ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const modeParam = urlParams.get('mode');
+        if (modeParam === 'plateau' || modeParam === 'route') {
+          document.getElementById('transportMode').value = modeParam;
+        }
+
+        const savedDevis = localStorage.getItem('bathily_devis');
+        if (savedDevis) {
+          const parsed = JSON.parse(savedDevis);
+          if (parsed.depart) {
+            const depEl = document.getElementById('depart');
+            if(depEl) depEl.value = parsed.depart;
+          }
+          if (parsed.arrivee) {
+            const arrEl = document.getElementById('arrivee');
+            if(arrEl) arrEl.value = parsed.arrivee;
+          }
+          if (parsed.vehicule) {
+            setVehicleType(parsed.vehicule === 'moto' ? 'Moto' : 'Automobile');
+          }
+          if (parsed.mode) {
+            const modeEl = document.getElementById('transportMode');
+            if(modeEl) modeEl.value = parsed.mode;
+          }
+          
+          if (parsed.depart && parsed.arrivee) {
+            setTimeout(() => {
+              if (typeof calculatePrice === 'function') calculatePrice();
+            }, 600);
+          }
+          localStorage.removeItem('bathily_devis');
+        }
+      } catch(e) { console.error('Erreur prefill', e); }
+    });
   </script>
 </body>
 </html>
