@@ -1765,6 +1765,9 @@ Cadeau premium personnalisé</textarea></div>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Téléphone client</label><input type="tel" id="manual-client-phone" placeholder="Téléphone du client"></div>
+        <div class="f-grp"><label>Adresse postale client</label><input type="text" id="manual-client-address" placeholder="Adresse complète du client"></div>
+      </div>
+      <div class="f-row">
         <div class="f-grp"><label>Convoyeur</label><select id="manual-convoyeur">
           <option value="">Marché (aucun convoyeur assigné)</option>
         </select></div>
@@ -3129,15 +3132,25 @@ Cadeau premium personnalisé</textarea></div>
       title: `Mission ${mission.reference}`,
       html: `<div style="text-align:left;font-size:0.9rem;">
         <b>Client :</b> ${mission.client_nom}<br>
+        <b>Email client :</b> ${mission.client_email || '—'}<br>
+        <b>ID Client :</b> ${mission.client_id || '—'}<br>
+        <hr style="margin:10px 0;border-color:#eee;">
         <b>Trajet :</b> ${mission.depart} → ${mission.arrivee}<br>
         <b>Véhicule :</b> ${mission.vehicule || '—'}<br>
+        <b>Mode :</b> ${mission.mode || '—'}<br>
+        <b>Pack :</b> ${mission.pack || '—'}<br>
+        <hr style="margin:10px 0;border-color:#eee;">
         <b>Montant HT :</b> ${mission.montant_ht || 0} €<br>
         <b>Rémunération convoyeur :</b> ${mission.remuneration_convoyeur || '—'} €<br>
+        <b>Marge :</b> ${mission.marge || '—'} €<br>
+        <hr style="margin:10px 0;border-color:#eee;">
+        <b>Convoyeur :</b> ${mission.convoyeur_nom || 'Non assigné'}<br>
         <b>Statut :</b> ${mission.statut || mission.status}<br>
         <b>Paiement :</b> ${mission.paiement_statut || 'En attente'}<br>
-        <b>Date :</b> ${formatDate(mission.date_mission || mission.created_at)}
+        <b>Date :</b> ${formatDate(mission.date_mission || mission.created_at)}<br>
+        <b>Créée le :</b> ${formatDate(mission.created_at)}
       </div>`,
-      width: 600,
+      width: 650,
       showCloseButton: true
     });
   };
@@ -3284,6 +3297,7 @@ Cadeau premium personnalisé</textarea></div>
       const clientNom = document.getElementById('manual-client').value.trim();
       const clientEmail = document.getElementById('manual-client-email').value.trim();
       const clientPhone = document.getElementById('manual-client-phone').value.trim();
+      const clientAddress = document.getElementById('manual-client-address').value.trim();
       const depart = document.getElementById('manual-depart').value.trim();
       const arrivee = document.getElementById('manual-arrivee').value.trim();
       const vehiculeType = document.getElementById('adminVehType').value;
@@ -3317,10 +3331,14 @@ Cadeau premium personnalisé</textarea></div>
       // Récupérer les options cochées
       const selectedOptions = Array.from(document.querySelectorAll('#manual-options input:checked')).map(cb => cb.value);
 
+      // Si un convoyeur est sélectionné, le statut passe à "planned", sinon "available"
+      const missionStatus = convoyeur ? 'planned' : 'available';
+
       const missionData = {
         reference: ref,
         client_nom: clientNom,
         client_email: clientEmail || null,
+        client_address: clientAddress || null,
         depart: depart,
         arrivee: arrivee,
         vehicule: vehicleName,
@@ -3328,7 +3346,8 @@ Cadeau premium personnalisé</textarea></div>
         pack: pack,
         montant_ht: montant,
         remuneration_convoyeur: remuneration || null,
-        status: 'available',
+        status: missionStatus,
+        statut: missionStatus,
         paiement_statut: 'pending',
         date_mission: date || new Date().toISOString().split('T')[0],
         client_id: clientId,
@@ -3346,6 +3365,7 @@ Cadeau premium personnalisé</textarea></div>
       document.getElementById('manual-client').value = '';
       document.getElementById('manual-client-email').value = '';
       document.getElementById('manual-client-phone').value = '';
+      document.getElementById('manual-client-address').value = '';
       document.getElementById('manual-depart').value = '';
       document.getElementById('manual-arrivee').value = '';
       document.getElementById('manual-price').value = '';
@@ -3611,6 +3631,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       document.getElementById('manual-client').value = '';
       document.getElementById('manual-client-email').value = '';
       document.getElementById('manual-client-phone').value = '';
+      document.getElementById('manual-client-address').value = '';
       document.getElementById('manual-depart').value = '';
       document.getElementById('manual-arrivee').value = '';
       document.getElementById('manual-price').value = '';
@@ -3642,6 +3663,21 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     // Mobile menu
     document.getElementById('mobileMenuBtn')?.addEventListener('click', toggleMobileNav);
 
+    // ---- Mise à jour automatique de la marge ----
+    document.getElementById('manual-price')?.addEventListener('input', function() {
+      const prix = parseFloat(this.value) || 0;
+      const rem = parseFloat(document.getElementById('manual-remuneration').value) || 0;
+      const margeEl = document.getElementById('manual-marge-val');
+      if (margeEl) margeEl.textContent = (prix - rem).toFixed(2) + ' €';
+    });
+
+    document.getElementById('manual-remuneration')?.addEventListener('input', function() {
+      const prix = parseFloat(document.getElementById('manual-price').value) || 0;
+      const rem = parseFloat(this.value) || 0;
+      const margeEl = document.getElementById('manual-marge-val');
+      if (margeEl) margeEl.textContent = (prix - rem).toFixed(2) + ' €';
+    });
+
     // Stat cards navigation
     document.querySelectorAll('[data-nav]').forEach(el => {
       el.addEventListener('click', function() {
@@ -3652,6 +3688,9 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     });
 
     console.log('📂 Dashboard Admin chargé');
+
+    // Charger les posts du réseau convoyeur au démarrage
+    fetchAdminReseauPosts();
   });
 
   // ============================================================
