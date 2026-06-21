@@ -3322,8 +3322,7 @@ Cadeau premium personnalisé</textarea></div>
         date_mission: date || new Date().toISOString().split('T')[0],
         client_id: clientId,
         convoyeur_nom: convoyeur || null,
-        marge: montant - (remuneration || 0),
-        details: { pack, options: selectedOptions }
+        marge: montant - (remuneration || 0)
       };
 
       const { error } = await sb.from('missions').insert([missionData]);
@@ -3441,6 +3440,18 @@ async function calculateAdminPrice() {
     const min = isMoto ? 100 : 120;
     let montant = Math.round(Math.max(distance * rate, min));
 
+    // Ajout du prix du pack
+    const packSelect = document.getElementById('manual-pack');
+    if (packSelect) {
+      if (packSelect.value === 'serenite') {
+        const serenitePrice = parseFloat(document.getElementById('price_pack_serenite')?.value) || 49;
+        montant += serenitePrice;
+      } else if (packSelect.value === 'excellence') {
+        const excellencePrice = parseFloat(document.getElementById('price_pack_excellence')?.value) || 129;
+        montant += excellencePrice;
+      }
+    }
+
     // 6. Mise à jour du champ + simulation de marge (optionnel)
     if (priceInput) {
       priceInput.value = montant;
@@ -3503,6 +3514,11 @@ if (arriveeField) {
 }
 if (vehTypeField) {
   vehTypeField.addEventListener('change', calculateAdminPrice);
+}
+
+const packField = document.getElementById('manual-pack');
+if (packField) {
+  packField.addEventListener('change', calculateAdminPrice);
 }
 
 // ---- Mise à jour automatique de la marge ----
