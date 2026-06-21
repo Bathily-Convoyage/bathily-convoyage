@@ -1519,6 +1519,12 @@
 
     // ========== LOAD CLIENT DATA ==========
     async function loadClientData(profile) {
+      if (profile && profile.banned === true) {
+        Swal.fire({ title: 'Accès restreint', text: "Votre compte a été suspendu par l'administrateur.", icon: 'error', allowOutsideClick: false }).then(() => {
+          clientLogout();
+        });
+        return;
+      }
       // Charger les missions
       const client = getSBCli();
       const { data: missionsById } = await client.from('missions').select('*').eq('client_id', profile.id).order('created_at', { ascending: false });

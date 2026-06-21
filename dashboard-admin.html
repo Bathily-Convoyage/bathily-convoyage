@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/supabase-config.js"></script>
+  <script src="./supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -1544,47 +1544,14 @@
         <div class="social-layout">
           <div class="social-feed">
             <div id="postsFeedAdmin">
-              <div class="post-card">
-                <div class="post-header">
-                  <div style="display:flex;gap:12px;">
-                    <div class="post-ava" style="background:rgba(41,128,185,0.15); color:#2980b9;">KD</div>
-                    <div>
-                      <div class="post-name">Karim Diallo</div>
-                      <div class="post-meta"><span class="post-role">Convoyeur senior</span><span class="post-time">Il y a 2h · Lyon</span></div>
-                    </div>
-                  </div>
-                  <button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button>
-                </div>
-                <div class="post-body">Astuce du jour : pour les longs trajets en été, vérifiez toujours la pression des pneus avant le départ — surtout pour les Tesla qui chauffent plus vite en mode auto-pilote. J'ai évité un incident hier sur l'A7. 🚗⚡</div>
-                <div class="post-tags"><span class="post-tag">#conseil</span><span class="post-tag">#sécurité</span><span class="post-tag">#EV</span></div>
-                <div class="post-actions">
-                  <div style="display:flex;gap:20px"><button class="post-action liked"><i class="fas fa-heart"></i> 14</button><button class="post-action" onclick="toggleComments(this)"><i class="fas fa-comment"></i> 3 commentaires</button></div>
-                </div>
-              </div>
-              <div class="post-card">
-                <div class="post-header">
-                  <div style="display:flex;gap:12px;">
-                    <div class="post-ava" style="background:rgba(74,124,107,0.15); color:var(--success);">SF</div>
-                    <div>
-                      <div class="post-name">Sophie Fontaine</div>
-                      <div class="post-meta"><span class="post-role">Convoyeur · Moto</span><span class="post-time">Il y a 5h · Bordeaux</span></div>
-                    </div>
-                  </div>
-                  <button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="Swal.fire('Succès', 'Post supprimé (simulation)', 'success')"><i class="fas fa-trash"></i></button>
-                </div>
-                <div class="post-body">Mission terminée ! Paris → Bordeaux avec une R1250GS. Trajet impeccable, client ravi, 5 étoiles décrochées. La clé : l'état des lieux en photos bien fait dès le départ, ça évite tout litige. Merci Bathily pour la logistique au top. 🏍️</div>
-                <div class="post-tags"><span class="post-tag">#moto</span><span class="post-tag">#mission</span><span class="post-tag">#5étoiles</span></div>
-                <div class="post-actions">
-                  <div style="display:flex;gap:20px"><button class="post-action"><i class="fas fa-heart"></i> 22</button><button class="post-action" onclick="toggleComments(this)"><i class="fas fa-comment"></i> 7 commentaires</button></div>
-                </div>
-              </div>
+              <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement de la communauté...</div>
             </div>
           </div>
           <div class="social-sidebar">
             <div class="ss-card">
               <div class="ss-title">Actions Modérateur</div>
               <div style="font-size:0.75rem; color:var(--gray-mid); margin-bottom:12px; line-height:1.5;">En tant qu'administrateur, vous pouvez voir tous les messages publiés par les convoyeurs et les supprimer si besoin.</div>
-              <button class="btn-red" style="width:100%" onclick="Swal.fire('Annonce Globale', 'La publication globale est en cours de développement.', 'info')"><i class="fas fa-bullhorn"></i> Publier une annonce</button>
+              <button class="btn-red" style="width:100%" onclick="createGlobalAnnouncement()"><i class="fas fa-bullhorn"></i> Publier une annonce</button>
             </div>
             <div class="ss-card">
               <div class="ss-title">Hashtags populaires</div>
@@ -1906,9 +1873,10 @@ Cadeau premium personnalisé</textarea></div>
         <div class="f-grp"><label>Ville</label><input type="text" id="clientVille"></div>
       </div>
       <div class="f-grp"><label>Notes internes (visibles uniquement par l'admin)</label><textarea id="clientNotes" rows="2" placeholder="Remarques particulières, client VIP, etc..."></textarea></div>
-      <div class="modal-btns">
+      <div class="modal-btns" style="display:flex; align-items:center; gap:10px;">
         <button class="btn-red" id="saveClientBtn"><i class="fas fa-save"></i> Enregistrer</button>
         <button class="btn-outline" onclick="closeModal('modalClient')">Annuler</button>
+        <button class="btn-sm btn-sm-ghost" id="deleteClientModalBtn" style="color:#e74c3c; border-color:#e74c3c; display:none; margin-left:auto;" title="Supprimer"><i class="fas fa-trash"></i> Supprimer ce client</button>
       </div>
     </div>
   </div>
@@ -2094,7 +2062,12 @@ Cadeau premium personnalisé</textarea></div>
   }
 
   function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('open');
+    if (id === 'modalClient') {
+      const delBtn = document.getElementById('deleteClientModalBtn');
+      if (delBtn) delBtn.style.display = 'none';
+    }
   }
 
   function buildChart(containerId, data) {
@@ -2434,14 +2407,20 @@ Cadeau premium personnalisé</textarea></div>
       const name = `${c.prenom || ''} ${c.nom || ''}`.trim() || 'Inconnu';
       const initials = `${c.prenom?.[0] || ''}${c.nom?.[0] || ''}`.toUpperCase();
       const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—';
-      return `<tr>
+      const rowStyle = c.banned ? 'opacity:0.6; background:#fff5f5; cursor:pointer;' : 'cursor:pointer;';
+      const banLabel = c.banned ? '<span class="sp sp-err"><span class="sp-dot"></span>Banni</span>' : '<span class="sp sp-ok"><span class="sp-dot"></span>Actif</span>';
+      return `<tr class="clickable-row" style="${rowStyle}" onclick="if(!event.target.closest('button')) { editClient('${c.id}'); }">
         <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials}</div>${name}</div></td>
         <td>${c.email || '—'}</td>
         <td>${c.telephone || '—'}</td>
         <td>${c.societe || '—'}</td>
         <td>${dateStr}</td>
-        <td><span class="sp sp-ok"><span class="sp-dot"></span>Actif</span></td>
-        <td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="editClient('${c.id}')"><i class="fas fa-edit"></i></button></td>
+        <td>${banLabel}</td>
+        <td class="td-actions">
+          <button class="btn-sm btn-sm-ghost" onclick="editClient('${c.id}')"><i class="fas fa-edit"></i></button>
+          <button class="btn-sm btn-sm-ghost" style="color:var(--warning)" onclick="adminToggleBan('${c.id}', 'clients', ${!c.banned})" title="${c.banned ? 'Débannir' : 'Bannir'}"><i class="fas fa-ban"></i></button>
+          <button class="btn-sm btn-sm-red" onclick="adminDeleteUser('${c.id}', 'clients')" title="Supprimer"><i class="fas fa-trash"></i></button>
+        </td>
       </tr>`;
     }).join('');
   }
@@ -2462,6 +2441,16 @@ Cadeau premium personnalisé</textarea></div>
     document.getElementById('clientSiret').value = c.siret || '';
     document.getElementById('clientTva').value = c.tva_intra || '';
     document.getElementById('clientNotes').value = c.notes_admin || '';
+    
+    const delBtn = document.getElementById('deleteClientModalBtn');
+    if (delBtn) {
+      delBtn.style.display = 'inline-flex';
+      delBtn.onclick = function() {
+        closeModal('modalClient');
+        adminDeleteUser(id, 'clients');
+      };
+    }
+    
     openModal('modalClient');
   };
 
@@ -2500,22 +2489,28 @@ Cadeau premium personnalisé</textarea></div>
     }
 
     // Nouveau client
-    const tempPassword = 'Bathily2025!' + Math.random().toString(36).slice(2, 7);
-    const { error: signUpError } = await sb.auth.signUp({ email, password: tempPassword });
-    if (signUpError) {
-      Swal.fire('Erreur', 'Impossible de créer le compte : ' + signUpError.message, 'error');
-      return;
-    }
+    try {
+      const response = await fetch('/.netlify/functions/admin-create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await sb.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({
+          targetTable: 'clients',
+          payload: payload
+        })
+      });
 
-    const { error: insertError } = await sb.from('clients').insert([{ ...payload, role: 'client' }]);
-    if (insertError) {
-      Swal.fire('Erreur', 'Impossible de créer le profil client : ' + insertError.message, 'error');
-      return;
-    }
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Erreur lors de la création');
 
-    closeModal('modalClient');
-    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: `Client créé. Mdp temp: ${tempPassword}`, timer: 10000 });
-    loadClients();
+      closeModal('modalClient');
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Client créé. Un email d\'invitation lui a été envoyé.', timer: 5000 });
+      loadClients();
+    } catch (err) {
+      Swal.fire('Erreur', 'Impossible de créer le profil client : ' + err.message, 'error');
+    }
   };
 
   // CONVOYEURS
@@ -2543,15 +2538,21 @@ Cadeau premium personnalisé</textarea></div>
       const grade = c.grade || c.niveau || 'Standard';
       const note = c.note_moyenne || '5.0';
       const isDispo = c.disponible !== false;
-      return `<tr>
+      const rowStyle = c.banned ? 'opacity:0.6; background:#fff5f5; cursor:pointer;' : 'cursor:pointer;';
+      const statLabel = c.banned ? '<span class="sp sp-err"><span class="sp-dot"></span>Banni</span>' : `<span class="sp ${isDispo ? 'sp-ok' : 'sp-err'}"><span class="sp-dot"></span>${isDispo ? 'Disponible' : 'Indisponible'}</span>`;
+      return `<tr class="clickable-row" style="${rowStyle}" onclick="if(!event.target.closest('button')) { editConvoyeur('${c.id}'); }">
         <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials.toUpperCase()}</div>${c.prenom || ''} ${c.nom || ''}</div></td>
         <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${zonesStr}">${zonesStr}</td>
         <td><span class="sp ${grade.toLowerCase().includes('senior') ? 'sp-cours' : 'sp-att'}"><span class="sp-dot"></span>${grade}</span></td>
         <td><span style="color:var(--warning)">⭐</span> ${note}</td>
         <td>${(c.taux_auto || 0.47).toFixed(2)} €/km</td>
         <td>${(c.taux_moto || 0.40).toFixed(2)} €/km</td>
-        <td><span class="sp ${isDispo ? 'sp-ok' : 'sp-err'}"><span class="sp-dot"></span>${isDispo ? 'Disponible' : 'Indisponible'}</span></td>
-        <td class="td-actions"><button class="btn-sm btn-sm-ghost" onclick="editConvoyeur('${c.id}')"><i class="fas fa-edit"></i></button><button class="btn-sm btn-sm-red" onclick="deleteConvoyeur('${c.id}')"><i class="fas fa-trash"></i></button></td>
+        <td>${statLabel}</td>
+        <td class="td-actions">
+          <button class="btn-sm btn-sm-ghost" onclick="editConvoyeur('${c.id}')"><i class="fas fa-edit"></i></button>
+          <button class="btn-sm btn-sm-ghost" style="color:var(--warning)" onclick="adminToggleBan('${c.id}', 'convoyeurs', ${!c.banned})" title="${c.banned ? 'Débannir' : 'Bannir'}"><i class="fas fa-ban"></i></button>
+          <button class="btn-sm btn-sm-red" onclick="adminDeleteUser('${c.id}', 'convoyeurs')"><i class="fas fa-trash"></i></button>
+        </td>
       </tr>`;
     }).join('');
   }
@@ -2578,32 +2579,207 @@ Cadeau premium personnalisé</textarea></div>
     const sb = getSupabase();
     if (!sb) return;
 
-    const tempPassword = 'Bathily2025!' + Math.random().toString(36).slice(2, 7);
-    const { error: signUpError } = await sb.auth.signUp({ email, password: tempPassword });
-    if (signUpError) {
-      Swal.fire('Erreur', 'Impossible de créer le compte convoyeur : ' + signUpError.message, 'error');
+    try {
+      const response = await fetch('/.netlify/functions/admin-create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await sb.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({
+          targetTable: 'convoyeurs',
+          payload: {
+            prenom, nom, email, telephone: phone,
+            taux_auto: tauxAuto, taux_moto: tauxMoto,
+            zone, niveau_experience: niveau
+          }
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Erreur lors de la création');
+
+      closeModal('modalConvoyeur');
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convoyeur créé. Un email d\'invitation lui a été envoyé.', timer: 5000 });
+      await loadConvoyeurs();
+    } catch (err) {
+      Swal.fire('Erreur', 'Impossible de créer le profil convoyeur : ' + err.message, 'error');
+    }
+  }
+
+  // Note: Le bouton deleteConvoyeur HTML a été remplacé par adminDeleteUser.
+  // L'ancienne fonction deleteConvoyeur reste par compatibilité au cas où.
+  window.deleteConvoyeur = function(id) {
+    window.adminDeleteUser(id, 'convoyeurs');
+  };
+
+  // ============================================================
+  // PARTIE 9 : RÉSEAU & MODÉRATION (ADMIN)
+  // ============================================================
+  window.fetchAdminReseauPosts = async function() {
+    const client = getSupabase();
+    if (!client) return;
+    const { data, error } = await client.from('reseau_posts').select('*').order('created_at', { ascending: false });
+    
+    const container = document.getElementById('postsFeedAdmin');
+    if (error || !data || data.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;">Aucune publication dans la communauté.</div>';
       return;
     }
 
-    const { error } = await sb.from('convoyeurs').insert([{
-      prenom, nom, email, telephone: phone,
-      taux_auto: tauxAuto, taux_moto: tauxMoto,
-      zone, niveau, disponible: true
-    }]);
-    if (error) { Swal.fire('Erreur', error.message, 'error'); return; }
-    closeModal('modalConvoyeur');
-    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: `Convoyeur ajouté. Mdp temp: ${tempPassword}`, timer: 10000 });
-    loadConvoyeurs();
-  }
+    container.innerHTML = data.map(p => {
+      const dateStr = new Date(p.created_at).toLocaleDateString('fr-FR', { day:'numeric', month:'short', hour: '2-digit', minute: '2-digit' });
+      const avatar = p.author_name ? p.author_name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : 'A';
+      const isAnnounce = p.is_announcement ? 'background:#fff5f5;border-color:var(--bordeaux);' : '';
+      const announceBadge = p.is_announcement ? '<span style="background:var(--bordeaux);color:white;padding:2px 6px;border-radius:4px;font-size:0.6rem;margin-bottom:8px;display:inline-block;font-weight:bold;">ANNONCE OFFICIELLE</span>' : '';
+      const tagsHtml = (p.tags||[]).map(t => `<span class="post-tag">${t}</span>`).join('');
+      
+      return `
+        <div class="post-card" style="${isAnnounce}">
+          ${announceBadge}
+          <div class="post-header">
+            <div style="display:flex;gap:12px;">
+              <div class="post-ava" style="${p.is_announcement ? 'background:var(--bordeaux);color:white;' : 'background:rgba(41,128,185,0.15); color:#2980b9;'}">${avatar}</div>
+              <div>
+                <div class="post-name">${p.author_name}</div>
+                <div class="post-meta"><span class="post-role">${p.author_role||'Convoyeur'}</span><span class="post-time">${dateStr}</span></div>
+              </div>
+            </div>
+            <button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="adminDeleteReseauPost('${p.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+          <div class="post-body">${p.content}</div>
+          <div class="post-tags">${tagsHtml}</div>
+          <div class="post-actions" style="margin-bottom:8px;">
+            <div style="display:flex;gap:20px">
+              <button class="post-action liked" style="cursor:default"><i class="fas fa-heart"></i> ${p.likes_count||0}</button>
+              <button class="post-action" onclick="toggleAdminCommentsSection('${p.id}')"><i class="fas fa-comment"></i> Voir les commentaires</button>
+            </div>
+          </div>
+          <div id="comments-section-admin-${p.id}" style="display:none;border-top:1px solid var(--border-light);padding-top:12px;margin-top:12px;"></div>
+        </div>
+      `;
+    }).join('');
+  };
 
-  async function deleteConvoyeur(id) {
-    const result = await Swal.fire({ title: 'Supprimer ce convoyeur ?', text: 'Action irréversible.', icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--bordeaux)', confirmButtonText: 'Supprimer' });
-    if (!result.isConfirmed) return;
-    const sb = getSupabase();
-    const { error } = await sb.from('convoyeurs').delete().eq('id', id);
-    if (error) Swal.fire('Erreur', error.message, 'error');
-    else { Swal.fire({ toast: true, icon: 'success', title: 'Supprimé', timer: 2000 }); loadConvoyeurs(); }
-  }
+  window.adminDeleteReseauPost = async function(postId) {
+    if (!await Swal.fire({ title: 'Supprimer ?', text: "Le post et ses commentaires seront effacés.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Oui, supprimer' }).then(r=>r.isConfirmed)) return;
+    const client = getSupabase();
+    const { error } = await client.from('reseau_posts').delete().eq('id', postId);
+    if (error) return Swal.fire('Erreur', error.message, 'error');
+    fetchAdminReseauPosts();
+  };
+
+  window.toggleAdminCommentsSection = async function(postId) {
+    const sec = document.getElementById(`comments-section-admin-${postId}`);
+    if(sec.style.display === 'none') {
+      sec.style.display = 'block';
+      sec.innerHTML = `<div style="font-size:0.8rem;color:var(--gray-mid);text-align:center;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>`;
+      await fetchAdminComments(postId);
+    } else {
+      sec.style.display = 'none';
+    }
+  };
+
+  window.fetchAdminComments = async function(postId) {
+    const client = getSupabase();
+    const { data, error } = await client.from('reseau_comments').select('*').eq('post_id', postId).order('created_at', { ascending: true });
+    const sec = document.getElementById(`comments-section-admin-${postId}`);
+    if(error) return;
+
+    let commentsHtml = '';
+    if(data && data.length > 0) {
+      commentsHtml = data.map(c => `
+        <div style="background:#f9f9f9;padding:8px 12px;border-radius:12px;margin-bottom:8px;font-size:0.8rem;display:flex;justify-content:space-between;align-items:flex-start;">
+          <div><strong style="color:#0A4D68;">${c.author_name}</strong> : ${c.content}</div>
+          <button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border:none;padding:4px;margin-left:8px;" onclick="adminDeleteComment('${c.id}', '${postId}')" title="Supprimer"><i class="fas fa-trash"></i></button>
+        </div>
+      `).join('');
+    } else {
+      commentsHtml = '<div style="font-size:0.75rem;color:var(--gray-mid);margin-bottom:8px;">Aucun commentaire.</div>';
+    }
+
+    sec.innerHTML = `
+      <div id="comments-list-admin-${postId}" style="margin-bottom:12px;max-height:200px;overflow-y:auto;padding-right:8px;">${commentsHtml}</div>
+    `;
+  };
+
+  window.adminDeleteComment = async function(commentId, postId) {
+    if (!await Swal.fire({ title: 'Supprimer ce commentaire ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Oui' }).then(r=>r.isConfirmed)) return;
+    const client = getSupabase();
+    const { error } = await client.from('reseau_comments').delete().eq('id', commentId);
+    if (error) return Swal.fire('Erreur', error.message, 'error');
+    await fetchAdminComments(postId);
+  };
+
+  window.createGlobalAnnouncement = async function() {
+    const { value: content } = await Swal.fire({
+      title: 'Publier une annonce globale',
+      input: 'textarea',
+      inputLabel: 'Ce message sera épinglé et visible par tous les convoyeurs.',
+      inputPlaceholder: 'Entrez votre message...',
+      showCancelButton: true
+    });
+    if (!content) return;
+    
+    const client = getSupabase();
+    const { error } = await client.from('reseau_posts').insert([{
+      author_id: _currentUser.id,
+      author_name: 'Direction Bathily-Convoyage',
+      author_role: 'Administrateur',
+      content: content.trim(),
+      tags: ['#annonce', '#officiel'],
+      is_announcement: true
+    }]);
+    
+    if (error) return Swal.fire('Erreur', error.message, 'error');
+    Swal.fire('Publié', 'L\'annonce est en ligne !', 'success');
+    fetchAdminReseauPosts();
+  };
+
+  window.adminToggleBan = async function(userId, tableName, banStatus) {
+    if (!await Swal.fire({ title: banStatus ? 'Bannir ?' : 'Débannir ?', text: banStatus ? "L'utilisateur sera bloqué." : "L'utilisateur aura de nouveau accès.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Confirmer' }).then(r=>r.isConfirmed)) return;
+    
+    Swal.fire({ title: 'En cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    const client = getSupabase();
+    
+    const { error } = await client.rpc('admin_toggle_ban', {
+      target_id: userId,
+      target_table: tableName,
+      ban_status: banStatus
+    });
+    
+    if (error) {
+      Swal.fire('Erreur RPC', error.message, 'error');
+    } else {
+      Swal.fire('Succès', 'Statut mis à jour.', 'success');
+      if (tableName === 'clients') loadClients();
+      if (tableName === 'convoyeurs') loadConvoyeurs();
+    }
+  };
+
+  window.adminDeleteUser = async function(userId, tableName) {
+    if (!await Swal.fire({ title: 'Suppression définitive ?', text: "Cette action détruit la ligne en base de données.", icon: 'error', showCancelButton: true, confirmButtonText: 'Supprimer' }).then(r=>r.isConfirmed)) return;
+    
+    Swal.fire({ title: 'En cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    const client = getSupabase();
+    
+    const { error } = await client.rpc('admin_delete_user', {
+      target_id: userId,
+      target_table: tableName
+    });
+    
+    if (error) {
+      Swal.fire('Erreur RPC', error.message, 'error');
+    } else {
+      Swal.fire('Succès', 'Utilisateur supprimé.', 'success');
+      if (tableName === 'clients') loadClients();
+      if (tableName === 'convoyeurs') loadConvoyeurs();
+    }
+  };
+
+  window.deleteConvoyeur = async function(id) {
+    window.adminDeleteUser(id, 'convoyeurs');
+  };
 
   async function editConvoyeur(id) {
     const c = _convoyeursList.find(x => x.id === id);
@@ -2668,7 +2844,7 @@ Cadeau premium personnalisé</textarea></div>
           <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
         </div>`;
       }
-      return `<tr>
+      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { editMissionTariffs('${m.id}'); }">
         <td>${m.reference}</td>
         <td>${m.client_nom}</td>
         <td>${m.trajet}</td>
@@ -2701,8 +2877,8 @@ Cadeau premium personnalisé</textarea></div>
       else if (status === 'in_progress') { statusClass = 'sp-cours'; statusText = 'En cours'; }
       else if (status === 'completed') { statusClass = 'sp-ok'; statusText = 'Terminée'; }
       else if (status === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
-      return `<tr>
-        <td>${m.reference || '—'}</td>
+      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { editMissionTariffs('${m.id}'); }">
+        <td><div style="font-weight:600">${m.reference || '—'}</div></td>
         <td>${m.client_nom || '—'}</td>
         <td>${m.trajet || '—'}</td>
         <td>${m.convoyeur_nom || '—'}</td>
@@ -2768,7 +2944,7 @@ Cadeau premium personnalisé</textarea></div>
     if (!list.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Aucun devis.</td></tr>'; return; }
     tbody.innerHTML = list.map(d => {
       const dateStr = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
-      return `<tr>
+      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { document.querySelector('#btn-nav-missions')?.click(); }">
         <td>${d.reference || '—'}</td>
         <td>${d.client_prenom || ''} ${d.client_nom || ''}</td>
         <td>${d.depart || '—'} → ${d.arrivee || '—'}</td>
@@ -2814,10 +2990,12 @@ Cadeau premium personnalisé</textarea></div>
           mode: devis.details?.mode === 'plateau' ? 'plateau' : 'route',
           pack: devis.details?.pack || 'Starter',
           montant_ht: devis.total_ht || 0,
-          statut: 'planned',
+          status: 'planned',
           paiement_statut: 'pending',
           date_mission: devis.date_depart || new Date().toISOString().split('T')[0],
-          client_id: matchedClientId
+          client_id: matchedClientId,
+          marge: (devis.total_ht || 0) - (devis.details?.remuneration_convoyeur || 0),
+          remuneration_convoyeur: devis.details?.remuneration_convoyeur || null
         };
 
         const { data: newMission, error: missionErr } = await sb.from('missions').insert([missionData]).select().single();
@@ -3039,6 +3217,44 @@ Cadeau premium personnalisé</textarea></div>
     });
 
     // ---- Address autocomplete ----
+    // Definition of setupAddressAutocomplete
+    let addressDebounceTimer;
+    window.setupAddressAutocomplete = function(inputId, suggestBoxId) {
+      const input = document.getElementById(inputId);
+      const box = document.getElementById(suggestBoxId);
+      if(!input || !box) return;
+
+      input.addEventListener('input', function() {
+        clearTimeout(addressDebounceTimer);
+        const query = this.value.trim();
+        if(query.length < 3) { box.style.display = 'none'; return; }
+        addressDebounceTimer = setTimeout(async () => {
+          try {
+            const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
+            const data = await res.json();
+            box.innerHTML = '';
+            if(data.features && data.features.length > 0) {
+              data.features.forEach(f => {
+                const div = document.createElement('div');
+                div.className = 'suggest-item';
+                div.textContent = `${f.properties.label}`;
+                div.addEventListener('mousedown', () => {
+                  input.value = f.properties.label;
+                  box.style.display = 'none';
+                  if(typeof calculateAdminPrice === 'function') calculateAdminPrice();
+                });
+                box.appendChild(div);
+              });
+              box.style.display = 'block';
+            } else {
+              box.style.display = 'none';
+            }
+          } catch(e) { box.style.display = 'none'; }
+        }, 300);
+      });
+      input.addEventListener('blur', () => { setTimeout(() => box.style.display = 'none', 200); });
+    };
+
     setupAddressAutocomplete('manual-depart', 'departSuggests');
     setupAddressAutocomplete('manual-arrivee', 'arriveeSuggests');
 
@@ -3088,6 +3304,9 @@ Cadeau premium personnalisé</textarea></div>
       // Déterminer le nom du véhicule
       let vehicleName = vehiculeManuel || `${marque} ${modele}`.trim() || vehiculeType;
 
+      // Récupérer les options cochées
+      const selectedOptions = Array.from(document.querySelectorAll('#manual-options input:checked')).map(cb => cb.value);
+
       const missionData = {
         reference: ref,
         client_nom: clientNom,
@@ -3098,12 +3317,13 @@ Cadeau premium personnalisé</textarea></div>
         pack: pack,
         montant_ht: montant,
         remuneration_convoyeur: remuneration || null,
-        statut: 'available',
+        status: 'available',
         paiement_statut: 'pending',
         date_mission: date || new Date().toISOString().split('T')[0],
         client_id: clientId,
         convoyeur_nom: convoyeur || null,
-        marge: montant - (remuneration || 0)
+        marge: montant - (remuneration || 0),
+        details: { pack, options: selectedOptions }
       };
 
       const { error } = await sb.from('missions').insert([missionData]);

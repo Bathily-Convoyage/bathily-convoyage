@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/supabase-config.js"></script>
+  <script src="./supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -894,6 +894,7 @@
         <div class="nav-item active" onclick="showConvTab('accueil',this)" role="button" tabindex="0"><i class="fas fa-home"></i> Tableau de bord</div>
         <div class="nav-item" onclick="showConvTab('missions',this)" role="button" tabindex="0"><i class="fas fa-route"></i> Missions disponibles</div>
         <div class="nav-item" onclick="showConvTab('candidatures',this)" role="button" tabindex="0"><i class="fas fa-file-signature"></i> Mes candidatures</div>
+        <div class="nav-item" onclick="showConvTab('reseau',this)" role="button" tabindex="0"><i class="fas fa-comments"></i> Communauté</div>
       </div>
       <div class="nav-section">
         <div class="nav-section-lbl">Compte</div>
@@ -995,6 +996,37 @@
         </div>
         <div class="candidatures-list" id="convCandidaturesList">
           <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+        </div>
+      </div>
+
+      <!-- Réseau / Communauté -->
+      <div class="tab-content" id="conv-tab-reseau">
+        <div class="dash-header">
+          <h1 class="dash-hello">Réseau <em>(Communauté)</em></h1>
+        </div>
+        <div class="social-layout">
+          <div class="social-feed">
+            <div style="background:white;border:1px solid var(--border-light);border-radius:20px;padding:20px;margin-bottom:20px;">
+              <textarea id="convReseauInput" rows="3" placeholder="Partagez une astuce, une photo de mission..." style="width:100%;border:none;resize:none;outline:none;font-family:'Inter',sans-serif;font-size:0.9rem;"></textarea>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;border-top:1px solid var(--border-light);padding-top:12px;">
+                <input type="text" id="convReseauTags" placeholder="Ex: #moto #conseil" style="border:none;outline:none;font-size:0.8rem;background:#f5f5f5;padding:6px 12px;border-radius:12px;max-width:200px;">
+                <button class="btn-sm btn-sm-red" onclick="createReseauPost()"><i class="fas fa-paper-plane"></i> Publier</button>
+              </div>
+            </div>
+            <div id="convPostsFeed">
+              <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement de la communauté...</div>
+            </div>
+          </div>
+          <div class="social-sidebar">
+            <div class="ss-card">
+              <div class="ss-title">Règles de la communauté</div>
+              <ul style="font-size:0.75rem; color:var(--gray-mid); margin:0; padding-left:16px; line-height:1.6;">
+                <li>Restez courtois et bienveillant.</li>
+                <li>Ne partagez pas de données clients.</li>
+                <li>Partagez vos bonnes pratiques.</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1315,6 +1347,12 @@
 
     // ========== LOAD CONVOYEUR DATA ==========
     async function loadConvoyeurData(profile) {
+      if (profile && profile.banned === true) {
+        Swal.fire({ title: 'Accès restreint', text: "Votre compte a été suspendu par l'administrateur.", icon: 'error', allowOutsideClick: false }).then(() => {
+          convoyeurLogout();
+        });
+        return;
+      }
       const client = getSBC();
 
       // Charger toutes les missions disponibles
@@ -1680,9 +1718,154 @@
       }
     }
 
+    // ========== RESEAU SOCIAL ==========
+    async function fetchReseauPosts() {
+      const client = getSBC();
+      const { data, error } = await client.from('reseau_posts').select('*').order('created_at', { ascending: false });
+      if (error) return;
+      
+      const container = document.getElementById('convPostsFeed');
+      if (!data || data.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-users" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Soyez le premier à publier !</div>';
+        return;
+      }
+
+      container.innerHTML = data.map(p => {
+        const dateStr = new Date(p.created_at).toLocaleDateString('fr-FR', { day:'numeric', month:'short', hour: '2-digit', minute: '2-digit' });
+        const avatar = p.author_name ? p.author_name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : 'A';
+        const isAnnounce = p.is_announcement ? 'background:#fff5f5;border-color:var(--bordeaux);' : '';
+        const announceBadge = p.is_announcement ? '<span style="background:var(--bordeaux);color:white;padding:2px 6px;border-radius:4px;font-size:0.6rem;margin-bottom:8px;display:inline-block;font-weight:bold;">ANNONCE OFFICIELLE</span>' : '';
+        const tagsHtml = (p.tags||[]).map(t => `<span class="post-tag">${t}</span>`).join('');
+        
+        return `
+          <div class="post-card" style="${isAnnounce}">
+            ${announceBadge}
+            <div class="post-header">
+              <div style="display:flex;gap:12px;">
+                <div class="post-ava" style="${p.is_announcement ? 'background:var(--bordeaux);color:white;' : ''}">${avatar}</div>
+                <div>
+                  <div class="post-name">${p.author_name}</div>
+                  <div class="post-meta"><span class="post-role">${p.author_role||'Convoyeur'}</span><span class="post-time">${dateStr}</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="post-body">${p.content}</div>
+            <div class="post-tags">${tagsHtml}</div>
+            <div class="post-actions" style="margin-bottom:8px;">
+              <div style="display:flex;gap:20px">
+                <button class="post-action" onclick="likeReseauPost('${p.id}', this)"><i class="fas fa-heart"></i> <span class="likes-cnt">${p.likes_count||0}</span></button>
+                <button class="post-action" onclick="toggleCommentsSection('${p.id}')"><i class="fas fa-comment"></i> Commentaires</button>
+              </div>
+            </div>
+            <div id="comments-section-${p.id}" style="display:none;border-top:1px solid var(--border-light);padding-top:12px;margin-top:12px;">
+              <div id="comments-list-${p.id}" style="margin-bottom:12px;"></div>
+              <div style="display:flex;gap:8px;">
+                <input type="text" id="comment-input-${p.id}" placeholder="Écrire un commentaire..." style="flex:1;border:1px solid var(--border-light);border-radius:12px;padding:8px 12px;font-size:0.8rem;outline:none;">
+                <button class="btn-sm btn-sm-ghost" onclick="addComment('${p.id}')"><i class="fas fa-paper-plane"></i></button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function createReseauPost() {
+      if (!_convoyeurUser) return;
+      const content = document.getElementById('convReseauInput').value.trim();
+      const tagsStr = document.getElementById('convReseauTags').value.trim();
+      if (!content) return Swal.fire('Oops', 'Le message est vide.', 'warning');
+
+      Swal.fire({ title: 'Publication...', didOpen:()=>Swal.showLoading(), allowOutsideClick:false });
+      const client = getSBC();
+      
+      const tags = tagsStr.split(' ').filter(t => t.startsWith('#')).map(t => t.trim());
+      
+      const { error } = await client.from('reseau_posts').insert([{
+        author_id: _convoyeurUser.id,
+        author_name: _convoyeurName,
+        author_role: _convoyeurUser.niveau === 'Senior' ? 'Convoyeur senior' : 'Convoyeur standard',
+        content,
+        tags
+      }]);
+      
+      if(error) return Swal.fire('Erreur', error.message, 'error');
+      
+      document.getElementById('convReseauInput').value = '';
+      document.getElementById('convReseauTags').value = '';
+      Swal.close();
+      await fetchReseauPosts();
+    }
+
+    async function toggleCommentsSection(postId) {
+      const sec = document.getElementById(`comments-section-${postId}`);
+      if(sec.style.display === 'none') {
+        sec.style.display = 'block';
+        sec.innerHTML = `<div style="font-size:0.8rem;color:var(--gray-mid);text-align:center;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>`;
+        await fetchComments(postId);
+      } else {
+        sec.style.display = 'none';
+      }
+    }
+
+    async function fetchComments(postId) {
+      const client = getSBC();
+      const { data, error } = await client.from('reseau_comments').select('*').eq('post_id', postId).order('created_at', { ascending: true });
+      const sec = document.getElementById(`comments-section-${postId}`);
+      if(error) return;
+
+      let commentsHtml = '';
+      if(data && data.length > 0) {
+        commentsHtml = data.map(c => `
+          <div style="background:#f9f9f9;padding:8px 12px;border-radius:12px;margin-bottom:8px;font-size:0.8rem;">
+            <strong style="color:#0A4D68;">${c.author_name}</strong> : ${c.content}
+          </div>
+        `).join('');
+      } else {
+        commentsHtml = '<div style="font-size:0.75rem;color:var(--gray-mid);margin-bottom:8px;">Aucun commentaire.</div>';
+      }
+
+      sec.innerHTML = `
+        <div id="comments-list-${postId}" style="margin-bottom:12px;max-height:200px;overflow-y:auto;padding-right:8px;">${commentsHtml}</div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="comment-input-${postId}" placeholder="Écrire un commentaire..." style="flex:1;border:1px solid var(--border-light);border-radius:12px;padding:8px 12px;font-size:0.8rem;outline:none;" onkeypress="if(event.key==='Enter') addComment('${postId}')">
+          <button class="btn-sm btn-sm-ghost" onclick="addComment('${postId}')"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      `;
+    }
+
+    async function addComment(postId) {
+      const input = document.getElementById(`comment-input-${postId}`);
+      const content = input.value.trim();
+      if(!content) return;
+      const client = getSBC();
+      input.disabled = true;
+      const { error } = await client.from('reseau_comments').insert([{
+        post_id: postId,
+        author_name: _convoyeurName,
+        content
+      }]);
+      input.disabled = false;
+      if(error) return Swal.fire('Erreur', error.message, 'error');
+      await fetchComments(postId);
+    }
+
+    async function likeReseauPost(postId, btnEl) {
+      const client = getSBC();
+      const span = btnEl.querySelector('.likes-cnt');
+      let current = parseInt(span.textContent) || 0;
+      span.textContent = current + 1;
+      btnEl.style.color = '#e74c3c';
+      btnEl.disabled = true;
+      
+      const { data } = await client.from('reseau_posts').select('likes_count').eq('id', postId).single();
+      if(data) {
+        await client.from('reseau_posts').update({ likes_count: (data.likes_count||0) + 1 }).eq('id', postId);
+      }
+    }
+
     // ========== SHOW TAB ==========
     function showConvTab(id, el) {
-      document.querySelectorAll('#conv-tab-accueil, #conv-tab-missions, #conv-tab-candidatures, #conv-tab-profil, #conv-tab-support')
+      document.querySelectorAll('#conv-tab-accueil, #conv-tab-missions, #conv-tab-candidatures, #conv-tab-profil, #conv-tab-support, #conv-tab-reseau')
         .forEach(t => t.classList.remove('active'));
       const target = document.getElementById('conv-tab-' + id);
       if (target) target.classList.add('active');
@@ -1690,6 +1873,9 @@
       if (el) el.classList.add('active');
       if (id === 'candidatures') {
         filterCandidatures(_candidatureFilter, document.querySelector('#conv-tab-candidatures .btn-sm-ghost'));
+      }
+      if (id === 'reseau') {
+        fetchReseauPosts();
       }
     }
 
