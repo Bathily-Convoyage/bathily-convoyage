@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Panel Admin — Bathily Convoyage</title>
-  <meta name="description" content="Administration complète de Bathily Convoyage : gestion des missions, clients, convoyeurs, tarifs, rémunérations et facturation.">
-  <meta property="og:title" content="Panel Admin — Bathily Convoyage">
+  <title>Panel Admin — Bathily-Convoyage</title>
+  <meta name="description" content="Administration complète de Bathily-Convoyage : gestion des missions, clients, convoyeurs, tarifs, rémunérations et facturation.">
+  <meta property="og:title" content="Panel Admin — Bathily-Convoyage">
   <meta property="og:description" content="Interface d'administration pour gérer les convoyages, les utilisateurs et les paramètres financiers.">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚗%3C/text%3E%3C/svg%3E">
@@ -1273,7 +1273,7 @@
   <!-- AUTH OVERLAY -->
   <div id="authOverlay">
     <div class="auth-box">
-      <div class="auth-logo">Bathily-convoyage<span>.</span></div>
+      <div class="auth-logo">Bathily-Convoyage<span>.</span></div>
       <div class="auth-sub">Accès administrateur sécurisé</div>
       <input type="email" id="adminEmailInput" class="auth-input" placeholder="Email admin" autocomplete="email">
       <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Mot de passe" autocomplete="current-password">
@@ -1286,7 +1286,7 @@
   <div class="topbar">
     <div class="topbar-left">
       <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileNav()" aria-label="Menu navigation" title="Ouvrir le menu"><i class="fas fa-bars"></i></button>
-      <a href="index.html" class="topbar-logo">Bathily-convoyage<span>.</span></a>
+      <a href="index.html" class="topbar-logo">Bathily-Convoyage<span>.</span></a>
       <span class="topbar-tag">Admin</span>
     </div>
     <div class="topbar-right">
@@ -1707,11 +1707,11 @@ Cadeau premium personnalisé</textarea></div>
         <div class="config-card">
           <div class="config-card-header"><span class="config-card-title">Informations entreprise</span></div>
           <div class="f-row">
-            <div class="f-grp"><label>Raison sociale</label><input type="text" value="Bathily Convoyage"></div>
+            <div class="f-grp"><label>Raison sociale</label><input type="text" value="Bathily-Convoyage"></div>
             <div class="f-grp"><label>SIRET</label><input type="text" value="XXX XXX XXX XXXXX"></div>
           </div>
           <div class="f-row">
-            <div class="f-grp"><label>Email contact</label><input type="email" value="contact@bathily-convoyage.fr"></div>
+            <div class="f-grp"><label>Email contact</label><input type="email" value="contact@Bathily-Convoyage.fr"></div>
             <div class="f-grp"><label>Téléphone urgence</label><input type="tel" value="+33 X XX XX XX XX"></div>
           </div>
           <div class="f-grp"><label>TVA applicable</label>
@@ -2720,20 +2720,31 @@ Cadeau premium personnalisé</textarea></div>
       showCancelButton: true
     });
     if (!content) return;
-    
+
     const client = getSupabase();
+    const { data: { user } } = await client.auth.getUser();
+    const userId = user?.id || 'admin';
+
+    console.log('User ID:', userId);
+    console.log('Content:', content.trim());
+
     const { error } = await client.from('reseau_posts').insert([{
-      author_id: _currentUser.id,
+      id: crypto.randomUUID(),
+      author_id: userId,
       author_name: 'Direction Bathily-Convoyage',
       author_role: 'Administrateur',
       content: content.trim(),
       tags: ['#annonce', '#officiel'],
       is_announcement: true
     }]);
-    
-    if (error) return Swal.fire('Erreur', error.message, 'error');
+
+    if (error) {
+      console.error('Insert error:', error);
+      return Swal.fire('Erreur', error.message, 'error');
+    }
+    console.log('Insert successful');
     Swal.fire('Publié', 'L\'annonce est en ligne !', 'success');
-    fetchAdminReseauPosts();
+    await fetchAdminReseauPosts();
   };
 
   window.adminToggleBan = async function(userId, tableName, banStatus) {
@@ -3682,3 +3693,4 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
   </script>
 </body>
 </html>
+
