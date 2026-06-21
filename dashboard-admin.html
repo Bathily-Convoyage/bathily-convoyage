@@ -2858,7 +2858,7 @@ Cadeau premium personnalisé</textarea></div>
       return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { editMissionTariffs('${m.id}'); }">
         <td>${m.reference}</td>
         <td>${m.client_nom}</td>
-        <td>${m.trajet}</td>
+        <td>${m.depart} → ${m.arrivee}</td>
         <td>${m.convoyeur_nom || '-'}</td>
         <td>${m.vehicule}</td>
         <td>${m.pack}</td>
@@ -2891,7 +2891,7 @@ Cadeau premium personnalisé</textarea></div>
       return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { editMissionTariffs('${m.id}'); }">
         <td><div style="font-weight:600">${m.reference || '—'}</div></td>
         <td>${m.client_nom || '—'}</td>
-        <td>${m.trajet || '—'}</td>
+        <td>${m.depart} → ${m.arrivee}</td>
         <td>${m.convoyeur_nom || '—'}</td>
         <td>${m.pack || '—'}</td>
         <td>${m.montant_ht ? parseFloat(m.montant_ht).toFixed(2) + ' €' : '—'}</td>
@@ -2994,7 +2994,6 @@ Cadeau premium personnalisé</textarea></div>
           reference: ref,
           client_nom: `${devis.client_prenom || ''} ${devis.client_nom || ''}`.trim() || 'Client',
           client_email: devis.client_email,
-          trajet: `${devis.depart} → ${devis.arrivee}`,
           depart: devis.depart,
           arrivee: devis.arrivee,
           vehicule: devis.vehicule || 'Automobile',
@@ -3130,7 +3129,7 @@ Cadeau premium personnalisé</textarea></div>
       title: `Mission ${mission.reference}`,
       html: `<div style="text-align:left;font-size:0.9rem;">
         <b>Client :</b> ${mission.client_nom}<br>
-        <b>Trajet :</b> ${mission.trajet}<br>
+        <b>Trajet :</b> ${mission.depart} → ${mission.arrivee}<br>
         <b>Véhicule :</b> ${mission.vehicule || '—'}<br>
         <b>Montant HT :</b> ${mission.montant_ht || 0} €<br>
         <b>Rémunération convoyeur :</b> ${mission.remuneration_convoyeur || '—'} €<br>
@@ -3322,7 +3321,8 @@ Cadeau premium personnalisé</textarea></div>
         reference: ref,
         client_nom: clientNom,
         client_email: clientEmail || null,
-        trajet: `${depart} → ${arrivee}`,
+        depart: depart,
+        arrivee: arrivee,
         vehicule: vehicleName,
         mode: 'route',
         pack: pack,
