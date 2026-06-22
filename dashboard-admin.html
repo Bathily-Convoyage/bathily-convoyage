@@ -3107,7 +3107,7 @@ Cadeau premium personnalisé</textarea></div>
 
     const sb = getSupabase();
     const { error: errMission } = await sb.from('missions')
-      .update({ convoyeur_nom: convoyeurNom, statut: 'planned' })
+      .update({ convoyeur_nom: convoyeurNom, status: 'planned' })
       .eq('id', missionId);
     if (errMission) return Swal.fire('Erreur', errMission.message, 'error');
 
@@ -3195,8 +3195,8 @@ Cadeau premium personnalisé</textarea></div>
     const convoyeurNom = formValues.convoyeurNom;
     
     const updateData = convoyeurNom 
-      ? { convoyeur_nom: convoyeurNom, statut: 'planned', status: 'planned' }
-      : { convoyeur_nom: null, statut: 'available', status: 'available' };
+      ? { convoyeur_nom: convoyeurNom, status: 'planned' }
+      : { convoyeur_nom: null, status: 'available' };
 
     const { error } = await sb.from('missions').update(updateData).eq('id', missionId);
     
@@ -3245,7 +3245,7 @@ Cadeau premium personnalisé</textarea></div>
     });
     if (!confirm.isConfirmed) return;
     const sb = getSupabase();
-    const { error } = await sb.from('missions').update({ statut: newStatus }).eq('id', missionId);
+    const { error } = await sb.from('missions').update({ status: newStatus }).eq('id', missionId);
     if (error) Swal.fire('Erreur', error.message, 'error');
     else { Swal.fire('Statut mis à jour', '', 'success'); loadMissions(); }
   };
@@ -3406,7 +3406,6 @@ Cadeau premium personnalisé</textarea></div>
         montant_ht: montant,
         remuneration_convoyeur: remuneration || null,
         status: missionStatus,
-        statut: missionStatus,
         paiement_statut: 'pending',
         date_mission: date || new Date().toISOString().split('T')[0],
         client_id: clientId,
