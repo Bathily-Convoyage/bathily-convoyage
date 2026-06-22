@@ -2849,16 +2849,20 @@ Cadeau premium personnalisé</textarea></div>
       const dateStr = formatDate(m.date_mission || m.created_at);
       let actionsHtml = '';
       if (status === 'available') {
-        actionsHtml = `<button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i> Tarifs</button>`;
+        actionsHtml = `<div class="td-actions">
+          <button class="btn-sm btn-sm-ghost" onclick="assignConvoyeurToMission('${m.id}')" title="Attribuer à un convoyeur"><i class="fas fa-user-plus"></i></button>
+          <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
+        </div>`;
       } else {
         actionsHtml = `<div class="td-actions">
+          ${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="assignConvoyeurToMission('${m.id}')" title="Changer convoyeur"><i class="fas fa-user-edit"></i></button>` : ''}
           ${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i></button>` : ''}
           ${status !== 'completed' && status !== 'cancelled' ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}
           <button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button>
           <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
         </div>`;
       }
-      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { editMissionTariffs('${m.id}'); }">
+      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewMissionDetails('${m.id}'); }">
         <td>${m.reference}</td>
         <td>${m.client_nom}</td>
         <td>${m.depart} → ${m.arrivee}</td>
@@ -2891,7 +2895,7 @@ Cadeau premium personnalisé</textarea></div>
       else if (status === 'in_progress') { statusClass = 'sp-cours'; statusText = 'En cours'; }
       else if (status === 'completed') { statusClass = 'sp-ok'; statusText = 'Terminée'; }
       else if (status === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
-      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { editMissionTariffs('${m.id}'); }">
+      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewMissionDetails('${m.id}'); }">
         <td><div style="font-weight:600">${m.reference || '—'}</div></td>
         <td>${m.client_nom || '—'}</td>
         <td>${m.depart} → ${m.arrivee}</td>
@@ -2899,7 +2903,7 @@ Cadeau premium personnalisé</textarea></div>
         <td>${m.pack || '—'}</td>
         <td>${m.montant_ht ? parseFloat(m.montant_ht).toFixed(2) + ' €' : '—'}</td>
         <td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusText}</span></td>
-        <td><button class="btn-sm btn-sm-ghost" onclick="viewMissionDetails('${m.id}')"><i class="fas fa-eye"></i></button></td>
+        <td><button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation(); viewMissionDetails('${m.id}')"><i class="fas fa-eye"></i></button></td>
       </tr>`;
     }).join('');
   }
@@ -3153,6 +3157,61 @@ Cadeau premium personnalisé</textarea></div>
       width: 650,
       showCloseButton: true
     });
+  };
+
+  window.assignConvoyeurToMission = async function(missionId) {
+    const mission = _allMissions.find(m => m.id === missionId);
+    if (!mission) return Swal.fire('Erreur', 'Mission introuvable', 'error');
+
+    if (!_convoyeursList || _convoyeursList.length === 0) {
+      return Swal.fire('Aucun convoyeur', 'Aucun convoyeur disponible. Ajoutez d\'abord un convoyeur.', 'warning');
+    }
+
+    const convoyeurOptions = _convoyeursList.map(c => 
+      `<option value="${c.prenom} ${c.nom}" ${mission.convoyeur_nom === `${c.prenom} ${c.nom}` ? 'selected' : ''}>${c.prenom} ${c.nom}${c.zone ? ' — ' + c.zone : ''}</option>`
+    ).join('');
+
+    const { value: formValues } = await Swal.fire({
+      title: `Attribuer un convoyeur — ${mission.reference}`,
+      html: `
+        <p style="margin-bottom:10px;font-size:0.85rem;color:#666;">Mission : ${mission.depart} → ${mission.arrivee}</p>
+        <select id="swal-convoyeur-select" class="swal2-input" style="width:100%;">
+          <option value="">— Retirer du marché (aucun convoyeur) —</option>
+          ${convoyeurOptions}
+        </select>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Attribuer',
+      cancelButtonText: 'Annuler',
+      preConfirm: () => {
+        const convoyeurNom = document.getElementById('swal-convoyeur-select').value;
+        return { convoyeurNom };
+      }
+    });
+
+    if (!formValues) return;
+
+    const sb = getSupabase();
+    const convoyeurNom = formValues.convoyeurNom;
+    
+    const updateData = convoyeurNom 
+      ? { convoyeur_nom: convoyeurNom, statut: 'planned', status: 'planned' }
+      : { convoyeur_nom: null, statut: 'available', status: 'available' };
+
+    const { error } = await sb.from('missions').update(updateData).eq('id', missionId);
+    
+    if (error) {
+      Swal.fire('Erreur', error.message, 'error');
+    } else {
+      Swal.fire({ 
+        toast: true, 
+        position: 'top-end', 
+        icon: 'success', 
+        title: convoyeurNom ? `Mission attribuée à ${convoyeurNom}` : 'Mission remise sur le marché', 
+        timer: 3000 
+      });
+      loadMissions();
+    }
   };
 
   window.editMissionTariffs = function(id) {
