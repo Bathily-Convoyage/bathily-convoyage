@@ -128,7 +128,7 @@ Corps: ${html.substring(0, 300)}...`);
     // 0. ÉVÉNEMENT : CONVOYEUR APPROUVÉ
     // ==========================================
     if (trigger === 'convoyeur_approved') {
-      const email = id; // id est en fait l'email du convoyeur
+      const email = parsedBody.email; // Utiliser email du body au lieu de id
       const convoyeurPrenom = prenom || 'Convoyeur';
       const tempPwd = temp_password;
 
@@ -430,7 +430,7 @@ Corps: ${html.substring(0, 300)}...`);
            <li><span>Véhicule :</span> <strong>${mission.vehicule}</strong></li>
            <li><span>Départ :</span> <strong>${mission.depart}</strong></li>
            <li><span>Arrivée :</span> <strong>${mission.arrivee}</strong></li>
-           <li><span>Mode de transport :</span> <strong>${mission.mode_transport === 'plateau' ? 'Plateau' : 'Par la route'}</strong></li>
+           <li><span>Mode de transport :</span> <strong>${mission.mode === 'plateau' ? 'Plateau' : 'Par la route'}</strong></li>
            <li><span>Pack choisi :</span> <strong>${mission.pack || 'Starter'}</strong></li>
          </ul>
          <p>Le convoyeur affecté prendra en charge votre véhicule selon les modalités convenues. Vous pouvez suivre l'état de votre mission en temps réel sur votre tableau de bord client.</p>
