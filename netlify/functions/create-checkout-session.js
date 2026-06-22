@@ -125,7 +125,7 @@ exports.handler = async (event, context) => {
     }
 
     // 4. Vérifier que la mission est dans un état paiement possible
-    const statut = mission.statut || mission.status || 'planned';
+    const statut = mission.status || 'planned';
     if (statut === 'cancelled' || statut === 'completed') {
       return {
         statusCode: 400,

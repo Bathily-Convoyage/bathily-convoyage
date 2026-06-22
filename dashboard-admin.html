@@ -2777,6 +2777,15 @@ Cadeau premium personnalisé</textarea></div>
     Swal.fire({ title: 'En cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
     const client = getSupabase();
     
+    // Si on supprime un client, d'abord dissocier ses missions (mettre client_id à null)
+    if (tableName === 'clients') {
+      await client.from('missions').update({ client_id: null }).eq('client_id', userId);
+    }
+    // Si on supprime un convoyeur, d'abord dissocier ses missions
+    if (tableName === 'convoyeurs') {
+      await client.from('missions').update({ convoyeur_nom: null, status: 'available' }).eq('convoyeur_nom', userId);
+    }
+    
     const { error } = await client.rpc('admin_delete_user', {
       target_id: userId,
       target_table: tableName
@@ -2852,6 +2861,7 @@ Cadeau premium personnalisé</textarea></div>
         actionsHtml = `<div class="td-actions">
           <button class="btn-sm btn-sm-ghost" onclick="assignConvoyeurToMission('${m.id}')" title="Attribuer à un convoyeur"><i class="fas fa-user-plus"></i></button>
           <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
+          <button class="btn-sm btn-sm-red" onclick="deleteMission('${m.id}', '${m.reference}')" title="Supprimer"><i class="fas fa-trash"></i></button>
         </div>`;
       } else {
         actionsHtml = `<div class="td-actions">
@@ -2860,6 +2870,7 @@ Cadeau premium personnalisé</textarea></div>
           ${status !== 'completed' && status !== 'cancelled' ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}
           <button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button>
           <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
+          <button class="btn-sm btn-sm-red" onclick="deleteMission('${m.id}', '${m.reference}')" title="Supprimer"><i class="fas fa-trash"></i></button>
         </div>`;
       }
       return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewMissionDetails('${m.id}'); }">
@@ -3235,6 +3246,35 @@ Cadeau premium personnalisé</textarea></div>
         else { Swal.fire('Mis à jour', '', 'success'); loadMissions(); }
       }
     });
+  };
+
+  window.deleteMission = async function(missionId, reference) {
+    const confirm = await Swal.fire({
+      title: `Supprimer la mission ${reference} ?`,
+      text: "Cette action est définitive. Les états des lieux et candidatures liées seront également supprimés.",
+      icon: 'error',
+      showCancelButton: true,
+      confirmButtonText: 'Supprimer',
+      cancelButtonText: 'Annuler'
+    });
+    if (!confirm.isConfirmed) return;
+
+    Swal.fire({ title: 'Suppression en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    const sb = getSupabase();
+
+    // 1. Supprimer les EDLs liés
+    await sb.from('edls').delete().eq('mission_id', missionId);
+    // 2. Supprimer les candidatures liées
+    await sb.from('candidatures').delete().eq('mission_id', missionId);
+    // 3. Supprimer la mission
+    const { error } = await sb.from('missions').delete().eq('id', missionId);
+
+    if (error) {
+      Swal.fire('Erreur', error.message, 'error');
+    } else {
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Mission supprimée', timer: 3000 });
+      loadMissions();
+    }
   };
 
   window.updateMissionStatus = async function(missionId, newStatus) {
