@@ -1207,11 +1207,33 @@
 
       Swal.fire({ title: 'Envoi...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
       const client = getSBC();
-      const { error } = await client.auth.resetPasswordForEmail(email.trim(), {
+      const cleanEmail = email.trim().toLowerCase();
+      const { error } = await client.auth.resetPasswordForEmail(cleanEmail, {
         redirectTo: window.location.origin + '/reset-password.html'
       });
       if (error) {
-        Swal.fire('Erreur', error.message, 'error');
+        // L'email n'existe pas dans Supabase Auth (ancien compte)
+        // Créer le compte Auth avec un mot de passe temporaire, puis renvoyer l'email de reset
+        Swal.fire({ title: 'Migration du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
+        const { error: signUpError } = await client.auth.signUp({
+          email: cleanEmail,
+          password: tempPassword,
+          options: { data: { source: 'migration' } }
+        });
+        if (signUpError) {
+          Swal.fire('Erreur', 'Impossible de migrer ce compte : ' + signUpError.message, 'error');
+          return;
+        }
+        // Maintenant que le compte Auth existe, envoyer l'email de réinitialisation
+        const { error: resetError2 } = await client.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: window.location.origin + '/reset-password.html'
+        });
+        if (resetError2) {
+          Swal.fire('Compte créé', 'Votre compte a été migré. Veuillez contacter l\'administrateur pour définir votre mot de passe.', 'info');
+        } else {
+          Swal.fire('Email envoyé !', 'Votre compte a été migré. Consultez votre boîte mail pour définir votre mot de passe.', 'success');
+        }
       } else {
         Swal.fire('Email envoyé !', 'Consultez votre boîte mail pour réinitialiser votre mot de passe.', 'success');
       }
