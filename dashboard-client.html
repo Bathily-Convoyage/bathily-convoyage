@@ -1384,22 +1384,15 @@
       });
       if (!email) return;
 
-      Swal.fire({ title: 'Vérification...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      Swal.fire({ title: 'Envoi...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
       const client = getSBCli();
-      const { data: existing } = await client.from('clients').select('email').eq('email', email.trim()).maybeSingle();
-      if (!existing) {
-        Swal.fire('Adresse inconnue', "Aucun compte avec cet email.", 'warning');
-        return;
-      }
-      try {
-        await fetch('/.netlify/functions/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ trigger: 'reset_password', id: email.trim() })
-        });
-        Swal.fire('Email envoyé !', 'Consultez votre boîte mail (simulé en dev).', 'success');
-      } catch {
-        Swal.fire('Email envoyé !', 'Réinitialisation simulée.', 'success');
+      const { error } = await client.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: window.location.origin + '/reset-password.html'
+      });
+      if (error) {
+        Swal.fire('Erreur', error.message, 'error');
+      } else {
+        Swal.fire('Email envoyé !', 'Consultez votre boîte mail pour réinitialiser votre mot de passe.', 'success');
       }
     }
 
@@ -1417,24 +1410,16 @@
       const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
 
       if (authError) {
-        // 2. Fallback SHA-256 pour les anciens comptes
-        const { data: profileData } = await client.from('clients').select('*').eq('email', email).maybeSingle();
-        if (!profileData) {
-          Swal.fire({ title: 'Échec', text: 'Identifiants incorrects ou compte inexistant.', icon: 'error' });
-          return;
-        }
-        const hashed = await hashPassword(password);
-        if (profileData.mot_de_passe !== hashed) {
-          Swal.fire({ title: 'Échec', text: 'Identifiants incorrects.', icon: 'error' });
-          return;
-        }
-        _clientUser = profileData;
-        _clientName = `${profileData.prenom || ''} ${profileData.nom || ''}`.trim();
-        sessionStorage.setItem('client_user', JSON.stringify(profileData));
-        sessionStorage.setItem('client_name', _clientName);
-        document.getElementById('clientLoginOverlay').style.display = 'none';
-        await loadClientData(profileData);
-        Swal.fire({ title: 'Bienvenue !', text: `Content de vous revoir, ${profileData.prenom || 'Client'}.`, icon: 'success', timer: 2000, showConfirmButton: false });
+        Swal.fire({
+          title: 'Connexion impossible',
+          text: 'Votre compte n\'est pas encore migré vers le nouveau système d\'authentification. Cliquez sur "Mot de passe oublié" pour réinitialiser votre mot de passe et activer votre compte.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Réinitialiser mon mot de passe',
+          cancelButtonText: 'Fermer'
+        }).then(res => {
+          if (res.isConfirmed) handleForgotPassword({ preventDefault: () => {} });
+        });
         return;
       }
 
@@ -1446,7 +1431,8 @@
           email,
           prenom: authData.user.user_metadata?.prenom || 'Client',
           nom: authData.user.user_metadata?.nom || '',
-          role: 'client'
+          role: 'client',
+          auth_user_id: authData.user.id
         }]).select().single();
         profile = newProfile;
       }

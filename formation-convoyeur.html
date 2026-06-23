@@ -1054,33 +1054,8 @@ async function submitCandidature() {
 
     const sb = getSB();
 
-    // Vérifier si le candidat existe déjà
-    const { data: existing } = await sb.from('convoyeur_candidatures')
-      .select('id, statut, last_attempt_at')
-      .eq('email', formData.email)
-      .maybeSingle();
-
-    if (existing) {
-      if (existing.statut === 'approved') {
-        Swal.fire({
-          title: 'Compte existant',
-          text: 'Un compte approuvé existe déjà avec cet email. Connectez-vous à l\'espace convoyeur.',
-          icon: 'info',
-          confirmButtonColor: 'var(--bordeaux)'
-        });
-        return;
-      }
-      if (existing.statut === 'pending') {
-        Swal.fire({
-          title: 'Candidature déjà envoyée',
-          text: 'Votre candidature est déjà en cours d\'examen. Patience !',
-          icon: 'info',
-          confirmButtonColor: 'var(--bordeaux)'
-        });
-        return;
-      }
-    }
-
+    // Insérer directement la candidature (le SELECT anon est bloqué par RLS)
+    // Si l'email existe déjà, la contrainte UNIQUE renverra une erreur
     const { data: newCand, error } = await sb.from('convoyeur_candidatures').insert([{
       prenom: formData.prenom,
       nom: formData.nom,
@@ -1097,22 +1072,31 @@ async function submitCandidature() {
       quiz_attempts: 1,
       last_attempt_at: new Date().toISOString(),
       statut: 'pending'
-    }]).select().single();
+    }]);
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (error.code === '23505' || (error.message && error.message.includes('duplicate'))) {
+        Swal.fire({
+          title: 'Candidature déjà envoyée',
+          text: 'Une candidature existe déjà avec cet email. Si elle est en cours d\'examen, soyez patient. Si elle a été approuvée, connectez-vous à l\'espace convoyeur.',
+          icon: 'info',
+          confirmButtonColor: 'var(--bordeaux)'
+        });
+        return;
+      }
+      throw new Error(error.message);
+    }
 
     document.getElementById('confirmEmail').textContent = formData.email;
     goPage(8);
     Swal.close();
 
     // Envoi de l'email de notification
-    if (newCand && newCand.id) {
-      fetch('/.netlify/functions/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trigger: 'candidature_submitted', id: newCand.id })
-      }).catch(err => console.warn('Erreur envoi email candidature:', err));
-    }
+    fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trigger: 'candidature_submitted', email: formData.email })
+    }).catch(err => console.warn('Erreur envoi email candidature:', err));
 
   } catch (err) {
     Swal.fire({

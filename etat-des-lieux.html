@@ -1383,11 +1383,9 @@ async function validateEdl(){
       signatures: { convoyeur: sigConvBase64, client: sigCliBase64 }
     };
 
-    const { data: insertedEdl, error: insertError } = await client
+    const { error: insertError } = await client
       .from('edls')
-      .insert([edlData])
-      .select()
-      .single();
+      .insert([edlData]);
 
     if (insertError) {
       throw new Error(insertError.message);
@@ -1398,7 +1396,7 @@ async function validateEdl(){
       await fetch('/.netlify/functions/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trigger: 'edl_completed', id: insertedEdl.id })
+        body: JSON.stringify({ trigger: 'edl_completed', mission_id: missionId })
       });
     } catch (emailErr) {
       console.warn("Email non envoyé, mais EDL enregistré:", emailErr);
