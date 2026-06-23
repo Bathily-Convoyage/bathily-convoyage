@@ -2151,9 +2151,15 @@
         try {
           const user = JSON.parse(saved);
           // Vérifier que la session Supabase Auth est toujours valide
-          const sb = getSBCli();
-          const { data: { session } } = await sb.auth.getSession();
-          if (!session) {
+          let hasAuthSession = false;
+          try {
+            const sb = getSBCli();
+            const { data: { session } } = await sb.auth.getSession();
+            hasAuthSession = !!session;
+          } catch (authErr) {
+            console.warn('Pas de session Auth:', authErr.message);
+          }
+          if (!hasAuthSession) {
             sessionStorage.removeItem('client_user');
             sessionStorage.removeItem('client_name');
             if (document.getElementById('clientLoginOverlay')) {
