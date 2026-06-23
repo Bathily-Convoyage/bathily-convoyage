@@ -1216,7 +1216,7 @@
         // Créer le compte Auth avec un mot de passe temporaire, puis renvoyer l'email de reset
         Swal.fire({ title: 'Migration du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
         const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
-        const { error: signUpError } = await client.auth.signUp({
+        const { data: signUpData, error: signUpError } = await client.auth.signUp({
           email: cleanEmail,
           password: tempPassword,
           options: { data: { source: 'migration' } }
@@ -1224,6 +1224,10 @@
         if (signUpError) {
           Swal.fire('Erreur', 'Impossible de migrer ce compte : ' + signUpError.message, 'error');
           return;
+        }
+        // Sign out pour éviter la session partielle qui cause "Auth session missing!"
+        if (signUpData?.session) {
+          await client.auth.signOut();
         }
         // Maintenant que le compte Auth existe, envoyer l'email de réinitialisation
         const { error: resetError2 } = await client.auth.resetPasswordForEmail(cleanEmail, {
@@ -1914,7 +1918,7 @@
     }
 
     // ========== CHECK SESSION AU CHARGEMENT ==========
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
       // Auth listeners
       document.getElementById('convAuthTabLogin').addEventListener('click', () => switchConvoAuthTab('login'));
       document.getElementById('convAuthTabSignup').addEventListener('click', () => switchConvoAuthTab('signup'));
@@ -1922,16 +1926,31 @@
       document.getElementById('convAuthSignupForm').addEventListener('submit', handleConvoyeurSignup);
       document.getElementById('convLinkForgotPassword').addEventListener('click', handleConvoForgotPassword);
 
-      // Vérifier session
+      // Vérifier session : à la fois sessionStorage ET session Supabase Auth valide
       const saved = sessionStorage.getItem('convoyeur_user');
       if (saved) {
         try {
           const user = JSON.parse(saved);
-          _convoyeurUser = user;
-          _convoyeurName = `${user.prenom||''} ${user.nom||''}`.trim();
-          document.getElementById('convoyeurLoginOverlay').style.display = 'none';
-          loadConvoyeurData(user);
-        } catch (e) { console.warn('Session invalide', e); }
+          // Vérifier que la session Supabase Auth est toujours valide
+          const sb = getSBC();
+          const { data: { session } } = await sb.auth.getSession();
+          if (!session) {
+            // Session Auth expirée ou inexistante → nettoyer et afficher le login
+            sessionStorage.removeItem('convoyeur_user');
+            sessionStorage.removeItem('convoyeur_name');
+            document.getElementById('convoyeurLoginOverlay').style.display = 'flex';
+          } else {
+            _convoyeurUser = user;
+            _convoyeurName = `${user.prenom||''} ${user.nom||''}`.trim();
+            document.getElementById('convoyeurLoginOverlay').style.display = 'none';
+            loadConvoyeurData(user);
+          }
+        } catch (e) {
+          console.warn('Session invalide', e);
+          sessionStorage.removeItem('convoyeur_user');
+          sessionStorage.removeItem('convoyeur_name');
+          document.getElementById('convoyeurLoginOverlay').style.display = 'flex';
+        }
       } else {
         document.getElementById('convoyeurLoginOverlay').style.display = 'flex';
       }
