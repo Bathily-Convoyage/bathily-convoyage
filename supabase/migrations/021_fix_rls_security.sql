@@ -63,6 +63,11 @@ DROP POLICY IF EXISTS "candidats_delete_blocked_anon" ON public.convoyeurs_candi
 
 ALTER TABLE public.convoyeurs_candidats ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "candidats_insert_public" ON public.convoyeurs_candidats;
+DROP POLICY IF EXISTS "candidats_select_admin" ON public.convoyeurs_candidats;
+DROP POLICY IF EXISTS "candidats_update_admin" ON public.convoyeurs_candidats;
+DROP POLICY IF EXISTS "candidats_delete_admin" ON public.convoyeurs_candidats;
+
 -- INSERT : autorisé pour tous (formulaire public de candidature)
 CREATE POLICY "candidats_insert_public"
   ON public.convoyeurs_candidats
@@ -101,6 +106,10 @@ DROP POLICY IF EXISTS "Suppression bloquée" ON public.clients;
 DROP POLICY IF EXISTS "Client voit son profil" ON public.clients;
 DROP POLICY IF EXISTS "Utilisateur authentifié lit son profil" ON public.clients;
 DROP POLICY IF EXISTS "clients_insert_public" ON public.clients;
+DROP POLICY IF EXISTS "clients_insert_authenticated" ON public.clients;
+DROP POLICY IF EXISTS "clients_select_own_or_admin" ON public.clients;
+DROP POLICY IF EXISTS "clients_update_own_or_admin" ON public.clients;
+DROP POLICY IF EXISTS "clients_delete_admin" ON public.clients;
 
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
 
@@ -174,6 +183,11 @@ DROP POLICY IF EXISTS "Suppression convoyeurs bloquee" ON public.convoyeurs;
 DROP POLICY IF EXISTS "Convoyeur voit son profil" ON public.convoyeurs;
 DROP POLICY IF EXISTS "Convoyeur modifie son profil" ON public.convoyeurs;
 
+DROP POLICY IF EXISTS "convoyeurs_select_own_or_admin" ON public.convoyeurs;
+DROP POLICY IF EXISTS "convoyeurs_insert_authenticated_or_admin" ON public.convoyeurs;
+DROP POLICY IF EXISTS "convoyeurs_update_own_or_admin" ON public.convoyeurs;
+DROP POLICY IF EXISTS "convoyeurs_delete_admin" ON public.convoyeurs;
+
 ALTER TABLE public.convoyeurs ENABLE ROW LEVEL SECURITY;
 
 -- SELECT : son propre profil OU admin voit tout
@@ -232,6 +246,11 @@ DROP POLICY IF EXISTS "Modification devis par admin" ON public.devis;
 DROP POLICY IF EXISTS "devis_insert_public" ON public.devis;
 DROP POLICY IF EXISTS "devis_select_own" ON public.devis;
 
+DROP POLICY IF EXISTS "devis_insert_public" ON public.devis;
+DROP POLICY IF EXISTS "devis_select_authenticated" ON public.devis;
+DROP POLICY IF EXISTS "devis_update_authenticated" ON public.devis;
+DROP POLICY IF EXISTS "devis_delete_admin" ON public.devis;
+
 ALTER TABLE public.devis ENABLE ROW LEVEL SECURITY;
 
 -- INSERT : autorisé pour tous (formulaire public de demande de devis)
@@ -268,6 +287,11 @@ CREATE POLICY "devis_delete_admin"
 DROP POLICY IF EXISTS "Allow public read access on system_settings" ON public.system_settings;
 DROP POLICY IF EXISTS "Allow authenticated users to manage system_settings" ON public.system_settings;
 DROP POLICY IF EXISTS "system_settings_select_authed" ON public.system_settings;
+
+DROP POLICY IF EXISTS "system_settings_select_public" ON public.system_settings;
+DROP POLICY IF EXISTS "system_settings_insert_admin" ON public.system_settings;
+DROP POLICY IF EXISTS "system_settings_update_admin" ON public.system_settings;
+DROP POLICY IF EXISTS "system_settings_delete_admin" ON public.system_settings;
 
 ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
 
@@ -310,6 +334,14 @@ DROP POLICY IF EXISTS "Convoyeur voit ses missions assignees" ON public.missions
 DROP POLICY IF EXISTS "Insertion mission authentifiee" ON public.missions;
 DROP POLICY IF EXISTS "Client modifie ses missions" ON public.missions;
 DROP POLICY IF EXISTS "Suppression missions bloquee" ON public.missions;
+
+DROP POLICY IF EXISTS "missions_select_own_or_admin" ON public.missions;
+DROP POLICY IF EXISTS "missions_insert_authenticated" ON public.missions;
+DROP POLICY IF EXISTS "missions_update_own_or_admin" ON public.missions;
+DROP POLICY IF EXISTS "missions_delete_admin" ON public.missions;
+DROP POLICY IF EXISTS "missions_select_available_for_convoyeurs" ON public.missions;
+DROP POLICY IF EXISTS "missions_select_active_anon" ON public.missions;
+DROP POLICY IF EXISTS "missions_update_active_anon" ON public.missions;
 
 ALTER TABLE public.missions ENABLE ROW LEVEL SECURITY;
 
@@ -379,6 +411,11 @@ DROP POLICY IF EXISTS "Client voit ses edls" ON public.edls;
 DROP POLICY IF EXISTS "MAJ edls bloquee anon" ON public.edls;
 DROP POLICY IF EXISTS "Suppression edls bloquee" ON public.edls;
 
+DROP POLICY IF EXISTS "edls_insert_public" ON public.edls;
+DROP POLICY IF EXISTS "edls_select_own_or_admin" ON public.edls;
+DROP POLICY IF EXISTS "edls_update_admin" ON public.edls;
+DROP POLICY IF EXISTS "edls_delete_admin" ON public.edls;
+
 ALTER TABLE public.edls ENABLE ROW LEVEL SECURITY;
 
 -- INSERT : autorisé pour tous (etat-des-lieux.html est un formulaire de terrain sans auth)
@@ -425,6 +462,11 @@ DROP POLICY IF EXISTS "Client voit ses vehicules" ON public.vehicules;
 DROP POLICY IF EXISTS "Client ajoute ses vehicules" ON public.vehicules;
 DROP POLICY IF EXISTS "Client modifie ses vehicules" ON public.vehicules;
 DROP POLICY IF EXISTS "Client supprime ses vehicules" ON public.vehicules;
+
+DROP POLICY IF EXISTS "vehicules_select_own_or_admin" ON public.vehicules;
+DROP POLICY IF EXISTS "vehicules_insert_own_or_admin" ON public.vehicules;
+DROP POLICY IF EXISTS "vehicules_update_own_or_admin" ON public.vehicules;
+DROP POLICY IF EXISTS "vehicules_delete_own_or_admin" ON public.vehicules;
 
 ALTER TABLE public.vehicules ENABLE ROW LEVEL SECURITY;
 
@@ -499,6 +541,11 @@ DROP POLICY IF EXISTS "Client voit ses tickets" ON public.support_tickets;
 DROP POLICY IF EXISTS "MAJ tickets bloquee anon" ON public.support_tickets;
 DROP POLICY IF EXISTS "Suppression tickets bloquee" ON public.support_tickets;
 
+DROP POLICY IF EXISTS "tickets_insert_authenticated" ON public.support_tickets;
+DROP POLICY IF EXISTS "tickets_select_own_or_admin" ON public.support_tickets;
+DROP POLICY IF EXISTS "tickets_update_admin" ON public.support_tickets;
+DROP POLICY IF EXISTS "tickets_delete_admin" ON public.support_tickets;
+
 ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
 
 -- INSERT : authenticated avec rattachement client
@@ -555,6 +602,11 @@ DROP POLICY IF EXISTS "Documents upload authentifie" ON storage.objects;
 DROP POLICY IF EXISTS "Documents update bloque anon" ON storage.objects;
 DROP POLICY IF EXISTS "Documents delete bloque" ON storage.objects;
 
+DROP POLICY IF EXISTS "documents_select_public" ON storage.objects;
+DROP POLICY IF EXISTS "documents_insert_authenticated" ON storage.objects;
+DROP POLICY IF EXISTS "documents_update_authenticated" ON storage.objects;
+DROP POLICY IF EXISTS "documents_delete_blocked" ON storage.objects;
+
 -- SELECT : public (URLs de documents partagés avec les clients)
 CREATE POLICY "documents_select_public"
   ON storage.objects
@@ -593,6 +645,8 @@ CREATE POLICY "documents_delete_blocked"
 --     en cours sans auth (formulaire de terrain)
 -- =====================================================
 
+-- (DROP déjà fait dans la section 6)
+
 CREATE POLICY "missions_select_available_for_convoyeurs"
   ON public.missions
   FOR SELECT
@@ -628,6 +682,11 @@ CREATE POLICY "missions_update_active_anon"
 --     Les convoyeurs postulent aux missions disponibles
 --     L'admin gère (valide/refuse) les candidatures
 -- =====================================================
+
+DROP POLICY IF EXISTS "candidatures_insert_authenticated" ON public.candidatures;
+DROP POLICY IF EXISTS "candidatures_select_own_or_admin" ON public.candidatures;
+DROP POLICY IF EXISTS "candidatures_update_admin" ON public.candidatures;
+DROP POLICY IF EXISTS "candidatures_delete_admin" ON public.candidatures;
 
 ALTER TABLE public.candidatures ENABLE ROW LEVEL SECURITY;
 
