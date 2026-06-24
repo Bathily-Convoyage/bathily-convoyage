@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Bon de Mission — Bathily-Convoyage</title>
-  <meta name="description" content="Bon de mission officiel pour le convoyeur Bathily : planning, checklist, instructions, signatures et démarrage de la mission.">
-  <meta property="og:title" content="Bon de Mission — Bathily-Convoyage">
-  <meta property="og:description" content="Document officiel de mission comprenant le trajet, le véhicule, les instructions, la checklist et les signatures.">
+  <title>Bon de Mission â€“ Bathily-Convoyage</title>
+  <meta name="description" content="Bon de mission officiel pour le convoyeur Bathily : planning, checklist, instructions, signatures et dÃ©marrage de la mission.">
+  <meta property="og:title" content="Bon de Mission â€“ Bathily-Convoyage">
+  <meta property="og:description" content="Document officiel de mission comprenant le trajet, le vÃ©hicule, les instructions, la checklist et les signatures.">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E?%3C/text%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
   <script src="/supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    /* ========== STYLES (inchangés, identiques à l'original) ========== */
+    /* ========== STYLES (inchangÃ©s, identiques Ã  l'original) ========== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #FDFBF7; color: #2D2A24; line-height: 1.5; overflow-x: hidden; }
     .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
@@ -141,7 +141,7 @@
     .check-item.checked { border-color: var(--success); background: rgba(74,124,107,0.05); }
     .check-box { width: 20px; height: 20px; border: 1px solid var(--border-light); border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-top: 2px; transition: all 0.2s; }
     .check-item.checked .check-box { background: var(--success); border-color: var(--success); }
-    .check-item.checked .check-box::after { content: '?'; font-size: 0.8rem; color: white; }
+    .check-item.checked .check-box::after { content: 'âœ“'; font-size: 0.8rem; color: white; }
     .check-title { font-weight: 700; font-size: 0.8rem; }
     .check-desc { font-size: 0.7rem; color: var(--gray-mid); }
     .check-required { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; color: var(--bordeaux); margin-left: auto; }
@@ -224,7 +224,7 @@
 </head>
 <body>
 
-  <!-- Curseur personnalisé -->
+  <!-- Curseur personnalisÃ© -->
   <div class="cur" id="cur"></div>
   <div class="cur-ring" id="cring"></div>
 
@@ -238,42 +238,42 @@
     <div class="topbar-right">
       <button class="tb-btn tb-ghost" onclick="window.location.href='dashboard-convoyeur.html'"><i class="fas fa-arrow-left"></i> Retour</button>
       <button class="tb-btn tb-ghost" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
-      <button class="tb-btn tb-green" id="startMissionBtn" onclick="startMission()"><i class="fas fa-play"></i> Démarrer</button>
+      <button class="tb-btn tb-green" id="startMissionBtn" onclick="startMission()"><i class="fas fa-play"></i> DÃ©marrer</button>
     </div>
   </div>
 
   <!-- Barre de statut -->
   <div class="status-bar">
-    <div class="sb-item"><i class="fas fa-hashtag"></i> Réf : <span class="sb-val" id="sbRef">—</span></div>
-    <div class="sb-item"><i class="fas fa-calendar"></i> Date : <span class="sb-val" id="sbDate">—</span></div>
-    <div class="sb-item"><i class="fas fa-clock"></i> Départ : <span class="sb-val" id="sbHeure">—</span></div>
-    <div class="sb-item"><i class="fas fa-route"></i> Mode : <span class="sb-val" id="sbMode">—</span></div>
+    <div class="sb-item"><i class="fas fa-hashtag"></i> RÃ©f : <span class="sb-val" id="sbRef">â€¦</span></div>
+    <div class="sb-item"><i class="fas fa-calendar"></i> Date : <span class="sb-val" id="sbDate">â€¦</span></div>
+    <div class="sb-item"><i class="fas fa-clock"></i> DÃ©part : <span class="sb-val" id="sbHeure">â€¦</span></div>
+    <div class="sb-item"><i class="fas fa-route"></i> Mode : <span class="sb-val" id="sbMode">â€¦</span></div>
     <div class="sb-item"><i class="fas fa-circle" style="color:#2980b9"></i>
-      <span class="sb-status ss-planifie" id="missionStatus"><span class="ss-dot"></span> Planifiée</span>
+      <span class="sb-status ss-planifie" id="missionStatus"><span class="ss-dot"></span> PlanifiÃ©e</span>
     </div>
     <div class="sb-item" style="margin-left:auto">
-      <div class="sb-val" id="checkCount" style="color:var(--gray-mid)">0 / 9 vérifications</div>
+      <div class="sb-val" id="checkCount" style="color:var(--gray-mid)">0 / 9 vÃ©rifications</div>
     </div>
   </div>
 
   <div class="bon-main">
 
-    <!-- En-tête -->
+    <!-- En-tÃªte -->
     <div class="doc-header reveal">
       <div class="dh-left">
         <div class="dh-logo">Bathily-Convoyage<span>.</span></div>
         <div class="dh-tagline">La solution digitale de convoyage automobile & moto</div>
         <div class="dh-contact">
-          contact@Bathily-Convoyage.fr — France entière<br>
+          contact@Bathily-Convoyage.fr Â· France entiÃ¨re<br>
           <strong style="color:var(--bordeaux)">Votre route, notre engagement.</strong>
         </div>
       </div>
       <div class="dh-right">
         <div class="dh-doc-title">Bon de <em>Mission</em></div>
-        <div class="dh-ref" id="dhRef">N° —</div>
-        <div class="dh-date">Émis le <span id="emitDate"></span></div>
+        <div class="dh-ref" id="dhRef">NÂ° â€¦</div>
+        <div class="dh-date">Ã‰mis le <span id="emitDate"></span></div>
         <div class="dh-badges">
-          <span class="dh-badge badge-depart"><i class="fas fa-map-marker-alt"></i> Départ</span>
+          <span class="dh-badge badge-depart"><i class="fas fa-map-marker-alt"></i> DÃ©part</span>
           <span class="dh-badge badge-ev" id="dhModeBadge"><i class="fas fa-road"></i> Route</span>
         </div>
       </div>
@@ -289,57 +289,57 @@
         <div class="route-visual">
           <div class="rv-point">
             <div class="rv-dot rv-dot-dep"></div>
-            <div class="rv-city" id="rvDepart">—</div>
+            <div class="rv-city" id="rvDepart">â€¦</div>
             <div class="rv-addr" id="rvDepartAddr"></div>
           </div>
           <div class="rv-line-wrap">
-            <div class="rv-infos" id="rvInfos">—</div>
+            <div class="rv-infos" id="rvInfos">â€¦</div>
             <div class="rv-line"></div>
           </div>
           <div class="rv-point" style="text-align:right">
             <div class="rv-dot rv-dot-arr"></div>
-            <div class="rv-city" id="rvArrivee">—</div>
+            <div class="rv-city" id="rvArrivee">â€¦</div>
             <div class="rv-addr" id="rvArriveeAddr"></div>
           </div>
         </div>
         <div class="data-grid-4">
-          <div class="data-item"><div class="data-lbl">Date</div><div class="data-val" id="dDate"><strong>—</strong></div></div>
-          <div class="data-item"><div class="data-lbl">Mode transport</div><div class="data-val highlight" id="dMode">—</div></div>
-          <div class="data-item"><div class="data-lbl">Pack</div><div class="data-val highlight" id="dPack">—</div></div>
-          <div class="data-item"><div class="data-lbl">Véhicule</div><div class="data-val" id="dVehicule">—</div></div>
+          <div class="data-item"><div class="data-lbl">Date</div><div class="data-val" id="dDate"><strong>â€¦</strong></div></div>
+          <div class="data-item"><div class="data-lbl">Mode transport</div><div class="data-val highlight" id="dMode">â€¦</div></div>
+          <div class="data-item"><div class="data-lbl">Pack</div><div class="data-val highlight" id="dPack">â€¦</div></div>
+          <div class="data-item"><div class="data-lbl">VÃ©hicule</div><div class="data-val" id="dVehicule">â€¦</div></div>
         </div>
       </div>
     </div>
 
-    <!-- Véhicule -->
+    <!-- VÃ©hicule -->
     <div class="section reveal">
       <div class="section-header">
-        <div class="sh-left"><i class="fas fa-car sh-ico"></i><span class="sh-title">Véhicule à convoyer</span></div>
+        <div class="sh-left"><i class="fas fa-car sh-ico"></i><span class="sh-title">VÃ©hicule Ã  convoyer</span></div>
         <span class="sh-tag">Identification SIV</span>
       </div>
       <div class="section-body">
         <div class="vehicule-card">
           <div class="vc-ico"><i class="fas fa-car"></i></div>
           <div class="vc-info">
-            <div class="vc-name" id="vcName">—</div>
-            <div class="vc-plate" id="vcPlate">—</div>
+            <div class="vc-name" id="vcName">â€¦</div>
+            <div class="vc-plate" id="vcPlate">â€¦</div>
             <div class="vc-specs">
-              <span class="vc-spec"><i class="fas fa-calendar"></i> <span id="vcYear">—</span></span>
-              <span class="vc-spec"><i class="fas fa-gas-pump"></i> <span id="vcEnergy">—</span></span>
-              <span class="vc-spec"><i class="fas fa-tachometer-alt"></i> <span id="vcPower">—</span> CV</span>
-              <span class="vc-spec"><i class="fas fa-car-side"></i> <span id="vcType">—</span></span>
+              <span class="vc-spec"><i class="fas fa-calendar"></i> <span id="vcYear">â€¦</span></span>
+              <span class="vc-spec"><i class="fas fa-gas-pump"></i> <span id="vcEnergy">â€¦</span></span>
+              <span class="vc-spec"><i class="fas fa-tachometer-alt"></i> <span id="vcPower">â€¦</span> CV</span>
+              <span class="vc-spec"><i class="fas fa-car-side"></i> <span id="vcType">â€¦</span></span>
             </div>
           </div>
         </div>
         <div class="data-grid-4">
-          <div class="data-item"><div class="data-lbl">Kilométrage départ</div><div class="data-val highlight">À relevé</div></div>
-          <div class="data-item"><div class="data-lbl">Tolérance</div><div class="data-val orange">+470 km</div></div>
-          <div class="data-item"><div class="data-lbl">Carburant départ</div><div class="data-val highlight">À noter</div></div>
+          <div class="data-item"><div class="data-lbl">KilomÃ©trage dÃ©part</div><div class="data-val highlight">â€¦ relevÃ©</div></div>
+          <div class="data-item"><div class="data-lbl">TolÃ©rance</div><div class="data-val orange">+470 km</div></div>
+          <div class="data-item"><div class="data-lbl">Carburant dÃ©part</div><div class="data-val highlight">â€¦ noter</div></div>
           <div class="data-item"><div class="data-lbl">Prochain CT</div><div class="data-val">Octobre 2025</div></div>
         </div>
         <div class="alert alert-info" style="margin-top:12px">
           <i class="fas fa-bolt"></i>
-          <p><strong>Véhicule hybride :</strong> Activez le mode éco-conduite. En cas de recharge, utilisez IONITY ou Fastned.</p>
+          <p><strong>VÃ©hicule hybride :</strong> Activez le mode Ã©co-conduite. En cas de recharge, utilisez IONITY ou Fastned.</p>
         </div>
       </div>
     </div>
@@ -352,12 +352,12 @@
       </div>
       <div class="section-body">
         <div class="data-grid">
-          <div class="data-item"><div class="data-lbl">Nom & Prénom</div><div class="data-val" id="cliNom"><strong>—</strong></div></div>
-          <div class="data-item"><div class="data-lbl">Email</div><div class="data-val" id="cliEmail">—</div></div>
+          <div class="data-item"><div class="data-lbl">Nom & PrÃ©nom</div><div class="data-val" id="cliNom"><strong>â€¦</strong></div></div>
+          <div class="data-item"><div class="data-lbl">Email</div><div class="data-val" id="cliEmail">â€¦</div></div>
         </div>
         <div class="data-grid" style="margin-top:16px">
-          <div class="data-item"><div class="data-lbl">Contact prise en charge</div><div class="data-val" id="cliContact1">—</div></div>
-          <div class="data-item"><div class="data-lbl">Contact livraison</div><div class="data-val" id="cliContact2">—</div></div>
+          <div class="data-item"><div class="data-lbl">Contact prise en charge</div><div class="data-val" id="cliContact1">â€¦</div></div>
+          <div class="data-item"><div class="data-lbl">Contact livraison</div><div class="data-val" id="cliContact2">â€¦</div></div>
         </div>
       </div>
     </div>
@@ -365,24 +365,24 @@
     <!-- Convoyeur -->
     <div class="section reveal">
       <div class="section-header">
-        <div class="sh-left"><i class="fas fa-truck sh-ico"></i><span class="sh-title">Convoyeur assigné</span></div>
-        <span class="sh-tag">Certifié SIV</span>
+        <div class="sh-left"><i class="fas fa-truck sh-ico"></i><span class="sh-title">Convoyeur assignÃ©</span></div>
+        <span class="sh-tag">CertifiÃ© SIV</span>
       </div>
       <div class="section-body">
         <div class="conv-card">
-          <div class="conv-ava" id="convAva">—</div>
+          <div class="conv-ava" id="convAva">â€¦</div>
           <div>
-            <div class="conv-name" id="convNom">—</div>
-            <div class="conv-meta" id="convMeta">—</div>
+            <div class="conv-name" id="convNom">â€¦</div>
+            <div class="conv-meta" id="convMeta">â€¦</div>
           </div>
         </div>
         <div class="data-grid-3" style="margin-top:16px">
           <div class="data-item"><div class="data-lbl">Permis</div><div class="data-val">XX-123456-XX</div></div>
-          <div class="data-item"><div class="data-lbl">Validité permis</div><div class="data-val">15 juin 2030</div></div>
+          <div class="data-item"><div class="data-lbl">ValiditÃ© permis</div><div class="data-val">15 juin 2030</div></div>
           <div class="data-item"><div class="data-lbl">RC Pro</div><div class="data-val">AXA-2025-XX-XXXX</div></div>
-          <div class="data-item"><div class="data-lbl">Missions</div><div class="data-val green">47 missions ? 4.9</div></div>
+          <div class="data-item"><div class="data-lbl">Missions</div><div class="data-val green">47 missions â˜… 4.9</div></div>
           <div class="data-item"><div class="data-lbl">Certification SIV</div><div class="data-val green">Valide 2025</div></div>
-          <div class="data-item"><div class="data-lbl">Expérience</div><div class="data-val">+3 ans</div></div>
+          <div class="data-item"><div class="data-lbl">ExpÃ©rience</div><div class="data-val">+3 ans</div></div>
         </div>
       </div>
     </div>
@@ -391,36 +391,36 @@
     <div class="section reveal">
       <div class="section-header">
         <div class="sh-left"><i class="fas fa-euro-sign sh-ico"></i><span class="sh-title">Pack & tarification</span></div>
-        <span class="sh-tag" id="packTag">—</span>
+        <span class="sh-tag" id="packTag">â€¦</span>
       </div>
       <div class="section-body">
         <table class="tarif-table">
-          <thead><tr><th>Prestation</th><th>Détail</th><th>Montant HT</th></tr></thead>
+          <thead><tr><th>Prestation</th><th>DÃ©tail</th><th>Montant HT</th></tr></thead>
           <tbody id="tarifBody">
             <tr><td colspan="3" style="text-align:center;color:var(--gray-mid);">Chargement...</td></tr>
           </tbody>
         </table>
         <div class="data-grid" style="margin-top:16px">
-          <div class="data-item"><div class="data-lbl">Rémunération convoyeur (net)</div><div class="data-val highlight" id="remConvoyeur">—</div></div>
-          <div class="data-item"><div class="data-lbl">Paiement</div><div class="data-val">Virement sous 48h après validation EDL arrivée</div></div>
+          <div class="data-item"><div class="data-lbl">RÃ©munÃ©ration convoyeur (net)</div><div class="data-val highlight" id="remConvoyeur">â€¦</div></div>
+          <div class="data-item"><div class="data-lbl">Paiement</div><div class="data-val">Virement sous 48h aprÃ¨s validation EDL arrivÃ©e</div></div>
         </div>
       </div>
     </div>
 
-    <!-- Planning détaillé -->
+    <!-- Planning dÃ©taillÃ© -->
     <div class="section reveal">
       <div class="section-header">
-        <div class="sh-left"><i class="fas fa-calendar-alt sh-ico"></i><span class="sh-title">Planning détaillé</span></div>
+        <div class="sh-left"><i class="fas fa-calendar-alt sh-ico"></i><span class="sh-title">Planning dÃ©taillÃ©</span></div>
       </div>
       <div class="section-body">
         <div class="timeline">
-          <div class="tl-item"><div class="tl-dot active">1</div><div class="tl-content"><div class="tl-time">08:30</div><div class="tl-title">Briefing & vérification documents</div><div class="tl-sub">Consulter le bon de mission, vérifier coordonnées client et RC Pro.</div></div></div>
-          <div class="tl-item"><div class="tl-dot">2</div><div class="tl-content"><div class="tl-time">09:00</div><div class="tl-title">Prise en charge</div><div class="tl-sub">15 Rue de Rivoli, Paris. Contacter Jean Dupont. Effectuer l'état des lieux de départ (20 photos + signature).</div></div></div>
-          <div class="tl-item"><div class="tl-dot">3</div><div class="tl-content"><div class="tl-time">09:30</div><div class="tl-title">Départ & activation GPS</div><div class="tl-sub">Activer le suivi GPS. Itinéraire A6 via Auxerre.</div></div></div>
-          <div class="tl-item"><div class="tl-dot">4</div><div class="tl-content"><div class="tl-time">~11:30</div><div class="tl-title">Pause obligatoire</div><div class="tl-sub">15-20 min. Vérifier moteur, pneus, niveau carburant.</div></div></div>
-          <div class="tl-item"><div class="tl-dot">5</div><div class="tl-content"><div class="tl-time">~14:00</div><div class="tl-title">Nettoyage (Pack Sérénité)</div><div class="tl-sub">Station de lavage à l'approche de Lyon. Mise à niveau carburant.</div></div></div>
-          <div class="tl-item"><div class="tl-dot">6</div><div class="tl-content"><div class="tl-time">15:30</div><div class="tl-title">Livraison</div><div class="tl-sub">3 Rue Servient, Lyon. Contacter Marie Dupont 30 min avant. État des lieux arrivée.</div></div></div>
-          <div class="tl-item"><div class="tl-dot">7</div><div class="tl-content"><div class="tl-time">Après livraison</div><div class="tl-title">Clôture de mission</div><div class="tl-sub">Soumettre rapport, envoyer documents signés.</div></div></div>
+          <div class="tl-item"><div class="tl-dot active">1</div><div class="tl-content"><div class="tl-time">08:30</div><div class="tl-title">Briefing & vÃ©rification documents</div><div class="tl-sub">Consulter le bon de mission, vÃ©rifier coordonnÃ©es client et RC Pro.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">2</div><div class="tl-content"><div class="tl-time">09:00</div><div class="tl-title">Prise en charge</div><div class="tl-sub">15 Rue de Rivoli, Paris. Contacter Jean Dupont. Effectuer l'Ã©tat des lieux de dÃ©part (20 photos + signature).</div></div></div>
+          <div class="tl-item"><div class="tl-dot">3</div><div class="tl-content"><div class="tl-time">09:30</div><div class="tl-title">DÃ©part & activation GPS</div><div class="tl-sub">Activer le suivi GPS. ItinÃ©raire A6 via Auxerre.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">4</div><div class="tl-content"><div class="tl-time">~11:30</div><div class="tl-title">Pause obligatoire</div><div class="tl-sub">15-20 min. VÃ©rifier moteur, pneus, niveau carburant.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">5</div><div class="tl-content"><div class="tl-time">~14:00</div><div class="tl-title">Nettoyage (Pack SÃ©rÃ©nitÃ©)</div><div class="tl-sub">Station de lavage Ã  l'approche de Lyon. Mise Ã  niveau carburant.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">6</div><div class="tl-content"><div class="tl-time">15:30</div><div class="tl-title">Livraison</div><div class="tl-sub">3 Rue Servient, Lyon. Contacter Marie Dupont 30 min avant. Ã‰tat des lieux arrivÃ©e.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">7</div><div class="tl-content"><div class="tl-time">AprÃ¨s livraison</div><div class="tl-title">ClÃ´ture de mission</div><div class="tl-sub">Soumettre rapport, envoyer documents signÃ©s.</div></div></div>
         </div>
       </div>
     </div>
@@ -429,40 +429,40 @@
     <div class="section reveal">
       <div class="section-header">
         <div class="sh-left"><i class="fas fa-clipboard-check sh-ico"></i><span class="sh-title">Checklist convoyeur</span></div>
-        <span class="sh-tag">Obligatoire avant départ</span>
+        <span class="sh-tag">Obligatoire avant dÃ©part</span>
       </div>
       <div class="section-body">
         <div class="alert alert-warn">
           <i class="fas fa-exclamation-triangle"></i>
-          <p>Les 7 premières étapes sont <strong>obligatoires</strong> pour démarrer la mission.</p>
+          <p>Les 7 premiÃ¨res Ã©tapes sont <strong>obligatoires</strong> pour dÃ©marrer la mission.</p>
         </div>
         <div class="checklist" id="checklist">
-          <div class="check-item" onclick="toggleCheck(this,0)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Documents vérifiés</div><div class="check-desc">Bon de mission lu, coordonnées client notées, RC Pro en poche.</div></div><div class="check-required">Obligatoire</div></div>
-          <div class="check-item" onclick="toggleCheck(this,1)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Prise en charge confirmée</div><div class="check-desc">Appel ou SMS de confirmation envoyé à Jean Dupont.</div></div><div class="check-required">Obligatoire</div></div>
-          <div class="check-item" onclick="toggleCheck(this,2)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">État des lieux départ complété</div><div class="check-desc">20 photos prises, état général noté, dommages signalés.</div></div><div class="check-required">Obligatoire</div></div>
-          <div class="check-item" onclick="toggleCheck(this,3)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Signature client obtenue</div><div class="check-desc">EDL de départ signé électroniquement.</div></div><div class="check-required">Obligatoire</div></div>
-          <div class="check-item" onclick="toggleCheck(this,4)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Kilométrage départ noté</div><div class="check-desc">Relevé exact du compteur.</div></div><div class="check-required">Obligatoire</div></div>
-          <div class="check-item" onclick="toggleCheck(this,5)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Niveau carburant noté</div><div class="check-desc">Niveau en % ou barre de jauge.</div></div><div class="check-required">Obligatoire</div></div>
-          <div class="check-item" onclick="toggleCheck(this,6)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Suivi GPS activé</div><div class="check-desc">Application Bathily ouverte, position partagée.</div></div><div class="check-required">Obligatoire</div></div>
-          <div class="check-item" onclick="toggleCheck(this,7)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Itinéraire vérifié</div><div class="check-desc">Bison Futé consulté, GPS paramétré.</div></div></div>
-          <div class="check-item" onclick="toggleCheck(this,8)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Contact livraison confirmé</div><div class="check-desc">Marie Dupont informée de l'heure d'arrivée.</div></div></div>
+          <div class="check-item" onclick="toggleCheck(this,0)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Documents vÃ©rifiÃ©s</div><div class="check-desc">Bon de mission lu, coordonnÃ©es client notÃ©es, RC Pro en poche.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,1)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Prise en charge confirmÃ©e</div><div class="check-desc">Appel ou SMS de confirmation envoyÃ© Ã  Jean Dupont.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,2)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Ã‰tat des lieux dÃ©part complÃ©tÃ©</div><div class="check-desc">20 photos prises, Ã©tat gÃ©nÃ©ral notÃ©, dommages signalÃ©s.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,3)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Signature client obtenue</div><div class="check-desc">EDL de dÃ©part signÃ© Ã©lectroniquement.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,4)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">KilomÃ©trage dÃ©part notÃ©</div><div class="check-desc">RelevÃ© exact du compteur.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,5)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Niveau carburant notÃ©</div><div class="check-desc">Niveau en % ou barre de jauge.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,6)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Suivi GPS activÃ©</div><div class="check-desc">Application Bathily ouverte, position partagÃ©e.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,7)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">ItinÃ©raire vÃ©rifiÃ©</div><div class="check-desc">Bison FutÃ© consultÃ©, GPS paramÃ©trÃ©.</div></div></div>
+          <div class="check-item" onclick="toggleCheck(this,8)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Contact livraison confirmÃ©</div><div class="check-desc">Marie Dupont informÃ©e de l'heure d'arrivÃ©e.</div></div></div>
         </div>
       </div>
     </div>
 
-    <!-- Instructions spéciales -->
+    <!-- Instructions spÃ©ciales -->
     <div class="section reveal">
       <div class="section-header">
-        <div class="sh-left"><i class="fas fa-info-circle sh-ico"></i><span class="sh-title">Instructions particulières</span></div>
+        <div class="sh-left"><i class="fas fa-info-circle sh-ico"></i><span class="sh-title">Instructions particuliÃ¨res</span></div>
       </div>
       <div class="section-body">
         <div class="instructions-list">
-          <div class="instr-item important"><i class="fas fa-exclamation-triangle instr-ico"></i><div class="instr-text"><strong>Véhicule hybride :</strong> Ne pas laisser tourner à l'arrêt plus de 5min. Activer le mode éco-conduite.</div></div>
-          <div class="instr-item important"><i class="fas fa-camera instr-ico"></i><div class="instr-text"><strong>Pack Sérénité :</strong> Nettoyage extérieur haute pression avant livraison. Conserver les justificatifs.</div></div>
-          <div class="instr-item info"><i class="fas fa-parking instr-ico"></i><div class="instr-text"><strong>Livraison :</strong> Parking souterrain 3 Rue Servient, Lyon. Place réservée "DUPONT".</div></div>
-          <div class="instr-item info"><i class="fas fa-phone instr-ico"></i><div class="instr-text"><strong>Communication :</strong> Prévenir le client 30min avant l'arrivée. En cas de retard >30min, prévenir client ET dispatch.</div></div>
-          <div class="instr-item success"><i class="fas fa-check-circle instr-ico"></i><div class="instr-text"><strong>Objets :</strong> Sac de voyage bleu dans coffre, casque sur banquette arrière. Ne pas déplacer.</div></div>
-          <div class="instr-item"><i class="fas fa-shield-alt instr-ico"></i><div class="instr-text"><strong>Assurance :</strong> Double RC Pro active. En cas d'incident, ne pas admettre de responsabilité, contacter dispatch.</div></div>
+          <div class="instr-item important"><i class="fas fa-exclamation-triangle instr-ico"></i><div class="instr-text"><strong>VÃ©hicule hybride :</strong> Ne pas laisser tourner Ã  l'arrÃªt plus de 5min. Activer le mode Ã©co-conduite.</div></div>
+          <div class="instr-item important"><i class="fas fa-camera instr-ico"></i><div class="instr-text"><strong>Pack SÃ©rÃ©nitÃ© :</strong> Nettoyage extÃ©rieur haute pression avant livraison. Conserver les justificatifs.</div></div>
+          <div class="instr-item info"><i class="fas fa-parking instr-ico"></i><div class="instr-text"><strong>Livraison :</strong> Parking souterrain 3 Rue Servient, Lyon. Place rÃ©servÃ©e "DUPONT".</div></div>
+          <div class="instr-item info"><i class="fas fa-phone instr-ico"></i><div class="instr-text"><strong>Communication :</strong> PrÃ©venir le client 30min avant l'arrivÃ©e. En cas de retard >30min, prÃ©venir client ET dispatch.</div></div>
+          <div class="instr-item success"><i class="fas fa-check-circle instr-ico"></i><div class="instr-text"><strong>Objets :</strong> Sac de voyage bleu dans coffre, casque sur banquette arriÃ¨re. Ne pas dÃ©placer.</div></div>
+          <div class="instr-item"><i class="fas fa-shield-alt instr-ico"></i><div class="instr-text"><strong>Assurance :</strong> Double RC Pro active. En cas d'incident, ne pas admettre de responsabilitÃ©, contacter dispatch.</div></div>
         </div>
       </div>
     </div>
@@ -474,14 +474,14 @@
       </div>
       <div class="section-body">
         <div class="urgence-grid">
-          <div class="urgence-card"><div class="urg-title"><i class="fas fa-bolt"></i> Dispatch Bathily • Urgence 24h</div><div class="urg-val">disponible 24h/24</div><div class="urg-note">Pour tout incident, panne ou problème</div></div>
-          <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Client • Jean Dupont</div><div class="urg-val">+33 6 12 34 56 78</div><div class="urg-note">Prise en charge</div></div>
-          <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Contact livraison • Marie Dupont</div><div class="urg-val">+33 6 98 76 54 32</div><div class="urg-note">Livraison à partir de 14h</div></div>
-          <div class="urgence-card"><div class="urg-title"><i class="fas fa-car-crash"></i> Assistance routière</div><div class="urg-val">17 • 15 • 18</div><div class="urg-note">Police • SAMU • Pompiers</div></div>
+          <div class="urgence-card"><div class="urg-title"><i class="fas fa-bolt"></i> Dispatch Bathily Â· Urgence 24h</div><div class="urg-val">disponible 24h/24</div><div class="urg-note">Pour tout incident, panne ou problÃ¨me</div></div>
+          <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Client Â· Jean Dupont</div><div class="urg-val">+33 6 12 34 56 78</div><div class="urg-note">Prise en charge</div></div>
+          <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Contact livraison Â· Marie Dupont</div><div class="urg-val">+33 6 98 76 54 32</div><div class="urg-note">Livraison Ã  partir de 14h</div></div>
+          <div class="urgence-card"><div class="urg-title"><i class="fas fa-car-crash"></i> Assistance routiÃ¨re</div><div class="urg-val">17 Â· 15 Â· 18</div><div class="urg-note">Police Â· SAMU Â· Pompiers</div></div>
         </div>
         <div class="alert alert-info" style="margin-top:12px">
           <i class="fas fa-info-circle"></i>
-          <p>En cas d'accident : 1) Sécuriser 2) Appeler 15/17/18 3) Appeler dispatch 4) Ne pas déplacer 5) Constat amiable 6) Photos.</p>
+          <p>En cas d'accident : 1) SÃ©curiser 2) Appeler 15/17/18 3) Appeler dispatch 4) Ne pas dÃ©placer 5) Constat amiable 6) Photos.</p>
         </div>
       </div>
     </div>
@@ -491,7 +491,7 @@
       <div class="qr-code"><i class="fas fa-qrcode"></i></div>
       <div class="qr-info">
         <div class="qr-title">Lien de suivi client</div>
-        <div class="qr-sub" id="qrLink">Bathily-Convoyage.fr/tracking/...<br><span style="font-size:0.6rem">Lien valable 48h après livraison</span></div>
+        <div class="qr-sub" id="qrLink">Bathily-Convoyage.fr/tracking/...<br><span style="font-size:0.6rem">Lien valable 48h aprÃ¨s livraison</span></div>
       </div>
     </div>
 
@@ -504,33 +504,33 @@
       <div class="section-body">
         <div class="alert alert-success" style="margin-bottom:16px">
           <i class="fas fa-check-circle"></i>
-          <p>En signant, le convoyeur certifie avoir lu et accepté les conditions et instructions. Le client confirme la remise du véhicule.</p>
+          <p>En signant, le convoyeur certifie avoir lu et acceptÃ© les conditions et instructions. Le client confirme la remise du vÃ©hicule.</p>
         </div>
         <div class="sig-section">
           <div class="sig-block">
             <div class="sig-title">Signature du convoyeur</div>
-            <div class="sig-name" id="sigConvNom">—</div>
+            <div class="sig-name" id="sigConvNom">â€¦</div>
             <div class="sig-date">Convoyeur le <span id="sigDate1"></span></div>
             <div class="sig-area" id="sigArea1" onclick="signDoc(1)" role="button" tabindex="0"><span>Cliquer pour signer</span></div>
-            <div class="sig-done-badge" id="sigBadge1"><i class="fas fa-check-circle"></i> Signé et accepté</div>
+            <div class="sig-done-badge" id="sigBadge1"><i class="fas fa-check-circle"></i> SignÃ© et acceptÃ©</div>
           </div>
           <div class="sig-block">
             <div class="sig-title">Signature du client (prise en charge)</div>
-            <div class="sig-name" id="sigCliNom">—</div>
+            <div class="sig-name" id="sigCliNom">â€¦</div>
             <div class="sig-date">Client le <span id="sigDate2"></span></div>
             <div class="sig-area" id="sigArea2" onclick="signDoc(2)" role="button" tabindex="0"><span>Cliquer pour signer</span></div>
-            <div class="sig-done-badge" id="sigBadge2"><i class="fas fa-check-circle"></i> Signé — véhicule remis</div>
+            <div class="sig-done-badge" id="sigBadge2"><i class="fas fa-check-circle"></i> SignÃ© Â· vÃ©hicule remis</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Mentions légales -->
+    <!-- Mentions lÃ©gales -->
     <div style="background: var(--beige); border-radius: 16px; padding: 16px; margin-top: 16px;">
       <p style="font-size: 0.65rem; color: var(--gray-mid); line-height: 1.6; text-align: justify;">
-        Ce bon de mission constitue un document contractuel entre Bathily-Convoyage, le convoyeur assigné et le client. Il est régi par les CGV disponibles sur Bathily-Convoyage.fr/cgv. 
-        La double assurance RC Pro couvre les dommages survenus au véhicule pendant la durée de la mission. Toute modification doit être validée par le dispatch Bathily. 
-        © 2025 Bathily-Convoyage — Document confidentiel — Réf. <span id="footerRef">—</span>
+        Ce bon de mission constitue un document contractuel entre Bathily-Convoyage, le convoyeur assignÃ© et le client. Il est rÃ©gi par les CGV disponibles sur Bathily-Convoyage.fr/cgv. 
+        La double assurance RC Pro couvre les dommages survenus au vÃ©hicule pendant la durÃ©e de la mission. Toute modification doit Ãªtre validÃ©e par le dispatch Bathily. 
+        Â© 2025 Bathily-Convoyage Â· Document confidentiel Â· RÃ©f. <span id="footerRef">â€¦</span>
       </p>
     </div>
   </div>
@@ -538,12 +538,12 @@
   <div class="doc-actions">
     <div class="da-left">
       <a href="dashboard-convoyeur.html" class="tb-btn tb-ghost"><i class="fas fa-arrow-left"></i> Dashboard</a>
-      <button class="tb-btn tb-ghost" onclick="window.location.href='etat-des-lieux.html'"><i class="fas fa-clipboard-list"></i> État des lieux</button>
+      <button class="tb-btn tb-ghost" onclick="window.location.href='etat-des-lieux.html'"><i class="fas fa-clipboard-list"></i> Ã‰tat des lieux</button>
       <button class="tb-btn tb-ghost" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
     </div>
     <div class="da-right">
       <div class="da-progress" id="progressLabel">Checklist : <span>0 / 9</span></div>
-      <button class="tb-btn tb-green" id="startBtn" onclick="startMission()"><i class="fas fa-play"></i> Démarrer</button>
+      <button class="tb-btn tb-green" id="startBtn" onclick="startMission()"><i class="fas fa-play"></i> DÃ©marrer</button>
     </div>
   </div>
 
@@ -567,8 +567,8 @@
     let _missionId = null;
     let _missionRef = null;
     let _paiementStatut = 'pending';
-    let _vehicle = '—';
-    let _route = '— ? —';
+    let _vehicle = 'â€¦';
+    let _route = 'â€¦ â†’ â€¦';
     let _missionStatus = 'planned';
     let _missionData = null;
 
@@ -583,7 +583,7 @@
       const missionId = params.get('id');
 
       if (!missionId) {
-        document.getElementById('topRef').textContent = 'Aucune mission sélectionnée';
+        document.getElementById('topRef').textContent = 'Aucune mission sÃ©lectionnÃ©e';
         Swal.fire('Information', 'Aucun identifiant de mission fourni.', 'info');
         return;
       }
@@ -595,66 +595,66 @@
 
       if (error || !m) {
         document.getElementById('topRef').textContent = 'Mission introuvable';
-        Swal.fire('Erreur', 'Mission non trouvée en base de données.', 'error');
+        Swal.fire('Erreur', 'Mission non trouvÃ©e en base de donnÃ©es.', 'error');
         return;
       }
 
       _missionData = m;
       _missionRef = m.reference || `BC-${missionId.slice(0,8).toUpperCase()}`;
       _paiementStatut = m.paiement_statut || 'pending';
-      _vehicle = m.vehicule || '—';
-      _route = (m.depart || '—') + ' ? ' + (m.arrivee || '—');
-      _missionStatus = m.statut || m.status || 'planned';
+      _vehicle = m.vehicule || 'â€¦';
+      _route = (m.depart || 'â€¦') + ' â†’ ' + (m.arrivee || 'â€¦');
+      _missionStatus = m.status || 'planned';
 
-      // ---- Remplir les données ----
+      // ---- Remplir les donnÃ©es ----
       // Topbar
-      document.getElementById('topRef').textContent = `${m.reference || '—'} — ${m.depart || '—'} ? ${m.arrivee || '—'}`;
+      document.getElementById('topRef').textContent = `${m.reference || 'â€¦'} Â· ${m.depart || 'â€¦'} â†’ ${m.arrivee || 'â€¦'}`;
 
       // Status bar
-      document.getElementById('sbRef').textContent = m.reference || '—';
-      document.getElementById('sbDate').textContent = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}) : '—';
-      document.getElementById('sbHeure').textContent = m.heure_depart || '—';
+      document.getElementById('sbRef').textContent = m.reference || 'â€¦';
+      document.getElementById('sbDate').textContent = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}) : 'â€¦';
+      document.getElementById('sbHeure').textContent = m.heure_depart || 'â€¦';
       document.getElementById('sbMode').textContent = m.mode_transport || (m.mode || 'Route');
 
       // Document header
-      document.getElementById('dhRef').textContent = `N° ${m.reference || '—'}`;
+      document.getElementById('dhRef').textContent = `NÂ° ${m.reference || 'â€¦'}`;
       const modeBadge = document.getElementById('dhModeBadge');
       const isPlateau = (m.mode_transport || m.mode || '').toLowerCase().includes('plateau');
       modeBadge.innerHTML = isPlateau ? '<i class="fas fa-truck"></i> Plateau' : '<i class="fas fa-road"></i> Route';
 
       // Trajet
-      document.getElementById('rvDepart').textContent = m.depart || '—';
-      document.getElementById('rvArrivee').textContent = m.arrivee || '—';
-      document.getElementById('rvInfos').textContent = `${m.mode_transport || m.mode || 'Route'} • ${m.vehicule || 'Auto'}`;
-      document.getElementById('dDate').innerHTML = m.date_mission ? `<strong>${new Date(m.date_mission).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</strong>` : '—';
+      document.getElementById('rvDepart').textContent = m.depart || 'â€¦';
+      document.getElementById('rvArrivee').textContent = m.arrivee || 'â€¦';
+      document.getElementById('rvInfos').textContent = `${m.mode_transport || m.mode || 'Route'} Â· ${m.vehicule || 'Auto'}`;
+      document.getElementById('dDate').innerHTML = m.date_mission ? `<strong>${new Date(m.date_mission).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</strong>` : 'â€¦';
       document.getElementById('dMode').textContent = m.mode_transport || m.mode || 'Route';
-      document.getElementById('dPack').textContent = m.pack ? (m.pack.charAt(0).toUpperCase() + m.pack.slice(1)) : '—';
-      document.getElementById('dVehicule').textContent = m.vehicule || '—';
+      document.getElementById('dPack').textContent = m.pack ? (m.pack.charAt(0).toUpperCase() + m.pack.slice(1)) : 'â€¦';
+      document.getElementById('dVehicule').textContent = m.vehicule || 'â€¦';
 
-      // Véhicule (simplifié)
-      document.getElementById('vcName').textContent = m.vehicule || '—';
-      document.getElementById('vcPlate').textContent = m.immatriculation || '—';
-      document.getElementById('vcYear').textContent = m.annee || '—';
-      document.getElementById('vcEnergy').textContent = m.carburant || '—';
-      document.getElementById('vcPower').textContent = m.puissance || '—';
-      document.getElementById('vcType').textContent = m.type_vehicule || '—';
+      // VÃ©hicule (simplifiÃ©)
+      document.getElementById('vcName').textContent = m.vehicule || 'â€¦';
+      document.getElementById('vcPlate').textContent = m.immatriculation || 'â€¦';
+      document.getElementById('vcYear').textContent = m.annee || 'â€¦';
+      document.getElementById('vcEnergy').textContent = m.carburant || 'â€¦';
+      document.getElementById('vcPower').textContent = m.puissance || 'â€¦';
+      document.getElementById('vcType').textContent = m.type_vehicule || 'â€¦';
 
       // Client
-      document.getElementById('cliNom').innerHTML = `<strong>${m.client_nom || '—'}</strong>`;
-      document.getElementById('cliEmail').textContent = m.client_email || '—';
-      document.getElementById('cliContact1').textContent = m.client_telephone || '—';
-      document.getElementById('cliContact2').textContent = m.client_telephone_livraison || '—';
+      document.getElementById('cliNom').innerHTML = `<strong>${m.client_nom || 'â€¦'}</strong>`;
+      document.getElementById('cliEmail').textContent = m.client_email || 'â€¦';
+      document.getElementById('cliContact1').textContent = m.client_telephone || 'â€¦';
+      document.getElementById('cliContact2').textContent = m.client_telephone_livraison || 'â€¦';
 
       // Convoyeur
-      const convNom = m.convoyeur_nom || '—';
+      const convNom = m.convoyeur_nom || 'â€¦';
       const initials = convNom.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
       document.getElementById('convAva').textContent = initials || '?';
       document.getElementById('convNom').textContent = convNom;
-      document.getElementById('convMeta').textContent = m.zone_convoyeur || 'Convoyeur assigné';
+      document.getElementById('convMeta').textContent = m.zone_convoyeur || 'Convoyeur assignÃ©';
 
       // Signatures
       document.getElementById('sigConvNom').textContent = convNom;
-      document.getElementById('sigCliNom').textContent = m.client_nom || '—';
+      document.getElementById('sigCliNom').textContent = m.client_nom || 'â€¦';
 
       // Tarification
       const price = parseFloat(m.montant_ht) || 0;
@@ -664,21 +664,21 @@
       const pack = m.pack ? (m.pack.charAt(0).toUpperCase() + m.pack.slice(1)) : 'Standard';
       document.getElementById('packTag').textContent = `Pack ${pack}`;
       document.getElementById('tarifBody').innerHTML = `
-        <tr><td>Convoyage ${m.mode_transport || m.mode || 'routier'}</td><td>${m.vehicule || 'Automobile'} • ${pack}</td><td class="price-td">${price.toFixed(2)} €</td></tr>
-        <tr><td>Pack ${pack}</td><td>Inclus selon pack</td><td class="price-td">0,00 €</td></tr>
-        <tr><td>Double RC Pro</td><td>Inclus</td><td class="price-td">0,00 €</td></tr>
-        <tr><td>État des lieux</td><td>Photos départ + arrivée</td><td class="price-td">0,00 €</td></tr>
-        <tr class="tarif-total"><td><strong>Total HT</strong></td><td></td><td class="price-td-total">${price.toFixed(2)} €</td></tr>
-        <tr><td>TVA (20%)</td><td></td><td class="price-td">${tva.toFixed(2)} €</td></tr>
-        <tr class="tarif-total"><td><strong>Total TTC</strong></td><td></td><td class="price-td-total">${ttc.toFixed(2)} €</td></tr>
+        <tr><td>Convoyage ${m.mode_transport || m.mode || 'routier'}</td><td>${m.vehicule || 'Automobile'} Â· ${pack}</td><td class="price-td">${price.toFixed(2)} â‚¬</td></tr>
+        <tr><td>Pack ${pack}</td><td>Inclus selon pack</td><td class="price-td">0,00 â‚¬</td></tr>
+        <tr><td>Double RC Pro</td><td>Inclus</td><td class="price-td">0,00 â‚¬</td></tr>
+        <tr><td>Ã‰tat des lieux</td><td>Photos dÃ©part + arrivÃ©e</td><td class="price-td">0,00 â‚¬</td></tr>
+        <tr class="tarif-total"><td><strong>Total HT</strong></td><td></td><td class="price-td-total">${price.toFixed(2)} â‚¬</td></tr>
+        <tr><td>TVA (20%)</td><td></td><td class="price-td">${tva.toFixed(2)} â‚¬</td></tr>
+        <tr class="tarif-total"><td><strong>Total TTC</strong></td><td></td><td class="price-td-total">${ttc.toFixed(2)} â‚¬</td></tr>
       `;
-      document.getElementById('remConvoyeur').textContent = rem > 0 ? rem.toFixed(2) + ' €' : 'À définir';
+      document.getElementById('remConvoyeur').textContent = rem > 0 ? rem.toFixed(2) + ' â‚¬' : 'Ã  dÃ©finir';
 
       // QR link
-      document.getElementById('qrLink').innerHTML = `Bathily-Convoyage.fr/tracking/${m.reference || '...'}<br><span style="font-size:0.6rem">Lien valable 48h après livraison</span>`;
+      document.getElementById('qrLink').innerHTML = `Bathily-Convoyage.fr/tracking/${m.reference || '...'}<br><span style="font-size:0.6rem">Lien valable 48h aprÃ¨s livraison</span>`;
 
       // Footer
-      document.getElementById('footerRef').textContent = m.reference || '—';
+      document.getElementById('footerRef').textContent = m.reference || 'â€¦';
 
       // Status
       const statusEl = document.getElementById('missionStatus');
@@ -689,12 +689,12 @@
         document.getElementById('startMissionBtn').style.display = 'none';
       } else if (_missionStatus === 'completed') {
         statusEl.className = 'sb-status ss-cours';
-        statusEl.innerHTML = '<span class="ss-dot"></span> Terminée';
+        statusEl.innerHTML = '<span class="ss-dot"></span> TerminÃ©e';
         document.getElementById('startBtn').style.display = 'none';
         document.getElementById('startMissionBtn').style.display = 'none';
       }
 
-      // Si paiement non payé, on bloque le démarrage (le bouton sera désactivé via la logique)
+      // Si paiement non payÃ©, on bloque le dÃ©marrage (le bouton sera dÃ©sactivÃ© via la logique)
     });
 
     // ========== CHECKLIST ==========
@@ -720,10 +720,10 @@
       const btn = document.getElementById('startBtn');
       if(requiredDone){
         btn.style.background = 'var(--success)';
-        btn.innerHTML = '<i class="fas fa-check-circle"></i> Prêt';
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> PrÃªt';
       } else {
         btn.style.background = '';
-        btn.innerHTML = '<i class="fas fa-play"></i> Démarrer';
+        btn.innerHTML = '<i class="fas fa-play"></i> DÃ©marrer';
       }
     }
     document.querySelectorAll('.check-item').forEach(item => {
@@ -741,7 +741,7 @@
       const area = document.getElementById('sigArea'+n);
       const badge = document.getElementById('sigBadge'+n);
       const now = new Date().toLocaleString('fr-FR');
-      area.innerHTML = `<div style="text-align:center; color:var(--success); padding:10px;"><i class="fas fa-check-circle" style="font-size:1.5rem; margin-bottom:6px; display:block;"></i><div style="font-weight:700; font-size:0.7rem;">Signé le ${now}</div></div>`;
+      area.innerHTML = `<div style="text-align:center; color:var(--success); padding:10px;"><i class="fas fa-check-circle" style="font-size:1.5rem; margin-bottom:6px; display:block;"></i><div style="font-weight:700; font-size:0.7rem;">SignÃ© le ${now}</div></div>`;
       area.style.borderColor = 'rgba(74,124,107,0.35)';
       area.style.background = 'rgba(74,124,107,0.05)';
       area.style.cursor = 'default';
@@ -758,16 +758,16 @@
       });
     });
 
-    // ========== DÉMARRER LA MISSION ==========
+    // ========== DÃ‰MARRER LA MISSION ==========
     async function startMission(){
       const requiredDone = checkState.slice(0, TOTAL_REQUIRED).every(Boolean);
       if(!requiredDone){
-        Swal.fire('Checklist incomplète', 'Veuillez compléter les 7 étapes obligatoires avant de démarrer.', 'warning');
+        Swal.fire('Checklist incomplÃ¨te', 'Veuillez complÃ©ter les 7 Ã©tapes obligatoires avant de dÃ©marrer.', 'warning');
         document.getElementById('checklist').scrollIntoView({behavior:'smooth',block:'center'});
         return;
       }
 
-      // Vérifier le statut de paiement en temps réel
+      // VÃ©rifier le statut de paiement en temps rÃ©el
       if (_missionId) {
         const client = getSB();
         const { data: payData, error: payError } = await client.from('missions').select('paiement_statut').eq('id', _missionId).single();
@@ -778,8 +778,8 @@
 
       if (_paiementStatut !== 'paid') {
         Swal.fire({
-          title: 'Démarrage bloqué',
-          html: `Le paiement de cette mission n'a pas encore été validé.<br><br>Le démarrage est bloqué. Veuillez contacter l'administrateur.`,
+          title: 'DÃ©marrage bloquÃ©',
+          html: `Le paiement de cette mission n'a pas encore Ã©tÃ© validÃ©.<br><br>Le dÃ©marrage est bloquÃ©. Veuillez contacter l'administrateur.`,
           icon: 'warning',
           confirmButtonColor: 'var(--bordeaux)'
         });
@@ -788,12 +788,12 @@
 
       const ref = _missionRef || 'cette mission';
       const result = await Swal.fire({
-        title: 'Démarrer la mission ?',
-        text: `Confirmer le démarrage de ${ref}. Le client et le dispatch seront notifiés.`,
+        title: 'DÃ©marrer la mission ?',
+        text: `Confirmer le dÃ©marrage de ${ref}. Le client et le dispatch seront notifiÃ©s.`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: 'var(--bordeaux)',
-        confirmButtonText: 'Oui, démarrer',
+        confirmButtonText: 'Oui, dÃ©marrer',
         cancelButtonText: 'Annuler'
       });
 
@@ -802,31 +802,31 @@
       // Update status in Supabase
       if (_missionId) {
         const client = getSB();
-        const { error } = await client.from('missions').update({ statut: 'in_progress' }).eq('id', _missionId);
+        const { error } = await client.from('missions').update({ status: 'in_progress' }).eq('id', _missionId);
         if (error) {
-          Swal.fire('Erreur', 'Impossible de démarrer la mission : ' + error.message, 'error');
+          Swal.fire('Erreur', 'Impossible de dÃ©marrer la mission : ' + error.message, 'error');
           return;
         }
-        // Mettre à jour localement
+        // Mettre Ã  jour localement
         _missionStatus = 'in_progress';
       }
 
       const startBtn = document.getElementById('startBtn');
       const startMissionBtn = document.getElementById('startMissionBtn');
-      if (startBtn) { startBtn.innerHTML='<i class="fas fa-check"></i> Mission démarrée'; startBtn.style.background='var(--success)'; }
-      if (startMissionBtn) { startMissionBtn.innerHTML='<i class="fas fa-check"></i> Démarrée'; startMissionBtn.style.background='var(--success)'; }
+      if (startBtn) { startBtn.innerHTML='<i class="fas fa-check"></i> Mission dÃ©marrÃ©e'; startBtn.style.background='var(--success)'; }
+      if (startMissionBtn) { startMissionBtn.innerHTML='<i class="fas fa-check"></i> DÃ©marrÃ©e'; startMissionBtn.style.background='var(--success)'; }
       const statusSpan = document.getElementById('missionStatus');
       if(statusSpan){ statusSpan.className='sb-status ss-cours'; statusSpan.innerHTML='<span class="ss-dot"></span> En cours'; }
 
       Swal.fire({
         toast: true, position: 'top-end', icon: 'success',
-        title: 'Mission démarrée ! ?', timer: 3000, showConfirmButton: false
+        title: 'Mission dÃ©marrÃ©e ! ðŸš€', timer: 3000, showConfirmButton: false
       });
 
       setTimeout(() => {
         Swal.fire({
           title: 'Activer le GPS ?',
-          text: 'Partagez votre position en temps réel au client.',
+          text: 'Partagez votre position en temps rÃ©el au client.',
           icon: 'info',
           showCancelButton: true,
           confirmButtonColor: 'var(--bordeaux)',
@@ -852,4 +852,3 @@
   </script>
 </body>
 </html>
-

@@ -1225,6 +1225,7 @@
         // Créer le compte Auth avec un mot de passe temporaire, puis renvoyer l'email de reset
         Swal.fire({ title: 'Migration du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
         const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
+        let newAuthUserId = null;
         try {
           const { data: signUpData, error: signUpError } = await client.auth.signUp({
             email: cleanEmail,
@@ -1235,6 +1236,7 @@
             Swal.fire('Erreur', 'Impossible de migrer ce compte : ' + signUpError.message, 'error');
             return;
           }
+          newAuthUserId = signUpData?.user?.id || null;
           // Sign out pour éviter la session partielle
           if (signUpData?.session) {
             await client.auth.signOut();
@@ -1242,6 +1244,14 @@
         } catch (signUpErr) {
           Swal.fire('Erreur', 'Impossible de migrer ce compte : ' + signUpErr.message, 'error');
           return;
+        }
+        // Linker auth_user_id dans la table convoyeurs pour éviter les fantômes
+        if (newAuthUserId) {
+          try {
+            await client.from('convoyeurs').update({ auth_user_id: newAuthUserId }).eq('email', cleanEmail);
+          } catch (linkErr) {
+            console.warn('Impossible de linker auth_user_id:', linkErr);
+          }
         }
         // Maintenant que le compte Auth existe, envoyer l'email de réinitialisation
         try {
@@ -1304,6 +1314,10 @@
           auth_user_id: authData.user.id
         }]).select().single();
         profile = newProfile;
+      } else if (!profile.auth_user_id) {
+        // Mettre à jour auth_user_id si absent (ancien compte migré)
+        await client.from('convoyeurs').update({ auth_user_id: authData.user.id }).eq('id', profile.id);
+        profile.auth_user_id = authData.user.id;
       }
       _convoyeurUser = profile;
       _convoyeurName = `${profile.prenom || ''} ${profile.nom || ''}`.trim();
@@ -1388,7 +1402,7 @@
       // Charger toutes les missions disponibles
       const { data: missions } = await client.from('missions')
         .select('*')
-        .eq('statut', 'available')
+        .eq('status', 'available')
         .order('created_at', { ascending: false });
       _allMissions = missions || [];
 

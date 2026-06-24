@@ -2493,17 +2493,25 @@ Cadeau premium personnalisé</textarea></div>
 
     // Nouveau client
     try {
+      const session = (await sb.auth.getSession()).data.session;
       const response = await fetch('/.netlify/functions/admin-create-user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await sb.auth.getSession()).data.session?.access_token}`
+          'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
           targetTable: 'clients',
           payload: payload
         })
       });
+
+      if (!response.ok) {
+        const text = await response.text();
+        let errMsg;
+        try { errMsg = JSON.parse(text).error; } catch { errMsg = text || 'Erreur serveur'; }
+        throw new Error(errMsg);
+      }
 
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Erreur lors de la création');
@@ -2512,7 +2520,37 @@ Cadeau premium personnalisé</textarea></div>
       Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Client créé. Un email d\'invitation lui a été envoyé.', timer: 5000 });
       loadClients();
     } catch (err) {
-      Swal.fire('Erreur', 'Impossible de créer le profil client : ' + err.message, 'error');
+      // Fallback local : creer directement via Supabase
+      console.warn('Netlify Function indisponible, fallback direct:', err.message);
+      try {
+        const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
+        const { data: signUpData, error: signUpError } = await sb.auth.signUp({
+          email: payload.email,
+          password: tempPassword,
+          options: { data: { prenom: payload.prenom, nom: payload.nom, source: 'admin_create' } }
+        });
+        if (signUpError) throw new Error(signUpError.message);
+
+        const newUserId = signUpData?.user?.id;
+        if (signUpData?.session) await sb.auth.signOut();
+
+        const { error: insertError } = await sb.from('clients').insert([{
+          ...payload,
+          role: 'client',
+          auth_user_id: newUserId
+        }]);
+        if (insertError) throw new Error(insertError.message);
+
+        await sb.auth.resetPasswordForEmail(payload.email, {
+          redirectTo: window.location.origin + '/reset-password.html'
+        });
+
+        closeModal('modalClient');
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Client créé. Email d\'invitation envoyé.', timer: 5000 });
+        loadClients();
+      } catch (fallbackErr) {
+        Swal.fire('Erreur', 'Impossible de créer le profil client : ' + fallbackErr.message, 'error');
+      }
     }
   };
 
@@ -2583,11 +2621,12 @@ Cadeau premium personnalisé</textarea></div>
     if (!sb) return;
 
     try {
+      const session = (await sb.auth.getSession()).data.session;
       const response = await fetch('/.netlify/functions/admin-create-user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await sb.auth.getSession()).data.session?.access_token}`
+          'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
           targetTable: 'convoyeurs',
@@ -2599,6 +2638,13 @@ Cadeau premium personnalisé</textarea></div>
         })
       });
 
+      if (!response.ok) {
+        const text = await response.text();
+        let errMsg;
+        try { errMsg = JSON.parse(text).error; } catch { errMsg = text || 'Erreur serveur'; }
+        throw new Error(errMsg);
+      }
+
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Erreur lors de la création');
 
@@ -2606,7 +2652,38 @@ Cadeau premium personnalisé</textarea></div>
       Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convoyeur créé. Un email d\'invitation lui a été envoyé.', timer: 5000 });
       await loadConvoyeurs();
     } catch (err) {
-      Swal.fire('Erreur', 'Impossible de créer le profil convoyeur : ' + err.message, 'error');
+      // Fallback local : creer directement via Supabase
+      console.warn('Netlify Function indisponible, fallback direct:', err.message);
+      try {
+        const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
+        const { data: signUpData, error: signUpError } = await sb.auth.signUp({
+          email,
+          password: tempPassword,
+          options: { data: { prenom, nom, source: 'admin_create' } }
+        });
+        if (signUpError) throw new Error(signUpError.message);
+
+        const newUserId = signUpData?.user?.id;
+        if (signUpData?.session) await sb.auth.signOut();
+
+        const { error: insertError } = await sb.from('convoyeurs').insert([{
+          prenom, nom, email, telephone: phone,
+          taux_auto: tauxAuto, taux_moto: tauxMoto,
+          zone, niveau, auth_user_id: newUserId
+        }]);
+        if (insertError) throw new Error(insertError.message);
+
+        // Envoyer email reset password
+        await sb.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/reset-password.html'
+        });
+
+        closeModal('modalConvoyeur');
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convoyeur créé. Email d\'invitation envoyé.', timer: 5000 });
+        await loadConvoyeurs();
+      } catch (fallbackErr) {
+        Swal.fire('Erreur', 'Impossible de créer le profil convoyeur : ' + fallbackErr.message, 'error');
+      }
     }
   }
 
@@ -2836,7 +2913,7 @@ Cadeau premium personnalisé</textarea></div>
     renderMissionsTable(_allMissions);
     renderRecentMissionsTable(_allMissions);
     renderInvoicesTable(_allMissions);
-    document.getElementById('statMissionsVal').textContent = _allMissions.filter(m => m.statut === 'completed' || m.status === 'completed').length;
+    document.getElementById('statMissionsVal').textContent = _allMissions.filter(m => m.status === 'completed').length;
     const caMonth = _allMissions.filter(m => { const d = new Date(m.date_mission || m.created_at); return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear() && m.montant_ht; }).reduce((s, m) => s + parseFloat(m.montant_ht), 0);
     document.getElementById('statCaVal').textContent = caMonth.toFixed(0) + '€';
   }
@@ -2973,20 +3050,76 @@ Cadeau premium personnalisé</textarea></div>
     if (!list.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Aucun devis.</td></tr>'; return; }
     tbody.innerHTML = list.map(d => {
       const dateStr = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
-      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { document.querySelector('#btn-nav-missions')?.click(); }">
+      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewDevisDetails('${d.id}'); }">
         <td>${d.reference || '—'}</td>
         <td>${d.client_prenom || ''} ${d.client_nom || ''}</td>
         <td>${d.depart || '—'} → ${d.arrivee || '—'}</td>
         <td>${d.vehicule || '—'}</td>
-        <td>${d.pack || '—'}</td>
+        <td>${d.details?.pack || d.pack || '—'}</td>
         <td>${d.total_ht ? parseFloat(d.total_ht).toFixed(2) + ' €' : '—'}</td>
         <td>${dateStr}</td>
         <td class="td-actions">
-          ${d.status === 'pending' ? `<button class="btn-sm btn-sm-green" onclick="updateDevisStatus('${d.id}', 'accepted')"><i class="fas fa-check"></i></button><button class="btn-sm btn-sm-red" onclick="updateDevisStatus('${d.id}', 'rejected')"><i class="fas fa-times"></i></button>` : `<span class="sp sp-ok"><span class="sp-dot"></span>${d.status === 'accepted' ? 'Accepté' : 'Refusé'}</span>`}
+          ${d.status === 'pending' ? `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation(); updateDevisStatus('${d.id}', 'accepted')"><i class="fas fa-check"></i></button><button class="btn-sm btn-sm-red" onclick="event.stopPropagation(); updateDevisStatus('${d.id}', 'rejected')"><i class="fas fa-times"></i></button>` : `<span class="sp sp-ok"><span class="sp-dot"></span>${d.status === 'accepted' ? 'Accepté' : 'Refusé'}</span>`}
         </td>
       </tr>`;
     }).join('');
   }
+
+  window.viewDevisDetails = function(id) {
+    const devis = _allDevisData.find(d => d.id === id);
+    if (!devis) return Swal.fire('Erreur', 'Devis introuvable', 'error');
+
+    let statusBadge = '';
+    if (devis.status === 'pending') statusBadge = '<span class="sp sp-att"><span class="sp-dot"></span>En attente</span>';
+    else if (devis.status === 'accepted') statusBadge = '<span class="sp sp-ok"><span class="sp-dot"></span>Accepté</span>';
+    else if (devis.status === 'rejected') statusBadge = '<span class="sp sp-err"><span class="sp-dot"></span>Refusé</span>';
+
+    let actionsHtml = '';
+    if (devis.status === 'pending') {
+      actionsHtml = `
+        <button class="btn-sm btn-sm-green" onclick="Swal.close(); updateDevisStatus('${devis.id}', 'accepted')" style="margin-right:6px;"><i class="fas fa-check"></i> Accepter (créer mission)</button>
+        <button class="btn-sm btn-sm-red" onclick="Swal.close(); updateDevisStatus('${devis.id}', 'rejected')" style="margin-right:6px;"><i class="fas fa-times"></i> Refuser</button>
+      `;
+    } else {
+      actionsHtml = `<span style="color:#888;font-size:0.85rem;">Devis ${devis.status === 'accepted' ? 'accepté' : 'refusé'} — aucune action possible.</span>`;
+    }
+
+    const details = devis.details || {};
+    const coord = details.coordonnees || {};
+
+    Swal.fire({
+      title: `Devis ${devis.reference}`,
+      html: `<div style="text-align:left;font-size:0.9rem;">
+        <div style="margin-bottom:12px;">${statusBadge}</div>
+        <b>Client :</b> ${devis.client_prenom || ''} ${devis.client_nom || ''}<br>
+        <b>Email :</b> ${devis.client_email || '—'}<br>
+        <b>Téléphone :</b> ${coord.telephone || '—'}<br>
+        <hr style="margin:10px 0;border-color:#eee;">
+        <b>Trajet :</b> ${devis.depart || '—'} → ${devis.arrivee || '—'}<br>
+        <b>Véhicule :</b> ${devis.vehicule || '—'}<br>
+        <b>Mode :</b> ${devis.mode || details.mode || '—'}<br>
+        <b>Pack :</b> ${details.pack || '—'}<br>
+        <b>Distance :</b> ${details.distance ? details.distance + ' km' : '—'}<br>
+        ${details.immatriculation ? `<b>Immatriculation :</b> ${details.immatriculation}<br>` : ''}
+        ${details.marque ? `<b>Marque :</b> ${details.marque}<br>` : ''}
+        ${details.modele ? `<b>Modèle :</b> ${details.modele}<br>` : ''}
+        <hr style="margin:10px 0;border-color:#eee;">
+        <b>Montant HT :</b> ${devis.total_ht ? parseFloat(devis.total_ht).toFixed(2) + ' €' : '—'}<br>
+        ${details.opts?.urgence ? '<b>⚠️ Urgence</b><br>' : ''}
+        ${details.opts?.gardiennage ? '<b>📦 Gardiennage</b><br>' : ''}
+        ${details.message ? `<hr style="margin:10px 0;border-color:#eee;"><b>Message client :</b><br>${details.message}<br>` : ''}
+        ${details.promo_code ? `<b>Code promo :</b> ${details.promo_code}<br>` : ''}
+        <hr style="margin:10px 0;border-color:#eee;">
+        <b>Créé le :</b> ${formatDate(devis.created_at)}
+        <hr style="margin:14px 0;border-color:#eee;">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">${actionsHtml}</div>
+      </div>`,
+      width: 650,
+      showCloseButton: true,
+      showConfirmButton: false,
+      showCancelButton: false
+    });
+  };
 
   window.updateDevisStatus = async function(id, newStatus) {
     const sb = getSupabase();
@@ -3143,30 +3276,63 @@ Cadeau premium personnalisé</textarea></div>
   window.viewMissionDetails = function(id) {
     const mission = _allMissions.find(m => m.id === id);
     if (!mission) return Swal.fire('Erreur', 'Mission introuvable', 'error');
+    const status = mission.statut || mission.status || 'planned';
+    const payStatus = mission.paiement_statut || 'pending';
+
+    let statusBadge = '';
+    if (status === 'available') statusBadge = '<span class="sp sp-att"><span class="sp-dot"></span>Sur le marché</span>';
+    else if (status === 'planned') statusBadge = '<span class="sp sp-att"><span class="sp-dot"></span>Planifiée</span>';
+    else if (status === 'in_progress') statusBadge = '<span class="sp sp-cours"><span class="sp-dot"></span>En cours</span>';
+    else if (status === 'completed') statusBadge = '<span class="sp sp-ok"><span class="sp-dot"></span>Terminée</span>';
+    else if (status === 'cancelled') statusBadge = '<span class="sp sp-err"><span class="sp-dot"></span>Annulée</span>';
+
+    let payBadge = payStatus === 'paye' || payStatus === 'paid'
+      ? '<span class="sp sp-ok"><span class="sp-dot"></span>Payé</span>'
+      : '<span class="sp sp-err"><span class="sp-dot"></span>En attente</span>';
+
+    let actionsHtml = '';
+    if (status === 'available' || status === 'planned') {
+      actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); assignConvoyeurToMission('${mission.id}')" style="margin-right:6px;"><i class="fas fa-user-plus"></i> Attribuer convoyeur</button>`;
+    }
+    if (status === 'planned') {
+      actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); updateMissionStatus('${mission.id}', 'in_progress')" style="margin-right:6px;"><i class="fas fa-play"></i> Démarrer</button>`;
+    }
+    if (status !== 'completed' && status !== 'cancelled') {
+      actionsHtml += `<button class="btn-sm btn-sm-green" onclick="Swal.close(); updateMissionStatus('${mission.id}', 'completed')" style="margin-right:6px;"><i class="fas fa-check"></i> Terminer</button>`;
+      actionsHtml += `<button class="btn-sm btn-sm-red" onclick="Swal.close(); updateMissionStatus('${mission.id}', 'cancelled')" style="margin-right:6px;"><i class="fas fa-times"></i> Annuler</button>`;
+    }
+    if (payStatus !== 'paye' && payStatus !== 'paid') {
+      actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); markMissionPaid('${mission.id}', '${mission.reference || ''}')" style="margin-right:6px;"><i class="fas fa-euro-sign"></i> Marquer payée</button>`;
+    }
+    actionsHtml += `<button class="btn-sm btn-sm-red" onclick="Swal.close(); deleteMission('${mission.id}', '${mission.reference || ''}')"><i class="fas fa-trash"></i> Supprimer</button>`;
+
     Swal.fire({
       title: `Mission ${mission.reference}`,
       html: `<div style="text-align:left;font-size:0.9rem;">
-        <b>Client :</b> ${mission.client_nom}<br>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">${statusBadge} ${payBadge}</div>
+        <b>Client :</b> ${mission.client_nom || '—'}<br>
         <b>Email client :</b> ${mission.client_email || '—'}<br>
-        <b>ID Client :</b> ${mission.client_id || '—'}<br>
+        <b>Téléphone :</b> ${mission.client_telephone || '—'}<br>
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Trajet :</b> ${mission.depart} → ${mission.arrivee}<br>
+        <b>Trajet :</b> ${mission.depart || '—'} → ${mission.arrivee || '—'}<br>
         <b>Véhicule :</b> ${mission.vehicule || '—'}<br>
         <b>Mode :</b> ${mission.mode || '—'}<br>
-        <b>Pack :</b> ${mission.pack || '—'}<br>
+        <b>Pack :</b> ${mission.pack || mission.details?.pack || '—'}<br>
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Montant HT :</b> ${mission.montant_ht || 0} €<br>
         <b>Rémunération convoyeur :</b> ${mission.remuneration_convoyeur || '—'} €<br>
         <b>Marge :</b> ${mission.marge || '—'} €<br>
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Convoyeur :</b> ${mission.convoyeur_nom || 'Non assigné'}<br>
-        <b>Statut :</b> ${mission.statut || mission.status}<br>
-        <b>Paiement :</b> ${mission.paiement_statut || 'En attente'}<br>
-        <b>Date :</b> ${formatDate(mission.date_mission || mission.created_at)}<br>
+        <b>Date mission :</b> ${formatDate(mission.date_mission || mission.created_at)}<br>
         <b>Créée le :</b> ${formatDate(mission.created_at)}
+        <hr style="margin:14px 0;border-color:#eee;">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">${actionsHtml}</div>
       </div>`,
       width: 650,
-      showCloseButton: true
+      showCloseButton: true,
+      showConfirmButton: false,
+      showCancelButton: false
     });
   };
 

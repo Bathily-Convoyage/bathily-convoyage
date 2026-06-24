@@ -606,7 +606,13 @@
           console.warn("Supabase non disponible. Utilisation du localStorage comme fallback.");
           return null;
         }
-        _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        // Utiliser un storage isole pour eviter de recuperer la session d'un dashboard
+        _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false
+          }
+        });
       }
       return _supabaseClient;
     }
@@ -1075,18 +1081,11 @@
         client_prenom: prenom,
         client_nom: nom,
         client_email: email,
-        client_telephone: tel || null,
         depart: depart,
         arrivee: arrivee,
         vehicule: vehicule,
-        immatriculation: plaque || null,
-        marque: marque || null,
-        modele: modele || null,
-        vehicule_manuel: vehiculeManuel || null,
         mode: mode,
-        pack: pack,
         total_ht: totalHt,
-        distance: _currentDistance || null,
         details: {
           coordonnees: { prenom, nom, email, telephone: tel || '' },
           dep: depart,
@@ -1097,12 +1096,12 @@
           vehicule_manuel: vehiculeManuel || '',
           mode: mode,
           pack: pack,
+          distance: _currentDistance || null,
           opts: { urgence: isUrgence, gardiennage: isGardiennage },
           message: message || '',
           promo_code: promoCode || null
         },
-        status: 'pending',
-        created_at: new Date().toISOString()
+        status: 'pending'
       };
 
       // Envoi vers Supabase ou fallback localStorage
@@ -1115,7 +1114,7 @@
       }
 
       if (error) {
-        console.warn('Erreur Supabase, fallback localStorage:', error);
+        console.error('Erreur Supabase INSERT devis:', error.message, error.details, error.hint, error.code);
         const devis = JSON.parse(localStorage.getItem('bathily_devis_list') || '[]');
         devis.push(devisData);
         localStorage.setItem('bathily_devis_list', JSON.stringify(devis));

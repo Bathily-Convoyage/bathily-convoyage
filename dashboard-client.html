@@ -1257,17 +1257,15 @@
       </div>
 
       <div style="display:flex;gap:16px;">
-        <div class="f-grp" style="flex:1;">
+        <div class="f-grp" style="flex:1;position:relative;">
           <label>Marque</label>
-          <select id="vehi-marque" onchange="updateModelesLocal()">
-            <option value="">-- Sélectionnez --</option>
-          </select>
+          <input type="text" id="vehi-marque" placeholder="Commencez à taper..." autocomplete="off" oninput="suggestMarqueDash(this.value)">
+          <div class="suggest-box" id="marqueSuggestsDash" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #E8E1D9;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:10;max-height:200px;overflow-y:auto;"></div>
         </div>
-        <div class="f-grp" style="flex:1;">
+        <div class="f-grp" style="flex:1;position:relative;">
           <label>Modèle</label>
-          <select id="vehi-modele">
-            <option value="">-- Sélectionnez d'abord une marque --</option>
-          </select>
+          <input type="text" id="vehi-modele" placeholder="Sélectionnez d'abord une marque" autocomplete="off" oninput="suggestModeleDash(this.value)" disabled>
+          <div class="suggest-box" id="modeleSuggestsDash" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #E8E1D9;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:10;max-height:200px;overflow-y:auto;"></div>
         </div>
       </div>
 
@@ -1404,6 +1402,7 @@
         // Créer le compte Auth avec un mot de passe temporaire, puis renvoyer l'email de reset
         Swal.fire({ title: 'Migration du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
         const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
+        let newAuthUserId = null;
         try {
           const { data: signUpData, error: signUpError } = await client.auth.signUp({
             email: cleanEmail,
@@ -1414,12 +1413,21 @@
             Swal.fire('Erreur', 'Impossible de migrer ce compte : ' + signUpError.message, 'error');
             return;
           }
+          newAuthUserId = signUpData?.user?.id || null;
           if (signUpData?.session) {
             await client.auth.signOut();
           }
         } catch (signUpErr) {
           Swal.fire('Erreur', 'Impossible de migrer ce compte : ' + signUpErr.message, 'error');
           return;
+        }
+        // Linker auth_user_id dans la table clients pour éviter les fantômes
+        if (newAuthUserId) {
+          try {
+            await client.from('clients').update({ auth_user_id: newAuthUserId }).eq('email', cleanEmail);
+          } catch (linkErr) {
+            console.warn('Impossible de linker auth_user_id:', linkErr);
+          }
         }
         try {
           const { error: resetError2 } = await client.auth.resetPasswordForEmail(cleanEmail, {
@@ -1477,6 +1485,10 @@
           auth_user_id: authData.user.id
         }]).select().single();
         profile = newProfile;
+      } else if (!profile.auth_user_id) {
+        // Mettre à jour auth_user_id si absent (ancien compte migré)
+        await client.from('clients').update({ auth_user_id: authData.user.id }).eq('id', profile.id);
+        profile.auth_user_id = authData.user.id;
       }
       _clientUser = profile;
       _clientName = `${profile.prenom || ''} ${profile.nom || ''}`.trim();
@@ -2053,64 +2065,106 @@
     });
 
     // ========== VEHICULES DATA & SAVE ==========
-    const VEHICULES_DATA = {
-      auto: {
-        "Peugeot": ["208", "308", "2008", "3008", "5008", "408"],
-        "Renault": ["Clio", "Captur", "Megane", "Austral", "Scenic", "Twingo"],
-        "Citroën": ["C3", "C4", "C5 Aircross", "Berlingo"],
-        "BMW": ["Série 1", "Série 3", "Série 5", "X1", "X3", "X5", "i4"],
-        "Mercedes": ["Classe A", "Classe C", "Classe E", "GLA", "GLC", "EQE"],
-        "Audi": ["A1", "A3", "A4", "Q3", "Q5", "E-Tron"],
-        "Volkswagen": ["Golf", "Polo", "Tiguan", "T-Roc", "ID.3", "ID.4"],
-        "Tesla": ["Model 3", "Model Y", "Model S", "Model X"],
-        "Dacia": ["Sandero", "Duster", "Spring", "Jogger"],
-        "Autre": ["Modèle personnalisé"]
-      },
-      moto: {
-        "Yamaha": ["MT-07", "MT-09", "TMAX", "XMAX", "Tracer 9", "Tenere 700"],
-        "BMW Motorrad": ["R 1250 GS", "R 1300 GS", "F 900 R", "S 1000 RR", "CE 04"],
-        "Honda": ["CB500X", "Africa Twin", "Forza 125", "Forza 750", "Transalp"],
-        "Kawasaki": ["Z650", "Z900", "Ninja 400", "Versys"],
-        "Triumph": ["Street Triple", "Tiger 900", "Bonneville", "Speed Triple"],
-        "Ducati": ["Monster", "Multistrada", "Panigale", "Scrambler"],
-        "Autre": ["Modèle personnalisé"]
+    let _vehiculesDB = null;
+    let _selectedDashMarque = null;
+
+    async function loadVehiculesDB() {
+      if (_vehiculesDB) return _vehiculesDB;
+      try {
+        const response = await fetch('data/vehicules-fr.json');
+        _vehiculesDB = await response.json();
+        return _vehiculesDB;
+      } catch (err) {
+        console.warn('Erreur chargement base véhicules:', err);
+        return null;
       }
-    };
+    }
 
     function switchVehicleType(type) {
       document.getElementById('type-vehicule').value = type;
       document.querySelectorAll('#modalVehicule .veh-tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + type));
-      initMarques();
+      _selectedDashMarque = null;
+      document.getElementById('vehi-marque').value = '';
+      document.getElementById('vehi-modele').value = '';
+      document.getElementById('vehi-modele').disabled = true;
+      document.getElementById('vehi-modele').placeholder = 'Sélectionnez d\'abord une marque';
     }
 
     function initMarques() {
-      const type = document.getElementById('type-vehicule').value;
-      const sel = document.getElementById('vehi-marque');
-      if (!sel) return;
-      const marques = Object.keys(VEHICULES_DATA[type]);
-      sel.innerHTML = '<option value="">-- Sélectionnez --</option>';
-      marques.forEach(m => { const op = document.createElement('option');
-        op.value = m;
-        op.textContent = m;
-        sel.appendChild(op); });
-      updateModelesLocal();
+      loadVehiculesDB();
     }
 
-    function updateModelesLocal() {
-      const type = document.getElementById('type-vehicule').value;
-      const marque = document.getElementById('vehi-marque').value;
-      const sel = document.getElementById('vehi-modele');
-      if (!sel) return;
-      if (!marque) { sel.innerHTML = '<option value="">-- Sélectionnez d\'abord une marque --</option>';
-        sel.disabled = true; return; }
-      sel.disabled = false;
-      const modeles = VEHICULES_DATA[type][marque] || [];
-      sel.innerHTML = '';
-      modeles.forEach(m => { const op = document.createElement('option');
-        op.value = m;
-        op.textContent = m;
-        sel.appendChild(op); });
+    function suggestMarqueDash(query) {
+      const box = document.getElementById('marqueSuggestsDash');
+      if (!query || query.length < 1 || !_vehiculesDB) { box.style.display = 'none'; return; }
+      const q = query.toLowerCase();
+      const matches = _vehiculesDB.marques.filter(m => m.nom.toLowerCase().includes(q)).slice(0, 8);
+      if (matches.length === 0) { box.style.display = 'none'; return; }
+      box.innerHTML = '';
+      matches.forEach(m => {
+        const div = document.createElement('div');
+        div.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.85rem;';
+        div.textContent = m.nom;
+        div.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          document.getElementById('vehi-marque').value = m.nom;
+          _selectedDashMarque = m.nom;
+          box.style.display = 'none';
+          document.getElementById('vehi-modele').value = '';
+          document.getElementById('vehi-modele').disabled = false;
+          document.getElementById('vehi-modele').placeholder = 'Commencez à taper...';
+          document.getElementById('vehi-modele').focus();
+        });
+        div.addEventListener('mouseenter', () => div.style.background = '#f5f5f5');
+        div.addEventListener('mouseleave', () => div.style.background = 'white');
+        box.appendChild(div);
+      });
+      box.style.display = 'block';
     }
+
+    function suggestModeleDash(query) {
+      const box = document.getElementById('modeleSuggestsDash');
+      if (!_vehiculesDB) { box.style.display = 'none'; return; }
+      let allModeles = [];
+      if (_selectedDashMarque) {
+        const marque = _vehiculesDB.marques.find(m => m.nom.toLowerCase() === _selectedDashMarque.toLowerCase());
+        if (marque) allModeles = marque.modeles.map(mod => ({ marque: marque.nom, modele: mod }));
+      } else {
+        _vehiculesDB.marques.forEach(m => {
+          m.modeles.forEach(mod => allModeles.push({ marque: m.nom, modele: mod }));
+        });
+      }
+      if (!query || query.length < 1) { box.style.display = 'none'; return; }
+      const q = query.toLowerCase();
+      const matches = allModeles.filter(item => item.modele.toLowerCase().includes(q)).slice(0, 10);
+      if (matches.length === 0) { box.style.display = 'none'; return; }
+      box.innerHTML = '';
+      matches.forEach(item => {
+        const div = document.createElement('div');
+        div.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.85rem;';
+        div.textContent = _selectedDashMarque ? item.modele : `${item.marque} ${item.modele}`;
+        div.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          document.getElementById('vehi-modele').value = item.modele;
+          if (!_selectedDashMarque) {
+            document.getElementById('vehi-marque').value = item.marque;
+            _selectedDashMarque = item.marque;
+          }
+          box.style.display = 'none';
+        });
+        div.addEventListener('mouseenter', () => div.style.background = '#f5f5f5');
+        div.addEventListener('mouseleave', () => div.style.background = 'white');
+        box.appendChild(div);
+      });
+      box.style.display = 'block';
+    }
+
+    // Fermer les suggestions au clic extérieur ou blur
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.f-grp')) {
+        document.querySelectorAll('.suggest-box').forEach(box => box.style.display = 'none');
+      }
+    });
 
     async function saveVehicule(data) {
       if (!_clientUser) return alert('Connectez-vous pour enregistrer un véhicule.');

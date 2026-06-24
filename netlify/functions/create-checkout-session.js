@@ -100,12 +100,12 @@ exports.handler = async (event, context) => {
     // 2. Vérifier que l'utilisateur est le client de la mission OU un admin
     const { data: profile } = await supabaseAnon
       .from('clients')
-      .select('role')
+      .select('role, id, email')
       .eq('auth_user_id', user.id)
       .maybeSingle();
 
     const isAdmin = profile?.role === 'admin';
-    const isClient = mission.client_id === user.id;
+    const isClient = mission.client_id === profile?.id || mission.client_email === user.email;
 
     if (!isClient && !isAdmin) {
       return {
