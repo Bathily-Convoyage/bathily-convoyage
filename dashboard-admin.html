@@ -1321,6 +1321,7 @@
         <div class="nav-item" data-tab="tarifs-config"><i class="fas fa-euro-sign"></i> Tarifs & Prix</div>
         <div class="nav-item" data-tab="remuneration"><i class="fas fa-hand-holding-usd"></i> Remunerations</div>
         <div class="nav-item" data-tab="packs-config"><i class="fas fa-box"></i> Packs & Options</div>
+        <div class="nav-item" data-tab="admins"><i class="fas fa-user-shield"></i> Administrateurs</div>
         <div class="nav-item" data-tab="systeme"><i class="fas fa-cog"></i> Système</div>
       </div>
       <div class="nav-section">
@@ -1719,6 +1720,25 @@ Cadeau premium personnalisé</textarea></div>
           <div class="stat-card"><div class="stat-ico"><i class="fas fa-percentage"></i></div><div class="stat-val" id="kpi-marge">—</div><div class="stat-lbl">Marge brute moy.</div></div>
           <div class="stat-card"><div class="stat-ico"><i class="fas fa-truck"></i></div><div class="stat-val" id="kpi-convoyeurs">—</div><div class="stat-lbl">Convoyeurs actifs</div></div>
         </div>
+      </div>
+
+      <!-- ADMINISTRATEURS -->
+      <div class="tab-content" id="tab-admins">
+        <div class="dash-header">
+          <h1 class="dash-hello">Administrateurs <em>du système</em></h1>
+        </div>
+        <div class="sec-title">
+          <h2 class="sec-h">Comptes <em>administrateurs</em></h2>
+          <div class="sec-actions">
+            <button class="btn-red" id="newAdminBtn"><i class="fas fa-user-shield"></i> Ajouter un admin</button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Statut</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="adminsTableBody"></tbody>
+        </table>
       </div>
 
       <!-- SYSTEME -->
@@ -2463,9 +2483,11 @@ Cadeau premium personnalisé</textarea></div>
     if (!client) return;
     const { data, error } = await client.from('clients').select('*').order('created_at', { ascending: false });
     if (error) { console.error(error); return; }
-    _allClientsData = data || [];
+    _allClientsData = (data || []).filter(c => c.role !== 'admin');
+    const allAdmins = (data || []).filter(c => c.role === 'admin');
     document.getElementById('clientsCountHeader').innerHTML = `${_allClientsData.length} clients <em>enregistrés</em>`;
     renderClientsTable(_allClientsData);
+    renderAdminsTable(allAdmins);
   }
 
   function renderClientsTable(data) {
@@ -2496,6 +2518,57 @@ Cadeau premium personnalisé</textarea></div>
       </tr>`;
     }).join('');
   }
+
+  function renderAdminsTable(admins) {
+    const tbody = document.getElementById('adminsTableBody');
+    if (!tbody) return;
+    if (!admins.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Aucun administrateur.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = admins.map(c => {
+      const name = `${c.prenom || ''} ${c.nom || ''}`.trim() || 'Inconnu';
+      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { editAdmin('${c.id}'); }">
+        <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux);color:#fff"><i class="fas fa-user-shield" style="font-size:0.7rem"></i></div>${name}</div></td>
+        <td>${c.email || '—'}</td>
+        <td>${c.telephone || '—'}</td>
+        <td><span class="sp sp-ok"><span class="sp-dot"></span>Administrateur</span></td>
+        <td class="td-actions">
+          <button class="btn-sm btn-sm-ghost" onclick="editAdmin('${c.id}')"><i class="fas fa-edit"></i></button>
+          <button class="btn-sm btn-sm-red" onclick="adminDeleteUser('${c.id}', 'clients')" title="Supprimer"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.editAdmin = async function(id) {
+    const sb = getSupabase();
+    if (!sb) return;
+    const { data } = await sb.from('clients').select('*').eq('id', id).single();
+    if (!data) return;
+    document.getElementById('modalClientTitle').innerHTML = `Modifier <em>administrateur</em>`;
+    document.getElementById('client-id').value = id;
+    document.getElementById('clientPrenom').value = data.prenom || '';
+    document.getElementById('clientNom').value = data.nom || '';
+    document.getElementById('clientEmail').value = data.email || '';
+    document.getElementById('clientTel').value = data.telephone || '';
+    document.getElementById('clientSociete').value = data.societe || '';
+    document.getElementById('clientAdresse').value = data.adresse || '';
+    document.getElementById('clientCp').value = data.code_postal || '';
+    document.getElementById('clientVille').value = data.ville || '';
+    document.getElementById('clientSiret').value = data.siret || '';
+    document.getElementById('clientTva').value = data.tva_intra || '';
+    document.getElementById('clientNotes').value = data.notes_admin || '';
+    const delBtn = document.getElementById('deleteClientModalBtn');
+    if (delBtn) {
+      delBtn.style.display = 'inline-flex';
+      delBtn.onclick = function() {
+        closeModal('modalClient');
+        adminDeleteUser(id, 'clients');
+      };
+    }
+    openModal('modalClient');
+  };
 
   window.editClient = function(id) {
     const c = _allClientsData.find(x => x.id === id);
@@ -2550,6 +2623,10 @@ Cadeau premium personnalisé</textarea></div>
     if (!sb) return;
 
     const payload = { prenom, nom, email, telephone, societe, adresse, code_postal, ville, siret, tva_intra, notes_admin };
+
+    const titleEl = document.getElementById('modalClientTitle');
+    const isAdminMode = titleEl && titleEl.innerHTML.toLowerCase().includes('administrateur');
+    if (isAdminMode) payload.role = 'admin';
 
     if (id) {
       const { error } = await sb.from('clients').update(payload).eq('id', id);
@@ -4405,7 +4482,23 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       openModal('modalClient');
     });
 
-    // Save client
+    // New admin
+    document.getElementById('newAdminBtn')?.addEventListener('click', function() {
+      document.getElementById('modalClientTitle').innerHTML = 'Nouvel <em>administrateur</em>';
+      document.getElementById('client-id').value = '';
+      document.getElementById('clientPrenom').value = '';
+      document.getElementById('clientNom').value = '';
+      document.getElementById('clientEmail').value = '';
+      document.getElementById('clientTel').value = '';
+      document.getElementById('clientSociete').value = '';
+      document.getElementById('clientAdresse').value = '';
+      document.getElementById('clientCp').value = '';
+      document.getElementById('clientVille').value = '';
+      document.getElementById('clientSiret').value = '';
+      document.getElementById('clientTva').value = '';
+      document.getElementById('clientNotes').value = '';
+      openModal('modalClient');
+    });
     document.getElementById('saveClientBtn')?.addEventListener('click', window.saveClientDB);
 
     // Add convoyeur
