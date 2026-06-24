@@ -2482,7 +2482,7 @@ Cadeau premium personnalisé</textarea></div>
     const client = getSupabase();
     if (!client) return;
     const { data, error } = await client.from('clients').select('*').order('created_at', { ascending: false });
-    if (error) { console.error(error); return; }
+    if (error) { console.error('Erreur loadClients:', error); return; }
     _allClientsData = (data || []).filter(c => c.role !== 'admin');
     const allAdmins = (data || []).filter(c => c.role === 'admin');
     document.getElementById('clientsCountHeader').innerHTML = `${_allClientsData.length} clients <em>enregistrés</em>`;
