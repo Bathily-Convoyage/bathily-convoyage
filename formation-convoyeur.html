@@ -212,6 +212,23 @@
     .quiz-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-light); }
     .quiz-counter { font-size: 0.75rem; color: var(--gray-mid); font-weight: 600; }
 
+    /* ====== UPLOAD ====== */
+    .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .upload-zone {
+      border: 2px dashed var(--border-light); border-radius: 16px; padding: 24px; text-align: center;
+      transition: all 0.3s; cursor: pointer; position: relative;
+    }
+    .upload-zone:hover { border-color: var(--bordeaux); background: var(--bordeaux-light); }
+    .upload-zone.has-file { border-color: var(--success); border-style: solid; background: rgba(74,124,107,0.05); }
+    .upload-zone input[type=file] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .upload-ico { font-size: 2rem; color: var(--bordeaux); margin-bottom: 10px; }
+    .upload-zone.has-file .upload-ico { color: var(--success); }
+    .upload-label { font-family: 'Montserrat',sans-serif; font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+    .upload-hint { font-size: 0.72rem; color: var(--gray-mid); }
+    .upload-filename { font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 6px; word-break: break-all; }
+    .upload-required { color: #c0392b; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+    @media (max-width: 600px) { .upload-grid { grid-template-columns: 1fr; } }
+
     /* ====== RESULTS ====== */
     .result-circle {
       width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 24px;
@@ -313,9 +330,9 @@
       <h1>Devenez convoyeur <span>certifié</span></h1>
       <p>Rejoignez notre réseau de professionnels du convoyage automobile en France. Formation complète, missions régulières et rémunération attractive.</p>
       <div class="hero-stats-row">
-        <div class="h-stat"><strong>0,47€</strong><small>/ km moyen</small></div>
         <div class="h-stat"><strong>24-48h</strong><small>Délai validation</small></div>
         <div class="h-stat"><strong>France</strong><small>Entière</small></div>
+        <div class="h-stat"><strong>100%</strong><small>En ligne</small></div>
       </div>
     </div>
 
@@ -682,16 +699,73 @@
     <div class="btn-row" id="resultBtns"></div>
   </div>
 
-  <!-- ======== PAGE 8 : CONFIRMATION ======== -->
+  <!-- ======== PAGE 8 : UPLOAD DOCUMENTS ======== -->
   <div class="step-page" id="page8">
+    <div class="card">
+      <div class="card-title">Vos <em>documents</em></div>
+      <div class="card-sub">Pour finaliser votre candidature, téléversez les documents obligatoires ci-dessous. Formats acceptés : JPG, PNG, PDF (max 5 Mo par fichier).</div>
+
+      <div class="upload-grid">
+        <div class="upload-zone" id="zone-permis-recto">
+          <input type="file" accept="image/jpeg,image/png,application/pdf" onchange="handleUpload(this, 'permis_recto')">
+          <div class="upload-ico"><i class="fas fa-id-card"></i></div>
+          <div class="upload-label">Permis de conduire — Recto <span class="upload-required">*Obligatoire</span></div>
+          <div class="upload-hint">Cliquez pour téléverser</div>
+          <div class="upload-filename" id="fn-permis_recto"></div>
+        </div>
+        <div class="upload-zone" id="zone-permis-verso">
+          <input type="file" accept="image/jpeg,image/png,application/pdf" onchange="handleUpload(this, 'permis_verso')">
+          <div class="upload-ico"><i class="fas fa-id-card"></i></div>
+          <div class="upload-label">Permis de conduire — Verso <span class="upload-required">*Obligatoire</span></div>
+          <div class="upload-hint">Cliquez pour téléverser</div>
+          <div class="upload-filename" id="fn-permis_verso"></div>
+        </div>
+        <div class="upload-zone" id="zone-rc_pro">
+          <input type="file" accept="image/jpeg,image/png,application/pdf" onchange="handleUpload(this, 'rc_pro')">
+          <div class="upload-ico"><i class="fas fa-shield-alt"></i></div>
+          <div class="upload-label">Attestation RC Pro <span class="upload-required">*Obligatoire</span></div>
+          <div class="upload-hint">Assurance responsabilité civile professionnelle</div>
+          <div class="upload-filename" id="fn-rc_pro"></div>
+        </div>
+        <div class="upload-zone" id="zone-identite">
+          <input type="file" accept="image/jpeg,image/png,application/pdf" onchange="handleUpload(this, 'identite')">
+          <div class="upload-ico"><i class="fas fa-user-shield"></i></div>
+          <div class="upload-label">Pièce d'identité <span class="upload-required">*Obligatoire</span></div>
+          <div class="upload-hint">CNI ou passeport (recto-verso si CNI)</div>
+          <div class="upload-filename" id="fn-identite"></div>
+        </div>
+        <div class="upload-zone" id="zone-domicile">
+          <input type="file" accept="image/jpeg,image/png,application/pdf" onchange="handleUpload(this, 'domicile')">
+          <div class="upload-ico"><i class="fas fa-home"></i></div>
+          <div class="upload-label">Justificatif de domicile <span class="upload-required">*Obligatoire</span></div>
+          <div class="upload-hint">Facture ou quittance de moins de 3 mois</div>
+          <div class="upload-filename" id="fn-domicile"></div>
+        </div>
+      </div>
+
+      <div style="padding:14px; background:var(--beige); border-radius:12px; font-size:0.78rem; color:var(--gray-mid); margin-bottom:20px;">
+        <i class="fas fa-lock" style="color:var(--bordeaux); margin-right:6px;"></i>
+        Vos documents sont stockés de manière sécurisée et confidentielle. Seuls les administrateurs Bathily-Convoyage y ont accès.
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goPage(7)"><i class="fas fa-arrow-left"></i> Retour aux résultats</button>
+      <button class="btn-primary" id="btnSubmitCandidature" onclick="submitCandidature()"><i class="fas fa-paper-plane"></i> Envoyer ma candidature</button>
+    </div>
+  </div>
+
+  <!-- ======== PAGE 9 : CONFIRMATION ======== -->
+  <div class="step-page" id="page9">
     <div class="card" style="text-align:center;">
       <div class="confirm-icon">✅</div>
       <div class="card-title" style="text-align:center;">Candidature <em>envoyée !</em></div>
       <p style="color:var(--gray-mid); font-size:0.875rem; margin-bottom:28px;">Votre dossier est en cours d'examen par notre équipe. Vous recevrez une réponse dans les <strong>24 à 48 heures</strong>.</p>
       <div class="steps-timeline" style="text-align:left;">
         <div class="tl-item"><div class="tl-dot tl-dot-1"><i class="fas fa-check"></i></div><div class="tl-content"><h4>Formation complétée</h4><p>Vous avez réussi le quiz avec un score validant.</p></div></div>
-        <div class="tl-item"><div class="tl-dot tl-dot-2">2</div><div class="tl-content"><h4>Examen par Bathily-Convoyage</h4><p>Notre équipe examine votre profil et votre score (24-48h).</p></div></div>
-        <div class="tl-item"><div class="tl-dot tl-dot-3">3</div><div class="tl-content"><h4>Email de confirmation</h4><p>Si votre candidature est acceptée, vous recevez vos accès par email.</p></div></div>
+        <div class="tl-item"><div class="tl-dot tl-dot-1"><i class="fas fa-check"></i></div><div class="tl-content"><h4>Documents téléversés</h4><p>Permis, RC Pro, pièce d'identité et justificatif de domicile reçus.</p></div></div>
+        <div class="tl-item"><div class="tl-dot tl-dot-2">3</div><div class="tl-content"><h4>Examen par Bathily-Convoyage</h4><p>Notre équipe examine votre profil, votre score et vos documents (24-48h).</p></div></div>
+        <div class="tl-item"><div class="tl-dot tl-dot-3">4</div><div class="tl-content"><h4>Email de confirmation</h4><p>Si votre candidature est acceptée, vous recevez vos accès par email.</p></div></div>
       </div>
       <div style="margin-top:24px; padding:16px; background:var(--bordeaux-light); border-radius:14px; font-size:0.8rem; color:var(--bordeaux-dark);">
         <i class="fas fa-envelope"></i> Un email de confirmation vient d'être envoyé à <strong id="confirmEmail"></strong>
@@ -773,7 +847,7 @@ const QUESTIONS = [
     q: "Comment votre rémunération est-elle calculée chez Bathily-Convoyage ?",
     opts: ["Forfait fixe peu importe la distance ou le véhicule", "Au kilomètre parcouru selon les barèmes Bathily-Convoyage", "Selon vos propres tarifs que vous négociez avec le client", "En liquide uniquement, remis à la livraison"],
     correct: 1,
-    expl: "La rémunération est calculée au kilomètre selon les barèmes Bathily-Convoyage (0,40€/km moto, 0,47€/km auto en moyenne). Des majorations s'appliquent pour les véhicules sur plateau."
+    expl: "La rémunération est calculée au kilomètre selon les barèmes Bathily-Convoyage. Des majorations s'appliquent pour les véhicules sur plateau et les missions de luxe."
   },
   {
     q: "Vous constatez une anomalie mécanique grave sur le véhicule avant de démarrer. Que faites-vous ?",
@@ -806,7 +880,7 @@ function goPage(n) {
 }
 
 function updateProgress() {
-  const stepMap = {0:1, 1:2, 2:3, 3:4, 4:5, 5:6, 6:7, 7:7, 8:8};
+  const stepMap = {0:1, 1:2, 2:3, 3:4, 4:5, 5:6, 6:7, 7:7, 8:8, 9:8};
   const step = stepMap[currentPage] || 1;
   const pct = Math.round((step / 7) * 100);
 
@@ -1004,7 +1078,7 @@ function showResults() {
     badgeEl.innerHTML = '<div class="badge-certified"><i class="fas fa-medal"></i> Formation Bathily-Convoyage Validée à ' + quizScore + '/12 (' + Math.round(quizScore/12*100) + '%)</div>';
     msgEl.innerHTML = '<p style="color:var(--gray-mid); font-size:0.875rem; margin-bottom:16px;">Félicitations ! Vous avez atteint le score requis. Votre candidature va être transmise à notre équipe pour validation manuelle.</p>';
     coolEl.innerHTML = '';
-    btnsEl.innerHTML = '<button class="btn-primary" onclick="submitCandidature()"><i class="fas fa-paper-plane"></i> Envoyer ma candidature</button>';
+    btnsEl.innerHTML = '<button class="btn-primary" onclick="goPage(8)"><i class="fas fa-arrow-right"></i> Téléverser mes documents</button>';
   } else {
     const pct = Math.round(quizScore/12*100);
     const cooldownEnd = new Date(Date.now() + 24*60*60*1000);
@@ -1043,19 +1117,82 @@ function startCooldownTimer() {
   }, 1000);
 }
 
+// ====== UPLOAD DOCUMENTS ======
+const REQUIRED_DOCS = ['permis_recto', 'permis_verso', 'rc_pro', 'identite', 'domicile'];
+const uploadedFiles = {};
+const uploadedPaths = {};
+
+function handleUpload(input, docType) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    Swal.fire({
+      title: 'Fichier trop volumineux',
+      text: 'La taille maximale est de 5 Mo par fichier.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    input.value = '';
+    return;
+  }
+
+  uploadedFiles[docType] = file;
+  const zone = document.getElementById('zone-' + docType.replace('_', '-'));
+  const fnEl = document.getElementById('fn-' + docType);
+  if (zone) zone.classList.add('has-file');
+  if (fnEl) fnEl.textContent = file.name;
+}
+
+async function uploadDocumentsToStorage(sb, email) {
+  const folder = 'candidatures/' + email.replace(/[^a-zA-Z0-9@._-]/g, '_');
+  const paths = {};
+
+  for (const docType of REQUIRED_DOCS) {
+    const file = uploadedFiles[docType];
+    if (!file) continue;
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    const path = `${folder}/${docType}.${ext}`;
+
+    const { data, error } = await sb.storage
+      .from('convoyeur-documents')
+      .upload(path, file, { upsert: true });
+
+    if (error) {
+      console.warn(`Erreur upload ${docType}:`, error.message);
+      paths[docType] = null;
+    } else {
+      paths[docType] = path;
+    }
+  }
+
+  return paths;
+}
+
 // ====== SUBMIT CANDIDATURE ======
 async function submitCandidature() {
-  Swal.fire({ title: 'Envoi en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+  const missing = REQUIRED_DOCS.filter(d => !uploadedFiles[d]);
+  if (missing.length) {
+    Swal.fire({
+      title: 'Documents manquants',
+      text: 'Veuillez téléverser tous les documents obligatoires avant d\'envoyer votre candidature.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  Swal.fire({ title: 'Envoi en cours...', text: 'Téléversement des documents et envoi de la candidature', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
   try {
-    // Hachage du mot de passe (SHA-256)
     const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(formData.password));
     const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
 
     const sb = getSB();
 
-    // Insérer directement la candidature (le SELECT anon est bloqué par RLS)
-    // Si l'email existe déjà, la contrainte UNIQUE renverra une erreur
+    const docPaths = await uploadDocumentsToStorage(sb, formData.email);
+
     const { data: newCand, error } = await sb.from('convoyeur_candidatures').insert([{
       prenom: formData.prenom,
       nom: formData.nom,
@@ -1071,7 +1208,8 @@ async function submitCandidature() {
       reponses_quiz: JSON.stringify(quizAnswers),
       quiz_attempts: 1,
       last_attempt_at: new Date().toISOString(),
-      statut: 'pending'
+      statut: 'pending',
+      documents: JSON.stringify(docPaths)
     }]);
 
     if (error) {
@@ -1088,7 +1226,7 @@ async function submitCandidature() {
     }
 
     document.getElementById('confirmEmail').textContent = formData.email;
-    goPage(8);
+    goPage(9);
     Swal.close();
 
     // Envoi de l'email de notification

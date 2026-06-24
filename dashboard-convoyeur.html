@@ -845,44 +845,12 @@
       </form>
 
       <!-- SIGNUP -->
-      <form id="convAuthSignupForm" style="display:none; max-height:450px; overflow-y:auto; padding-right:4px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-          <div style="text-align:left;">
-            <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Prénom</label>
-            <input id="convSignupPrenom" type="text" required placeholder="Jean" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
-          </div>
-          <div style="text-align:left;">
-            <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Nom</label>
-            <input id="convSignupNom" type="text" required placeholder="Dupont" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
-          </div>
+      <form id="convAuthSignupForm" style="display:none;">
+        <div style="text-align:center; padding:20px 0;">
+          <i class="fas fa-graduation-cap" style="font-size:2.5rem; color:var(--bordeaux); margin-bottom:16px;"></i>
+          <p style="font-size:0.85rem; color:var(--gray-mid); margin-bottom:20px; line-height:1.6;">Pour devenir convoyeur chez Bathily-Convoyage, vous devez d'abord suivre la <strong>formation en ligne</strong> et faire valider votre dossier par notre équipe.</p>
+          <a href="formation-convoyeur.html" style="display:inline-block; background:var(--bordeaux); color:white; text-decoration:none; padding:12px 28px; border-radius:12px; font-size:0.85rem; font-weight:700;"><i class="fas fa-arrow-right"></i> Accéder à la formation</a>
         </div>
-        <div style="margin-bottom:12px;text-align:left;">
-          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Adresse Email</label>
-          <input id="convSignupEmail" type="email" required placeholder="convoyeur@exemple.com" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
-        </div>
-        <div style="margin-bottom:12px;text-align:left;">
-          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Téléphone</label>
-          <input id="convSignupTel" type="tel" placeholder="+33 6 12 34 56 78" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
-        </div>
-        <div style="margin-bottom:12px;text-align:left;">
-          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Zone d'intervention</label>
-          <input id="convSignupZone" type="text" placeholder="IDF, Rhône-Alpes, Nationale..." style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-          <div style="text-align:left;">
-            <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Taux auto (€/km)</label>
-            <input id="convSignupTauxAuto" type="number" step="0.01" value="0.47" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
-          </div>
-          <div style="text-align:left;">
-            <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Taux moto (€/km)</label>
-            <input id="convSignupTauxMoto" type="number" step="0.01" value="0.40" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
-          </div>
-        </div>
-        <div style="margin-bottom:20px;text-align:left;">
-          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Mot de passe</label>
-          <input id="convSignupPassword" type="password" required minlength="6" placeholder="••••••••" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
-        </div>
-        <button type="submit" style="width:100%;background:#0A4D68;color:white;border:none;border-radius:12px;padding:14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.25s;"><i class="fas fa-user-plus"></i> Devenir convoyeur</button>
       </form>
     </div>
   </div>
@@ -1042,8 +1010,6 @@
           <div class="f-grp"><label>Téléphone</label><input type="tel" id="convProfilTel"></div>
           <div class="f-grp"><label>Zone d'intervention</label><input type="text" id="convProfilZone"></div>
           <div class="f-grp"><label>Niveau</label><select id="convProfilNiveau"><option value="Standard">Standard</option><option value="Senior">Senior</option></select></div>
-          <div class="f-grp"><label>Taux auto (€/km)</label><input type="number" step="0.01" id="convProfilTauxAuto"></div>
-          <div class="f-grp"><label>Taux moto (€/km)</label><input type="number" step="0.01" id="convProfilTauxMoto"></div>
           <div class="f-grp" style="grid-column:span 2;">
             <label>Documents (permis, carte pro, etc.)</label>
             <input type="file" id="convUploadDoc" accept=".pdf,.jpg,.jpeg,.png">
@@ -1298,22 +1264,57 @@
         return;
       }
 
-      // 3. Auth réussie : récupérer ou créer le profil convoyeur
+      // 3. Auth réussie : vérifier que le convoyeur est approuvé
       let { data: profile } = await client.from('convoyeurs').select('*').eq('email', email).maybeSingle();
       if (!profile) {
-        // Créer le profil si inexistant (cas d'un admin qui a créé un compte sans profil)
-        const { data: newProfile } = await client.from('convoyeurs').insert([{
-          email,
-          prenom: authData.user.user_metadata?.prenom || 'Convoyeur',
-          nom: authData.user.user_metadata?.nom || '',
-          disponible: true,
-          niveau: 'Standard',
-          taux_auto: 0.47,
-          taux_moto: 0.40,
-          zone: 'Nationale',
-          auth_user_id: authData.user.id
-        }]).select().single();
-        profile = newProfile;
+        // Pas dans la table convoyeurs → vérifier la candidature de formation
+        const { data: candidature } = await client.from('convoyeur_candidatures').select('*').eq('email', email).maybeSingle();
+        if (!candidature) {
+          await client.auth.signOut();
+          Swal.fire({
+            title: 'Accès refusé',
+            html: 'Aucun dossier de formation trouvé pour cet email.<br>Vous devez d\'abord suivre la <a href="formation-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">formation en ligne</a> et être approuvé par notre équipe.',
+            icon: 'warning',
+            confirmButtonColor: 'var(--bordeaux)'
+          });
+          return;
+        }
+        if (candidature.statut === 'pending') {
+          await client.auth.signOut();
+          Swal.fire({
+            title: 'Candidature en cours d\'examen',
+            text: 'Votre dossier de formation a bien été reçu. Notre équipe l\'examine et vous répondra dans les 24-48h. Patience !',
+            icon: 'info',
+            confirmButtonColor: 'var(--bordeaux)'
+          });
+          return;
+        }
+        if (candidature.statut === 'rejected') {
+          await client.auth.signOut();
+          Swal.fire({
+            title: 'Candidature refusée',
+            text: 'Votre dossier de formation n\'a pas été retenu. Pour plus d\'informations, contactez-nous.',
+            icon: 'error',
+            confirmButtonColor: 'var(--bordeaux)'
+          });
+          return;
+        }
+        // statut 'approved' mais pas encore dans convoyeurs → créer le profil
+        if (candidature.statut === 'approved') {
+          const { data: newProfile } = await client.from('convoyeurs').insert([{
+            email,
+            prenom: candidature.prenom || 'Convoyeur',
+            nom: candidature.nom || '',
+            telephone: candidature.telephone,
+            ville: candidature.ville,
+            type_permis: candidature.type_permis,
+            annee_permis: candidature.annee_permis,
+            disponible: true,
+            niveau: 'junior',
+            auth_user_id: authData.user.id
+          }]).select().single();
+          profile = newProfile;
+        }
       } else if (!profile.auth_user_id) {
         // Mettre à jour auth_user_id si absent (ancien compte migré)
         await client.from('convoyeurs').update({ auth_user_id: authData.user.id }).eq('id', profile.id);
@@ -1328,65 +1329,16 @@
       Swal.fire({ title: 'Bienvenue !', text: `Content de vous revoir, ${profile.prenom || 'Convoyeur'}.`, icon: 'success', timer: 2000, showConfirmButton: false });
     }
 
-    // ========== HANDLE CONVOYEUR SIGNUP ==========
+    // ========== HANDLE CONVOYEUR SIGNUP ========== 
     async function handleConvoyeurSignup(e) {
       e.preventDefault();
-      const prenom = document.getElementById('convSignupPrenom').value.trim();
-      const nom = document.getElementById('convSignupNom').value.trim();
-      const email = document.getElementById('convSignupEmail').value.trim().toLowerCase();
-      const telephone = document.getElementById('convSignupTel').value.trim();
-      const zone = document.getElementById('convSignupZone').value.trim() || 'Nationale';
-      const tauxAuto = parseFloat(document.getElementById('convSignupTauxAuto').value) || 0.47;
-      const tauxMoto = parseFloat(document.getElementById('convSignupTauxMoto').value) || 0.40;
-      const password = document.getElementById('convSignupPassword').value;
-
-      if (!prenom || !nom || !email || !password) {
-        Swal.fire('Champs requis', 'Tous les champs obligatoires doivent être remplis.', 'warning');
-        return;
-      }
-      if (password.length < 6) {
-        Swal.fire('Mot de passe trop court', 'Minimum 6 caractères.', 'warning');
-        return;
-      }
-
-      Swal.fire({ title: 'Création du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-      const client = getSBC();
-
-      // 1. Créer auth
-      const { data: authData, error: authError } = await client.auth.signUp({
-        email,
-        password,
-        options: { data: { prenom, nom } }
+      Swal.fire({
+        title: 'Inscription impossible',
+        html: 'Pour devenir convoyeur chez Bathily-Convoyage, vous devez d\'abord suivre la <strong>formation en ligne</strong> et faire valider votre dossier par notre équipe.<br><br><a href="formation-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">Cliquez ici pour accéder à la formation →</a>',
+        icon: 'info',
+        confirmButtonColor: 'var(--bordeaux)',
+        confirmButtonText: 'Compris'
       });
-      if (authError) {
-        if (authError.message.includes('already registered')) {
-          Swal.fire({ title: 'Compte existant', text: 'Cet email est déjà utilisé. Souhaitez-vous vous connecter ?', showCancelButton: true, confirmButtonText: 'Se connecter' })
-            .then(res => { if (res.isConfirmed) { switchConvoAuthTab('login');
-              document.getElementById('convLoginEmail').value = email; } });
-        } else {
-          Swal.fire('Erreur', authError.message, 'error');
-        }
-        return;
-      }
-
-      // 2. Insérer dans convoyeurs
-      const { data: inserted, error: insertError } = await client.from('convoyeurs').insert([{
-        prenom, nom, email, telephone, zone, taux_auto: tauxAuto, taux_moto: tauxMoto,
-        disponible: true, niveau: 'Standard', auth_user_id: authData.user.id
-      }]).select().single();
-
-      if (insertError || !inserted) {
-        Swal.fire('Erreur', insertError ? insertError.message : 'Impossible de créer le profil.', 'error');
-        return;
-      }
-
-      _convoyeurUser = inserted;
-      _convoyeurName = `${prenom} ${nom}`;
-      sessionStorage.setItem('convoyeur_user', JSON.stringify(inserted));
-      sessionStorage.setItem('convoyeur_name', _convoyeurName);
-      document.getElementById('convoyeurLoginOverlay').style.display = 'none';
-      await loadConvoyeurData(inserted);
-      Swal.fire({ title: 'Compte créé ! ⭐', text: `Bienvenue dans l'équipe, ${prenom}.`, icon: 'success', timer: 2500, showConfirmButton: false });
     }
 
     // ========== LOAD CONVOYEUR DATA ==========
@@ -1437,8 +1389,6 @@
         document.getElementById('convProfilTel').value = user.telephone || '';
         document.getElementById('convProfilZone').value = user.zone || 'Nationale';
         document.getElementById('convProfilNiveau').value = user.niveau || 'Standard';
-        document.getElementById('convProfilTauxAuto').value = user.taux_auto || 0.47;
-        document.getElementById('convProfilTauxMoto').value = user.taux_moto || 0.40;
         const isDispo = user.disponible !== false;
         document.getElementById('convDispoStatus').textContent = isDispo ? '✅ Disponible' : '❌ Indisponible';
         document.getElementById('convDispoStatus').style.background = isDispo ? 'rgba(74,124,107,0.15)' : 'rgba(224,163,67,0.15)';
@@ -1719,8 +1669,6 @@
         telephone: document.getElementById('convProfilTel').value.trim(),
         zone: document.getElementById('convProfilZone').value.trim() || 'Nationale',
         niveau: document.getElementById('convProfilNiveau').value,
-        taux_auto: parseFloat(document.getElementById('convProfilTauxAuto').value) || 0.47,
-        taux_moto: parseFloat(document.getElementById('convProfilTauxMoto').value) || 0.40,
         documents: docs
       }).eq('id', _convoyeurUser.id).select().single();
 
@@ -1978,10 +1926,17 @@
             sessionStorage.removeItem('convoyeur_name');
             document.getElementById('convoyeurLoginOverlay').style.display = 'flex';
           } else {
-            _convoyeurUser = user;
-            _convoyeurName = `${user.prenom||''} ${user.nom||''}`.trim();
-            document.getElementById('convoyeurLoginOverlay').style.display = 'none';
-            loadConvoyeurData(user);
+            if (user.banned === true) {
+              sessionStorage.removeItem('convoyeur_user');
+              sessionStorage.removeItem('convoyeur_name');
+              document.getElementById('convoyeurLoginOverlay').style.display = 'flex';
+              Swal.fire({ title: 'Accès restreint', text: "Votre compte a été suspendu par l'administrateur.", icon: 'error', allowOutsideClick: false });
+            } else {
+              _convoyeurUser = user;
+              _convoyeurName = `${user.prenom||''} ${user.nom||''}`.trim();
+              document.getElementById('convoyeurLoginOverlay').style.display = 'none';
+              loadConvoyeurData(user);
+            }
           }
         } catch (e) {
           console.warn('Session invalide', e);

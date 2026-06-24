@@ -59,7 +59,7 @@ exports.handler = async (event) => {
 
     // 1. Récupérer le candidat (uniquement si statut 'pending')
     const { data: candidat, error: candError } = await sb
-      .from('convoyeurs_candidats')
+      .from('convoyeur_candidatures')
       .select('*')
       .eq('id', candidat_id)
       .eq('statut', 'pending')
@@ -111,7 +111,7 @@ exports.handler = async (event) => {
     }
 
     // 5. Mettre à jour le statut de la candidature
-    await sb.from('convoyeurs_candidats').update({ statut: 'approved' }).eq('id', candidat_id);
+    await sb.from('convoyeur_candidatures').update({ statut: 'approved' }).eq('id', candidat_id);
 
     // 6. Envoyer l'email avec les accès
     try {

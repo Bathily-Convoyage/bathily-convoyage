@@ -1425,8 +1425,29 @@
         <div class="dash-header">
           <h1 class="dash-hello">Candidatures <em>convoyeurs</em></h1>
         </div>
+
+        <!-- CANDIDATURES FORMATION -->
         <div class="sec-title">
-          <h2 class="sec-h">Dossiers <em>à examiner</em></h2>
+          <h2 class="sec-h">Dossiers de <em>formation</em></h2>
+          <div class="sec-actions">
+            <select id="formationCandidaturesFilter" style="padding:8px 14px; border:1px solid var(--border-light); border-radius:40px; font-size:0.75rem; font-weight:600; background:#F9FAFB; outline:none;">
+              <option value="all">Tous les statuts</option>
+              <option value="pending">En attente</option>
+              <option value="approved">Approuvés</option>
+              <option value="rejected">Refusés</option>
+            </select>
+            <button class="btn-outline" id="refreshFormationCandidaturesBtn"><i class="fas fa-sync"></i> Actualiser</button>
+          </div>
+        </div>
+        <div id="formationCandidaturesList">
+          <div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+        </div>
+
+        <div style="height:1px; background:var(--border-light); margin:28px 0;"></div>
+
+        <!-- CANDIDATURES MISSION -->
+        <div class="sec-title">
+          <h2 class="sec-h">Candidatures <em>missions</em></h2>
           <div class="sec-actions">
             <select id="candidaturesFilter" style="padding:8px 14px; border:1px solid var(--border-light); border-radius:40px; font-size:0.75rem; font-weight:600; background:#F9FAFB; outline:none;">
               <option value="all">Tous les statuts</option>
@@ -1463,6 +1484,7 @@
             <option value="in_progress">En cours</option>
             <option value="completed">Terminée</option>
             <option value="cancelled">Annulée</option>
+            <option value="archived">Archivées</option>
           </select>
           <select id="filter-mode">
             <option value="">Tous les modes</option>
@@ -2383,6 +2405,7 @@ Cadeau premium personnalisé</textarea></div>
     await loadMissions();
     await loadDevis();
     await loadCandidatures();
+    await loadFormationCandidatures();
     buildCaChart();
     // Précharger la base véhicules pour l'autocomplétion
     await loadAdminVehiculesDB();
@@ -2564,6 +2587,7 @@ Cadeau premium personnalisé</textarea></div>
     document.getElementById('convoyeursCount').innerHTML = `${_convoyeursList.length} convoyeur${_convoyeursList.length !== 1 ? 's' : ''} <em>enregistré${_convoyeursList.length !== 1 ? 's' : ''}</em>`;
     renderConvoyeursTable(_convoyeursList);
     populateConvoyeursSelect();
+    loadAnalytics();
   }
 
   function renderConvoyeursTable(list) {
@@ -2910,9 +2934,12 @@ Cadeau premium personnalisé</textarea></div>
     const { data: missions, error } = await client.from('missions').select('*').order('created_at', { ascending: false });
     if (error) { console.error(error); return; }
     _allMissions = missions || [];
-    renderMissionsTable(_allMissions);
-    renderRecentMissionsTable(_allMissions);
+    const visibleMissions = _allMissions.filter(m => m.status !== 'archived');
+    renderMissionsTable(visibleMissions);
+    renderRecentMissionsTable(visibleMissions);
     renderInvoicesTable(_allMissions);
+    updateFactureKpis(_allMissions);
+    loadAnalytics();
     document.getElementById('statMissionsVal').textContent = _allMissions.filter(m => m.status === 'completed').length;
     const caMonth = _allMissions.filter(m => { const d = new Date(m.date_mission || m.created_at); return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear() && m.montant_ht; }).reduce((s, m) => s + parseFloat(m.montant_ht), 0);
     document.getElementById('statCaVal').textContent = caMonth.toFixed(0) + '€';
@@ -2923,18 +2950,24 @@ Cadeau premium personnalisé</textarea></div>
     if (!tbody) return;
     if (!missions.length) { tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;">Aucune mission.</td></tr>'; return; }
     tbody.innerHTML = missions.map(m => {
-      const status = m.statut || m.status || 'planned';
+      const status = m.status || 'planned';
       let statusClass = 'sp-att', statusText = 'Planifiée';
       if (status === 'available') { statusClass = 'sp-att'; statusText = 'Sur le marché'; }
       else if (status === 'in_progress') { statusClass = 'sp-cours'; statusText = 'En cours'; }
       else if (status === 'completed') { statusClass = 'sp-ok'; statusText = 'Terminée'; }
       else if (status === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
+      else if (status === 'archived') { statusClass = 'sp-err'; statusText = 'Archivée'; }
       const payStatus = m.paiement_statut || 'pending';
       const payClass = payStatus === 'paid' ? 'sp-ok' : 'sp-err';
       const payText = payStatus === 'paid' ? 'Payé' : 'En attente';
       const dateStr = formatDate(m.date_mission || m.created_at);
       let actionsHtml = '';
-      if (status === 'available') {
+      if (status === 'archived') {
+        actionsHtml = `<div class="td-actions">
+          <button class="btn-sm btn-sm-ghost" onclick="archiveMission('${m.id}', false)" title="Désarchiver"><i class="fas fa-box-open"></i></button>
+          <button class="btn-sm btn-sm-red" onclick="deleteMission('${m.id}', '${m.reference}')" title="Supprimer"><i class="fas fa-trash"></i></button>
+        </div>`;
+      } else if (status === 'available') {
         actionsHtml = `<div class="td-actions">
           <button class="btn-sm btn-sm-ghost" onclick="assignConvoyeurToMission('${m.id}')" title="Attribuer à un convoyeur"><i class="fas fa-user-plus"></i></button>
           <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
@@ -2947,6 +2980,7 @@ Cadeau premium personnalisé</textarea></div>
           ${status !== 'completed' && status !== 'cancelled' ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}
           <button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button>
           <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
+          ${(status === 'completed' || status === 'cancelled') ? `<button class="btn-sm btn-sm-ghost" onclick="archiveMission('${m.id}', true)" title="Archiver"><i class="fas fa-archive"></i></button>` : ''}
           <button class="btn-sm btn-sm-red" onclick="deleteMission('${m.id}', '${m.reference}')" title="Supprimer"><i class="fas fa-trash"></i></button>
         </div>`;
       }
@@ -2977,12 +3011,13 @@ Cadeau premium personnalisé</textarea></div>
       return;
     }
     tbody.innerHTML = recent.map(m => {
-      const status = m.statut || m.status || 'planned';
+      const status = m.status || 'planned';
       let statusClass = 'sp-att', statusText = 'Planifiée';
       if (status === 'available') { statusClass = 'sp-att'; statusText = 'Sur le marché'; }
       else if (status === 'in_progress') { statusClass = 'sp-cours'; statusText = 'En cours'; }
       else if (status === 'completed') { statusClass = 'sp-ok'; statusText = 'Terminée'; }
       else if (status === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
+      else if (status === 'archived') { statusClass = 'sp-err'; statusText = 'Archivée'; }
       return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewMissionDetails('${m.id}'); }">
         <td><div style="font-weight:600">${m.reference || '—'}</div></td>
         <td>${m.client_nom || '—'}</td>
@@ -2996,27 +3031,40 @@ Cadeau premium personnalisé</textarea></div>
     }).join('');
   }
 
+  let _currentInvoiceFilter = 'all';
+
   function renderInvoicesTable(missions) {
     const tbody = document.getElementById('invoicesTableBody');
     if (!tbody) return;
-    if (!missions.length) {
+    let filtered = missions;
+    if (_currentInvoiceFilter === 'paid') filtered = missions.filter(m => m.paiement_statut === 'paid' || m.paiement_statut === 'paye');
+    else if (_currentInvoiceFilter === 'pending') filtered = missions.filter(m => m.paiement_statut !== 'paid' && m.paiement_statut !== 'paye');
+    if (!filtered.length) {
       tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Aucune facture générée.</td></tr>';
       return;
     }
-    const invoices = missions.slice(0, 10).map(m => ({
+    const invoices = filtered.map(m => ({
+      id: m.id,
       num: `F-${m.reference || '000'}`,
       client: m.client_nom || 'Inconnu',
+      client_email: m.client_email || '—',
       mission: m.reference || '—',
+      depart: m.depart || '—',
+      arrivee: m.arrivee || '—',
+      vehicule: m.vehicule || '—',
+      pack: m.pack || '—',
+      convoyeur: m.convoyeur_nom || '—',
       ht: parseFloat(m.montant_ht) || 0,
       tva: (parseFloat(m.montant_ht) || 0) * 0.20,
       ttc: (parseFloat(m.montant_ht) || 0) * 1.20,
       status: m.paiement_statut || 'pending',
-      date: formatDate(m.date_mission || m.created_at)
+      date: formatDate(m.date_mission || m.created_at),
+      dateRaw: m.date_mission || m.created_at
     }));
     tbody.innerHTML = invoices.map(inv => {
-      const statusClass = inv.status === 'paid' ? 'sp-ok' : 'sp-err';
-      const statusText = inv.status === 'paid' ? 'Payée' : 'En attente';
-      return `<tr>
+      const statusClass = inv.status === 'paid' || inv.status === 'paye' ? 'sp-ok' : 'sp-err';
+      const statusText = inv.status === 'paid' || inv.status === 'paye' ? 'Payée' : 'En attente';
+      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewInvoiceDetails('${inv.id}'); }">
         <td>${inv.num}</td>
         <td>${inv.client}</td>
         <td>${inv.mission}</td>
@@ -3025,9 +3073,171 @@ Cadeau premium personnalisé</textarea></div>
         <td>${inv.ttc.toFixed(2)} €</td>
         <td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusText}</span></td>
         <td>${inv.date}</td>
-        <td><button class="btn-sm btn-sm-ghost"><i class="fas fa-download"></i></button></td>
+        <td><button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation(); downloadInvoice('${inv.id}')" title="Télécharger PDF"><i class="fas fa-download"></i></button></td>
       </tr>`;
     }).join('');
+  }
+
+  window.viewInvoiceDetails = function(missionId) {
+    const m = _allMissions.find(x => x.id === missionId);
+    if (!m) return Swal.fire('Erreur', 'Facture introuvable', 'error');
+    const ht = parseFloat(m.montant_ht) || 0;
+    const tva = ht * 0.20;
+    const ttc = ht * 1.20;
+    const payStatus = m.paiement_statut || 'pending';
+    const payText = payStatus === 'paid' || payStatus === 'paye' ? 'Payée' : 'En attente';
+    const payClass = payStatus === 'paid' || payStatus === 'paye' ? 'sp-ok' : 'sp-err';
+
+    Swal.fire({
+      title: `Facture F-${m.reference || '000'}`,
+      html: `<div style="text-align:left;font-size:0.9rem;">
+        <div style="display:flex;gap:8px;margin-bottom:12px;"><span class="sp ${payClass}"><span class="sp-dot"></span>${payText}</span></div>
+        <b>N° Facture :</b> F-${m.reference || '000'}<br>
+        <b>Client :</b> ${m.client_nom || '—'}<br>
+        <b>Email :</b> ${m.client_email || '—'}<br>
+        <hr style="margin:10px 0;border-color:#eee;">
+        <b>Mission :</b> ${m.reference || '—'}<br>
+        <b>Trajet :</b> ${m.depart || '—'} → ${m.arrivee || '—'}<br>
+        <b>Véhicule :</b> ${m.vehicule || '—'}<br>
+        <b>Pack :</b> ${m.pack || '—'}<br>
+        <b>Convoyeur :</b> ${m.convoyeur_nom || '—'}<br>
+        <b>Date :</b> ${formatDate(m.date_mission || m.created_at)}<br>
+        <hr style="margin:10px 0;border-color:#eee;">
+        <b>Montant HT :</b> ${ht.toFixed(2)} €<br>
+        <b>TVA (20%) :</b> ${tva.toFixed(2)} €<br>
+        <b>Montant TTC :</b> ${ttc.toFixed(2)} €<br>
+        <hr style="margin:14px 0;border-color:#eee;">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <button class="btn-sm btn-sm-ghost" onclick="Swal.close(); downloadInvoice('${m.id}')" style="margin-right:6px;"><i class="fas fa-download"></i> Télécharger PDF</button>
+          ${payStatus !== 'paid' && payStatus !== 'paye' ? `<button class="btn-sm btn-sm-green" onclick="Swal.close(); markMissionPaid('${m.id}', '${m.reference || ''}')"><i class="fas fa-euro-sign"></i> Marquer payée</button>` : ''}
+        </div>
+      </div>`,
+      width: 600,
+      showCloseButton: true,
+      showConfirmButton: false,
+      showCancelButton: false
+    });
+  };
+
+  window.downloadInvoice = function(missionId) {
+    const m = _allMissions.find(x => x.id === missionId);
+    if (!m) return Swal.fire('Erreur', 'Facture introuvable', 'error');
+    const ht = parseFloat(m.montant_ht) || 0;
+    const tva = ht * 0.20;
+    const ttc = ht * 1.20;
+    const payStatus = m.paiement_statut || 'pending';
+    const payText = payStatus === 'paid' || payStatus === 'paye' ? 'PAYÉE' : 'EN ATTENTE';
+    const dateStr = formatDate(m.date_mission || m.created_at);
+    const invoiceNum = `F-${m.reference || '000'}`;
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(20);
+      doc.setTextColor(10, 77, 104);
+      doc.text('Bathily-Convoyage', 14, 22);
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text('Convoyage automobile professionnel', 14, 28);
+      doc.text('Email: contact@bathily-convoyage.fr', 14, 33);
+
+      doc.setFontSize(16);
+      doc.setTextColor(10, 77, 104);
+      doc.text('FACTURE', 150, 22);
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(invoiceNum, 150, 28);
+      doc.text('Date: ' + dateStr, 150, 33);
+
+      doc.setDrawColor(200);
+      doc.line(14, 38, 196, 38);
+
+      doc.setFontSize(11);
+      doc.setTextColor(40);
+      doc.text('Client:', 14, 48);
+      doc.setFontSize(10);
+      doc.text(m.client_nom || '—', 14, 54);
+      doc.text(m.client_email || '—', 14, 59);
+
+      doc.setFontSize(11);
+      doc.text('Mission:', 110, 48);
+      doc.setFontSize(10);
+      doc.text(m.reference || '—', 110, 54);
+      doc.text((m.depart || '—') + ' → ' + (m.arrivee || '—'), 110, 59);
+
+      doc.autoTable({
+        startY: 68,
+        head: [['Désignation', 'Détails', 'Montant HT']],
+        body: [
+          ['Convoyage ' + (m.vehicule || '—'), (m.depart || '—') + ' → ' + (m.arrivee || '—'), ht.toFixed(2) + ' €'],
+          ['Pack', m.pack || '—', ''],
+          ['Mode', m.mode || 'route', '']
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [10, 77, 104] }
+      });
+
+      const finalY = doc.lastAutoTable.finalY || 90;
+      doc.setFontSize(10);
+      doc.text('Montant HT:', 130, finalY + 14);
+      doc.text(ht.toFixed(2) + ' €', 180, finalY + 14, { align: 'right' });
+      doc.text('TVA (20%):', 130, finalY + 20);
+      doc.text(tva.toFixed(2) + ' €', 180, finalY + 20, { align: 'right' });
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text('Montant TTC:', 130, finalY + 28);
+      doc.text(ttc.toFixed(2) + ' €', 180, finalY + 28, { align: 'right' });
+      doc.setFont(undefined, 'normal');
+
+      doc.setFontSize(10);
+      doc.setTextColor(10, 77, 104);
+      doc.setFillColor(230, 240, 244);
+      doc.rect(14, finalY + 36, 182, 10, 'F');
+      doc.text('Statut: ' + payText, 16, finalY + 42);
+
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text('Bathily-Convoyage — SIRET: XXX XXX XXX XXXXX — TVA: FRXXXXXXXXXX', 14, 285);
+
+      doc.save(invoiceNum + '.pdf');
+    } catch (err) {
+      console.error('Erreur génération PDF:', err);
+      Swal.fire('Erreur', 'Impossible de générer le PDF: ' + err.message, 'error');
+    }
+  };
+
+  function updateFactureKpis(missions) {
+    const paid = missions.filter(m => m.paiement_statut === 'paid' || m.paiement_statut === 'paye');
+    const pending = missions.filter(m => m.paiement_statut !== 'paid' && m.paiement_statut !== 'paye');
+    const caMonth = paid.filter(m => { const d = new Date(m.date_mission || m.created_at); return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear() && m.montant_ht; }).reduce((s, m) => s + parseFloat(m.montant_ht), 0);
+    const elCa = document.getElementById('factureKpiCa');
+    const elPaid = document.getElementById('factureKpiPaid');
+    const elPending = document.getElementById('factureKpiPending');
+    if (elCa) elCa.textContent = caMonth.toFixed(0) + '€';
+    if (elPaid) elPaid.textContent = paid.length;
+    if (elPending) elPending.textContent = pending.length;
+  }
+
+  function loadAnalytics() {
+    const missions = _allMissions || [];
+    const completed = missions.filter(m => m.status === 'completed');
+    const totalCa = missions.filter(m => m.montant_ht).reduce((s, m) => s + parseFloat(m.montant_ht), 0);
+    const totalMarge = missions.filter(m => m.marge).reduce((s, m) => s + parseFloat(m.marge), 0);
+    const avgMarge = missions.length ? (totalMarge / missions.length).toFixed(0) : 0;
+    const activeConvoyeurs = _convoyeursList ? _convoyeursList.filter(c => c.disponible !== false && !c.banned).length : 0;
+
+    const elMissions = document.getElementById('kpi-missions');
+    const elCompleted = document.getElementById('kpi-completed');
+    const elCa = document.getElementById('kpi-ca');
+    const elMarge = document.getElementById('kpi-marge');
+    const elConvoyeurs = document.getElementById('kpi-convoyeurs');
+
+    if (elMissions) elMissions.textContent = missions.length;
+    if (elCompleted) elCompleted.textContent = completed.length;
+    if (elCa) elCa.textContent = totalCa.toFixed(0) + '€';
+    if (elMarge) elMarge.textContent = avgMarge + '€';
+    if (elConvoyeurs) elConvoyeurs.textContent = activeConvoyeurs;
   }
 
   // DEVIS
@@ -3151,7 +3361,7 @@ Cadeau premium personnalisé</textarea></div>
           mode: devis.details?.mode === 'plateau' ? 'plateau' : 'route',
           pack: devis.details?.pack || 'Starter',
           montant_ht: devis.total_ht || 0,
-          status: 'planned',
+          status: 'available',
           paiement_statut: 'pending',
           date_mission: devis.date_depart || new Date().toISOString().split('T')[0],
           client_id: matchedClientId,
@@ -3198,6 +3408,166 @@ Cadeau premium personnalisé</textarea></div>
   };
 
   // CANDIDATURES
+  let _allFormationCandidatures = [];
+
+  async function loadFormationCandidatures() {
+    const client = getSupabase();
+    if (!client) return;
+    const { data, error } = await client.from('convoyeur_candidatures').select('*').order('created_at', { ascending: false });
+    if (error) { console.warn('Erreur chargement candidatures formation:', error.message); return; }
+    _allFormationCandidatures = data || [];
+    renderFormationCandidaturesList(_allFormationCandidatures);
+  }
+
+  function renderFormationCandidaturesList(list) {
+    const container = document.getElementById('formationCandidaturesList');
+    if (!container) return;
+    if (!list.length) { container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--gray-mid);">Aucune candidature de formation.</div>'; return; }
+    container.innerHTML = list.map(c => {
+      const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—';
+      const statusClass = c.statut === 'pending' ? 'sp-att' : c.statut === 'approved' ? 'sp-ok' : 'sp-err';
+      const statusText = c.statut === 'pending' ? 'En attente' : c.statut === 'approved' ? 'Approuvé' : 'Refusé';
+      const scorePct = c.score_quiz ? Math.round(c.score_quiz / 12 * 100) : 0;
+      const nomComplet = `${c.prenom || ''} ${c.nom || ''}`.trim() || 'Inconnu';
+      return `<div style="background:white; border:1px solid var(--border-light); border-radius:12px; padding:16px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong>${nomComplet}</strong>
+            <span style="color:var(--gray-mid); font-size:0.75rem; margin-left:8px;">${c.email || ''}</span>
+            ${c.telephone ? `<span style="color:var(--gray-mid); font-size:0.75rem; margin-left:8px;"><i class="fas fa-phone"></i> ${c.telephone}</span>` : ''}
+          </div>
+          <span class="sp ${statusClass}"><span class="sp-dot"></span>${statusText}</span>
+        </div>
+        <div style="font-size:0.75rem; color:var(--gray-mid); margin-top:6px;">
+          <i class="fas fa-map-marker-alt"></i> ${c.ville || '—'} · 
+          <i class="fas fa-id-card"></i> Permis ${c.type_permis || '—'} (${c.annee_permis || '—'}) · 
+          <i class="fas fa-graduation-cap"></i> Quiz : ${c.score_quiz || 0}/12 (${scorePct}%) · 
+          Reçu le ${dateStr}
+        </div>
+        ${c.experience ? `<div style="font-size:0.72rem; color:var(--gray-mid); margin-top:4px;"><i class="fas fa-briefcase"></i> ${c.experience}</div>` : ''}
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn-sm btn-sm-ghost" onclick="viewFormationCandidatureDetails('${c.id}')"><i class="fas fa-eye"></i> Voir détails</button>
+          ${c.statut === 'pending' ? `
+            <button class="btn-sm btn-sm-green" onclick="approveFormationCandidature('${c.id}')"><i class="fas fa-check"></i> Approuver</button>
+            <button class="btn-sm btn-sm-red" onclick="rejectFormationCandidature('${c.id}')"><i class="fas fa-times"></i> Refuser</button>
+          ` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  window.viewFormationCandidatureDetails = function(id) {
+    const c = _allFormationCandidatures.find(x => x.id === id);
+    if (!c) return Swal.fire('Erreur', 'Candidature introuvable', 'error');
+    const nomComplet = `${c.prenom || ''} ${c.nom || ''}`.trim() || 'Inconnu';
+    const scorePct = c.score_quiz ? Math.round(c.score_quiz / 12 * 100) : 0;
+    const statusText = c.statut === 'pending' ? 'En attente' : c.statut === 'approved' ? 'Approuvé' : 'Refusé';
+    let docsHtml = '<div style="font-size:0.8rem; color:var(--gray-mid);">Aucun document téléversé.</div>';
+    if (c.documents) {
+      try {
+        const docs = typeof c.documents === 'string' ? JSON.parse(c.documents) : c.documents;
+        const docLabels = {
+          permis_recto: 'Permis — Recto',
+          permis_verso: 'Permis — Verso',
+          rc_pro: 'Attestation RC Pro',
+          identite: 'Pièce d\'identité',
+          domicile: 'Justificatif de domicile'
+        };
+        docsHtml = '<div style="display:flex; flex-direction:column; gap:8px;">';
+        for (const [key, path] of Object.entries(docs)) {
+          if (!path) continue;
+          docsHtml += `<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--beige); border-radius:8px;">
+            <span><i class="fas fa-file-alt" style="margin-right:6px; color:var(--bordeaux);"></i>${docLabels[key] || key}</span>
+            <button class="btn-sm btn-sm-ghost" onclick="downloadDoc('${path}')"><i class="fas fa-download"></i></button>
+          </div>`;
+        }
+        docsHtml += '</div>';
+      } catch (e) { docsHtml = '<div style="font-size:0.8rem; color:var(--gray-mid);">Erreur lecture documents.</div>'; }
+    }
+
+    Swal.fire({
+      title: `Dossier — ${nomComplet}`,
+      html: `<div style="text-align:left;font-size:0.9rem;">
+        <div style="display:flex;gap:8px;margin-bottom:12px;"><span class="sp ${c.statut === 'pending' ? 'sp-att' : c.statut === 'approved' ? 'sp-ok' : 'sp-err'}"><span class="sp-dot"></span>${statusText}</span></div>
+        <b>Email :</b> ${c.email || '—'}<br>
+        <b>Téléphone :</b> ${c.telephone || '—'}<br>
+        <b>Ville :</b> ${c.ville || '—'}<br>
+        <b>Date de naissance :</b> ${c.date_naissance || '—'}<br>
+        <hr style="margin:10px 0;border-color:#eee;">
+        <b>Permis :</b> ${c.type_permis || '—'} (depuis ${c.annee_permis || '—'})<br>
+        <b>Expérience :</b> ${c.experience || '—'}<br>
+        <b>Score quiz :</b> ${c.score_quiz || 0}/12 (${scorePct}%)<br>
+        <hr style="margin:10px 0;border-color:#eee;">
+        <div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-paperclip"></i> Documents</div>
+        ${docsHtml}
+      </div>`,
+      width: 600,
+      showCloseButton: true,
+      showConfirmButton: false,
+      showCancelButton: false
+    });
+  };
+
+  window.downloadDoc = async function(path) {
+    const sb = getSupabase();
+    if (!sb) return;
+    const { data, error } = await sb.storage.from('convoyeur-documents').createSignedUrl(path, 3600);
+    if (error) {
+      Swal.fire('Erreur', 'Impossible de récupérer le document: ' + error.message, 'error');
+      return;
+    }
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+  };
+
+  window.approveFormationCandidature = async function(id) {
+    const c = _allFormationCandidatures.find(x => x.id === id);
+    if (!c) return;
+    const confirm = await Swal.fire({
+      title: `Approuver ${c.prenom} ${c.nom} ?`,
+      text: 'Le convoyeur sera ajouté à la liste des convoyeurs actifs.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Oui, approuver'
+    });
+    if (!confirm.isConfirmed) return;
+
+    const sb = getSupabase();
+    const { error: errUpdate } = await sb.from('convoyeur_candidatures').update({ statut: 'approved' }).eq('id', id);
+    if (errUpdate) return Swal.fire('Erreur', errUpdate.message, 'error');
+
+    const nomComplet = `${c.prenom || ''} ${c.nom || ''}`.trim();
+    const { error: errConv } = await sb.from('convoyeurs').insert([{
+      prenom: c.prenom,
+      nom: c.nom,
+      email: c.email,
+      telephone: c.telephone,
+      ville: c.ville,
+      type_permis: c.type_permis,
+      annee_permis: c.annee_permis,
+      niveau: 'junior',
+      disponible: true
+    }]);
+    if (errConv) console.warn('Erreur ajout convoyeur:', errConv.message);
+
+    Swal.fire('Approuvé !', `${nomComplet} a été ajouté aux convoyeurs.`, 'success');
+    loadFormationCandidatures();
+    loadConvoyeurs();
+  };
+
+  window.rejectFormationCandidature = async function(id) {
+    const confirm = await Swal.fire({
+      title: 'Refuser cette candidature ?',
+      showCancelButton: true,
+      confirmButtonText: 'Oui, refuser',
+      confirmButtonColor: '#c0392b'
+    });
+    if (!confirm.isConfirmed) return;
+    const sb = getSupabase();
+    await sb.from('convoyeur_candidatures').update({ statut: 'rejected' }).eq('id', id);
+    Swal.fire({ toast: true, icon: 'info', title: 'Candidature refusée', timer: 2000 });
+    loadFormationCandidatures();
+  };
+
   async function loadCandidatures() {
     const client = getSupabase();
     if (!client) return;
@@ -3276,7 +3646,7 @@ Cadeau premium personnalisé</textarea></div>
   window.viewMissionDetails = function(id) {
     const mission = _allMissions.find(m => m.id === id);
     if (!mission) return Swal.fire('Erreur', 'Mission introuvable', 'error');
-    const status = mission.statut || mission.status || 'planned';
+    const status = mission.status || 'planned';
     const payStatus = mission.paiement_statut || 'pending';
 
     let statusBadge = '';
@@ -3285,6 +3655,7 @@ Cadeau premium personnalisé</textarea></div>
     else if (status === 'in_progress') statusBadge = '<span class="sp sp-cours"><span class="sp-dot"></span>En cours</span>';
     else if (status === 'completed') statusBadge = '<span class="sp sp-ok"><span class="sp-dot"></span>Terminée</span>';
     else if (status === 'cancelled') statusBadge = '<span class="sp sp-err"><span class="sp-dot"></span>Annulée</span>';
+    else if (status === 'archived') statusBadge = '<span class="sp sp-err"><span class="sp-dot"></span>Archivée</span>';
 
     let payBadge = payStatus === 'paye' || payStatus === 'paid'
       ? '<span class="sp sp-ok"><span class="sp-dot"></span>Payé</span>'
@@ -3297,9 +3668,15 @@ Cadeau premium personnalisé</textarea></div>
     if (status === 'planned') {
       actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); updateMissionStatus('${mission.id}', 'in_progress')" style="margin-right:6px;"><i class="fas fa-play"></i> Démarrer</button>`;
     }
-    if (status !== 'completed' && status !== 'cancelled') {
+    if (status !== 'completed' && status !== 'cancelled' && status !== 'archived') {
       actionsHtml += `<button class="btn-sm btn-sm-green" onclick="Swal.close(); updateMissionStatus('${mission.id}', 'completed')" style="margin-right:6px;"><i class="fas fa-check"></i> Terminer</button>`;
       actionsHtml += `<button class="btn-sm btn-sm-red" onclick="Swal.close(); updateMissionStatus('${mission.id}', 'cancelled')" style="margin-right:6px;"><i class="fas fa-times"></i> Annuler</button>`;
+    }
+    if (status === 'completed' || status === 'cancelled') {
+      actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); archiveMission('${mission.id}', true)" style="margin-right:6px;"><i class="fas fa-archive"></i> Archiver</button>`;
+    }
+    if (status === 'archived') {
+      actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); archiveMission('${mission.id}', false)" style="margin-right:6px;"><i class="fas fa-box-open"></i> Désarchiver</button>`;
     }
     if (payStatus !== 'paye' && payStatus !== 'paid') {
       actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); markMissionPaid('${mission.id}', '${mission.reference || ''}')" style="margin-right:6px;"><i class="fas fa-euro-sign"></i> Marquer payée</button>`;
@@ -3444,6 +3821,17 @@ Cadeau premium personnalisé</textarea></div>
   };
 
   window.updateMissionStatus = async function(missionId, newStatus) {
+    if (newStatus === 'completed') {
+      const mission = _allMissions.find(m => m.id === missionId);
+      if (mission && (mission.paiement_statut !== 'paid' && mission.paiement_statut !== 'paye')) {
+        return Swal.fire({
+          title: 'Paiement requis',
+          text: 'Impossible de terminer la mission : le paiement client n\'est pas validé. Marquez d\'abord la mission comme payée.',
+          icon: 'warning',
+          confirmButtonColor: 'var(--bordeaux)'
+        });
+      }
+    }
     const confirm = await Swal.fire({
       title: `Passer en statut "${newStatus}" ?`,
       showCancelButton: true,
@@ -3454,6 +3842,20 @@ Cadeau premium personnalisé</textarea></div>
     const { error } = await sb.from('missions').update({ status: newStatus }).eq('id', missionId);
     if (error) Swal.fire('Erreur', error.message, 'error');
     else { Swal.fire('Statut mis à jour', '', 'success'); loadMissions(); }
+  };
+
+  window.archiveMission = async function(missionId, archive) {
+    const confirm = await Swal.fire({
+      title: archive ? 'Archiver cette mission ?' : 'Désarchiver cette mission ?',
+      text: archive ? 'La mission sera masquée de la liste principale.' : 'La mission réapparaîtra dans la liste principale.',
+      showCancelButton: true,
+      confirmButtonText: 'Confirmer'
+    });
+    if (!confirm.isConfirmed) return;
+    const sb = getSupabase();
+    const { error } = await sb.from('missions').update({ status: archive ? 'archived' : 'completed' }).eq('id', missionId);
+    if (error) Swal.fire('Erreur', error.message, 'error');
+    else { Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: archive ? 'Mission archivée' : 'Mission désarchivée', timer: 3000 }); loadMissions(); }
   };
 
   window.markMissionPaid = async function(missionId, reference) {
@@ -3916,12 +4318,44 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
 
     // Refresh candidatures
     document.getElementById('refreshCandidaturesBtn')?.addEventListener('click', loadCandidatures);
+    document.getElementById('refreshFormationCandidaturesBtn')?.addEventListener('click', loadFormationCandidatures);
+
+    document.getElementById('formationCandidaturesFilter')?.addEventListener('change', function() {
+      const filter = this.value;
+      if (filter === 'all') renderFormationCandidaturesList(_allFormationCandidatures);
+      else renderFormationCandidaturesList(_allFormationCandidatures.filter(c => c.statut === filter));
+    });
 
     // Candidatures filter
     document.getElementById('candidaturesFilter')?.addEventListener('change', function() {
       const filter = this.value;
       if (filter === 'all') renderCandidaturesList(_allCandidatures);
       else renderCandidaturesList(_allCandidatures.filter(c => c.status === filter));
+    });
+
+    // Mission filters
+    function applyMissionFilters() {
+      const statusFilter = document.getElementById('filter-status')?.value || '';
+      const modeFilter = document.getElementById('filter-mode')?.value || '';
+      const searchQuery = (document.getElementById('filter-search')?.value || '').toLowerCase().trim();
+      let filtered = _allMissions;
+      if (statusFilter) filtered = filtered.filter(m => (m.status || 'planned') === statusFilter);
+      else filtered = filtered.filter(m => m.status !== 'archived');
+      if (modeFilter) filtered = filtered.filter(m => (m.mode || 'route') === modeFilter);
+      if (searchQuery) filtered = filtered.filter(m => {
+        const haystack = `${m.reference || ''} ${m.client_nom || ''} ${m.convoyeur_nom || ''} ${m.depart || ''} ${m.arrivee || ''}`.toLowerCase();
+        return haystack.includes(searchQuery);
+      });
+      renderMissionsTable(filtered);
+    }
+    document.getElementById('filter-status')?.addEventListener('change', applyMissionFilters);
+    document.getElementById('filter-mode')?.addEventListener('change', applyMissionFilters);
+    document.getElementById('filter-search')?.addEventListener('input', applyMissionFilters);
+    document.getElementById('resetFiltersBtn')?.addEventListener('click', function() {
+      document.getElementById('filter-status').value = '';
+      document.getElementById('filter-mode').value = '';
+      document.getElementById('filter-search').value = '';
+      renderMissionsTable(_allMissions);
     });
 
     // Mobile menu
@@ -3976,8 +4410,10 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
   };
 
   window.filterFactures = function(type) {
-    console.log(`Filtrage des factures par : ${type}`);
-    Swal.fire('Filtre', `Affichage des factures ${type}`, 'info');
+    _currentInvoiceFilter = type;
+    renderInvoicesTable(_allMissions);
+    const labels = { all: 'toutes', paid: 'payées', pending: 'en attente' };
+    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: `Factures ${labels[type] || type}`, timer: 1500 });
   };
 
   window.toggleComments = function(btn) {
