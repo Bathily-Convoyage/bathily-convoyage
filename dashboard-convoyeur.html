@@ -1010,6 +1010,9 @@
           <div class="f-grp"><label>Téléphone</label><input type="tel" id="convProfilTel"></div>
           <div class="f-grp"><label>Zone d'intervention</label><input type="text" id="convProfilZone"></div>
           <div class="f-grp"><label>Niveau</label><select id="convProfilNiveau"><option value="Standard">Standard</option><option value="Senior">Senior</option></select></div>
+          <div class="f-grp" style="grid-column:span 2;"><label>Adresse <span style="color:#e74c3c">*</span></label><input type="text" id="convProfilAdresse" placeholder="N° et rue" required></div>
+          <div class="f-grp"><label>Code Postal <span style="color:#e74c3c">*</span></label><input type="text" id="convProfilCp" required></div>
+          <div class="f-grp"><label>Ville <span style="color:#e74c3c">*</span></label><input type="text" id="convProfilVille" required></div>
           <div class="f-grp" style="grid-column:span 2;">
             <label>Documents (permis, carte pro, etc.)</label>
             <input type="file" id="convUploadDoc" accept=".pdf,.jpg,.jpeg,.png">
@@ -1389,6 +1392,9 @@
         document.getElementById('convProfilTel').value = user.telephone || '';
         document.getElementById('convProfilZone').value = user.zone || 'Nationale';
         document.getElementById('convProfilNiveau').value = user.niveau || 'Standard';
+        document.getElementById('convProfilAdresse').value = user.adresse || '';
+        document.getElementById('convProfilCp').value = user.code_postal || '';
+        document.getElementById('convProfilVille').value = user.ville || '';
         const isDispo = user.disponible !== false;
         document.getElementById('convDispoStatus').textContent = isDispo ? '✅ Disponible' : '❌ Indisponible';
         document.getElementById('convDispoStatus').style.background = isDispo ? 'rgba(74,124,107,0.15)' : 'rgba(224,163,67,0.15)';
@@ -1656,6 +1662,11 @@
       const nom = document.getElementById('convProfilNom').value.trim();
       if (!prenom || !nom) return Swal.fire('Champs requis', 'Prénom et nom obligatoires.', 'warning');
 
+      const adresse = document.getElementById('convProfilAdresse').value.trim();
+      const codePostal = document.getElementById('convProfilCp').value.trim();
+      const ville = document.getElementById('convProfilVille').value.trim();
+      if (!adresse || !codePostal || !ville) return Swal.fire('Champs requis', 'Adresse, code postal et ville sont obligatoires.', 'warning');
+
       Swal.fire({ title: 'Mise à jour...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
       const client = getSBC();
 
@@ -1669,6 +1680,9 @@
         telephone: document.getElementById('convProfilTel').value.trim(),
         zone: document.getElementById('convProfilZone').value.trim() || 'Nationale',
         niveau: document.getElementById('convProfilNiveau').value,
+        adresse,
+        code_postal: codePostal,
+        ville,
         documents: docs
       }).eq('id', _convoyeurUser.id).select().single();
 

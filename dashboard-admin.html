@@ -1908,7 +1908,7 @@ Cadeau premium personnalisé</textarea></div>
 
   <!-- MODAL CONVOYEUR -->
   <div class="modal-overlay" id="modalConvoyeur">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width:600px;">
       <button class="modal-close" onclick="closeModal('modalConvoyeur')"><i class="fas fa-times"></i></button>
       <h3 class="modal-h">Nouveau <em>convoyeur</em></h3>
       <div class="f-row">
@@ -1928,6 +1928,48 @@ Cadeau premium personnalisé</textarea></div>
       <div class="modal-btns">
         <button class="btn-red" id="addConvoyeurSubmitBtn"><i class="fas fa-save"></i> Enregistrer</button>
         <button class="btn-outline" onclick="closeModal('modalConvoyeur')">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONVOYEUR EDIT -->
+  <div class="modal-overlay" id="modalConvoyeurEdit">
+    <div class="modal-box" style="max-width:600px;">
+      <button class="modal-close" onclick="closeModal('modalConvoyeurEdit')"><i class="fas fa-times"></i></button>
+      <h3 class="modal-h" id="modalConvoyeurEditTitle">Modifier <em>convoyeur</em></h3>
+      <input type="hidden" id="conv-edit-id">
+      <div class="f-row">
+        <div class="f-grp"><label>Prénom</label><input type="text" id="convEditPrenom"></div>
+        <div class="f-grp"><label>Nom</label><input type="text" id="convEditNom"></div>
+      </div>
+      <div class="f-row">
+        <div class="f-grp"><label>Email</label><input type="email" id="convEditEmail" disabled style="opacity:0.7;cursor:not-allowed;"></div>
+        <div class="f-grp"><label>Téléphone</label><input type="tel" id="convEditTel"></div>
+      </div>
+      <div style="border-top:1px solid var(--border-light); margin:15px 0; padding-top:10px;"><strong style="font-size:0.7rem; color:var(--bordeaux); text-transform:uppercase;">Permis & Conduite</strong></div>
+      <div class="f-row">
+        <div class="f-grp"><label>Type de permis</label><input type="text" id="convEditPermis" placeholder="B, A, BE..."></div>
+        <div class="f-grp"><label>Année d'obtention</label><input type="text" id="convEditAnneePermis" placeholder="2015"></div>
+      </div>
+      <div class="f-row">
+        <div class="f-grp"><label>Taux auto (€/km)</label><input type="number" id="convEditTauxAuto" step="0.01"></div>
+        <div class="f-grp"><label>Taux moto (€/km)</label><input type="number" id="convEditTauxMoto" step="0.01"></div>
+      </div>
+      <div style="border-top:1px solid var(--border-light); margin:15px 0; padding-top:10px;"><strong style="font-size:0.7rem; color:var(--bordeaux); text-transform:uppercase;">Adresse & Zone</strong></div>
+      <div class="f-grp"><label>Adresse <span style="color:#e74c3c">*</span></label><input type="text" id="convEditAdresse" placeholder="N° et rue" required></div>
+      <div class="f-row">
+        <div class="f-grp"><label>Code Postal <span style="color:#e74c3c">*</span></label><input type="text" id="convEditCp" required></div>
+        <div class="f-grp"><label>Ville <span style="color:#e74c3c">*</span></label><input type="text" id="convEditVille" required></div>
+      </div>
+      <div class="f-row">
+        <div class="f-grp"><label>Zone d'intervention</label><input type="text" id="convEditZone" placeholder="IDF, Rhône-Alpes…"></div>
+        <div class="f-grp"><label>Niveau</label><select id="convEditNiveau"><option value="Standard">Standard</option><option value="Senior">Senior</option></select></div>
+      </div>
+      <div class="f-grp"><label>Notes internes (visibles uniquement par l'admin)</label><textarea id="convEditNotes" rows="2" placeholder="Remarques particulières, convoyeur VIP, etc..."></textarea></div>
+      <div class="modal-btns" style="display:flex; align-items:center; gap:10px;">
+        <button class="btn-red" id="saveConvoyeurEditBtn"><i class="fas fa-save"></i> Enregistrer</button>
+        <button class="btn-outline" onclick="closeModal('modalConvoyeurEdit')">Annuler</button>
+        <button class="btn-sm btn-sm-ghost" id="deleteConvoyeurModalBtn" style="color:#e74c3c; border-color:#e74c3c; display:none; margin-left:auto;" title="Supprimer"><i class="fas fa-trash"></i> Supprimer ce convoyeur</button>
       </div>
     </div>
   </div>
@@ -2091,6 +2133,10 @@ Cadeau premium personnalisé</textarea></div>
     if (el) el.classList.remove('open');
     if (id === 'modalClient') {
       const delBtn = document.getElementById('deleteClientModalBtn');
+      if (delBtn) delBtn.style.display = 'none';
+    }
+    if (id === 'modalConvoyeurEdit') {
+      const delBtn = document.getElementById('deleteConvoyeurModalBtn');
       if (delBtn) delBtn.style.display = 'none';
     }
   }
@@ -2908,24 +2954,85 @@ Cadeau premium personnalisé</textarea></div>
   async function editConvoyeur(id) {
     const c = _convoyeursList.find(x => x.id === id);
     if (!c) return;
-    const { value: form } = await Swal.fire({
-      title: `Modifier ${c.prenom} ${c.nom}`,
-      html: `<div style="text-align:left"><div><label>Prénom</label><input id="ec-prenom" class="swal2-input" value="${c.prenom || ''}"></div><div><label>Nom</label><input id="ec-nom" class="swal2-input" value="${c.nom || ''}"></div><div><label>Taux auto (€/km)</label><input id="ec-auto" type="number" step="0.01" class="swal2-input" value="${c.taux_auto || 0.47}"></div><div><label>Taux moto (€/km)</label><input id="ec-moto" type="number" step="0.01" class="swal2-input" value="${c.taux_moto || 0.40}"></div><div><label>Zone</label><input id="ec-zone" class="swal2-input" value="${c.zone || ''}"></div><div><label>Niveau</label><select id="ec-niveau" class="swal2-input"><option value="Standard" ${c.niveau === 'Standard' ? 'selected' : ''}>Standard</option><option value="Senior" ${c.niveau === 'Senior' ? 'selected' : ''}>Senior</option></select></div></div>`,
-      showCancelButton: true, confirmButtonText: 'Sauvegarder', preConfirm: () => ({
-        prenom: document.getElementById('ec-prenom').value.trim(),
-        nom: document.getElementById('ec-nom').value.trim(),
-        taux_auto: parseFloat(document.getElementById('ec-auto').value) || 0.47,
-        taux_moto: parseFloat(document.getElementById('ec-moto').value) || 0.40,
-        zone: document.getElementById('ec-zone').value.trim(),
-        niveau: document.getElementById('ec-niveau').value
-      })
-    });
-    if (!form) return;
-    const sb = getSupabase();
-    const { error } = await sb.from('convoyeurs').update(form).eq('id', id);
-    if (error) Swal.fire('Erreur', error.message, 'error');
-    else { Swal.fire({ toast: true, icon: 'success', title: 'Mis à jour', timer: 2000 }); loadConvoyeurs(); }
+    document.getElementById('modalConvoyeurEditTitle').innerHTML = `Modifier <em>convoyeur</em>`;
+    document.getElementById('conv-edit-id').value = id;
+    document.getElementById('convEditPrenom').value = c.prenom || '';
+    document.getElementById('convEditNom').value = c.nom || '';
+    document.getElementById('convEditEmail').value = c.email || '';
+    document.getElementById('convEditTel').value = c.telephone || '';
+    document.getElementById('convEditPermis').value = c.type_permis || '';
+    document.getElementById('convEditAnneePermis').value = c.annee_permis || '';
+    document.getElementById('convEditTauxAuto').value = c.taux_auto || 0.47;
+    document.getElementById('convEditTauxMoto').value = c.taux_moto || 0.40;
+    document.getElementById('convEditAdresse').value = c.adresse || '';
+    document.getElementById('convEditCp').value = c.code_postal || '';
+    document.getElementById('convEditVille').value = c.ville || '';
+    document.getElementById('convEditZone').value = c.zone || '';
+    document.getElementById('convEditNiveau').value = c.niveau || 'Standard';
+    document.getElementById('convEditNotes').value = c.notes_admin || '';
+
+    const delBtn = document.getElementById('deleteConvoyeurModalBtn');
+    if (delBtn) {
+      delBtn.style.display = 'inline-flex';
+      delBtn.onclick = function() {
+        closeModal('modalConvoyeurEdit');
+        adminDeleteUser(id, 'convoyeurs');
+      };
+    }
+
+    openModal('modalConvoyeurEdit');
   }
+
+  window.saveConvoyeurEdit = async function() {
+    const id = document.getElementById('conv-edit-id').value;
+    if (!id) return;
+
+    const payload = {
+      prenom: document.getElementById('convEditPrenom').value.trim(),
+      nom: document.getElementById('convEditNom').value.trim(),
+      telephone: document.getElementById('convEditTel').value.trim(),
+      type_permis: document.getElementById('convEditPermis').value.trim(),
+      annee_permis: document.getElementById('convEditAnneePermis').value.trim(),
+      taux_auto: parseFloat(document.getElementById('convEditTauxAuto').value) || 0.47,
+      taux_moto: parseFloat(document.getElementById('convEditTauxMoto').value) || 0.40,
+      adresse: document.getElementById('convEditAdresse').value.trim(),
+      code_postal: document.getElementById('convEditCp').value.trim(),
+      ville: document.getElementById('convEditVille').value.trim(),
+      zone: document.getElementById('convEditZone').value.trim(),
+      niveau: document.getElementById('convEditNiveau').value,
+      notes_admin: document.getElementById('convEditNotes').value.trim()
+    };
+
+    if (!payload.prenom || !payload.nom) {
+      Swal.fire('Champs requis', 'Prénom et nom sont obligatoires.', 'warning');
+      return;
+    }
+
+    if (!payload.adresse || !payload.code_postal || !payload.ville) {
+      Swal.fire('Champs requis', 'Adresse, code postal et ville sont obligatoires.', 'warning');
+      return;
+    }
+
+    Swal.fire({ title: 'Enregistrement...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    const sb = getSupabase();
+    if (!sb) return;
+
+    let { error } = await sb.from('convoyeurs').update(payload).eq('id', id);
+
+    if (error && error.message && error.message.includes('Could not find the')) {
+      const missingCol = error.message.match(/'(\w+)'/);
+      if (missingCol) {
+        delete payload[missingCol[1]];
+        const { error: err2 } = await sb.from('convoyeurs').update(payload).eq('id', id);
+        error = err2;
+      }
+    }
+
+    if (error) { Swal.fire('Erreur', error.message, 'error'); return; }
+    closeModal('modalConvoyeurEdit');
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convoyeur mis à jour !', timer: 2000 });
+    loadConvoyeurs();
+  };
 
   // MISSIONS
   async function loadMissions() {
@@ -3269,7 +3376,7 @@ Cadeau premium personnalisé</textarea></div>
         <td>${d.total_ht ? parseFloat(d.total_ht).toFixed(2) + ' €' : '—'}</td>
         <td>${dateStr}</td>
         <td class="td-actions">
-          ${d.status === 'pending' ? `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation(); updateDevisStatus('${d.id}', 'accepted')"><i class="fas fa-check"></i></button><button class="btn-sm btn-sm-red" onclick="event.stopPropagation(); updateDevisStatus('${d.id}', 'rejected')"><i class="fas fa-times"></i></button>` : `<span class="sp sp-ok"><span class="sp-dot"></span>${d.status === 'accepted' ? 'Accepté' : 'Refusé'}</span>`}
+          ${d.status === 'pending' ? `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation(); updateDevisStatus('${d.id}', 'accepted')"><i class="fas fa-check"></i></button><button class="btn-sm btn-sm-red" onclick="event.stopPropagation(); updateDevisStatus('${d.id}', 'rejected')"><i class="fas fa-times"></i></button><button class="btn-sm btn-sm-red" onclick="event.stopPropagation(); deleteDevis('${d.id}', '${d.reference || ''}')" title="Supprimer"><i class="fas fa-trash"></i></button>` : `<span class="sp sp-ok"><span class="sp-dot"></span>${d.status === 'accepted' ? 'Accepté' : 'Refusé'}</span><button class="btn-sm btn-sm-red" onclick="event.stopPropagation(); deleteDevis('${d.id}', '${d.reference || ''}')" title="Supprimer" style="margin-left:6px;"><i class="fas fa-trash"></i></button>`}
         </td>
       </tr>`;
     }).join('');
@@ -3289,9 +3396,10 @@ Cadeau premium personnalisé</textarea></div>
       actionsHtml = `
         <button class="btn-sm btn-sm-green" onclick="Swal.close(); updateDevisStatus('${devis.id}', 'accepted')" style="margin-right:6px;"><i class="fas fa-check"></i> Accepter (créer mission)</button>
         <button class="btn-sm btn-sm-red" onclick="Swal.close(); updateDevisStatus('${devis.id}', 'rejected')" style="margin-right:6px;"><i class="fas fa-times"></i> Refuser</button>
+        <button class="btn-sm btn-sm-red" onclick="Swal.close(); deleteDevis('${devis.id}', '${devis.reference || ''}')"><i class="fas fa-trash"></i> Supprimer</button>
       `;
     } else {
-      actionsHtml = `<span style="color:#888;font-size:0.85rem;">Devis ${devis.status === 'accepted' ? 'accepté' : 'refusé'} — aucune action possible.</span>`;
+      actionsHtml = `<span style="color:#888;font-size:0.85rem;">Devis ${devis.status === 'accepted' ? 'accepté' : 'refusé'}.</span><button class="btn-sm btn-sm-red" onclick="Swal.close(); deleteDevis('${devis.id}', '${devis.reference || ''}')" style="margin-left:6px;"><i class="fas fa-trash"></i> Supprimer</button>`;
     }
 
     const details = devis.details || {};
@@ -3405,6 +3513,29 @@ Cadeau premium personnalisé</textarea></div>
       else Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Devis refusé', timer: 2000 });
     }
     loadDevis();
+  };
+
+  window.deleteDevis = async function(devisId, reference) {
+    const confirm = await Swal.fire({
+      title: `Supprimer le devis ${reference} ?`,
+      text: "Cette action est définitive.",
+      icon: 'error',
+      showCancelButton: true,
+      confirmButtonText: 'Supprimer',
+      cancelButtonText: 'Annuler'
+    });
+    if (!confirm.isConfirmed) return;
+
+    Swal.fire({ title: 'Suppression...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    const sb = getSupabase();
+    const { error } = await sb.from('devis').delete().eq('id', devisId);
+
+    if (error) {
+      Swal.fire('Erreur', error.message, 'error');
+    } else {
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Devis supprimé', timer: 2000 });
+      loadDevis();
+    }
   };
 
   // CANDIDATURES
@@ -4289,6 +4420,9 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
 
     // Submit convoyeur
     document.getElementById('addConvoyeurSubmitBtn')?.addEventListener('click', addConvoyeurDB);
+
+    // Save convoyeur edit
+    document.getElementById('saveConvoyeurEditBtn')?.addEventListener('click', window.saveConvoyeurEdit);
 
     // Create mission button
     document.getElementById('createMissionBtn')?.addEventListener('click', function() {
