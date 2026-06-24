@@ -1473,19 +1473,66 @@
         return;
       }
 
-      // 3. Auth réussie : récupérer ou créer le profil client
+      // 3. Auth réussie : vérifier que le profil client existe
       let { data: profile } = await client.from('clients').select('*').eq('email', email).maybeSingle();
       if (!profile) {
-        // Créer le profil si inexistant
-        const { data: newProfile } = await client.from('clients').insert([{
-          email,
-          prenom: authData.user.user_metadata?.prenom || 'Client',
-          nom: authData.user.user_metadata?.nom || '',
-          role: 'client',
-          auth_user_id: authData.user.id
-        }]).select().single();
-        profile = newProfile;
-      } else if (!profile.auth_user_id) {
+        // Le profil n'existe pas : refuser la connexion + proposer contact support
+        Swal.fire({
+          title: 'Accès refusé',
+          text: 'Aucun profil client associé à ce compte. Souhaitez-vous envoyer une demande à l\'administrateur ?',
+          icon: 'error',
+          showCancelButton: true,
+          confirmButtonText: 'Contacter le support',
+          cancelButtonText: 'Fermer'
+        }).then(async res => {
+          if (res.isConfirmed) {
+            const { value: formValues } = await Swal.fire({
+              title: 'Demande au support',
+              html: `<div style="text-align:left;">
+                <div class="f-grp" style="margin-bottom:10px;"><label>Votre email</label><input type="email" id="supportEmail" class="swal2-input" value="${email}" style="width:100%"></div>
+                <div class="f-grp" style="margin-bottom:10px;"><label>Votre message</label><textarea id="supportMsg" class="swal2-textarea" placeholder="Expliquez votre situation..." style="width:100%;height:80px;"></textarea></div>
+              </div>`,
+              showCancelButton: true,
+              confirmButtonText: 'Envoyer',
+              preConfirm: () => {
+                const supportEmail = document.getElementById('supportEmail').value.trim();
+                const supportMsg = document.getElementById('supportMsg').value.trim();
+                if (!supportEmail || !supportMsg) {
+                  Swal.showValidationMessage('Email et message requis');
+                  return false;
+                }
+                return { email: supportEmail, message: supportMsg };
+              }
+            });
+            if (formValues) {
+              try {
+                await client.from('support_tickets').insert([{
+                  email: formValues.email,
+                  sujet: 'Connexion refusée - profil introuvable',
+                  message: formValues.message,
+                  statut: 'open'
+                }]);
+                Swal.fire('Envoyé !', 'Votre demande a été transmise à l\'administrateur. Vous serez contacté rapidement.', 'success');
+              } catch (err) {
+                Swal.fire('Erreur', 'Impossible d\'envoyer la demande: ' + err.message, 'error');
+              }
+            }
+          }
+          await client.auth.signOut();
+        });
+        return;
+      }
+      if (profile.role === 'admin') {
+        await client.auth.signOut();
+        Swal.fire({
+          title: 'Accès refusé',
+          text: 'Ce compte est un administrateur. Connectez-vous via le dashboard admin.',
+          icon: 'warning',
+          confirmButtonText: 'Compris'
+        });
+        return;
+      }
+      if (!profile.auth_user_id) {
         // Mettre à jour auth_user_id si absent (ancien compte migré)
         await client.from('clients').update({ auth_user_id: authData.user.id }).eq('id', profile.id);
         profile.auth_user_id = authData.user.id;
@@ -2236,10 +2283,22 @@
               document.getElementById('clientLoginOverlay').style.display = 'flex';
             }
           } else {
-            _clientUser = user;
-            _clientName = `${user.prenom||''} ${user.nom||''}`.trim();
-            document.getElementById('clientLoginOverlay').style.display = 'none';
-            loadClientData(user);
+            // Vérifier que le profil existe toujours en DB
+            const sb2 = getSBCli();
+            const { data: stillExists } = await sb2.from('clients').select('id, role').eq('email', user.email).maybeSingle();
+            if (!stillExists || stillExists.role === 'admin') {
+              sessionStorage.removeItem('client_user');
+              sessionStorage.removeItem('client_name');
+              await sb2.auth.signOut().catch(() => {});
+              if (document.getElementById('clientLoginOverlay')) {
+                document.getElementById('clientLoginOverlay').style.display = 'flex';
+              }
+            } else {
+              _clientUser = user;
+              _clientName = `${user.prenom||''} ${user.nom||''}`.trim();
+              document.getElementById('clientLoginOverlay').style.display = 'none';
+              loadClientData(user);
+            }
           }
         } catch (e) {
           console.warn('Session invalide', e);
