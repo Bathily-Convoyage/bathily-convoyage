@@ -1760,14 +1760,19 @@
     function renderClientInvoices(missions) {
       const container = document.getElementById('clientFactList');
       if (!container) return;
+      const isPro = _clientUser?.is_pro === true;
+      const priceLabel = isPro ? 'HT' : 'TTC';
       const billing = missions.filter(m => m.montant_ht);
       if (billing.length === 0) {
         container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-file-invoice" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune facture.</div>';
-        document.getElementById('factTotalHt').textContent = '0€ HT';
+        document.getElementById('factTotalHt').textContent = '0€ ' + priceLabel;
         return;
       }
-      const total = billing.reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0);
-      document.getElementById('factTotalHt').textContent = total + '€ HT';
+      const total = billing.reduce((s, m) => {
+        const ht = parseFloat(m.montant_ht || 0);
+        return s + (isPro ? ht : ht * 1.20);
+      }, 0);
+      document.getElementById('factTotalHt').textContent = Math.round(total) + '€ ' + priceLabel;
 
       const unpaid = billing.filter(m => (m.paiement_statut || 'pending') !== 'paid' && m.status !== 'available' && m.status !== 'cancelled').length;
       const badge = document.getElementById('cliNotifBadge');
@@ -1782,10 +1787,12 @@
         const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-','') : m.id.slice(0,8).toUpperCase()}`;
         const dep = (m.depart || '').split('(')[0].trim() || '-';
         const arr = (m.arrivee || '').split('(')[0].trim() || '-';
+        const ht = parseFloat(m.montant_ht || 0);
+        const displayPrice = isPro ? ht : Math.round(ht * 1.20);
         return `<div class="fact-item">
           <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
           <div style="flex:1;"><div class="fact-ref">${invoiceRef}</div><div class="fact-date">${dateStr} - ${dep} → ${arr}</div></div>
-          <div class="fact-montant" style="margin-left:20px;font-weight:600;">${m.montant_ht}€</div>
+          <div class="fact-montant" style="margin-left:20px;font-weight:600;">${displayPrice}€ ${priceLabel}</div>
           <div class="fact-status" style="margin-left:20px;"><span class="td-status ${statusClass}">${statusLabel}</span></div>
           <button class="btn-sm btn-sm-ghost" style="margin-left:20px;" onclick="downloadClientInvoicePdf('${m.id}')"><i class="fas fa-download"></i> PDF</button>
         </div>`;

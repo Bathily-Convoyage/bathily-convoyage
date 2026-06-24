@@ -175,6 +175,9 @@ Corps: ${html.substring(0, 300)}...`);
 
       const details = devis.details || {};
       const devisURL = `https://bathily-convoyage.fr/dashboard-client.html`;
+      const isPro = details.is_pro === true;
+      const priceLabel = isPro ? 'HT' : 'TTC';
+      const displayAmount = isPro ? devis.total_ht : (details.total_ttc || Math.round(devis.total_ht * 1.20));
 
       const clientHtml = wrapEmailLayout(
         "Votre demande de devis est bien reçue !",
@@ -182,7 +185,7 @@ Corps: ${html.substring(0, 300)}...`);
          <p>Nous vous remercions pour votre demande de devis sur notre plateforme. Un conseiller étudie votre dossier. Vous recevrez une proposition de prix définitive sous 2h.</p>
          <div class="highlight-box">
            <strong>Référence du devis :</strong> ${devis.reference}<br>
-           <strong>Montant estimatif :</strong> ${devis.total_ht} € HT
+           <strong>Montant estimatif :</strong> ${displayAmount} € ${priceLabel}
          </div>
          <h3>Récapitulatif de votre demande :</h3>
          <ul class="meta-list">

@@ -920,6 +920,17 @@
       }
     }
 
+    // ========== MODE PRO (tarifs HT) ==========
+    const _isProMode = new URLSearchParams(window.location.search).get('pro') === '1';
+    const _priceSuffix = _isProMode ? 'HT' : 'TTC';
+    if (_isProMode) {
+      document.title = 'Devis Pro - Bathily-Convoyage';
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#0A4D68;color:white;text-align:center;padding:8px;font-size:0.8rem;font-weight:600;';
+      banner.innerHTML = '<i class="fas fa-briefcase"></i> Espace Pro — Tarifs HT réservés aux professionnels';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+
     // ========== CALCUL DU PRIX (avec distance réelle) ==========
     let priceDebounce = null;
 
@@ -936,7 +947,7 @@
       const distanceDisplay = document.getElementById('distanceDisplay');
 
       if (!depart || !arrivee) {
-        priceDisplay.innerHTML = '— <span>€ HT</span>';
+        priceDisplay.innerHTML = `— <span>€ ${_priceSuffix}</span>`;
         distanceDisplay.textContent = '';
         _currentDistance = 0;
         _currentPrice = 0;
@@ -944,7 +955,7 @@
       }
 
       // Afficher "Calcul en cours..."
-      priceDisplay.innerHTML = '... <span>€ HT</span>';
+      priceDisplay.innerHTML = `... <span>€ ${_priceSuffix}</span>`;
       distanceDisplay.textContent = '🔄 Calcul...';
 
       // Calculer la distance
@@ -952,34 +963,40 @@
       _currentDistance = dist;
 
       if (dist === 0) {
-        priceDisplay.innerHTML = '— <span>€ HT</span>';
+        priceDisplay.innerHTML = `— <span>€ ${_priceSuffix}</span>`;
         distanceDisplay.textContent = '⚠️ Distance non calculable';
         _currentPrice = 0;
         return;
       }
 
-      // Tarifs
-      const baseRates = {
-        'Automobile': { route: 1.00, plateau: 1.40 },
-        'Moto': { route: 0.85, plateau: 1.20 }
+      // Tarifs — Public TTC / Pro HT
+      const baseRates = _isProMode ? {
+        'Automobile': { route: 1.00, plateau: 0.67 },
+        'Moto': { route: 0.77, plateau: 0.67 }
+      } : {
+        'Automobile': { route: 1.20, plateau: 0.80 },
+        'Moto': { route: 1.00, plateau: 0.80 }
       };
-      const rate = baseRates[type]?.[mode] || 1.00;
+      const rate = baseRates[type]?.[mode] || 1.20;
 
       let basePrice = Math.round(dist * rate);
       if (mode === 'plateau') {
-        basePrice += (type === 'Moto' ? 300 : 350);
+        const minPlateau = _isProMode ? 292 : 350;
+        if (basePrice < minPlateau) basePrice = minPlateau;
       } else {
-        const min = type === 'Moto' ? 100 : 120;
+        const min = _isProMode ? (type === 'Moto' ? 100 : 125) : (type === 'Moto' ? 120 : 150);
         if (basePrice < min) basePrice = min;
       }
 
       // Pack
-      const packPrices = { starter: 0, serenite: 49, excellence: 129 };
+      const packPrices = _isProMode
+        ? { starter: 0, serenite: 35, excellence: 99 }
+        : { starter: 0, serenite: 49, excellence: 129 };
       let total = basePrice + (packPrices[pack] || 0);
 
       // Options
-      if (isUrgence) total = Math.round(total * 1.3);
-      if (isGardiennage) total += 100;
+      if (isUrgence) total = Math.round(total * (_isProMode ? 1.25 : 1.30));
+      if (isGardiennage) total += _isProMode ? 20 : 30;
 
       // Promo Code
       const promoInput = document.getElementById('promoCodeInput') ? document.getElementById('promoCodeInput').value.trim().toUpperCase() : '';
@@ -1006,7 +1023,7 @@
 
       _currentPrice = total;
 
-      priceDisplay.innerHTML = `${total} <span>€ HT</span>${discount > 0 ? `<br><span style="font-size:0.75rem; color:var(--success); font-weight:600;">Remise de ${discount}€ appliquée</span>` : ''}`;
+      priceDisplay.innerHTML = `${total} <span>€ ${_priceSuffix}</span>${discount > 0 ? `<br><span style="font-size:0.75rem; color:var(--success); font-weight:600;">Remise de ${discount}€ appliquée</span>` : ''}`;
       distanceDisplay.textContent = `📏 ${dist} km`;
     }
 
@@ -1068,11 +1085,16 @@
       const vehiculeManuel = document.getElementById('vehiculeManuel').value.trim();
       const promoCode = document.getElementById('promoCodeInput').value.trim().toUpperCase();
 
-      const totalHt = _currentPrice || 0;
-      if (totalHt === 0) {
+      const totalDisplayed = _currentPrice || 0;
+      if (totalDisplayed === 0) {
         Swal.fire('Erreur', 'Veuillez renseigner le trajet pour obtenir une estimation.', 'warning');
         return;
       }
+
+      // En mode pro, le prix affiché est HT. En mode public, le prix affiché est TTC.
+      // On stocke toujours le HT en base pour la compta.
+      const totalHt = _isProMode ? totalDisplayed : Math.round(totalDisplayed / 1.20);
+      const totalTtc = _isProMode ? Math.round(totalDisplayed * 1.20) : totalDisplayed;
 
       const ref = 'BC-DEV-' + Math.floor(1000 + Math.random() * 9000);
 
@@ -1099,7 +1121,9 @@
           distance: _currentDistance || null,
           opts: { urgence: isUrgence, gardiennage: isGardiennage },
           message: message || '',
-          promo_code: promoCode || null
+          promo_code: promoCode || null,
+          is_pro: _isProMode,
+          total_ttc: totalTtc
         },
         status: 'pending'
       };
@@ -1133,8 +1157,11 @@
             nom: nom,
             depart: depart,
             arrivee: arrivee,
-            total: totalHt,
-            distance: _currentDistance || 0
+            total: totalDisplayed,
+            total_ht: totalHt,
+            total_ttc: totalTtc,
+            is_pro: _isProMode,
+            distance: _currentDistance || 0,
           })
         });
       } catch (e) { console.warn('Email notification error:', e); }
@@ -1146,13 +1173,13 @@
 
       Swal.fire({
         title: 'Devis envoyé ! ⭐',
-        html: `Votre devis <strong>${ref}</strong> a bien été enregistré.<br><br>Distance estimée : <strong>${_currentDistance || '?'} km</strong><br>Montant estimé : <strong>${totalHt} € HT</strong><br><br>Nous vous répondrons sous 24h ouvrées.<br><br><small>Un email de confirmation vous a été envoyé.</small>`,
+        html: `Votre devis <strong>${ref}</strong> a bien été enregistré.<br><br>Distance estimée : <strong>${_currentDistance || '?'} km</strong><br>Montant estimé : <strong>${totalDisplayed} € ${_priceSuffix}</strong>${_isProMode ? '' : '<br><small>Soit ' + totalHt + ' € HT + TVA 20%</small>'}<br><br>Nous vous répondrons sous 24h ouvrées.<br><br><small>Un email de confirmation vous a été envoyé.</small>`,
         icon: 'success',
         confirmButtonColor: 'var(--bordeaux)',
         confirmButtonText: 'OK'
       }).then(() => {
         document.getElementById('devisForm').reset();
-        document.getElementById('priceDisplay').innerHTML = '— <span>€ HT</span>';
+        document.getElementById('priceDisplay').innerHTML = `— <span>€ ${_priceSuffix}</span>`;
         document.getElementById('distanceDisplay').textContent = '';
         document.querySelectorAll('.veh-tab').forEach(t => t.classList.remove('active'));
         document.querySelector('.veh-tab[data-value="Automobile"]').classList.add('active');

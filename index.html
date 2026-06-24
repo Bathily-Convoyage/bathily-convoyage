@@ -1267,6 +1267,7 @@
       <div class="nav-links">
         <a href="index.html" class="active">Accueil</a>
         <a href="formation-convoyeur.html">Devenir convoyeur</a>
+        <a href="espace-pro.html">Espace Pro</a>
         <a href="contact.html">Contact</a>
         <a href="dashboard-convoyeur.html">Espace convoyeur</a>
         <a href="dashboard-client.html" class="btn-outline">Espace client</a>
@@ -1395,9 +1396,9 @@
           <div class="price-card popular reveal">
             <div class="price-card-title">Convoyage par la Route</div>
             <div class="price-card-desc">Idéal pour les berlines, SUV et motos en toute simplicité</div>
-            <div class="price-card-val">1.00 €<span> HT / km</span></div>
-            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Min. 120 € HT
-              par trajet</p>
+            <div class="price-card-val">1.20 €<span> TTC / km</span></div>
+            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Min. 150 € TTC
+              par trajet · Moto : 1.00 € TTC/km</p>
             <ul class="price-card-features">
               <li><i class="fas fa-check"></i> convoyeur professionnel certifié SIV</li>
               <li><i class="fas fa-check"></i> Suivi GPS en temps réel (Lien dédié)</li>
@@ -1410,9 +1411,9 @@
           <div class="price-card reveal">
             <div class="price-card-title">Transport sur Plateau</div>
             <div class="price-card-desc">Sécurité maximale pour véhicules de prestige ou non roulants</div>
-            <div class="price-card-val">350 €<span> HT (forfait)</span></div>
-            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif
-              dégressif selon la distance</p>
+            <div class="price-card-val">0.80 €<span> TTC / km</span></div>
+            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Min. 350 € TTC
+              par trajet · Zéro km au compteur</p>
             <ul class="price-card-features">
               <li><i class="fas fa-check"></i> Zéro kilomètre au compâteur</li>
               <li><i class="fas fa-check"></i> Idéal pour véhicules de collection et motos</li>
@@ -1434,12 +1435,12 @@
                 client standard.</span>
             </div>
             <div onclick="window.location.href='devis.html?pack=serenite'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
-              <strong id="idx_pack_serenite_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Sérénité (+49€)</strong>
+              <strong id="idx_pack_serenite_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Sérénité (+49€ TTC)</strong>
               <span id="idx_pack_serenite_desc" style="font-size: 0.8rem; color: var(--gray-mid);">Nettoyage intérieur/extérieur, rendez-vous
                 planifié précis, support VIP.</span>
             </div>
             <div onclick="window.location.href='devis.html?pack=excellence'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
-              <strong id="idx_pack_excellence_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Excellence (+129€)</strong>
+              <strong id="idx_pack_excellence_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Excellence (+129€ TTC)</strong>
               <span id="idx_pack_excellence_desc" style="font-size: 0.8rem; color: var(--gray-mid);">Plein de carburant offert, nettoyage complet
                 prestige, priorité d'affectation.</span>
             </div>
@@ -1575,7 +1576,7 @@
         </div>
         <div class="footer-links">
           <h4>Espaces</h4><a href="dashboard-client.html">Espace client</a><a href="dashboard-convoyeur.html">Espace
-            convoyeur</a><a href="dashboard-admin.html">Espace admin</a>
+            convoyeur</a><a href="espace-pro.html">Espace Pro</a><a href="dashboard-admin.html">Espace admin</a>
         </div>
         <div class="footer-links">
           <h4>Contact</h4><a href="mailto:contact@Bathily-Convoyage.fr">contact@Bathily-Convoyage.fr</a><span>France
@@ -1673,11 +1674,11 @@
 
           quickQuoteDistVal = dist;
           const isMoto = document.getElementById('vehType').value === 'Moto';
-          const rate = isMoto ? 0.85 : 1.0;
-          const base = Math.round(Math.max(dist * rate, isMoto ? 100 : 120));
+          const rate = isMoto ? 1.0 : 1.2;
+          const base = Math.round(Math.max(dist * rate, isMoto ? 120 : 150));
 
           if (distEl) distEl.textContent = dist + ' km';
-          if (priceEl) priceEl.textContent = base + ' € HT';
+          if (priceEl) priceEl.textContent = base + ' € TTC';
           if (btn) btn.innerHTML = "Confirmer ce tarif ?";
         } else {
           if (distEl) distEl.textContent = 'Adresse non reconnue';

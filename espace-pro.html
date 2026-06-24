@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Espace Pro — Convoyage Auto & Moto | Bathily-Convoyage</title>
+  <meta name="description" content="Tarifs HT réservés aux professionnels. Convoyage auto et moto partout en France. Compte pro dédié, facturation adaptée.">
+  <meta property="og:title" content="Espace Pro — Bathily-Convoyage">
+  <meta property="og:description" content="Tarifs HT pour professionnels. Convoyage auto et moto en France.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚗%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="/css/design-system.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #FDFBF7; color: #2D2A24; line-height: 1.5; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header */
+    .pro-header {
+      background: linear-gradient(135deg, #0A4D68 0%, #088395 100%);
+      color: white;
+      padding: 80px 0 60px;
+      text-align: center;
+    }
+    .pro-header h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    .pro-header p {
+      font-size: 1.15rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .pro-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.15);
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    /* Pricing */
+    .pricing-section { padding: 60px 0; }
+    .section-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+      color: #2D2A24;
+    }
+    .section-sub {
+      text-align: center;
+      color: #6B625A;
+      font-size: 1rem;
+      margin-bottom: 40px;
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .price-card {
+      background: white;
+      border-radius: 24px;
+      padding: 36px 28px;
+      box-shadow: 0 8px 24px rgba(10,77,104,0.08);
+      border: 1px solid #E8E1D9;
+      transition: transform 0.2s;
+    }
+    .price-card:hover { transform: translateY(-4px); }
+    .price-card.popular { border: 2px solid #0A4D68; position: relative; }
+    .price-card.popular::before {
+      content: 'Populaire';
+      position: absolute;
+      top: -12px; left: 50%;
+      transform: translateX(-50%);
+      background: #0A4D68;
+      color: white;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .price-card-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #0A4D68;
+    }
+    .price-card-desc {
+      font-size: 0.9rem;
+      color: #6B625A;
+      margin-bottom: 20px;
+    }
+    .price-card-val {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #2D2A24;
+    }
+    .price-card-val span {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #6B625A;
+    }
+    .price-card-features {
+      list-style: none;
+      margin: 24px 0;
+    }
+    .price-card-features li {
+      padding: 8px 0;
+      font-size: 0.9rem;
+      color: #2D2A24;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .price-card-features li i { color: #088395; }
+    .btn-primary {
+      display: inline-block;
+      background: #F5A623;
+      color: #0A4D68;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 40px;
+      text-decoration: none;
+      text-align: center;
+      width: 100%;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    /* Options */
+    .options-section { padding: 40px 0 60px; }
+    .options-grid {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .option-card {
+      background: white;
+      border: 1px solid #E8E1D9;
+      padding: 20px 24px;
+      border-radius: 20px;
+      width: 280px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .option-card strong {
+      color: #0A4D68;
+      display: block;
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+    .option-card span {
+      font-size: 0.85rem;
+      color: #6B625A;
+    }
+
+    /* Benefits */
+    .benefits-section { padding: 60px 0; background: #F0F5F7; }
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .benefit-card {
+      text-align: center;
+      padding: 28px 20px;
+    }
+    .benefit-icon {
+      width: 60px; height: 60px;
+      background: #0A4D68;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 1.5rem;
+    }
+    .benefit-card h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      color: #2D2A24;
+    }
+    .benefit-card p {
+      font-size: 0.85rem;
+      color: #6B625A;
+    }
+
+    /* CTA */
+    .cta-section {
+      padding: 60px 0;
+      text-align: center;
+    }
+    .cta-box {
+      background: linear-gradient(135deg, #0A4D68 0%, #088395 100%);
+      color: white;
+      border-radius: 28px;
+      padding: 48px 32px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .cta-box h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+    .cta-box p {
+      opacity: 0.9;
+      margin-bottom: 24px;
+    }
+    .cta-box .btn-primary {
+      background: #F5A623;
+      width: auto;
+      padding: 16px 40px;
+    }
+
+    /* Form */
+    .signup-form {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      padding: 36px;
+      box-shadow: 0 8px 24px rgba(10,77,104,0.08);
+    }
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #6B625A;
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #E8E1D9;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      background: white;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: #0A4D68;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Footer */
+    .pro-footer {
+      background: #2D2A24;
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      padding: 24px;
+      font-size: 0.8rem;
+    }
+    .pro-footer a { color: #F5A623; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <section class="pro-header">
+    <div class="container">
+      <div class="pro-badge"><i class="fas fa-briefcase"></i> Espace Professionnel</div>
+      <h1>Convoyage Auto & Moto — Tarifs Pro</h1>
+      <p>Tarifs HT réservés aux professionnels (concessionnaires, loueurs, garages). Compte dédié, facturation adaptée, validation sous 24h.</p>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing-section">
+    <div class="container">
+      <div class="section-title">Nos tarifs Pro (HT)</div>
+      <div class="section-sub">Remise de 10% par rapport au tarif public — TVA récupérable</div>
+      <div class="pricing-grid">
+        <div class="price-card popular">
+          <div class="price-card-title">Convoyage par la Route</div>
+          <div class="price-card-desc">Idéal pour berlines, SUV et motos</div>
+          <div class="price-card-val">0,90 €<span> HT / km</span></div>
+          <p style="font-size:0.85rem;color:#6B625A;margin-top:-12px;margin-bottom:24px;">Min. 125 € HT par trajet · Moto : 0,77 € HT/km</p>
+          <ul class="price-card-features">
+            <li><i class="fas fa-check"></i> Convoyeur certifié SIV</li>
+            <li><i class="fas fa-check"></i> Suivi GPS temps réel</li>
+            <li><i class="fas fa-check"></i> État des lieux numérique (20 photos)</li>
+            <li><i class="fas fa-check"></i> Double RC Pro Allianz</li>
+          </ul>
+          <a href="devis.html?pro=1&mode=route" class="btn-primary">Demander un devis</a>
+        </div>
+
+        <div class="price-card">
+          <div class="price-card-title">Transport sur Plateau</div>
+          <div class="price-card-desc">Sécurité maximale pour véhicules de prestige</div>
+          <div class="price-card-val">0,67 €<span> HT / km</span></div>
+          <p style="font-size:0.85rem;color:#6B625A;margin-top:-12px;margin-bottom:24px;">Min. 292 € HT par trajet · Zéro km au compteur</p>
+          <ul class="price-card-features">
+            <li><i class="fas fa-check"></i> Zéro kilomètre au compteur</li>
+            <li><i class="fas fa-check"></i> Véhicules de collection et motos</li>
+            <li><i class="fas fa-check"></i> Chargement et arrimage sécurisés</li>
+            <li><i class="fas fa-check"></i> Assurance transport premium</li>
+          </ul>
+          <a href="devis.html?pro=1&mode=plateau" class="btn-primary">Demander un devis</a>
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div style="margin-top:48px;text-align:center;">
+        <h4 style="font-family:'Montserrat',sans-serif;font-size:1.2rem;margin-bottom:16px;color:#2D2A24;">Options disponibles</h4>
+        <div class="options-grid">
+          <div class="option-card">
+            <strong>Pack Sérénité (+35€ HT)</strong>
+            <span>Nettoyage int/ext, RDV planifié, support VIP</span>
+          </div>
+          <div class="option-card">
+            <strong>Pack Excellence (+99€ HT)</strong>
+            <span>Plein offert, nettoyage prestige, priorité</span>
+          </div>
+          <div class="option-card">
+            <strong>Urgence (+25%)</strong>
+            <span>Prise en charge sous 24h</span>
+          </div>
+          <div class="option-card">
+            <strong>Gardiennage (+20€ HT)</strong>
+            <span>Stationnement sécurisé 48h</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits -->
+  <section class="benefits-section">
+    <div class="container">
+      <div class="section-title">Pourquoi choisir Bathily-Convoyage Pro ?</div>
+      <div class="section-sub">Un service pensé pour les professionnels</div>
+      <div class="benefits-grid">
+        <div class="benefit-card">
+          <div class="benefit-icon"><i class="fas fa-file-invoice"></i></div>
+          <h3>Facturation HT</h3>
+          <p>TVA récupérable. Factures détaillées adaptées à votre comptabilité pro.</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon"><i class="fas fa-percentage"></i></div>
+          <h3>Tarifs préférentiels</h3>
+          <p>Remise de 10% sur tous nos services par rapport au tarif public.</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon"><i class="fas fa-headset"></i></div>
+          <h3>Support dédié</h3>
+          <p>Interlocuteur unique, ligne directe, traitement prioritaire.</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon"><i class="fas fa-shield-alt"></i></div>
+          <h3>Double assurance</h3>
+          <p>RC Pro Allianz + assurance transport premium incluses.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA + Form -->
+  <section class="cta-section" id="signup">
+    <div class="container">
+      <div class="cta-box" style="margin-bottom:40px;">
+        <h2>Demandez votre accès Pro</h2>
+        <p>Créez votre compte pro. Notre équipe valide votre demande sous 24h.</p>
+      </div>
+
+      <form class="signup-form" id="proSignupForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prénom</label>
+            <input type="text" id="proPrenom" required placeholder="Jean">
+          </div>
+          <div class="form-group">
+            <label>Nom</label>
+            <input type="text" id="proNom" required placeholder="Dupont">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email professionnel</label>
+          <input type="email" id="proEmail" required placeholder="jean.dupont@entreprise.fr">
+        </div>
+        <div class="form-group">
+          <label>Téléphone</label>
+          <input type="tel" id="proTel" placeholder="+33 6 12 34 56 78">
+        </div>
+        <div class="form-group">
+          <label>Société / SIRET</label>
+          <input type="text" id="proSociete" required placeholder="Dupont Automobiles — SIRET 123 456 789">
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input type="password" id="proPassword" required minlength="6" placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top:8px;">
+          <i class="fas fa-user-plus"></i> Créer mon compte Pro
+        </button>
+        <p style="text-align:center;font-size:0.75rem;color:#6B625A;margin-top:16px;">
+          Votre compte sera validé par notre équipe sous 24h ouvrées.
+        </p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="pro-footer">
+    <p>&copy; 2024 Bathily-Convoyage — <a href="index.html">Retour au site</a> · <a href="devis.html?pro=1">Devis Pro</a></p>
+  </footer>
+
+  <script>
+    // ========== SIGNUP PRO ==========
+    document.getElementById('proSignupForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const prenom = document.getElementById('proPrenom').value.trim();
+      const nom = document.getElementById('proNom').value.trim();
+      const email = document.getElementById('proEmail').value.trim().toLowerCase();
+      const telephone = document.getElementById('proTel').value.trim();
+      const societe = document.getElementById('proSociete').value.trim();
+      const password = document.getElementById('proPassword').value;
+
+      if (!prenom || !nom || !email || !password || !societe) {
+        Swal.fire('Champs requis', 'Veuillez remplir tous les champs obligatoires.', 'warning');
+        return;
+      }
+
+      Swal.fire({ title: 'Création du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+      try {
+        const sb = window.getSupabase ? window.getSupabase() : null;
+        if (!sb) {
+          // Fallback: utiliser la config globale
+          if (window.supabaseConfig) {
+            const { createClient } = supabase;
+            window._sbClient = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+          }
+        }
+        const client = window._sbClient || (window.getSupabase ? window.getSupabase() : null);
+        if (!client) throw new Error('Supabase non configuré');
+
+        // 1. Créer le compte Auth
+        const { data: authData, error: authError } = await client.auth.signUp({
+          email,
+          password,
+          options: { data: { prenom, nom, societe, source: 'pro_signup' } }
+        });
+        if (authError) {
+          if (authError.message.includes('already registered')) {
+            Swal.fire('Compte existant', 'Cet email est déjà utilisé. Contactez-nous pour activer votre accès pro.', 'info');
+          } else {
+            Swal.fire('Erreur', authError.message, 'error');
+          }
+          return;
+        }
+
+        // 2. Insérer dans clients avec is_pro et pro_status
+        const { error: insertError } = await client.from('clients').insert([{
+          prenom, nom, email, telephone, societe,
+          role: 'client',
+          is_pro: true,
+          pro_status: 'pending',
+          auth_user_id: authData.user.id
+        }]);
+
+        if (insertError) {
+          console.error('Erreur insert client pro:', insertError);
+          Swal.fire('Erreur', 'Compte créé mais profil non enregistré. Contactez le support.', 'warning');
+          return;
+        }
+
+        // Déconnexion (le pro doit attendre validation)
+        await client.auth.signOut();
+
+        Swal.fire({
+          title: 'Demande envoyée ! ⭐',
+          html: `Bonjour <strong>${prenom}</strong>,<br><br>Votre demande de compte Pro a bien été enregistrée.<br>Notre équipe valide votre accès sous <strong>24h ouvrées</strong>.<br><br>Vous recevrez un email de confirmation à <strong>${email}</strong>.`,
+          icon: 'success',
+          confirmButtonColor: '#0A4D68',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          document.getElementById('proSignupForm').reset();
+        });
+      } catch (err) {
+        Swal.fire('Erreur', err.message, 'error');
+      }
+    });
+  </script>
+
+</body>
+</html>

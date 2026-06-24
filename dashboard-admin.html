@@ -2503,14 +2503,17 @@ Cadeau premium personnalisé</textarea></div>
       const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—';
       const rowStyle = c.banned ? 'opacity:0.6; background:#fff5f5; cursor:pointer;' : 'cursor:pointer;';
       const banLabel = c.banned ? '<span class="sp sp-err"><span class="sp-dot"></span>Banni</span>' : '<span class="sp sp-ok"><span class="sp-dot"></span>Actif</span>';
+      const proBadge = c.is_pro ? (c.pro_status === 'pending' ? ' <span class="sp sp-att" style="font-size:0.7rem;"><span class="sp-dot"></span>Pro en attente</span>' : c.pro_status === 'approved' ? ' <span class="sp sp-ok" style="font-size:0.7rem;"><span class="sp-dot"></span>Pro</span>' : '') : '';
+      const proActions = c.is_pro && c.pro_status === 'pending' ? `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation(); approvePro('${c.id}')" title="Valider Pro"><i class="fas fa-check"></i></button><button class="btn-sm btn-sm-red" onclick="event.stopPropagation(); rejectPro('${c.id}')" title="Refuser Pro"><i class="fas fa-times"></i></button>` : '';
       return `<tr class="clickable-row" style="${rowStyle}" onclick="if(!event.target.closest('button')) { editClient('${c.id}'); }">
-        <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials}</div>${name}</div></td>
+        <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials}</div>${name}${proBadge}</div></td>
         <td>${c.email || '—'}</td>
         <td>${c.telephone || '—'}</td>
         <td>${c.societe || '—'}</td>
         <td>${dateStr}</td>
         <td>${banLabel}</td>
         <td class="td-actions">
+          ${proActions}
           <button class="btn-sm btn-sm-ghost" onclick="editClient('${c.id}')"><i class="fas fa-edit"></i></button>
           <button class="btn-sm btn-sm-ghost" style="color:var(--warning)" onclick="adminToggleBan('${c.id}', 'clients', ${!c.banned})" title="${c.banned ? 'Débannir' : 'Bannir'}"><i class="fas fa-ban"></i></button>
           <button class="btn-sm btn-sm-red" onclick="adminDeleteUser('${c.id}', 'clients')" title="Supprimer"><i class="fas fa-trash"></i></button>
@@ -3022,6 +3025,24 @@ Cadeau premium personnalisé</textarea></div>
       if (tableName === 'clients') loadClients();
       if (tableName === 'convoyeurs') loadConvoyeurs();
     }
+  };
+
+  // ========== VALIDATION PRO ==========
+  window.approvePro = async function(clientId) {
+    const sb = getSupabase();
+    const { error } = await sb.from('clients').update({ pro_status: 'approved' }).eq('id', clientId);
+    if (error) return Swal.fire('Erreur', error.message, 'error');
+    Swal.fire({ toast: true, icon: 'success', title: 'Compte Pro validé', timer: 2000 });
+    loadClients();
+  };
+
+  window.rejectPro = async function(clientId) {
+    if (!await Swal.fire({ title: 'Refuser ce compte Pro ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Refuser' }).then(r=>r.isConfirmed)) return;
+    const sb = getSupabase();
+    const { error } = await sb.from('clients').update({ pro_status: 'rejected', is_pro: false }).eq('id', clientId);
+    if (error) return Swal.fire('Erreur', error.message, 'error');
+    Swal.fire({ toast: true, icon: 'info', title: 'Compte Pro refusé', timer: 2000 });
+    loadClients();
   };
 
   window.deleteConvoyeur = async function(id) {
