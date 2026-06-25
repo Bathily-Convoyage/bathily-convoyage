@@ -3032,16 +3032,54 @@ Cadeau premium personnalisé</textarea></div>
     const sb = getSupabase();
     const { error } = await sb.from('clients').update({ pro_status: 'approved' }).eq('id', clientId);
     if (error) return Swal.fire('Erreur', error.message, 'error');
-    Swal.fire({ toast: true, icon: 'success', title: 'Compte Pro validé', timer: 2000 });
+
+    // Envoyer l'email de notification au pro
+    const clientData = _allClientsData.find(c => c.id === clientId);
+    if (clientData) {
+      try {
+        await fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            trigger: 'pro_approved',
+            id: clientData.email,
+            email: clientData.email,
+            prenom: clientData.prenom || '',
+            nom: clientData.nom || ''
+          })
+        });
+      } catch (e) { console.warn('Email pro approved error:', e); }
+    }
+
+    Swal.fire({ icon: 'success', title: 'Compte Pro validé', text: 'Un email a été envoyé au professionnel.', timer: 3000 });
     loadClients();
   };
 
   window.rejectPro = async function(clientId) {
-    if (!await Swal.fire({ title: 'Refuser ce compte Pro ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Refuser' }).then(r=>r.isConfirmed)) return;
+    if (!await Swal.fire({ title: 'Refuser ce compte Pro ?', text: 'Un email sera envoyé au professionnel.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Refuser' }).then(r=>r.isConfirmed)) return;
     const sb = getSupabase();
     const { error } = await sb.from('clients').update({ pro_status: 'rejected', is_pro: false }).eq('id', clientId);
     if (error) return Swal.fire('Erreur', error.message, 'error');
-    Swal.fire({ toast: true, icon: 'info', title: 'Compte Pro refusé', timer: 2000 });
+
+    // Envoyer l'email de refus au pro
+    const clientData = _allClientsData.find(c => c.id === clientId);
+    if (clientData) {
+      try {
+        await fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            trigger: 'pro_rejected',
+            id: clientData.email,
+            email: clientData.email,
+            prenom: clientData.prenom || '',
+            nom: clientData.nom || ''
+          })
+        });
+      } catch (e) { console.warn('Email pro rejected error:', e); }
+    }
+
+    Swal.fire({ icon: 'info', title: 'Compte Pro refusé', text: 'Un email a été envoyé au professionnel.', timer: 3000 });
     loadClients();
   };
 
@@ -3465,13 +3503,17 @@ Cadeau premium personnalisé</textarea></div>
     if (!list.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Aucun devis.</td></tr>'; return; }
     tbody.innerHTML = list.map(d => {
       const dateStr = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
+      const isPro = d.details?.is_pro === true;
+      const proBadge = isPro ? ' <span class="sp sp-att" style="font-size:0.65rem;"><span class="sp-dot"></span>Pro</span>' : '';
+      const priceLabel = isPro ? 'HT' : 'TTC';
+      const displayPrice = isPro ? (d.total_ht ? parseFloat(d.total_ht).toFixed(2) + ' € HT' : '—') : (d.details?.total_ttc ? parseFloat(d.details.total_ttc).toFixed(2) + ' € TTC' : (d.total_ht ? (parseFloat(d.total_ht) * 1.20).toFixed(2) + ' € TTC' : '—'));
       return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewDevisDetails('${d.id}'); }">
         <td>${d.reference || '—'}</td>
-        <td>${d.client_prenom || ''} ${d.client_nom || ''}</td>
+        <td>${d.client_prenom || ''} ${d.client_nom || ''}${proBadge}</td>
         <td>${d.depart || '—'} → ${d.arrivee || '—'}</td>
         <td>${d.vehicule || '—'}</td>
         <td>${d.details?.pack || d.pack || '—'}</td>
-        <td>${d.total_ht ? parseFloat(d.total_ht).toFixed(2) + ' €' : '—'}</td>
+        <td>${displayPrice}</td>
         <td>${dateStr}</td>
         <td class="td-actions">
           ${d.status === 'pending' ? `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation(); updateDevisStatus('${d.id}', 'accepted')"><i class="fas fa-check"></i></button><button class="btn-sm btn-sm-red" onclick="event.stopPropagation(); updateDevisStatus('${d.id}', 'rejected')"><i class="fas fa-times"></i></button><button class="btn-sm btn-sm-red" onclick="event.stopPropagation(); deleteDevis('${d.id}', '${d.reference || ''}')" title="Supprimer"><i class="fas fa-trash"></i></button>` : `<span class="sp sp-ok"><span class="sp-dot"></span>${d.status === 'accepted' ? 'Accepté' : 'Refusé'}</span><button class="btn-sm btn-sm-red" onclick="event.stopPropagation(); deleteDevis('${d.id}', '${d.reference || ''}')" title="Supprimer" style="margin-left:6px;"><i class="fas fa-trash"></i></button>`}
@@ -3502,11 +3544,14 @@ Cadeau premium personnalisé</textarea></div>
 
     const details = devis.details || {};
     const coord = details.coordonnees || {};
+    const isPro = details.is_pro === true;
+    const proBadgeHtml = isPro ? ' <span class="sp sp-att" style="font-size:0.7rem;"><span class="sp-dot"></span>Pro</span>' : '';
+    const totalTtc = details.total_ttc || (devis.total_ht ? Math.round(parseFloat(devis.total_ht) * 1.20) : 0);
 
     Swal.fire({
       title: `Devis ${devis.reference}`,
       html: `<div style="text-align:left;font-size:0.9rem;">
-        <div style="margin-bottom:12px;">${statusBadge}</div>
+        <div style="margin-bottom:12px;">${statusBadge}${proBadgeHtml}</div>
         <b>Client :</b> ${devis.client_prenom || ''} ${devis.client_nom || ''}<br>
         <b>Email :</b> ${devis.client_email || '—'}<br>
         <b>Téléphone :</b> ${coord.telephone || '—'}<br>
@@ -3521,6 +3566,7 @@ Cadeau premium personnalisé</textarea></div>
         ${details.modele ? `<b>Modèle :</b> ${details.modele}<br>` : ''}
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Montant HT :</b> ${devis.total_ht ? parseFloat(devis.total_ht).toFixed(2) + ' €' : '—'}<br>
+        ${!isPro ? `<b>Montant TTC :</b> ${totalTtc.toFixed(2)} €<br>` : ''}
         ${details.opts?.urgence ? '<b>⚠️ Urgence</b><br>' : ''}
         ${details.opts?.gardiennage ? '<b>📦 Gardiennage</b><br>' : ''}
         ${details.message ? `<hr style="margin:10px 0;border-color:#eee;"><b>Message client :</b><br>${details.message}<br>` : ''}

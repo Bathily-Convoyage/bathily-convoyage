@@ -26,7 +26,7 @@ exports.handler = async (event, context) => {
 
   try {
     const parsedBody = JSON.parse(event.body);
-    const { trigger, id, notes, payment_url, temp_password, prenom } = parsedBody;
+    const { trigger, id, notes, payment_url, temp_password, prenom, email: directEmail, nom: directNom } = parsedBody;
 
     if (!trigger || !id) {
       return {
@@ -520,6 +520,73 @@ Corps: ${html.substring(0, 300)}...`);
 
       await sendEmail({ to: email, subject: "Bathily Convoyage - Réinitialisation de votre mot de passe", html: resetHtml });
       resultData = { success: true, message: 'Email de réinitialisation envoyé.' };
+    }
+
+    // ==========================================
+    // 7. ÉVÉNEMENT : COMPTE PRO VALIDÉ
+    // ==========================================
+    else if (trigger === 'pro_approved') {
+      const proEmail = directEmail || id;
+      const proName = directNom || prenom || 'Professionnel';
+
+      const proHtml = wrapEmailLayout(
+        "Votre compte Pro est activé ! 🎉",
+        `<p>Bonjour <strong>${proName}</strong>,</p>
+         <p>Bonne nouvelle ! Votre demande de compte Pro a été <strong>validée par notre équipe</strong>.</p>
+         <p>Vous pouvez désormais accéder à votre espace client avec vos identifiants et bénéficier de :</p>
+         <ul class="meta-list">
+           <li><span>Tarifs HT</span> <strong>0,90 €/km route · 0,67 €/km plateau</strong></li>
+           <li><span>Facturation</span> <strong>HT avec TVA récupérable</strong></li>
+           <li><span>Support</span> <strong>Dédié et prioritaire</strong></li>
+         </ul>
+         <div class="highlight-box">
+           <strong>Récapitulatif de vos avantages Pro :</strong><br>
+           ✓ Remise de 10% sur tous nos services<br>
+           ✓ Factures détaillées adaptées à votre comptabilité<br>
+           ✓ Interlocuteur unique pour toutes vos demandes<br>
+           ✓ Devis en ligne via notre formulaire Pro
+         </div>
+         <p style="text-align: center;">
+           <a href="https://bathily-convoyage.fr/dashboard-client.html" class="btn">Accéder à mon Espace Pro</a>
+         </p>
+         <p style="font-size:12px;color:#6B625A;text-align:center">Pour toute question, contactez-nous à contact@Bathily-Convoyage.fr</p>`
+      );
+
+      await sendEmail({ to: proEmail, subject: "Bathily Convoyage - Votre compte Pro est activé !", html: proHtml });
+      resultData = { success: true, message: 'Email Pro validé envoyé.' };
+    }
+
+    // ==========================================
+    // 8. ÉVÉNEMENT : COMPTE PRO REFUSÉ
+    // ==========================================
+    else if (trigger === 'pro_rejected') {
+      const proEmail = directEmail || id;
+      const proName = directNom || prenom || 'Professionnel';
+
+      const rejectHtml = wrapEmailLayout(
+        "Mise à jour de votre demande de compte Pro",
+        `<p>Bonjour <strong>${proName}</strong>,</p>
+         <p>Nous vous remercions pour l'intérêt que vous portez à Bathily-Convoyage.</p>
+         <p>Après examen de votre demande, nous ne sommes pas en mesure de valider votre compte Pro pour le moment.</p>
+         <p>Cela peut être dû à :</p>
+         <ul>
+           <li>Des informations incomplètes (SIRET, société)</li>
+           <li>Un secteur d'activité non éligible</li>
+           <li>Un doublon de compte</li>
+         </ul>
+         <p>Si vous pensez qu'il s'agit d'une erreur ou pour plus d'informations, n'hésitez pas à nous contacter :</p>
+         <div class="highlight-box">
+           <strong>Contact :</strong> contact@Bathily-Convoyage.fr<br>
+           <strong>Téléphone :</strong> +33 X XX XX XX XX
+         </div>
+         <p>Vous pouvez toujours utiliser nos services au tarif public (TTC) via notre site.</p>
+         <p style="text-align: center;">
+           <a href="https://bathily-convoyage.fr" class="btn">Accéder au site</a>
+         </p>`
+      );
+
+      await sendEmail({ to: proEmail, subject: "Bathily Convoyage - Mise à jour de votre demande Pro", html: rejectHtml });
+      resultData = { success: true, message: 'Email Pro refusé envoyé.' };
     }
 
     return {

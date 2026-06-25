@@ -1532,6 +1532,26 @@
         });
         return;
       }
+      if (profile.is_pro && profile.pro_status === 'pending') {
+        await client.auth.signOut();
+        Swal.fire({
+          title: 'Compte Pro en attente',
+          text: 'Votre compte professionnel est en cours de validation. Vous recevrez un email dès qu\'il sera activé (sous 24h ouvrées).',
+          icon: 'info',
+          confirmButtonText: 'Compris'
+        });
+        return;
+      }
+      if (profile.is_pro && profile.pro_status === 'rejected') {
+        await client.auth.signOut();
+        Swal.fire({
+          title: 'Compte Pro refusé',
+          text: 'Votre demande de compte professionnel n\'a pas été validée. Contactez-nous pour plus d\'informations.',
+          icon: 'warning',
+          confirmButtonText: 'Compris'
+        });
+        return;
+      }
       if (!profile.auth_user_id) {
         // Mettre à jour auth_user_id si absent (ancien compte migré)
         await client.from('clients').update({ auth_user_id: authData.user.id }).eq('id', profile.id);
@@ -2292,8 +2312,8 @@
           } else {
             // Vérifier que le profil existe toujours en DB
             const sb2 = getSBCli();
-            const { data: stillExists } = await sb2.from('clients').select('id, role').eq('email', user.email).maybeSingle();
-            if (!stillExists || stillExists.role === 'admin') {
+            const { data: stillExists } = await sb2.from('clients').select('id, role, is_pro, pro_status').eq('email', user.email).maybeSingle();
+            if (!stillExists || stillExists.role === 'admin' || (stillExists.is_pro && stillExists.pro_status !== 'approved')) {
               sessionStorage.removeItem('client_user');
               sessionStorage.removeItem('client_name');
               await sb2.auth.signOut().catch(() => {});
