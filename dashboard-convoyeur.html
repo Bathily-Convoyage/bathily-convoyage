@@ -1649,7 +1649,8 @@
             <div style="margin-top:6px;"><span style="font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:20px;background:${si.color}22;color:${si.color};">${si.label}</span></div>
           </div>
           <div class="mc-actions">
-            <button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation();showConvoMissionDetails('${m.id}')"><i class="fas fa-eye"></i> Détails</button>
+            <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Bon de mission</a>
+            ${m.status === 'in_progress' ? `<a href="gps-emitter.html?id=${m.id}&ref=${encodeURIComponent(m.reference||'')}&route=${encodeURIComponent(dep+' → '+arr)}&vehicle=${encodeURIComponent(m.vehicule||'')}" class="btn-sm btn-sm-red" target="_blank" style="text-decoration:none;"><i class="fas fa-satellite-dish"></i> GPS</a>` : ''}
           </div>
         </div>`;
       }).join('');

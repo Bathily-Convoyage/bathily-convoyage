@@ -1703,7 +1703,7 @@
         const payStatus = m.paiement_statut || 'pending';
         const tagPay = payStatus === 'paid' ? '<span class="mc-tag" style="background:rgba(74,124,107,0.12);color:var(--success);font-weight:700;"><i class="fas fa-check-circle"></i> Payée</span>' : '<span class="mc-tag" style="background:rgba(224,163,67,0.12);color:var(--warning);font-weight:700;"><i class="fas fa-clock"></i> En attente</span>';
 
-        const trackBtn = (st === 'in_progress') ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> Suivre</a>` : '';
+        const trackBtn = (st === 'in_progress' || st === 'planned') ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> Suivre</a>` : '';
         const canPay = payStatus !== 'paid' && st !== 'completed' && st !== 'cancelled' && st !== 'available';
         const payBtn = canPay ? `<button class="btn-sm btn-sm-red" onclick="payMission('${m.id}')" style="background:#2ecc71;color:white;border:none;"><i class="fas fa-credit-card"></i> Payer</button>` : '';
 

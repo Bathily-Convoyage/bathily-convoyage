@@ -3160,6 +3160,7 @@ Cadeau premium personnalisé</textarea></div>
         actionsHtml = `<div class="td-actions">
           ${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="assignConvoyeurToMission('${m.id}')" title="Changer convoyeur"><i class="fas fa-user-edit"></i></button>` : ''}
           ${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i></button>` : ''}
+          ${(status === 'in_progress' || status === 'planned') ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" target="_blank" class="btn-sm btn-sm-ghost" title="Suivre GPS"><i class="fas fa-map-marker-alt"></i></a>` : ''}
           ${status !== 'completed' && status !== 'cancelled' ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}
           <button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button>
           <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>

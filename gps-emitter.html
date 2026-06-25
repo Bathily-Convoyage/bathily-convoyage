@@ -947,14 +947,14 @@
         const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
         const { data, error } = await client
           .from('missions')
-          .select('statut, paiement_statut')
+          .select('status, paiement_statut')
           .eq('id', _missionId)
           .single();
         if (error || !data) {
           document.getElementById('missionStatus').textContent = '⚠️ Inconnu';
           return;
         }
-        const status = data.statut || 'planned';
+        const status = data.status || 'planned';
         const statusMap = {
           'planned': 'Planifiée',
           'available': 'Disponible',

@@ -76,3 +76,21 @@ CREATE POLICY "missions_update_own_or_admin"
   );
 
 NOTIFY pgrst, 'reload schema';
+
+-- =====================================================
+-- Fix missions_update_active_anon: statut -> status
+-- =====================================================
+DROP POLICY IF EXISTS "missions_update_active_anon" ON public.missions;
+CREATE POLICY "missions_update_active_anon"
+  ON public.missions
+  FOR UPDATE
+  USING (
+    auth.uid() IS NULL
+    AND status IN ('planned', 'available', 'in_progress')
+  )
+  WITH CHECK (
+    auth.uid() IS NULL
+    AND status IN ('planned', 'available', 'in_progress', 'completed')
+  );
+
+NOTIFY pgrst, 'reload schema';
