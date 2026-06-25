@@ -76,13 +76,54 @@ exports.handler = async (event, context) => {
 
     // 3. Generer un lien de recovery
     const redirectTo = corsOrigin + '/reset-password.html';
-    const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink('recovery', cleanEmail, {
-      redirectTo: redirectTo
-    });
+    let resetUrl = null;
 
-    let resetUrl = redirectTo;
-    if (!resetError && resetData) {
-      resetUrl = resetData.properties?.action_link || resetData.properties?.redirect_to || redirectTo;
+    // Methode 1: generateLink type recovery
+    try {
+      const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink('recovery', cleanEmail, {
+        redirectTo: redirectTo
+      });
+      if (!resetError && resetData) {
+        resetUrl = resetData.properties?.action_link || resetData.properties?.redirect_to || null;
+      }
+    } catch (e) {
+      console.warn('generateLink recovery failed:', e.message);
+    }
+
+    // Methode 2: generateLink type invite (fallback)
+    if (!resetUrl) {
+      try {
+        const { data: inviteData, error: inviteError } = await supabase.auth.admin.generateLink('invite', cleanEmail, {
+          redirectTo: redirectTo
+        });
+        if (!inviteError && inviteData) {
+          resetUrl = inviteData.properties?.action_link || inviteData.properties?.redirect_to || null;
+        }
+      } catch (e) {
+        console.warn('generateLink invite failed:', e.message);
+      }
+    }
+
+    // Methode 3: resetPasswordForEmail cote serveur (fallback)
+    if (!resetUrl) {
+      try {
+        const { error: rpcError } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: redirectTo
+        });
+        if (!rpcError) {
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ success: true, message: 'Email de reinitialisation envoye.' })
+          };
+        }
+      } catch (e) {
+        console.warn('resetPasswordForEmail fallback failed:', e.message);
+      }
+    }
+
+    if (!resetUrl) {
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Impossible de generer le lien de reset. Contactez l administrateur.' }) };
     }
 
     // 4. Envoyer via Resend

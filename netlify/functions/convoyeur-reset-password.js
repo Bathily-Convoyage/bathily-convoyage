@@ -77,14 +77,69 @@ exports.handler = async (event, context) => {
 
     // 3. Generer un lien de reset password via admin API
     const redirectTo = corsOrigin + '/reset-password.html';
-    const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink('recovery', cleanEmail, {
-      redirectTo: redirectTo
-    });
+    let resetUrl = null;
 
-    if (resetError || !resetData) {
-      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Impossible de generer le lien de reset.' }) };
+    // Methode 1: generateLink type recovery
+    try {
+      const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink('recovery', cleanEmail, {
+        redirectTo: redirectTo
+      });
+      if (!resetError && resetData) {
+        resetUrl = resetData.properties?.action_link || resetData.properties?.redirect_to || null;
+      }
+    } catch (e) {
+      console.warn('generateLink recovery failed:', e.message);
     }
-    const resetUrl = resetData.properties?.action_link || resetData.properties?.redirect_to || redirectTo;
+
+    // Methode 2: generateLink type invite (fallback)
+    if (!resetUrl) {
+      try {
+        const { data: inviteData, error: inviteError } = await supabase.auth.admin.generateLink('invite', cleanEmail, {
+          redirectTo: redirectTo
+        });
+        if (!inviteError && inviteData) {
+          resetUrl = inviteData.properties?.action_link || inviteData.properties?.redirect_to || null;
+        }
+      } catch (e) {
+        console.warn('generateLink invite failed:', e.message);
+      }
+    }
+
+    // Methode 3: construire le lien manuellement avec updateUser + OTP
+    if (!resetUrl) {
+      try {
+        // Generer un OTP code et construire l'URL de recovery
+        const { data: otpData, error: otpError } = await supabase.auth.admin.generateLink('recovery', cleanEmail);
+        if (!otpError && otpData) {
+          resetUrl = otpData.properties?.action_link || otpData.properties?.redirect_to || null;
+        }
+      } catch (e) {
+        console.warn('OTP fallback failed:', e.message);
+      }
+    }
+
+    // Methode 4: utiliser resetPasswordForEmail cote serveur (la cle admin bypass les restrictions)
+    if (!resetUrl) {
+      try {
+        const { error: rpcError } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: redirectTo
+        });
+        if (!rpcError) {
+          // Pas de lien direct, mais Supabase envoie son email - on informe qu'un email a ete envoye
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ success: true, message: 'Email de reinitialisation envoye.' })
+          };
+        }
+      } catch (e) {
+        console.warn('resetPasswordForEmail fallback failed:', e.message);
+      }
+    }
+
+    if (!resetUrl) {
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Impossible de generer le lien de reset. Contactez l administrateur.' }) };
+    }
 
     // 4. Envoyer l'email via Resend
     const resendApiKey = process.env.RESEND_API_KEY;
