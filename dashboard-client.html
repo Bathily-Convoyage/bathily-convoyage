@@ -2010,7 +2010,7 @@
         head: [['Description', 'Prix HT', 'TVA', 'Total TTC']],
         body: [[
           `Mission de convoyage\nRéf: ${m.reference || 'N/A'}\nTrajet: ${(m.depart || '').split('(')[0].trim()} -> ${(m.arrivee || '').split('(')[0].trim()}`,
-          `${priceHt.toFixed(2)} €`, '20%', `${priceTtc.toFixed(2)} €`
+          `${priceHt.toFixed(2)} EUR`, '20%', `${priceTtc.toFixed(2)} EUR`
         ]],
         theme: 'grid',
         headStyles: { fillColor: [10, 77, 104], textColor: [255, 255, 255] }
@@ -2018,13 +2018,13 @@
       const finalY = doc.lastAutoTable.finalY || 100;
       doc.setFillColor(249, 246, 240);
       doc.rect(115, finalY + 10, 80, 35, 'F');
-      doc.text(`Total HT : ${priceHt.toFixed(2)} €`, 125, finalY + 18);
-      doc.text(`TVA (20%) : ${tva.toFixed(2)} €`, 125, finalY + 26);
+      doc.text(`Total HT : ${priceHt.toFixed(2)} EUR`, 125, finalY + 18);
+      doc.text(`TVA (20%) : ${tva.toFixed(2)} EUR`, 125, finalY + 26);
       doc.setDrawColor(10, 77, 104);
       doc.line(125, finalY + 31, 185, finalY + 31);
       doc.setFontSize(12);
       doc.setTextColor(10, 77, 104);
-      doc.text(`Total TTC : ${priceTtc.toFixed(2)} €`, 125, finalY + 39);
+      doc.text(`Total TTC : ${priceTtc.toFixed(2)} EUR`, 125, finalY + 39);
       doc.save(`Facture_${invoiceRef}.pdf`);
     }
 
