@@ -1044,6 +1044,7 @@
         <div class="nav-section-lbl">Principal</div>
         <div class="nav-item active" onclick="showConvTab('accueil',this)" role="button" tabindex="0"><i class="fas fa-home"></i> Tableau de bord</div>
         <div class="nav-item" onclick="showConvTab('missions',this)" role="button" tabindex="0"><i class="fas fa-route"></i> Missions disponibles</div>
+        <div class="nav-item" onclick="showConvTab('mes-missions',this)" role="button" tabindex="0"><i class="fas fa-briefcase"></i> Mes missions</div>
         <div class="nav-item" onclick="showConvTab('candidatures',this)" role="button" tabindex="0"><i class="fas fa-file-signature"></i> Mes candidatures</div>
         <div class="nav-item" onclick="showConvTab('reseau',this)" role="button" tabindex="0"><i class="fas fa-comments"></i> Communauté</div>
       </div>
@@ -1075,7 +1076,7 @@
             <div class="stat-lbl">Candidatures en attente</div>
             <div class="stat-trend trend-neutral">En cours</div>
           </div>
-          <div class="stat-card clickable-card" onclick="showConvTab('candidatures',document.querySelector('[onclick*=candidatures]'))" role="button" tabindex="0">
+          <div class="stat-card clickable-card" onclick="showConvTab('mes-missions',document.querySelector('[onclick*=mes-missions]'))" role="button" tabindex="0">
             <div class="stat-ico"><i class="fas fa-check-circle"></i></div>
             <div class="stat-val" id="convKpiApprouvees">-</div>
             <div class="stat-lbl">Candidatures approuvées</div>
@@ -1095,6 +1096,10 @@
           <div class="qa-item" onclick="showConvTab('missions',document.querySelector('[onclick*=missions]'))" role="button" tabindex="0">
             <div class="qa-ico"><i class="fas fa-search"></i></div>
             <div class="qa-lbl">Voir les missions</div>
+          </div>
+          <div class="qa-item" onclick="showConvTab('mes-missions',document.querySelector('[onclick*=mes-missions]'))" role="button" tabindex="0">
+            <div class="qa-ico"><i class="fas fa-briefcase"></i></div>
+            <div class="qa-lbl">Mes missions</div>
           </div>
           <div class="qa-item" onclick="showConvTab('candidatures',document.querySelector('[onclick*=candidatures]'))" role="button" tabindex="0">
             <div class="qa-ico"><i class="fas fa-file-signature"></i></div>
@@ -1127,6 +1132,25 @@
           <h2 class="sec-h">Postulez aux missions qui vous <em>correspondent</em></h2>
         </div>
         <div class="missions-list" id="convMissionsList">
+          <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+        </div>
+      </div>
+
+      <!-- Mes missions (assignées) -->
+      <div class="tab-content" id="conv-tab-mes-missions">
+        <div class="dash-header">
+          <h1 class="dash-hello">Mes <em>missions</em></h1>
+        </div>
+        <div class="sec-title">
+          <h2 class="sec-h">Missions qui vous ont été <em>attribuées</em></h2>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-sm btn-sm-ghost" onclick="filterMyMissions('all',this)">Toutes</button>
+            <button class="btn-sm btn-sm-ghost" onclick="filterMyMissions('planned',this)">Planifiées</button>
+            <button class="btn-sm btn-sm-ghost" onclick="filterMyMissions('in_progress',this)">En cours</button>
+            <button class="btn-sm btn-sm-ghost" onclick="filterMyMissions('completed',this)">Terminées</button>
+          </div>
+        </div>
+        <div class="missions-list" id="convMyMissionsList">
           <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
         </div>
       </div>
@@ -1294,9 +1318,6 @@
     // ========== GLOBALES ==========
     let _convoyeurUser = null;
     let _convoyeurName = '';
-    let _allMissions = [];
-    let _allCandidatures = [];
-    let _candidatureFilter = 'all';
 
     // ========== AUTH HELPERS ==========
     async function hashPassword(pwd) {
@@ -1477,6 +1498,13 @@
     }
 
     // ========== LOAD CONVOYEUR DATA ==========
+    let _allMissions = [];
+    let _availableMissions = [];
+    let _myMissions = [];
+    let _allCandidatures = [];
+    let _candidatureFilter = 'all';
+    let _myMissionFilter = 'all';
+
     async function loadConvoyeurData(profile) {
       if (profile && profile.banned === true) {
         Swal.fire({ title: 'Accès restreint', text: "Votre compte a été suspendu par l'administrateur.", icon: 'error', allowOutsideClick: false }).then(() => {
@@ -1486,18 +1514,32 @@
       }
       const client = getSBC();
 
-      // Charger toutes les missions disponibles
-      const { data: missions } = await client.from('missions')
+      // Charger toutes les missions (RLS filtre automatiquement)
+      const { data: missions, error: missionsErr } = await client.from('missions')
         .select('*')
         .order('created_at', { ascending: false });
-      _allMissions = (missions || []).filter(m => !m.status || m.status === 'available' || m.status === 'pending');
+      
+      _allMissions = missions || [];
+      // Missions disponibles = status 'available' et sans convoyeur assigné
+      _availableMissions = _allMissions.filter(m => 
+        (!m.status || m.status === 'available') && !m.convoyeur_nom
+      );
+      // Mes missions = convoyeur_nom correspond au convoyeur connecté
+      _myMissions = _allMissions.filter(m => 
+        m.convoyeur_nom && m.convoyeur_nom.toLowerCase() === _convoyeurName.toLowerCase()
+      );
 
-      // Charger les candidatures du convoyeur (par nom ou email)
-      const { data: candidatures } = await client.from('candidatures')
+      // Charger toutes les candidatures (RLS filtre pour le convoyeur)
+      const { data: candidatures, error: candErr } = await client.from('candidatures')
         .select('*')
-        .or(`convoyeur_nom.eq.${_convoyeurName}`)
         .order('created_at', { ascending: false });
-      _allCandidatures = candidatures || [];
+      
+      _allCandidatures = (candidatures || []).filter(c => 
+        c.convoyeur_nom && c.convoyeur_nom.toLowerCase() === _convoyeurName.toLowerCase()
+      );
+
+      if (missionsErr) console.error('Erreur chargement missions:', missionsErr);
+      if (candErr) console.error('Erreur chargement candidatures:', candErr);
 
       initConvoyeurDashboard();
     }
@@ -1538,10 +1580,10 @@
       }
 
       // Stats
-      const disponibles = _allMissions.length;
+      const disponibles = _availableMissions.length;
       const enAttente = _allCandidatures.filter(c => c.status === 'pending').length;
       const approuvees = _allCandidatures.filter(c => c.status === 'approved').length;
-      const missionsGagnees = _allCandidatures.filter(c => c.status === 'approved').length;
+      const missionsAssignees = _myMissions.length;
       // Estimation du total gagné (simulé)
       const totalGagne = _allCandidatures
         .filter(c => c.status === 'approved')
@@ -1561,9 +1603,63 @@
       }
 
       // Rendre les listes
-      renderConvoyeurMissions('convRecentMissionsList', _allMissions.slice(0, 3));
-      renderConvoyeurMissions('convMissionsList', _allMissions);
+      renderConvoyeurMissions('convRecentMissionsList', _availableMissions.slice(0, 3));
+      renderConvoyeurMissions('convMissionsList', _availableMissions);
+      renderMyMissions('convMyMissionsList', _myMissions);
       renderConvoyeurCandidatures('convCandidaturesList', _allCandidatures);
+    }
+
+    // ========== RENDER MES MISSIONS (ASSIGNÉES) ==========
+    function renderMyMissions(containerId, missions) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      let filtered = missions;
+      if (_myMissionFilter !== 'all') {
+        filtered = missions.filter(m => m.status === _myMissionFilter);
+      }
+
+      if (!filtered || filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-briefcase" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune mission assignée pour le moment.</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(m => {
+        const statusInfo = {
+          'planned': { class: 'status-planned', label: 'Planifiée', color: '#e0a343' },
+          'in_progress': { class: 'status-progress', label: 'En cours', color: '#0A4D68' },
+          'completed': { class: 'status-completed', label: 'Terminée', color: '#4a7c6b' },
+          'available': { class: 'status-available', label: 'Disponible', color: '#4a7c6b' }
+        };
+        const si = statusInfo[m.status] || statusInfo['planned'];
+        const tagMode = (m.mode || 'route').toLowerCase().includes('plateau') ? '<span class="mc-tag tag-plateau">Plateau</span>' : '<span class="mc-tag tag-route">Route</span>';
+        const tagVehicule = (m.vehicule || 'auto').toLowerCase().includes('moto') ? '<span class="mc-tag tag-moto">Moto</span>' : '<span class="mc-tag tag-auto">Automobile</span>';
+        const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+        const dep = m.depart || m.trajet?.split('→')[0]?.trim() || '-';
+        const arr = m.arrivee || m.trajet?.split('→')[1]?.trim() || '-';
+        const rem = m.remuneration_convoyeur || (m.montant_ht ? Math.round(m.montant_ht * 0.4) : '-');
+        const montant = m.montant_ht || '-';
+
+        return `<div class="mission-card clickable-card" onclick="showConvoMissionDetails('${m.id}')">
+          <div class="mc-status ${si.class}"></div>
+          <div class="mc-info">
+            <div class="mc-ref">${m.reference || '-'}</div>
+            <div class="mc-route">${dep} <em>→</em> ${arr}</div>
+            <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-'} - ${montant}€ HT</span><span class="mc-rem" style="color:var(--success);font-weight:600;"><i class="fas fa-hand-holding-usd"></i> Rém: ${rem}€</span></div>
+            <div style="margin-top:6px;"><span style="font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:20px;background:${si.color}22;color:${si.color};">${si.label}</span></div>
+          </div>
+          <div class="mc-actions">
+            <button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation();showConvoMissionDetails('${m.id}')"><i class="fas fa-eye"></i> Détails</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function filterMyMissions(status, btn) {
+      document.querySelectorAll('#conv-tab-mes-missions .btn-sm-ghost').forEach(b => b.style.borderColor = 'var(--border-light)');
+      if (btn) btn.style.borderColor = 'var(--bordeaux)';
+      _myMissionFilter = status;
+      renderMyMissions('convMyMissionsList', _myMissions);
     }
 
     // ========== RENDER MISSIONS DISPONIBLES ==========
@@ -2017,7 +2113,7 @@
 
     // ========== SHOW TAB ==========
     function showConvTab(id, el) {
-      document.querySelectorAll('#conv-tab-accueil, #conv-tab-missions, #conv-tab-candidatures, #conv-tab-profil, #conv-tab-support, #conv-tab-reseau')
+      document.querySelectorAll('#conv-tab-accueil, #conv-tab-missions, #conv-tab-mes-missions, #conv-tab-candidatures, #conv-tab-profil, #conv-tab-support, #conv-tab-reseau')
         .forEach(t => t.classList.remove('active'));
       const target = document.getElementById('conv-tab-' + id);
       if (target) target.classList.add('active');
@@ -2025,6 +2121,9 @@
       if (el) el.classList.add('active');
       if (id === 'candidatures') {
         filterCandidatures(_candidatureFilter, document.querySelector('#conv-tab-candidatures .btn-sm-ghost'));
+      }
+      if (id === 'mes-missions') {
+        filterMyMissions(_myMissionFilter, document.querySelector('#conv-tab-mes-missions .btn-sm-ghost'));
       }
       if (id === 'reseau') {
         fetchReseauPosts();
