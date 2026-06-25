@@ -786,6 +786,189 @@
     .clickable-card {
       cursor: pointer;
     }
+    .suggest-box {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #E8E1D9;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 100;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+    }
+    .suggest-item {
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      border-bottom: 1px solid #f5f0eb;
+      transition: background 0.15s;
+    }
+    .suggest-item:hover {
+      background: #f9f5f0;
+    }
+    .suggest-item:last-child {
+      border-bottom: none;
+    }
+    .social-layout {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 24px;
+    }
+    .social-feed { min-width: 0; }
+    .post-card {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: box-shadow 0.2s;
+    }
+    .post-card:hover {
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .post-header {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+      align-items: center;
+    }
+    .post-ava {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0A4D68, #066d9c);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .post-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--gray-dark);
+    }
+    .post-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.7rem;
+      color: var(--gray-mid);
+    }
+    .post-role {
+      background: rgba(10,77,104,0.08);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .post-body {
+      font-size: 0.875rem;
+      color: var(--gray-dark);
+      margin-bottom: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .post-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .post-tag {
+      background: rgba(41,128,185,0.08);
+      border: 1px solid rgba(41,128,185,0.15);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 0.7rem;
+      color: #2980b9;
+      cursor: pointer;
+    }
+    .post-actions {
+      display: flex;
+      gap: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-light);
+    }
+    .post-action {
+      background: none;
+      border: none;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--gray-mid);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: all 0.15s;
+    }
+    .post-action:hover {
+      background: rgba(10,77,104,0.06);
+      color: var(--bordeaux);
+    }
+    .post-action.liked {
+      color: #e74c3c;
+    }
+    .ss-card {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .ss-title {
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      color: var(--gray-dark);
+    }
+    .comment-item {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: flex-start;
+    }
+    .comment-ava {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #f0ebe5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.7rem;
+      color: var(--gray-mid);
+      flex-shrink: 0;
+    }
+    .comment-body {
+      background: #f7f3ee;
+      border-radius: 14px;
+      padding: 10px 14px;
+      flex: 1;
+    }
+    .comment-name {
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: var(--gray-dark);
+      margin-bottom: 2px;
+    }
+    .comment-text {
+      font-size: 0.8rem;
+      color: var(--gray-dark);
+      line-height: 1.5;
+    }
+    @media (max-width: 900px) {
+      .social-layout { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 
@@ -1010,14 +1193,9 @@
           <div class="f-grp"><label>Téléphone</label><input type="tel" id="convProfilTel"></div>
           <div class="f-grp"><label>Zone d'intervention</label><input type="text" id="convProfilZone"></div>
           <div class="f-grp"><label>Niveau</label><select id="convProfilNiveau"><option value="Standard">Standard</option><option value="Senior">Senior</option></select></div>
-          <div class="f-grp" style="grid-column:span 2;"><label>Adresse <span style="color:#e74c3c">*</span></label><input type="text" id="convProfilAdresse" placeholder="N° et rue" required></div>
+          <div class="f-grp" style="grid-column:span 2; position:relative;"><label>Adresse <span style="color:#e74c3c">*</span></label><input type="text" id="convProfilAdresse" placeholder="N° et rue" required oninput="debounceConvGeocode(this, 'suggConvAdresse')"><div class="suggest-box" id="suggConvAdresse"></div></div>
           <div class="f-grp"><label>Code Postal <span style="color:#e74c3c">*</span></label><input type="text" id="convProfilCp" required></div>
           <div class="f-grp"><label>Ville <span style="color:#e74c3c">*</span></label><input type="text" id="convProfilVille" required></div>
-          <div class="f-grp" style="grid-column:span 2;">
-            <label>Documents (permis, carte pro, etc.)</label>
-            <input type="file" id="convUploadDoc" accept=".pdf,.jpg,.jpeg,.png">
-            <div id="convDocLink" style="font-size:0.8rem;margin-top:5px;color:var(--bordeaux);"></div>
-          </div>
           <div class="f-grp" style="grid-column:span 2;">
             <label>Disponibilité</label>
             <div style="display:flex;gap:20px;align-items:center;padding-top:8px;">
@@ -1527,6 +1705,7 @@
 
       const { error } = await client.from('candidatures').insert([{
         mission_id: id,
+        convoyeur_id: _convoyeurUser.id,
         convoyeur_nom: _convoyeurName,
         email: _convoyeurUser.email,
         mission_reference: mission.reference || '',
@@ -1609,6 +1788,30 @@
       return url.publicUrl;
     }
 
+    let _convGeocodeTimer;
+    async function debounceConvGeocode(input, boxId) {
+      const box = document.getElementById(boxId);
+      if (!box) return;
+      clearTimeout(_convGeocodeTimer);
+      const q = input.value.trim();
+      if (q.length < 3) { box.style.display = 'none'; return; }
+      _convGeocodeTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(q)}&limit=5`);
+          const json = await res.json();
+          const features = json.features || [];
+          if (features.length === 0) { box.style.display = 'none'; return; }
+          box.innerHTML = features.map(f => {
+            const label = f.properties.label;
+            const postcode = f.properties.postcode || '';
+            const city = f.properties.city || '';
+            return `<div class="suggest-item" onclick="document.getElementById('${input.id}').value='${label.replace(/'/g, "\\'")}'; document.getElementById('convProfilCp').value='${postcode}'; document.getElementById('convProfilVille').value='${city.replace(/'/g, "\\'")}'; this.parentElement.style.display='none';">${label}</div>`;
+          }).join('');
+          box.style.display = 'block';
+        } catch (e) { box.style.display = 'none'; }
+      }, 300);
+    }
+
     async function updateConvoyeurProfile() {
       if (!_convoyeurUser) return Swal.fire('Action impossible', 'Vous devez être connecté.', 'warning');
 
@@ -1624,10 +1827,6 @@
       Swal.fire({ title: 'Mise à jour...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
       const client = getSBC();
 
-      const docUrl = await uploadConvoyeurDocument();
-      const docs = { ..._convoyeurUser.documents };
-      if (docUrl) docs.permis = docUrl;
-
       const { data, error } = await client.from('convoyeurs').update({
         prenom,
         nom,
@@ -1636,8 +1835,7 @@
         niveau: document.getElementById('convProfilNiveau').value,
         adresse,
         code_postal: codePostal,
-        ville,
-        documents: docs
+        ville
       }).eq('id', _convoyeurUser.id).select().single();
 
       if (error) return Swal.fire('Erreur', error.message, 'error');
@@ -1649,7 +1847,6 @@
       document.getElementById('convNomTopbar').textContent = prenom;
       document.getElementById('convAvatar').textContent = (prenom[0] || '') + (nom[0] || '');
       document.getElementById('convPrenom').textContent = prenom;
-      if (docUrl) document.getElementById('convDocLink').innerHTML = `<a href="${docUrl}" target="_blank"><i class="fas fa-file-pdf"></i> Voir le document</a>`;
 
       Swal.fire('Succès', 'Profil mis à jour.', 'success');
     }
@@ -1693,35 +1890,34 @@
       container.innerHTML = data.map(p => {
         const dateStr = new Date(p.created_at).toLocaleDateString('fr-FR', { day:'numeric', month:'short', hour: '2-digit', minute: '2-digit' });
         const avatar = p.author_name ? p.author_name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : 'A';
-        const isAnnounce = p.is_announcement ? 'background:#fff5f5;border-color:var(--bordeaux);' : '';
-        const announceBadge = p.is_announcement ? '<span style="background:var(--bordeaux);color:white;padding:2px 6px;border-radius:4px;font-size:0.6rem;margin-bottom:8px;display:inline-block;font-weight:bold;">ANNONCE OFFICIELLE</span>' : '';
+        const isAnnounce = p.is_announcement ? 'border:2px solid var(--bordeaux);' : '';
+        const announceBadge = p.is_announcement ? '<span style="background:var(--bordeaux);color:white;padding:3px 10px;border-radius:20px;font-size:0.65rem;margin-bottom:10px;display:inline-block;font-weight:700;">ANNONCE OFFICIELLE</span>' : '';
         const tagsHtml = (p.tags||[]).map(t => `<span class="post-tag">${t}</span>`).join('');
         
         return `
           <div class="post-card" style="${isAnnounce}">
             ${announceBadge}
             <div class="post-header">
-              <div style="display:flex;gap:12px;">
-                <div class="post-ava" style="${p.is_announcement ? 'background:var(--bordeaux);color:white;' : ''}">${avatar}</div>
+              <div style="display:flex;gap:12px;align-items:center;flex:1;">
+                <div class="post-ava" style="${p.is_announcement ? 'background:var(--bordeaux);' : ''}">${avatar}</div>
                 <div>
                   <div class="post-name">${p.author_name}</div>
-                  <div class="post-meta"><span class="post-role">${p.author_role||'Convoyeur'}</span><span class="post-time">${dateStr}</span></div>
+                  <div class="post-meta"><span class="post-role">${p.author_role||'Convoyeur'}</span><span>·</span><span class="post-time">${dateStr}</span></div>
                 </div>
               </div>
             </div>
             <div class="post-body">${p.content}</div>
-            <div class="post-tags">${tagsHtml}</div>
-            <div class="post-actions" style="margin-bottom:8px;">
-              <div style="display:flex;gap:20px">
-                <button class="post-action" onclick="likeReseauPost('${p.id}', this)"><i class="fas fa-heart"></i> <span class="likes-cnt">${p.likes_count||0}</span></button>
-                <button class="post-action" onclick="toggleCommentsSection('${p.id}')"><i class="fas fa-comment"></i> Commentaires</button>
-              </div>
+            ${tagsHtml ? `<div class="post-tags">${tagsHtml}</div>` : ''}
+            <div class="post-actions">
+              <button class="post-action" onclick="likeReseauPost('${p.id}', this)"><i class="fas fa-heart"></i> <span class="likes-cnt">${p.likes_count||0}</span> J'aime</button>
+              <button class="post-action" onclick="toggleCommentsSection('${p.id}')"><i class="fas fa-comment"></i> Commenter</button>
             </div>
-            <div id="comments-section-${p.id}" style="display:none;border-top:1px solid var(--border-light);padding-top:12px;margin-top:12px;">
-              <div id="comments-list-${p.id}" style="margin-bottom:12px;"></div>
-              <div style="display:flex;gap:8px;">
-                <input type="text" id="comment-input-${p.id}" placeholder="Écrire un commentaire..." style="flex:1;border:1px solid var(--border-light);border-radius:12px;padding:8px 12px;font-size:0.8rem;outline:none;">
-                <button class="btn-sm btn-sm-ghost" onclick="addComment('${p.id}')"><i class="fas fa-paper-plane"></i></button>
+            <div id="comments-section-${p.id}" style="display:none;border-top:1px solid var(--border-light);padding-top:14px;margin-top:14px;">
+              <div id="comments-list-${p.id}" style="margin-bottom:14px;"></div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <div class="comment-ava">${avatar}</div>
+                <input type="text" id="comment-input-${p.id}" placeholder="Écrire un commentaire..." style="flex:1;border:1px solid var(--border-light);border-radius:20px;padding:8px 16px;font-size:0.8rem;outline:none;background:#f7f3ee;">
+                <button class="btn-sm btn-sm-ghost" onclick="addComment('${p.id}')" style="border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-paper-plane"></i></button>
               </div>
             </div>
           </div>
@@ -1770,27 +1966,25 @@
     async function fetchComments(postId) {
       const client = getSBC();
       const { data, error } = await client.from('reseau_comments').select('*').eq('post_id', postId).order('created_at', { ascending: true });
-      const sec = document.getElementById(`comments-section-${postId}`);
-      if(error) return;
+      const sec = document.getElementById(`comments-list-${postId}`);
+      if(error || !sec) return;
 
-      let commentsHtml = '';
       if(data && data.length > 0) {
-        commentsHtml = data.map(c => `
-          <div style="background:#f9f9f9;padding:8px 12px;border-radius:12px;margin-bottom:8px;font-size:0.8rem;">
-            <strong style="color:#0A4D68;">${c.author_name}</strong> : ${c.content}
-          </div>
-        `).join('');
+        sec.innerHTML = data.map(c => {
+          const cAvatar = c.author_name ? c.author_name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : 'A';
+          return `
+            <div class="comment-item">
+              <div class="comment-ava">${cAvatar}</div>
+              <div class="comment-body">
+                <div class="comment-name">${c.author_name}</div>
+                <div class="comment-text">${c.content}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
       } else {
-        commentsHtml = '<div style="font-size:0.75rem;color:var(--gray-mid);margin-bottom:8px;">Aucun commentaire.</div>';
+        sec.innerHTML = '<div style="font-size:0.75rem;color:var(--gray-mid);margin-bottom:8px;">Aucun commentaire pour le moment.</div>';
       }
-
-      sec.innerHTML = `
-        <div id="comments-list-${postId}" style="margin-bottom:12px;max-height:200px;overflow-y:auto;padding-right:8px;">${commentsHtml}</div>
-        <div style="display:flex;gap:8px;">
-          <input type="text" id="comment-input-${postId}" placeholder="Écrire un commentaire..." style="flex:1;border:1px solid var(--border-light);border-radius:12px;padding:8px 12px;font-size:0.8rem;outline:none;" onkeypress="if(event.key==='Enter') addComment('${postId}')">
-          <button class="btn-sm btn-sm-ghost" onclick="addComment('${postId}')"><i class="fas fa-paper-plane"></i></button>
-        </div>
-      `;
     }
 
     async function addComment(postId) {
