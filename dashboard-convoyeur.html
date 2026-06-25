@@ -1706,7 +1706,6 @@
       const { error } = await client.from('candidatures').insert([{
         mission_id: id,
         convoyeur_nom: _convoyeurName,
-        email: _convoyeurUser.email,
         mission_reference: mission.reference || '',
         mission_trajet: `${mission.depart || ''} → ${mission.arrivee || ''}`,
         mission_montant: mission.montant_ht || 0,
