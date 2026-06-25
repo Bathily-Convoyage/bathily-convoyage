@@ -3873,18 +3873,57 @@ Cadeau premium personnalisé</textarea></div>
     if (errUpdate) return Swal.fire('Erreur', errUpdate.message, 'error');
 
     const nomComplet = `${c.prenom || ''} ${c.nom || ''}`.trim();
-    const { error: errConv } = await sb.from('convoyeurs').insert([{
-      prenom: c.prenom,
-      nom: c.nom,
-      email: c.email,
-      telephone: c.telephone,
-      ville: c.ville,
-      type_permis: c.type_permis,
-      annee_permis: c.annee_permis,
-      niveau: 'junior',
-      disponible: true
-    }]);
-    if (errConv) console.warn('Erreur ajout convoyeur:', errConv.message);
+
+    let authUserId = null;
+    try {
+      const session = (await sb.auth.getSession()).data.session;
+      if (session) {
+        const response = await fetch('/.netlify/functions/admin-create-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            targetTable: 'convoyeurs',
+            payload: {
+              prenom: c.prenom,
+              nom: c.nom,
+              email: c.email,
+              telephone: c.telephone,
+              ville: c.ville,
+              type_permis: c.type_permis,
+              annee_permis: c.annee_permis,
+              niveau: 'junior',
+              disponible: true
+            }
+          })
+        });
+        const result = await response.json();
+        if (response.ok && result.success) {
+          authUserId = result.userId || null;
+        } else {
+          console.warn('admin-create-user a échoué:', result.error);
+        }
+      }
+    } catch (err) {
+      console.warn('Netlify Function indisponible, fallback direct:', err.message);
+    }
+
+    if (!authUserId) {
+      const { error: errConv } = await sb.from('convoyeurs').insert([{
+        prenom: c.prenom,
+        nom: c.nom,
+        email: c.email,
+        telephone: c.telephone,
+        ville: c.ville,
+        type_permis: c.type_permis,
+        annee_permis: c.annee_permis,
+        niveau: 'junior',
+        disponible: true
+      }]);
+      if (errConv) console.warn('Erreur ajout convoyeur:', errConv.message);
+    }
 
     Swal.fire('Approuvé !', `${nomComplet} a été ajouté aux convoyeurs. Un email lui a été envoyé.`, 'success');
     loadFormationCandidatures();

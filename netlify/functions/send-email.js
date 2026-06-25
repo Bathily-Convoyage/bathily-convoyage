@@ -279,25 +279,28 @@ Corps: ${html.substring(0, 300)}...`);
 
       if (candidat.statut === 'approved') {
         const welcomeHtml = wrapEmailLayout(
-          "Bienvenue dans l'équipe Bathily Convoyage ! 🎉",
+          "Bienvenue dans l'equipe Bathily Convoyage !",
           `<p>Bonjour ${candidat.prenom},</p>
-           <p>Nous avons le plaisir de vous annoncer que votre candidature de convoyeur a été **approuvée** par notre équipe !</p>
-           <p>Votre profil est désormais actif. Vous pouvez vous connecter à votre Espace Convoyeur et commencer à proposer vos services sur le marché des missions.</p>
+           <p>Nous avons le plaisir de vous annoncer que votre candidature de convoyeur a ete <strong>approuvee</strong> par notre equipe !</p>
+           <p>Votre profil est desormais actif. Vous allez recevoir un <strong>email d'invitation</strong> separe pour definir votre mot de passe et activer votre compte.</p>
            <div class="highlight-box">
-             <strong>Lien de connexion :</strong> <a href="https://bathily-convoyage.fr/dashboard-convoyeur.html">dashboard-convoyeur.html</a><br>
-             <strong>Votre identifiant :</strong> Sélectionnez votre nom dans la liste au démarrage.
+             <strong>Etapes pour vous connecter :</strong><br>
+             1. Ouvrez l'email d'invitation recu de Supabase<br>
+             2. Cliquez sur le lien pour definir votre mot de passe<br>
+             3. Connectez-vous sur votre Espace Convoyeur
            </div>
-           <h3>Conseils pour débuter :</h3>
-           <ul>
-             <li>Vérifiez régulièrement l'onglet "Marché des missions" pour postuler.</li>
-             <li>Assurez-vous d'avoir l'application GPS active lors de chaque prise en charge.</li>
-             <li>Effectuez toujours les 20 photos obligatoires lors de l'état des lieux.</li>
-           </ul>
+           <p>Une fois votre mot de passe defini, vous pourrez acceder a votre espace :</p>
            <p style="text-align: center;">
-             <a href="https://bathily-convoyage.fr/dashboard-convoyeur.html" class="btn">Accéder à mon Espace Convoyeur</a>
-           </p>`
+             <a href="https://bathily-convoyage.fr/dashboard-convoyeur.html" class="btn">Acceder a mon Espace Convoyeur</a>
+           </p>
+           <h3>Conseils pour debuter :</h3>
+           <ul>
+             <li>Verifiez regululierement l'onglet "Marche des missions" pour postuler.</li>
+             <li>Assurez-vous d'avoir l'application GPS active lors de chaque prise en charge.</li>
+             <li>Effectuez toujours les 20 photos obligatoires lors de l'etat des lieux.</li>
+           </ul>`
         );
-        await sendEmail({ to: candidat.email, subject: "Votre compte convoyeur Bathily a été activé ! 🎉", html: welcomeHtml });
+        await sendEmail({ to: candidat.email, subject: "Votre compte convoyeur Bathily a ete active !", html: welcomeHtml });
       } else if (candidat.statut === 'rejected') {
         const rejectionHtml = wrapEmailLayout(
           "Mise à jour concernant votre candidature",
