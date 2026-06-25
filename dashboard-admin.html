@@ -4005,8 +4005,22 @@ Cadeau premium personnalisé</textarea></div>
     if (!confirm.isConfirmed) return;
 
     const sb = getSupabase();
+    
+    // Récupérer l'ID du convoyeur à partir du nom
+    let convoyeurId = null;
+    const { data: convoyeur } = await sb.from('convoyeurs')
+      .select('id')
+      .or(`prenom.eq.${convoyeurNom.split(' ')[0]},nom.eq.${convoyeurNom.split(' ').slice(1).join(' ')}`)
+      .limit(1);
+    if (convoyeur && convoyeur.length > 0) {
+      convoyeurId = convoyeur[0].id;
+    }
+
+    const updateData = { convoyeur_nom: convoyeurNom, status: 'planned' };
+    if (convoyeurId) updateData.convoyeur_id = convoyeurId;
+
     const { error: errMission } = await sb.from('missions')
-      .update({ convoyeur_nom: convoyeurNom, status: 'planned' })
+      .update(updateData)
       .eq('id', missionId);
     if (errMission) return Swal.fire('Erreur', errMission.message, 'error');
 
@@ -4133,9 +4147,15 @@ Cadeau premium personnalisé</textarea></div>
     const sb = getSupabase();
     const convoyeurNom = formValues.convoyeurNom;
     
-    const updateData = convoyeurNom 
-      ? { convoyeur_nom: convoyeurNom, status: 'planned' }
-      : { convoyeur_nom: null, status: 'available' };
+    let updateData;
+    if (convoyeurNom) {
+      // Récupérer l'ID du convoyeur sélectionné
+      const selectedConv = _convoyeursList.find(c => `${c.prenom} ${c.nom}` === convoyeurNom);
+      updateData = { convoyeur_nom: convoyeurNom, status: 'planned' };
+      if (selectedConv) updateData.convoyeur_id = selectedConv.id;
+    } else {
+      updateData = { convoyeur_nom: null, convoyeur_id: null, status: 'available' };
+    }
 
     const { error } = await sb.from('missions').update(updateData).eq('id', missionId);
     
