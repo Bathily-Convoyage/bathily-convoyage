@@ -458,52 +458,25 @@
       Swal.fire({ title: 'Création du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
       try {
-        const sb = window.getSupabase ? window.getSupabase() : null;
-        if (!sb) {
-          // Fallback: utiliser la config globale
-          if (window.supabaseConfig) {
-            const { createClient } = supabase;
-            window._sbClient = createClient(supabaseConfig.url, supabaseConfig.anonKey);
-          }
-        }
-        const client = window._sbClient || (window.getSupabase ? window.getSupabase() : null);
-        if (!client) throw new Error('Supabase non configuré');
-
-        // 1. Créer le compte Auth
-        const { data: authData, error: authError } = await client.auth.signUp({
-          email,
-          password,
-          options: { data: { prenom, nom, societe, source: 'pro_signup' } }
+        const response = await fetch('/.netlify/functions/client-signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, prenom, nom, telephone, societe, isPro: true })
         });
-        if (authError) {
-          if (authError.message.includes('already registered')) {
-            Swal.fire('Compte existant', 'Cet email est déjà utilisé. Contactez-nous pour activer votre accès pro.', 'info');
-          } else {
-            Swal.fire('Erreur', authError.message, 'error');
-          }
+        const result = await response.json();
+
+        if (result.error === 'already_registered') {
+          Swal.fire('Compte existant', 'Cet email est déjà utilisé. Contactez-nous pour activer votre accès pro.', 'info');
           return;
         }
 
-        // 2. Insérer dans clients avec is_pro et pro_status
-        const { error: insertError } = await client.from('clients').insert([{
-          prenom, nom, email, telephone, societe,
-          role: 'client',
-          is_pro: true,
-          pro_status: 'pending',
-          auth_user_id: authData.user.id
-        }]);
-
-        if (insertError) {
-          console.error('Erreur insert client pro:', insertError);
-          Swal.fire('Erreur', 'Compte créé mais profil non enregistré. Contactez le support.', 'warning');
+        if (!response.ok) {
+          Swal.fire('Erreur', result.error || 'Impossible de créer le compte.', 'error');
           return;
         }
-
-        // Déconnexion (le pro doit attendre validation)
-        await client.auth.signOut();
 
         Swal.fire({
-          title: 'Demande envoyée ! ⭐',
+          title: 'Demande envoyée !',
           html: `Bonjour <strong>${prenom}</strong>,<br><br>Votre demande de compte Pro a bien été enregistrée.<br>Notre équipe valide votre accès sous <strong>24h ouvrées</strong>.<br><br>Vous recevrez un email de confirmation à <strong>${email}</strong>.`,
           icon: 'success',
           confirmButtonColor: '#0A4D68',

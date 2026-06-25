@@ -1542,42 +1542,48 @@
       }
 
       Swal.fire({ title: 'Création du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-      const client = getSBCli();
 
-      // 1. Créer auth
-      const { data: authData, error: authError } = await client.auth.signUp({
-        email,
-        password,
-        options: { data: { prenom, nom } }
-      });
-      if (authError) {
-        if (authError.message.includes('already registered')) {
+      try {
+        const response = await fetch('/.netlify/functions/client-signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, prenom, nom, telephone, societe, isPro: false })
+        });
+        const result = await response.json();
+
+        if (result.error === 'already_registered') {
           Swal.fire({ title: 'Compte existant', text: 'Cet email est déjà utilisé. Souhaitez-vous vous connecter ?', showCancelButton: true, confirmButtonText: 'Se connecter' })
-            .then(res => { if (res.isConfirmed) { switchAuthTab('login');
-              document.getElementById('loginEmail').value = email; } });
-        } else {
-          Swal.fire('Erreur', authError.message, 'error');
+            .then(res => { if (res.isConfirmed) { switchAuthTab('login'); document.getElementById('loginEmail').value = email; } });
+          return;
         }
-        return;
+
+        if (!response.ok) {
+          Swal.fire('Erreur', result.error || 'Impossible de créer le compte.', 'error');
+          return;
+        }
+
+        // Connexion automatique
+        const client = getSBCli();
+        const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
+        if (authError) {
+          Swal.fire('Compte créé !', 'Vous pouvez maintenant vous connecter.', 'success')
+            .then(() => switchAuthTab('login'));
+          return;
+        }
+
+        const { data: profile } = await client.from('clients').select('*').eq('email', email).maybeSingle();
+        if (profile) {
+          _clientUser = profile;
+          _clientName = `${prenom} ${nom}`;
+          sessionStorage.setItem('client_user', JSON.stringify(profile));
+          sessionStorage.setItem('client_name', _clientName);
+          document.getElementById('clientLoginOverlay').style.display = 'none';
+          await loadClientData(profile);
+        }
+        Swal.fire({ title: 'Compte créé !', text: `Bienvenue, ${prenom}.`, icon: 'success', timer: 2500, showConfirmButton: false });
+      } catch (err) {
+        Swal.fire('Erreur', 'Service indisponible. Veuillez réessayer plus tard.', 'error');
       }
-
-      // 2. Insérer dans clients
-      const { data: inserted, error: insertError } = await client.from('clients').insert([{
-        prenom, nom, email, telephone, societe, role: 'client', auth_user_id: authData.user.id
-      }]).select().single();
-
-      if (insertError || !inserted) {
-        Swal.fire('Erreur', insertError ? insertError.message : 'Impossible de créer le profil.', 'error');
-        return;
-      }
-
-      _clientUser = inserted;
-      _clientName = `${prenom} ${nom}`;
-      sessionStorage.setItem('client_user', JSON.stringify(inserted));
-      sessionStorage.setItem('client_name', _clientName);
-      document.getElementById('clientLoginOverlay').style.display = 'none';
-      await loadClientData(inserted);
-      Swal.fire({ title: 'Compte créé ! ⭐', text: `Bienvenue, ${prenom}.`, icon: 'success', timer: 2500, showConfirmButton: false });
     }
 
     // ========== LOAD CLIENT DATA ==========
