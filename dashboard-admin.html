@@ -2670,37 +2670,7 @@ Cadeau premium personnalisé</textarea></div>
       Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Client créé. Un email d\'invitation lui a été envoyé.', timer: 5000 });
       loadClients();
     } catch (err) {
-      // Fallback local : creer directement via Supabase
-      console.warn('Netlify Function indisponible, fallback direct:', err.message);
-      try {
-        const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
-        const { data: signUpData, error: signUpError } = await sb.auth.signUp({
-          email: payload.email,
-          password: tempPassword,
-          options: { data: { prenom: payload.prenom, nom: payload.nom, source: 'admin_create' } }
-        });
-        if (signUpError) throw new Error(signUpError.message);
-
-        const newUserId = signUpData?.user?.id;
-        if (signUpData?.session) await sb.auth.signOut();
-
-        const { error: insertError } = await sb.from('clients').insert([{
-          ...payload,
-          role: 'client',
-          auth_user_id: newUserId
-        }]);
-        if (insertError) throw new Error(insertError.message);
-
-        await sb.auth.resetPasswordForEmail(payload.email, {
-          redirectTo: window.location.origin + '/reset-password.html'
-        });
-
-        closeModal('modalClient');
-        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Client créé. Email d\'invitation envoyé.', timer: 5000 });
-        loadClients();
-      } catch (fallbackErr) {
-        Swal.fire('Erreur', 'Impossible de créer le profil client : ' + fallbackErr.message, 'error');
-      }
+      Swal.fire('Erreur', 'Impossible de creer le profil client : ' + err.message, 'error');
     }
   };
 
@@ -2803,38 +2773,7 @@ Cadeau premium personnalisé</textarea></div>
       Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convoyeur créé. Un email d\'invitation lui a été envoyé.', timer: 5000 });
       await loadConvoyeurs();
     } catch (err) {
-      // Fallback local : creer directement via Supabase
-      console.warn('Netlify Function indisponible, fallback direct:', err.message);
-      try {
-        const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
-        const { data: signUpData, error: signUpError } = await sb.auth.signUp({
-          email,
-          password: tempPassword,
-          options: { data: { prenom, nom, source: 'admin_create' } }
-        });
-        if (signUpError) throw new Error(signUpError.message);
-
-        const newUserId = signUpData?.user?.id;
-        if (signUpData?.session) await sb.auth.signOut();
-
-        const { error: insertError } = await sb.from('convoyeurs').insert([{
-          prenom, nom, email, telephone: phone,
-          taux_auto: tauxAuto, taux_moto: tauxMoto,
-          zone, niveau, auth_user_id: newUserId
-        }]);
-        if (insertError) throw new Error(insertError.message);
-
-        // Envoyer email reset password
-        await sb.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin + '/reset-password.html'
-        });
-
-        closeModal('modalConvoyeur');
-        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convoyeur créé. Email d\'invitation envoyé.', timer: 5000 });
-        await loadConvoyeurs();
-      } catch (fallbackErr) {
-        Swal.fire('Erreur', 'Impossible de créer le profil convoyeur : ' + fallbackErr.message, 'error');
-      }
+      Swal.fire('Erreur', 'Impossible de creer le profil convoyeur : ' + err.message, 'error');
     }
   }
 

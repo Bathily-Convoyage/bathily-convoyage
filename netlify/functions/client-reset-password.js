@@ -35,19 +35,19 @@ exports.handler = async (event, context) => {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // 1. Verifier si le convoyeur existe dans la table
-    const { data: convoyeur } = await supabase
-      .from('convoyeurs')
+    // 1. Verifier si le client existe dans la table
+    const { data: clientRow } = await supabase
+      .from('clients')
       .select('id, prenom, nom, auth_user_id')
       .eq('email', cleanEmail)
       .maybeSingle();
 
-    if (!convoyeur) {
-      return { statusCode: 404, headers, body: JSON.stringify({ error: 'Aucun compte convoyeur trouve avec cet email.' }) };
+    if (!clientRow) {
+      return { statusCode: 404, headers, body: JSON.stringify({ error: 'Aucun compte client trouve avec cet email.' }) };
     }
 
-    // 2. Si pas de compte Auth, en creer un via admin API
-    let authUserId = convoyeur.auth_user_id;
+    // 2. Si pas de compte Auth, en creer un
+    let authUserId = clientRow.auth_user_id;
 
     if (!authUserId) {
       const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
@@ -69,35 +69,27 @@ exports.handler = async (event, context) => {
         authUserId = createData.user.id;
       }
 
-      // Linker auth_user_id
       if (authUserId) {
-        await supabase.from('convoyeurs').update({ auth_user_id: authUserId }).eq('id', convoyeur.id);
+        await supabase.from('clients').update({ auth_user_id: authUserId }).eq('id', clientRow.id);
       }
     }
 
-    // 3. Generer un lien de reset password via admin API
+    // 3. Generer un lien de recovery
     const redirectTo = corsOrigin + '/reset-password.html';
     const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink('recovery', cleanEmail, {
       redirectTo: redirectTo
     });
 
-    let resetUrl;
-    if (resetError || !resetData) {
-      // Fallback: utiliser resetPasswordForEmail cote serveur
-      const { error: rpcError } = await supabase.auth.resetPasswordForEmail(cleanEmail, { redirectTo });
-      if (rpcError) {
-        return { statusCode: 500, headers, body: JSON.stringify({ error: 'Impossible de generer le lien de reset.' }) };
-      }
-      resetUrl = null;
-    } else {
-      resetUrl = resetData.properties?.action_link || resetData.properties?.redirect_to;
+    let resetUrl = redirectTo;
+    if (!resetError && resetData) {
+      resetUrl = resetData.properties?.action_link || resetData.properties?.redirect_to || redirectTo;
     }
 
-    // 4. Envoyer l'email via Resend
+    // 4. Envoyer via Resend
     const resendApiKey = process.env.RESEND_API_KEY;
     const FROM_EMAIL = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+    const prenom = clientRow.prenom || '';
 
-    const prenom = convoyeur.prenom || '';
     const emailHtml = `
       <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #FDFBF7; padding: 40px;">
         <div style="text-align: center; margin-bottom: 30px;">
@@ -108,14 +100,14 @@ exports.handler = async (event, context) => {
           <h2 style="color: #0A4D68; margin-top: 0;">Reinitialisation de votre mot de passe</h2>
           <p style="color: #2D2A24; font-size: 0.95rem; line-height: 1.6;">Bonjour ${prenom},</p>
           <p style="color: #2D2A24; font-size: 0.95rem; line-height: 1.6;">
-            Votre compte convoyeur a ete cree. Pour definir votre mot de passe et acceder a votre espace, cliquez sur le bouton ci-dessous :
+            Pour definir votre mot de passe et acceder a votre espace client, cliquez sur le bouton ci-dessous :
           </p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetUrl || redirectTo}" style="background: #0A4D68; color: white; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 0.9rem; display: inline-block;">Definir mon mot de passe</a>
+            <a href="${resetUrl}" style="background: #0A4D68; color: white; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 0.9rem; display: inline-block;">Definir mon mot de passe</a>
           </div>
           <p style="color: #6B625A; font-size: 0.8rem; line-height: 1.5;">
             Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br>
-            <a href="${resetUrl || redirectTo}" style="color: #0A4D68; word-break: break-all;">${resetUrl || redirectTo}</a>
+            <a href="${resetUrl}" style="color: #0A4D68; word-break: break-all;">${resetUrl}</a>
           </p>
           <p style="color: #6B625A; font-size: 0.8rem; margin-top: 20px;">Ce lien expirera dans 1 heure.</p>
         </div>
@@ -146,7 +138,7 @@ exports.handler = async (event, context) => {
         return { statusCode: 500, headers, body: JSON.stringify({ error: 'Erreur envoi email: ' + (data.message || 'inconnue') }) };
       }
     } else {
-      console.log('[SIMULATION] Email reset password pour:', cleanEmail);
+      console.log('[SIMULATION] Email reset password client pour:', cleanEmail);
     }
 
     return {
@@ -156,7 +148,7 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('Erreur convoyeur-reset-password:', error);
+    console.error('Erreur client-reset-password:', error);
     return { statusCode: 500, headers, body: JSON.stringify({ error: error.message || 'Erreur interne' }) };
   }
 };

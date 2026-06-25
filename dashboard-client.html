@@ -1383,66 +1383,22 @@
       if (!email) return;
 
       Swal.fire({ title: 'Envoi...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-      const client = getSBCli();
-      const cleanEmail = email.trim().toLowerCase();
-      
-      // Tenter resetPasswordForEmail (peut lancer une exception "Auth session missing!")
-      let resetError = null;
+
       try {
-        const { error } = await client.auth.resetPasswordForEmail(cleanEmail, {
-          redirectTo: window.location.origin + '/reset-password.html'
+        const response = await fetch('/.netlify/functions/client-reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim().toLowerCase() })
         });
-        resetError = error;
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          Swal.fire('Email envoyé !', 'Consultez votre boîte mail pour définir votre mot de passe.', 'success');
+        } else {
+          Swal.fire('Erreur', result.error || 'Impossible d\'envoyer l\'email.', 'error');
+        }
       } catch (err) {
-        resetError = err;
-      }
-      
-      if (resetError) {
-        // L'email n'existe pas dans Supabase Auth (ancien compte)
-        // Créer le compte Auth avec un mot de passe temporaire, puis renvoyer l'email de reset
-        Swal.fire({ title: 'Migration du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-        const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
-        let newAuthUserId = null;
-        try {
-          const { data: signUpData, error: signUpError } = await client.auth.signUp({
-            email: cleanEmail,
-            password: tempPassword,
-            options: { data: { source: 'migration' } }
-          });
-          if (signUpError) {
-            Swal.fire('Erreur', 'Impossible de migrer ce compte : ' + signUpError.message, 'error');
-            return;
-          }
-          newAuthUserId = signUpData?.user?.id || null;
-          if (signUpData?.session) {
-            await client.auth.signOut();
-          }
-        } catch (signUpErr) {
-          Swal.fire('Erreur', 'Impossible de migrer ce compte : ' + signUpErr.message, 'error');
-          return;
-        }
-        // Linker auth_user_id dans la table clients pour éviter les fantômes
-        if (newAuthUserId) {
-          try {
-            await client.from('clients').update({ auth_user_id: newAuthUserId }).eq('email', cleanEmail);
-          } catch (linkErr) {
-            console.warn('Impossible de linker auth_user_id:', linkErr);
-          }
-        }
-        try {
-          const { error: resetError2 } = await client.auth.resetPasswordForEmail(cleanEmail, {
-            redirectTo: window.location.origin + '/reset-password.html'
-          });
-          if (resetError2) {
-            Swal.fire('Compte créé', 'Votre compte a été migré. Veuillez contacter l\'administrateur pour définir votre mot de passe.', 'info');
-          } else {
-            Swal.fire('Email envoyé !', 'Votre compte a été migré. Consultez votre boîte mail pour définir votre mot de passe.', 'success');
-          }
-        } catch (resetErr2) {
-          Swal.fire('Compte créé', 'Votre compte a été migré. Veuillez contacter l\'administrateur pour définir votre mot de passe.', 'info');
-        }
-      } else {
-        Swal.fire('Email envoyé !', 'Consultez votre boîte mail pour réinitialiser votre mot de passe.', 'success');
+        Swal.fire('Erreur', 'Service indisponible. Veuillez réessayer plus tard.', 'error');
       }
     }
 

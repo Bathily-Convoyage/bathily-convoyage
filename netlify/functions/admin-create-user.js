@@ -71,19 +71,21 @@ exports.handler = async (event, context) => {
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'Email obligatoire.' }) };
     }
 
-    // 4. Inviter l'utilisateur (crée le compte + envoie l'email)
-    const redirectToUrl = `${corsOrigin}/reset-password.html`;
-    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-      redirectTo: redirectToUrl
+    // 4. Creer le compte Auth avec mot de passe temporaire (sans envoi email Supabase)
+    const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
+    const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: email,
+      password: tempPassword,
+      email_confirm: true
     });
-    
-    if (inviteError) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Erreur création compte: ' + inviteError.message }) };
+
+    if (createError) {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Erreur creation compte: ' + createError.message }) };
     }
 
-    const newUserId = inviteData.user.id;
+    const newUserId = createData.user.id;
 
-    // 5. Insérer dans la table correspondante
+    // 5. Inserer dans la table correspondante
     const insertPayload = {
       ...payload,
       auth_user_id: newUserId
@@ -98,9 +100,59 @@ exports.handler = async (event, context) => {
       .insert([insertPayload]);
 
     if (insertError) {
-      // Nettoyage en cas d'erreur
       await supabaseAdmin.auth.admin.deleteUser(newUserId);
-      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Erreur base de données: ' + insertError.message }) };
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Erreur base de donnees: ' + insertError.message }) };
+    }
+
+    // 6. Generer un lien de recovery et l'envoyer via Resend
+    const redirectToUrl = `${corsOrigin}/reset-password.html`;
+    try {
+      const { data: resetData } = await supabaseAdmin.auth.admin.generateLink('recovery', email, {
+        redirectTo: redirectToUrl
+      });
+      const resetUrl = resetData?.properties?.action_link || resetData?.properties?.redirect_to || redirectToUrl;
+
+      const resendApiKey = process.env.RESEND_API_KEY;
+      const FROM_EMAIL = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+      const prenom = payload.prenom || '';
+
+      if (resendApiKey) {
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: `Bathily Convoyage <${FROM_EMAIL}>`,
+            to: [email],
+            subject: 'Bienvenue sur Bathily Convoyage - Definissez votre mot de passe',
+            html: `<div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #FDFBF7; padding: 40px;">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #0A4D68; font-size: 1.5rem; margin: 0;">Bathily-Convoyage</h1>
+                <p style="color: #6B625A; font-size: 0.85rem;">Convoyage automobile professionnel</p>
+              </div>
+              <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <h2 style="color: #0A4D68; margin-top: 0;">Bienvenue ${prenom} !</h2>
+                <p style="color: #2D2A24; font-size: 0.95rem; line-height: 1.6;">
+                  Votre compte a ete cree. Pour definir votre mot de passe et acceder a votre espace, cliquez sur le bouton ci-dessous :
+                </p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${resetUrl}" style="background: #0A4D68; color: white; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 0.9rem; display: inline-block;">Definir mon mot de passe</a>
+                </div>
+                <p style="color: #6B625A; font-size: 0.8rem; line-height: 1.5;">
+                  Si le bouton ne fonctionne pas, copiez-collez ce lien :<br>
+                  <a href="${resetUrl}" style="color: #0A4D68; word-break: break-all;">${resetUrl}</a>
+                </p>
+                <p style="color: #6B625A; font-size: 0.8rem; margin-top: 20px;">Ce lien expirera dans 1 heure.</p>
+              </div>
+              <p style="text-align: center; color: #6B625A; font-size: 0.75rem; margin-top: 20px;">Bathily-Convoyage - contact@bathily-convoyage.fr</p>
+            </div>`
+          })
+        });
+      }
+    } catch (emailErr) {
+      console.warn('Erreur envoi email reset (non bloquant):', emailErr.message);
     }
 
     return {
