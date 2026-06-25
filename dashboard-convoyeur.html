@@ -1063,25 +1063,25 @@
           <div class="dash-date" id="convDashDate"></div>
         </div>
         <div class="stats-row">
-          <div class="stat-card">
+          <div class="stat-card clickable-card" onclick="showConvTab('missions',document.querySelector('[onclick*=missions]'))" role="button" tabindex="0">
             <div class="stat-ico"><i class="fas fa-route"></i></div>
             <div class="stat-val" id="convKpiDisponibles">-</div>
             <div class="stat-lbl">Missions disponibles</div>
             <div class="stat-trend trend-up">À postuler</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card clickable-card" onclick="showConvTab('candidatures',document.querySelector('[onclick*=candidatures]'))" role="button" tabindex="0">
             <div class="stat-ico"><i class="fas fa-clock"></i></div>
             <div class="stat-val" id="convKpiEnAttente">-</div>
             <div class="stat-lbl">Candidatures en attente</div>
             <div class="stat-trend trend-neutral">En cours</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card clickable-card" onclick="showConvTab('candidatures',document.querySelector('[onclick*=candidatures]'))" role="button" tabindex="0">
             <div class="stat-ico"><i class="fas fa-check-circle"></i></div>
             <div class="stat-val" id="convKpiApprouvees">-</div>
             <div class="stat-lbl">Candidatures approuvées</div>
             <div class="stat-trend trend-up">Mission gagnée</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card clickable-card" onclick="showConvTab('candidatures',document.querySelector('[onclick*=candidatures]'))" role="button" tabindex="0">
             <div class="stat-ico"><i class="fas fa-euro-sign"></i></div>
             <div class="stat-val" id="convKpiTotalGagne">-</div>
             <div class="stat-lbl">Total gagné (2025)</div>
@@ -1489,14 +1489,13 @@
       // Charger toutes les missions disponibles
       const { data: missions } = await client.from('missions')
         .select('*')
-        .eq('status', 'available')
         .order('created_at', { ascending: false });
-      _allMissions = missions || [];
+      _allMissions = (missions || []).filter(m => !m.status || m.status === 'available' || m.status === 'pending');
 
-      // Charger les candidatures du convoyeur
+      // Charger les candidatures du convoyeur (par nom ou email)
       const { data: candidatures } = await client.from('candidatures')
         .select('*')
-        .eq('convoyeur_nom', _convoyeurName)
+        .or(`convoyeur_nom.eq.${_convoyeurName}`)
         .order('created_at', { ascending: false });
       _allCandidatures = candidatures || [];
 
