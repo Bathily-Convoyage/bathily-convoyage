@@ -1210,7 +1210,7 @@ async function submitCandidature() {
       last_attempt_at: new Date().toISOString(),
       statut: 'pending',
       documents: JSON.stringify(docPaths)
-    }]);
+    }]).select().single();
 
     if (error) {
       if (error.code === '23505' || (error.message && error.message.includes('duplicate'))) {
@@ -1230,10 +1230,11 @@ async function submitCandidature() {
     Swal.close();
 
     // Envoi de l'email de notification
+    const candidatureId = newCand?.id;
     fetch('/.netlify/functions/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trigger: 'candidature_submitted', email: formData.email })
+      body: JSON.stringify({ trigger: 'candidature_submitted', id: candidatureId, email: formData.email })
     }).catch(err => console.warn('Erreur envoi email candidature:', err));
 
   } catch (err) {

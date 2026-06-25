@@ -225,7 +225,7 @@ Corps: ${html.substring(0, 300)}...`);
     else if (trigger === 'candidature_submitted') {
       // ... (identique à l'original)
       const { data: candidat, error } = await supabase
-        .from('convoyeurs_candidats')
+        .from('convoyeur_candidatures')
         .select('*')
         .eq('id', id)
         .single();
@@ -270,7 +270,7 @@ Corps: ${html.substring(0, 300)}...`);
     else if (trigger === 'candidature_status_changed') {
       // ... (identique à l'original)
       const { data: candidat, error } = await supabase
-        .from('convoyeurs_candidats')
+        .from('convoyeur_candidatures')
         .select('*')
         .eq('id', id)
         .single();

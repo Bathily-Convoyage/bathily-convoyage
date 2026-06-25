@@ -3704,7 +3704,7 @@ Cadeau premium personnalisé</textarea></div>
       const statusText = c.statut === 'pending' ? 'En attente' : c.statut === 'approved' ? 'Approuvé' : 'Refusé';
       const scorePct = c.score_quiz ? Math.round(c.score_quiz / 12 * 100) : 0;
       const nomComplet = `${c.prenom || ''} ${c.nom || ''}`.trim() || 'Inconnu';
-      return `<div style="background:white; border:1px solid var(--border-light); border-radius:12px; padding:16px; margin-bottom:10px;">
+      return `<div style="background:white; border:1px solid var(--border-light); border-radius:12px; padding:16px; margin-bottom:10px; cursor:pointer;" onclick="if(!event.target.closest('button')){viewFormationCandidatureDetails('${c.id}')}">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
             <strong>${nomComplet}</strong>
@@ -3721,10 +3721,10 @@ Cadeau premium personnalisé</textarea></div>
         </div>
         ${c.experience ? `<div style="font-size:0.72rem; color:var(--gray-mid); margin-top:4px;"><i class="fas fa-briefcase"></i> ${c.experience}</div>` : ''}
         <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="btn-sm btn-sm-ghost" onclick="viewFormationCandidatureDetails('${c.id}')"><i class="fas fa-eye"></i> Voir détails</button>
+          <button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation(); viewFormationCandidatureDetails('${c.id}')"><i class="fas fa-eye"></i> Voir détails</button>
           ${c.statut === 'pending' ? `
-            <button class="btn-sm btn-sm-green" onclick="approveFormationCandidature('${c.id}')"><i class="fas fa-check"></i> Approuver</button>
-            <button class="btn-sm btn-sm-red" onclick="rejectFormationCandidature('${c.id}')"><i class="fas fa-times"></i> Refuser</button>
+            <button class="btn-sm btn-sm-green" onclick="event.stopPropagation(); approveFormationCandidature('${c.id}')"><i class="fas fa-check"></i> Approuver</button>
+            <button class="btn-sm btn-sm-red" onclick="event.stopPropagation(); rejectFormationCandidature('${c.id}')"><i class="fas fa-times"></i> Refuser</button>
           ` : ''}
         </div>
       </div>`;
@@ -3748,12 +3748,17 @@ Cadeau premium personnalisé</textarea></div>
           identite: 'Pièce d\'identité',
           domicile: 'Justificatif de domicile'
         };
-        docsHtml = '<div style="display:flex; flex-direction:column; gap:8px;">';
+        docsHtml = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:10px;">';
         for (const [key, path] of Object.entries(docs)) {
           if (!path) continue;
-          docsHtml += `<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--beige); border-radius:8px;">
-            <span><i class="fas fa-file-alt" style="margin-right:6px; color:var(--bordeaux);"></i>${docLabels[key] || key}</span>
-            <button class="btn-sm btn-sm-ghost" onclick="downloadDoc('${path}')"><i class="fas fa-download"></i></button>
+          docsHtml += `<div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige);">
+            <div style="padding:6px 8px; font-size:0.72rem; font-weight:600; color:var(--bordeaux); display:flex; justify-content:space-between; align-items:center;">
+              <span>${docLabels[key] || key}</span>
+              <button class="btn-sm btn-sm-ghost" style="padding:2px 6px;" onclick="downloadDoc('${path}')"><i class="fas fa-download"></i></button>
+            </div>
+            <div style="cursor:pointer; height:100px; display:flex; align-items:center; justify-content:center; background:#f5f5f5;" onclick="viewDocImage('${path}')">
+              <i class="fas fa-file-image" style="font-size:2rem; color:var(--gray-mid);"></i>
+            </div>
           </div>`;
         }
         docsHtml += '</div>';
@@ -3792,6 +3797,27 @@ Cadeau premium personnalisé</textarea></div>
       return;
     }
     if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+  };
+
+  window.viewDocImage = async function(path) {
+    const sb = getSupabase();
+    if (!sb) return;
+    const { data, error } = await sb.storage.from('convoyeur-documents').createSignedUrl(path, 3600);
+    if (error) {
+      Swal.fire('Erreur', 'Impossible de récupérer le document: ' + error.message, 'error');
+      return;
+    }
+    if (data?.signedUrl) {
+      const fileName = path.split('/').pop();
+      Swal.fire({
+        title: fileName,
+        html: `<img src="${data.signedUrl}" style="max-width:100%; max-height:70vh; border-radius:8px;" alt="${fileName}" />`,
+        width: 700,
+        showCloseButton: true,
+        showConfirmButton: false,
+        showCancelButton: false
+      });
+    }
   };
 
   window.approveFormationCandidature = async function(id) {
