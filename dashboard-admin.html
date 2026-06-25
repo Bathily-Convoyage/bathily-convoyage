@@ -3747,57 +3747,77 @@ Cadeau premium personnalisé</textarea></div>
     }).join('');
   }
 
-  window.viewFormationCandidatureDetails = function(id) {
+  window.viewFormationCandidatureDetails = async function(id) {
     const c = _allFormationCandidatures.find(x => x.id === id);
     if (!c) return Swal.fire('Erreur', 'Candidature introuvable', 'error');
     const nomComplet = `${c.prenom || ''} ${c.nom || ''}`.trim() || 'Inconnu';
     const scorePct = c.score_quiz ? Math.round(c.score_quiz / 12 * 100) : 0;
     const statusText = c.statut === 'pending' ? 'En attente' : c.statut === 'approved' ? 'Approuvé' : 'Refusé';
-    let docsHtml = '<div style="font-size:0.8rem; color:var(--gray-mid);">Aucun document téléversé.</div>';
-    if (c.documents) {
+
+    const docLabels = {
+      permis_recto: 'Permis Recto',
+      permis_verso: 'Permis Verso',
+      rc_pro: 'Attestation RC Pro',
+      identite: 'Piece d\'identite',
+      domicile: 'Justificatif de domicile'
+    };
+
+    let docsHtml = '<div style="font-size:0.8rem; color:var(--gray-mid);">Aucun document televerse.</div>';
+    const sb = getSupabase();
+
+    if (c.documents && sb) {
       try {
         const docs = typeof c.documents === 'string' ? JSON.parse(c.documents) : c.documents;
-        const docLabels = {
-          permis_recto: 'Permis — Recto',
-          permis_verso: 'Permis — Verso',
-          rc_pro: 'Attestation RC Pro',
-          identite: 'Pièce d\'identité',
-          domicile: 'Justificatif de domicile'
-        };
-        docsHtml = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:10px;">';
-        for (const [key, path] of Object.entries(docs)) {
-          if (!path) continue;
-          docsHtml += `<div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige);">
-            <div style="padding:6px 8px; font-size:0.72rem; font-weight:600; color:var(--bordeaux); display:flex; justify-content:space-between; align-items:center;">
-              <span>${docLabels[key] || key}</span>
-              <button class="btn-sm btn-sm-ghost" style="padding:2px 6px;" onclick="downloadDoc('${path}')"><i class="fas fa-download"></i></button>
-            </div>
-            <div style="cursor:pointer; height:100px; display:flex; align-items:center; justify-content:center; background:#f5f5f5;" onclick="viewDocImage('${path}')">
-              <i class="fas fa-file-image" style="font-size:2rem; color:var(--gray-mid);"></i>
-            </div>
-          </div>`;
+        const docEntries = Object.entries(docs).filter(([k, v]) => v);
+        if (docEntries.length > 0) {
+          const results = await Promise.all(docEntries.map(async ([key, path]) => {
+            const { data } = await sb.storage.from('convoyeur-documents').createSignedUrl(path, 3600);
+            return { key, path, url: data?.signedUrl || null };
+          }));
+          docsHtml = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px;">';
+          for (const { key, path, url } of results) {
+            const label = docLabels[key] || key;
+            const imgHtml = url
+              ? `<img src="${url}" style="width:100%; height:120px; object-fit:cover; cursor:pointer;" onclick="viewDocImage('${path}')" alt="${label}" />`
+              : '<div style="height:120px; display:flex; align-items:center; justify-content:center; background:#f5f5f5;"><i class="fas fa-file-image" style="font-size:2rem; color:var(--gray-mid);"></i></div>';
+            docsHtml += `<div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige);">
+              <div style="padding:6px 8px; font-size:0.72rem; font-weight:600; color:var(--bordeaux); display:flex; justify-content:space-between; align-items:center;">
+                <span>${label}</span>
+                <button class="btn-sm btn-sm-ghost" style="padding:2px 6px;" onclick="downloadDoc('${path}')"><i class="fas fa-download"></i></button>
+              </div>
+              ${imgHtml}
+            </div>`;
+          }
+          docsHtml += '</div>';
         }
-        docsHtml += '</div>';
       } catch (e) { docsHtml = '<div style="font-size:0.8rem; color:var(--gray-mid);">Erreur lecture documents.</div>'; }
     }
+
+    const actionButtons = c.statut === 'pending'
+      ? `<div style="display:flex; gap:10px; margin-top:16px; justify-content:center;">
+          <button onclick="approveFormationCandidature('${c.id}'); Swal.close();" style="padding:10px 24px; background:#27ae60; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;"><i class="fas fa-check"></i> Approuver</button>
+          <button onclick="rejectFormationCandidature('${c.id}'); Swal.close();" style="padding:10px 24px; background:#c0392b; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;"><i class="fas fa-times"></i> Refuser</button>
+        </div>`
+      : '';
 
     Swal.fire({
       title: `Dossier — ${nomComplet}`,
       html: `<div style="text-align:left;font-size:0.9rem;">
         <div style="display:flex;gap:8px;margin-bottom:12px;"><span class="sp ${c.statut === 'pending' ? 'sp-att' : c.statut === 'approved' ? 'sp-ok' : 'sp-err'}"><span class="sp-dot"></span>${statusText}</span></div>
-        <b>Email :</b> ${c.email || '—'}<br>
-        <b>Téléphone :</b> ${c.telephone || '—'}<br>
-        <b>Ville :</b> ${c.ville || '—'}<br>
-        <b>Date de naissance :</b> ${c.date_naissance || '—'}<br>
+        <b>Email :</b> ${c.email || '-'}<br>
+        <b>Telephone :</b> ${c.telephone || '-'}<br>
+        <b>Ville :</b> ${c.ville || '-'}<br>
+        <b>Date de naissance :</b> ${c.date_naissance || '-'}<br>
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Permis :</b> ${c.type_permis || '—'} (depuis ${c.annee_permis || '—'})<br>
-        <b>Expérience :</b> ${c.experience || '—'}<br>
+        <b>Permis :</b> ${c.type_permis || '-'} (depuis ${c.annee_permis || '-'})<br>
+        <b>Experience :</b> ${c.experience || '-'}<br>
         <b>Score quiz :</b> ${c.score_quiz || 0}/12 (${scorePct}%)<br>
         <hr style="margin:10px 0;border-color:#eee;">
         <div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-paperclip"></i> Documents</div>
         ${docsHtml}
+        ${actionButtons}
       </div>`,
-      width: 600,
+      width: 650,
       showCloseButton: true,
       showConfirmButton: false,
       showCancelButton: false
@@ -3866,9 +3886,15 @@ Cadeau premium personnalisé</textarea></div>
     }]);
     if (errConv) console.warn('Erreur ajout convoyeur:', errConv.message);
 
-    Swal.fire('Approuvé !', `${nomComplet} a été ajouté aux convoyeurs.`, 'success');
+    Swal.fire('Approuvé !', `${nomComplet} a été ajouté aux convoyeurs. Un email lui a été envoyé.`, 'success');
     loadFormationCandidatures();
     loadConvoyeurs();
+
+    fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trigger: 'candidature_status_changed', id })
+    }).catch(err => console.warn('Erreur envoi email approbation:', err));
   };
 
   window.rejectFormationCandidature = async function(id) {
@@ -3883,6 +3909,12 @@ Cadeau premium personnalisé</textarea></div>
     await sb.from('convoyeur_candidatures').update({ statut: 'rejected' }).eq('id', id);
     Swal.fire({ toast: true, icon: 'info', title: 'Candidature refusée', timer: 2000 });
     loadFormationCandidatures();
+
+    fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trigger: 'candidature_status_changed', id })
+    }).catch(err => console.warn('Erreur envoi email refus:', err));
   };
 
   window.toggleDeletedCandidatures = function() {
