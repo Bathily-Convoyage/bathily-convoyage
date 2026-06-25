@@ -81,17 +81,10 @@ exports.handler = async (event, context) => {
       redirectTo: redirectTo
     });
 
-    let resetUrl;
     if (resetError || !resetData) {
-      // Fallback: utiliser resetPasswordForEmail cote serveur
-      const { error: rpcError } = await supabase.auth.resetPasswordForEmail(cleanEmail, { redirectTo });
-      if (rpcError) {
-        return { statusCode: 500, headers, body: JSON.stringify({ error: 'Impossible de generer le lien de reset.' }) };
-      }
-      resetUrl = null;
-    } else {
-      resetUrl = resetData.properties?.action_link || resetData.properties?.redirect_to;
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Impossible de generer le lien de reset.' }) };
     }
+    const resetUrl = resetData.properties?.action_link || resetData.properties?.redirect_to || redirectTo;
 
     // 4. Envoyer l'email via Resend
     const resendApiKey = process.env.RESEND_API_KEY;
