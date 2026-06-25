@@ -1705,7 +1705,6 @@
 
       const { error } = await client.from('candidatures').insert([{
         mission_id: id,
-        convoyeur_id: _convoyeurUser.id,
         convoyeur_nom: _convoyeurName,
         email: _convoyeurUser.email,
         mission_reference: mission.reference || '',
@@ -1715,7 +1714,8 @@
       }]);
 
       if (error) {
-        Swal.fire('Erreur', error.message, 'error');
+        console.error('Erreur candidature:', JSON.stringify(error));
+        Swal.fire('Erreur', error.message || error.details || 'Impossible de postuler.', 'error');
         return;
       }
 
