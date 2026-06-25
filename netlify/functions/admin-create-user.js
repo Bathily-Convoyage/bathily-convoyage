@@ -106,7 +106,7 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ success: true, message: 'Utilisateur créé et invitation envoyée.' })
+      body: JSON.stringify({ success: true, userId: newUserId, message: 'Utilisateur créé et invitation envoyée.' })
     };
 
   } catch (error) {
