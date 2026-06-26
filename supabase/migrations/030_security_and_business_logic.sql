@@ -48,6 +48,10 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Permission refusée : administrateur uniquement';
+  END IF;
+
   IF target_table = 'clients' THEN
     -- Dissocier les missions
     UPDATE public.missions SET client_id = NULL WHERE client_id = target_id;

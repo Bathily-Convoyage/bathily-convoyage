@@ -52,24 +52,23 @@ Ce dossier contient les migrations SQL pour la base de données Supabase du proj
 
 ## 📁 Fichiers de migration
 
-Les migrations sont numérotées dans l'ordre d'exécution :
+Les migrations sont numérotées dans l'ordre d'exécution (021 à 035) :
 
-1. **`001_schema_initial.sql`** - Tables principales (clients, convoyeurs, missions)
-   - Création des tables `clients`, `convoyeurs`, `missions`
-   - Index pour optimisation des requêtes
-   - Politiques RLS (Row Level Security)
-   - Fonctions utilitaires (génération de références, mise à jour automatique)
-   - Vues pour statistiques et jointures
-
-2. **`002_convoyeurs_candidats.sql`** - Candidatures de convoyeurs
-   - Table `convoyeurs_candidats`
-   - Gestion du processus de recrutement
-   - Quiz de formation
-
-3. **`003_etats_des_lieux.sql`** - États des lieux
-   - Table `edls`
-   - Gestion des états des lieux départ/arrivée
-   - Stockage des photos et signatures
+- **`021_fix_rls_security.sql`** - Audit RLS complet (17 sections) : is_admin(), RLS sur toutes les tables, reseau_posts/comments, admin_delete_user
+- **`022_add_convoyeur_support_candidatures.sql`** - Colonnes convoyeur sur support_tickets + RLS candidatures
+- **`023_convoyeurs_missing_columns.sql`** - Colonnes manquantes convoyeurs (taux_auto, taux_moto, zone, niveau, etc.)
+- **`024_fix_admin_delete_user.sql`** - Correction fonction admin_delete_user (convoyeur_id)
+- **`025_fix_edls_schema_and_rls.sql`** - Colonnes edls manquantes + RLS convoyeur + admin_delete_user avec is_admin()
+- **`026_add_is_pro.sql`** - Colonnes is_pro et pro_status sur clients
+- **`027_candidatures_soft_delete_banned.sql`** - Soft delete + bannissement sur convoyeur_candidatures
+- **`028_fix_rls_anon_update_and_check_constraints.sql`** - Suppression policy anon UPDATE + CHECK constraints
+- **`029_fix_admin_delete_user_convoyeur_id.sql`** - Correction admin_delete_user (convoyeur_id au lieu de nom)
+- **`030_security_and_business_logic.sql`** - CHECK paiement_statut étendu + RLS convoyeur_candidatures + admin_delete_user
+- **`031_fix_missions_statut_and_rls.sql`** - Drop CHECK constraints + RLS missions (client_email)
+- **`032_fix_candidatures_columns.sql`** - Colonnes manquantes sur candidatures (mission_reference, trajet, montant)
+- **`033_fix_missions_rls_convoyeurs.sql`** - RLS missions complète pour convoyeurs + anon SELECT
+- **`034_fix_is_admin.sql`** - is_admin() robuste (auth.uid() au lieu de email) + RLS clients
+- **`035_storage_convoyeur_documents.sql`** - Bucket storage + RLS pour documents convoyeur
 
 ## 🚀 Installation
 
@@ -86,25 +85,22 @@ Les migrations sont numérotées dans l'ordre d'exécution :
 
 2. **Exécution des migrations**
    - Ouvrez le **SQL Editor** dans Supabase
-   - Cliquez sur **New query** et exécutez les fichiers dans l'ordre :
-     ```
-     001_schema_initial.sql
-     002_convoyeurs_candidats.sql
-     003_etats_des_lieux.sql
-     ```
+   - Cliquez **New query** et exécutez les fichiers dans l'ordre (021 → 035)
    - ✅ *Vérifiez qu'il n'y a pas d'erreurs pour chaque fichier.*
 
 3. **Vérification des tables et des données**
    - Allez dans **Table Editor**
-   - Vérifiez que toutes les tables sont créées : `clients`, `convoyeurs`, `convoyeurs_candidats`, `missions`, `edls`
-   - Vérifiez les données de test :
-     - Table **`clients`** : 1 ligne de test (`contact@exemple-entreprise.fr`)
-     - Table **`convoyeurs`** : 1 ligne de test (`convoyeur@exemple.fr`)
+   - Vérifiez que toutes les tables sont créées : `clients`, `convoyeurs`, `convoyeur_candidatures`, `candidatures`, `missions`, `edls`, `support_tickets`, `reseau_posts`, `reseau_comments`
 
 4. **Configuration de l'application**
    - Les identifiants Supabase sont dans `public/supabase-config.js`
    - URL : `https://yzfulgmmngvenxvdvgbp.supabase.co`
    - *(Aucune modification n'est normalement nécessaire)*
+
+5. **Configuration Auth (production)**
+   - `config.toml` est configuré pour `https://www.bathily-convoyage.fr`
+   - Confirmation email activée
+   - Redirect URLs : `bathily-convoyage.fr` et `bathily-convoyage.netlify.app`
 
 ## 🧪 Tests post-installation
 
@@ -169,13 +165,16 @@ edls (référence missions)
 
 ## ✅ Checklist finale
 
-- [ ] Les 3 migrations ont été exécutées sans erreur
-- [ ] Les 5 tables sont visibles dans le Table Editor
-- [ ] Les données de test sont présentes (1 client, 1 convoyeur)
+- [ ] Les migrations 021 à 035 ont été exécutées sans erreur
+- [ ] Les 9 tables sont visibles dans le Table Editor
 - [ ] La fonction `generate_mission_reference()` fonctionne
 - [ ] Les vues `missions_details` et `convoyeurs_stats` sont créées
+- [ ] La fonction `is_admin()` fonctionne (vérifie auth.uid() + role='admin')
+- [ ] La fonction `admin_delete_user()` inclut le check `is_admin()`
 - [ ] Test de connexion depuis l'application réussi
 - [ ] Les politiques RLS sont actives sur toutes les tables
+- [ ] Le bucket `convoyeur-documents` est créé dans Storage
+- [ ] `config.toml` pointe vers `https://www.bathily-convoyage.fr`
 
 ## 🆘 Support
 
@@ -186,5 +185,5 @@ Pour toute question sur la base de données :
 
 ---
 
-**Dernière mise à jour** : 11/06/2026  
-**Version** : 1.0.0
+**Dernière mise à jour** : 26/06/2026  
+**Version** : 2.0.0

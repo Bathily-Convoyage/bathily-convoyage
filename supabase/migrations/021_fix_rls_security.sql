@@ -793,7 +793,7 @@ BEGIN
     DELETE FROM public.clients WHERE id = target_id;
   ELSIF target_table = 'convoyeurs' THEN
     -- Remettre les missions sur le marché
-    UPDATE public.missions SET convoyeur_nom = NULL, convoyeur_id = NULL, statut = 'available'
+    UPDATE public.missions SET convoyeur_nom = NULL, convoyeur_id = NULL, status = 'available'
       WHERE convoyeur_id = target_id;
     -- Supprimer les candidatures
     DELETE FROM public.candidatures WHERE convoyeur_nom IN (
