@@ -52,7 +52,7 @@ Ce dossier contient les migrations SQL pour la base de données Supabase du proj
 
 ## 📁 Fichiers de migration
 
-Les migrations sont numérotées dans l'ordre d'exécution (021 à 035) :
+Les migrations sont numérotées dans l'ordre d'exécution (021 à 036) :
 
 - **`021_fix_rls_security.sql`** - Audit RLS complet (17 sections) : is_admin(), RLS sur toutes les tables, reseau_posts/comments, admin_delete_user
 - **`022_add_convoyeur_support_candidatures.sql`** - Colonnes convoyeur sur support_tickets + RLS candidatures
@@ -69,6 +69,7 @@ Les migrations sont numérotées dans l'ordre d'exécution (021 à 035) :
 - **`033_fix_missions_rls_convoyeurs.sql`** - RLS missions complète pour convoyeurs + anon SELECT
 - **`034_fix_is_admin.sql`** - is_admin() robuste (auth.uid() au lieu de email) + RLS clients
 - **`035_storage_convoyeur_documents.sql`** - Bucket storage + RLS pour documents convoyeur
+- **`036_add_missing_columns_for_frontend.sql`** - Ajout de toutes les colonnes manquantes référencées par le frontend (missions, devis, vehicules, edls, support_tickets, candidatures, clients, convoyeurs, convoyeur_candidatures) + RLS sur tables manquantes
 
 ## 🚀 Installation
 
@@ -165,8 +166,8 @@ edls (référence missions)
 
 ## ✅ Checklist finale
 
-- [ ] Les migrations 021 à 035 ont été exécutées sans erreur
-- [ ] Les 9 tables sont visibles dans le Table Editor
+- [ ] Les migrations 021 à 036 ont été exécutées sans erreur
+- [ ] Les 10 tables sont visibles dans le Table Editor : `clients`, `convoyeurs`, `convoyeur_candidatures`, `candidatures`, `missions`, `edls`, `devis`, `vehicules`, `support_tickets`, `reseau_posts`, `reseau_comments`
 - [ ] La fonction `generate_mission_reference()` fonctionne
 - [ ] Les vues `missions_details` et `convoyeurs_stats` sont créées
 - [ ] La fonction `is_admin()` fonctionne (vérifie auth.uid() + role='admin')
