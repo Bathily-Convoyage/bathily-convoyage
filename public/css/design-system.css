@@ -1,0 +1,172 @@
+/* /css/design-system.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap');
+
+:root {
+  --primary: #0A4D68;
+  --secondary: #088395;
+  --accent: #F5A623;
+  --text: #6B625A;
+  --font-title: 'Montserrat', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --radius-lg: 28px;
+  --shadow-card: 0 8px 24px rgba(10, 77, 104, 0.12);
+}
+
+/* Overrides globaux pour la propagation de la charte */
+body {
+  font-family: var(--font-body) !important;
+  color: var(--text) !important;
+}
+
+h1, h2, h3, h4, h5, h6, .logo {
+  font-family: var(--font-title) !important;
+}
+
+/* Unification du logo */
+.logo {
+  font-family: var(--font-title) !important;
+  font-weight: 800 !important;
+}
+.logo span {
+  color: var(--accent) !important;
+}
+
+/* Redéfinition des anciennes variables locales de couleur pour compatibilité immédiate */
+:root {
+  --bordeaux: var(--primary) !important;
+  --bordeaux-dark: #063244 !important;
+  --bordeaux-light: #E6F0F4 !important;
+  --warning: var(--accent) !important;
+}
+
+/* Composant Bouton Principal (Gold avec animation pulse) */
+.btn-primary {
+  background: var(--accent) !important;
+  color: var(--primary) !important;
+  font-family: var(--font-body) !important;
+  font-weight: 700 !important;
+  padding: 14px 32px !important;
+  border-radius: 40px !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  transition: all 0.25s ease !important;
+  border: none !important;
+  cursor: pointer !important;
+  animation: pulse-button 2s infinite !important;
+  box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3) !important;
+}
+
+.btn-primary:hover {
+  background: #e09315 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 15px rgba(245, 166, 35, 0.5) !important;
+}
+
+@keyframes pulse-button {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(245, 166, 35, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 166, 35, 0);
+  }
+}
+
+/* Badge de confiance / GPS */
+.badge-trust {
+  display: inline-block !important;
+  background: var(--secondary) !important;
+  color: #ffffff !important;
+  padding: 6px 14px !important;
+  border-radius: 50px !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  font-family: var(--font-title) !important;
+  border: 1px solid rgba(8, 131, 149, 0.2) !important;
+}
+
+/* Élévation au survol des cartes */
+.card-hover {
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.3s ease !important;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+/* Onglets de véhicule (Auto / Moto) */
+.veh-tabs {
+  display: flex !important;
+  background: #FDFBF7 !important;
+  border: 1px solid #E8E1D9 !important;
+  border-radius: 40px !important;
+  padding: 4px !important;
+}
+
+.veh-tab {
+  flex: 1 !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 10px 16px !important;
+  border-radius: 36px !important;
+  font-family: var(--font-body) !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+}
+
+.veh-tab.active {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+}
+
+/* Bouton d'appel mobile fixe (Sticky Tel) */
+.sticky-call-mobile {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  background: var(--accent) !important;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(245, 166, 35, 0.4);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  text-decoration: none;
+}
+
+.sticky-call-mobile:hover {
+  transform: scale(1.08);
+  background: #e09315 !important;
+}
+
+.sticky-call-mobile:active {
+  transform: scale(0.95);
+}
+
+.sticky-call-mobile svg {
+  stroke: var(--primary) !important;
+}
+
+@media (max-width: 900px) {
+  .sticky-call-mobile {
+    display: flex !important;
+  }
+  .floating-devis {
+    bottom: 90px !important;
+  }
+}

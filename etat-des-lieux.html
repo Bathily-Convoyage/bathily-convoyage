@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0A4D68">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>État des Lieux Numérisé - Bathily-Convoyage</title>
   <meta name="description" content="Réalisez l'État des lieux numérisé de votre véhicule : photos, dommages, signatures électroniques et conformité.">
   <meta property="og:title" content="État des Lieux Numérisé - Bathily-Convoyage">
@@ -1517,6 +1523,16 @@ document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click
 document.querySelectorAll('.pb-step').forEach(step=>{step.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const onclick=step.getAttribute('onclick');if(!onclick)return;const stepNum=onclick.match(/\d+/)[0];goStep(parseInt(stepNum));}});});
 
 // L'initialisation des signatures est déjà appelée dans DOMContentLoaded
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("/sw.js").catch(function(e) {
+      console.warn("SW registration failed:", e);
+    });
+  });
+}
 </script>
 </body>
 </html>

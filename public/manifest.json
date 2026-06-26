@@ -1,0 +1,59 @@
+{
+  "name": "Bathily-Convoyage",
+  "short_name": "Bathily",
+  "description": "Convoyage auto & moto partout en France. Devis en 60s, suivi GPS temps réel, double assurance RC Pro.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FDFBF7",
+  "theme_color": "#0A4D68",
+  "lang": "fr",
+  "categories": ["travel", "navigation", "business"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Demander un devis",
+      "short_name": "Devis",
+      "url": "/devis.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Espace convoyeur",
+      "short_name": "Convoyeur",
+      "url": "/dashboard-convoyeur.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Espace client",
+      "short_name": "Client",
+      "url": "/dashboard-client.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

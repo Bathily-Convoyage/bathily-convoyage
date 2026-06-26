@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0A4D68">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Espace Convoyeur - Bathily-Convoyage</title>
   <meta name="description" content="Gérez vos missions disponibles, candidatures et profil depuis votre espace convoyeur Bathily-Convoyage.">
   <meta property="og:title" content="Espace Convoyeur - Bathily-Convoyage">
@@ -2291,6 +2297,16 @@
       });
     });
   </script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("/sw.js").catch(function(e) {
+      console.warn("SW registration failed:", e);
+    });
+  });
+}
+</script>
 </body>
 </html>
 

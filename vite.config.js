@@ -16,8 +16,8 @@ export default defineConfig({
         contact: resolve(__dirname, 'contact.html'),
         // Dashboards
         dashboardAdmin: resolve(__dirname, 'dashboard-admin.html'),
-        // dashboardClient: resolve(__dirname, 'dashboard-client.html'),
-        // dashboardConvoyeur: resolve(__dirname, 'dashboard-convoyeur.html'),
+        dashboardClient: resolve(__dirname, 'dashboard-client.html'),
+        dashboardConvoyeur: resolve(__dirname, 'dashboard-convoyeur.html'),
         bonDeMission: resolve(__dirname, 'bon-de-mission.html'),
         etatDesLieux: resolve(__dirname, 'etat-des-lieux.html'),
         gpsEmitter: resolve(__dirname, 'gps-emitter.html'),
