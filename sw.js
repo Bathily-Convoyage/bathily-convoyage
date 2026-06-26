@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bathily-convoyage-v1';
+const CACHE_NAME = 'bathily-convoyage-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -8,6 +8,7 @@ const STATIC_ASSETS = [
   '/dashboard-client.html',
   '/dashboard-admin.html',
   '/formation-convoyeur.html',
+  '/supabase-config.js',
   '/css/design-system.css',
   '/js/lang-switcher.js',
   '/js/vehicule-autocomplete.js',
