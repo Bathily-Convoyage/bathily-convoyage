@@ -16,8 +16,9 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     /* ========== STYLES (inchangés, identiques à l'original) ========== */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Inter', sans-serif; background: #FDFBF7; color: #2D2A24; line-height: 1.5; overflow-x: hidden; }
+    button, a, input, select, textarea { touch-action: manipulation; }
     .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
     :root {
       --bordeaux: #0A4D68;
@@ -216,9 +217,16 @@
       .topbar-mid { display: none; }
       .doc-header { flex-direction: column; }
       .dh-right { text-align: left; }
+      .bon-main { padding: 16px 12px 60px; }
+      .topbar { padding: 0 16px; }
+      .rv-addr { max-width: 100px; }
+    }
+    @supports (padding: env(safe-area-inset-top)) {
+      .topbar { padding-top: env(safe-area-inset-top); }
+    }
+    @media (max-width: 768px) {
       .dh-badges { justify-content: flex-start; }
       .data-grid, .data-grid-3, .data-grid-4, .sig-section, .urgence-grid { grid-template-columns: 1fr; }
-      .bon-main { padding: 16px; }
     }
   </style>
 </head>
