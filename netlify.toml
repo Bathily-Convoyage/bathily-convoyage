@@ -1,5 +1,5 @@
 [build]
-  command = "node scripts/generate-config.js && vite build"
+  command = "node scripts/generate-config.cjs && vite build"
   publish = "dist"
   functions = "netlify/functions"
 
