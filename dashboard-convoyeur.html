@@ -1276,7 +1276,6 @@
         <div class="f-grp"><label>Départ</label><input type="text" id="cmd-depart" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
         <div class="f-grp"><label>Arrivée</label><input type="text" id="cmd-arrivee" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
         <div class="f-grp"><label>Véhicule</label><input type="text" id="cmd-vehicule" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
-        <div class="f-grp"><label>Montant HT (€)</label><input type="number" id="cmd-price" readonly style="background:#f5f5f5;cursor:not-allowed;font-weight:bold;color:var(--bordeaux);"></div>
         <div class="f-grp" style="grid-column:span 2;"><label>Rémunération convoyeur (€)</label><input type="number" id="cmd-rem" readonly style="background:#f5f5f5;cursor:not-allowed;font-weight:bold;color:var(--success);"></div>
       </div>
       <div class="modal-btns">
@@ -1516,7 +1515,7 @@
 
       // Charger toutes les missions (RLS filtre automatiquement)
       const { data: missions, error: missionsErr } = await client.from('missions')
-        .select('*')
+        .select('id,reference,depart,arrivee,trajet,vehicule,mode,mode_transport,pack,date_mission,client_nom,client_email,client_telephone,convoyeur_nom,convoyeur_id,convoyeur_telephone,remuneration_convoyeur,status,notes,created_at,updated_at')
         .order('created_at', { ascending: false });
       
       _allMissions = missions || [];
@@ -1584,10 +1583,10 @@
       const enAttente = _allCandidatures.filter(c => c.status === 'pending').length;
       const approuvees = _allCandidatures.filter(c => c.status === 'approved').length;
       const missionsAssignees = _myMissions.length;
-      // Estimation du total gagné (simulé)
-      const totalGagne = _allCandidatures
-        .filter(c => c.status === 'approved')
-        .reduce((sum, c) => sum + (parseFloat(c.mission_montant) || 0), 0);
+      // Total gagné basé sur la rémunération convoyeur des missions assignées
+      const totalGagne = _myMissions
+        .filter(m => m.status === 'completed' || m.status === 'in_progress')
+        .reduce((sum, m) => sum + (parseFloat(m.remuneration_convoyeur) || 0), 0);
 
       document.getElementById('convKpiDisponibles').textContent = disponibles;
       document.getElementById('convKpiEnAttente').textContent = enAttente;
@@ -1637,15 +1636,14 @@
         const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
         const dep = m.depart || m.trajet?.split('→')[0]?.trim() || '-';
         const arr = m.arrivee || m.trajet?.split('→')[1]?.trim() || '-';
-        const rem = m.remuneration_convoyeur || (m.montant_ht ? Math.round(m.montant_ht * 0.4) : '-');
-        const montant = m.montant_ht || '-';
+        const rem = m.remuneration_convoyeur || '-';
 
         return `<div class="mission-card clickable-card" onclick="showConvoMissionDetails('${m.id}')">
           <div class="mc-status ${si.class}"></div>
           <div class="mc-info">
             <div class="mc-ref">${m.reference || '-'}</div>
             <div class="mc-route">${dep} <em>→</em> ${arr}</div>
-            <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-'} - ${montant}€ HT</span><span class="mc-rem" style="color:var(--success);font-weight:600;"><i class="fas fa-hand-holding-usd"></i> Rém: ${rem}€</span></div>
+            <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-'}</span><span class="mc-rem" style="color:var(--success);font-weight:600;"><i class="fas fa-hand-holding-usd"></i> Rém: ${rem}€</span></div>
             <div style="margin-top:6px;"><span style="font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:20px;background:${si.color}22;color:${si.color};">${si.label}</span></div>
           </div>
           <div class="mc-actions">
@@ -1681,8 +1679,7 @@
         const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
         const dep = m.depart || m.trajet?.split('→')[0]?.trim() || '-';
         const arr = m.arrivee || m.trajet?.split('→')[1]?.trim() || '-';
-        const rem = m.remuneration_convoyeur || m.montant_ht * 0.4 || '-';
-        const montant = m.montant_ht || '-';
+        const rem = m.remuneration_convoyeur || '-';
 
         // Vérifier si déjà postulé
         const dejaPostule = _allCandidatures.some(c => c.mission_id === m.id && c.convoyeur_nom === _convoyeurName);
@@ -1692,7 +1689,7 @@
           <div class="mc-info">
             <div class="mc-ref">${m.reference || '-'}</div>
             <div class="mc-route">${dep} <em>→</em> ${arr}</div>
-            <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-'} - ${montant}€ HT</span><span class="mc-rem" style="color:var(--success);font-weight:600;"><i class="fas fa-hand-holding-usd"></i> Rém: ${rem}€</span></div>
+            <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-'}</span><span class="mc-rem" style="color:var(--success);font-weight:600;"><i class="fas fa-hand-holding-usd"></i> Rém: ${rem}€</span></div>
           </div>
           <div class="mc-actions">
             ${dejaPostule ? '<span style="font-size:0.65rem;font-weight:700;color:var(--gray-mid);"><i class="fas fa-clock"></i> Déjà postulé</span>' : `<button class="btn-sm btn-sm-red" onclick="event.stopPropagation();postulerMission('${m.id}')"><i class="fas fa-paper-plane"></i> Postuler</button>`}
@@ -1728,7 +1725,7 @@
           <div>
             <div class="cc-ref">${c.mission_reference || c.mission_id || '-'}</div>
             <div class="cc-route">${c.mission_trajet || '—'}</div>
-            <div class="cc-meta">Postulé le ${dateStr} · ${c.mission_montant ? c.mission_montant + '€ HT' : ''}</div>
+            <div class="cc-meta">Postulé le ${dateStr}</div>
           </div>
           <div style="display:flex;align-items:center;gap:12px;">
             <span class="cc-status-label ${labelClass}">${statusLabel}</span>
@@ -1757,8 +1754,7 @@
       document.getElementById('cmd-depart').value = m.depart || m.trajet?.split('→')[0]?.trim() || '-';
       document.getElementById('cmd-arrivee').value = m.arrivee || m.trajet?.split('→')[1]?.trim() || '-';
       document.getElementById('cmd-vehicule').value = m.vehicule || 'Automobile';
-      document.getElementById('cmd-price').value = m.montant_ht || 0;
-      document.getElementById('cmd-rem').value = m.remuneration_convoyeur || (m.montant_ht * 0.4) || 0;
+      document.getElementById('cmd-rem').value = m.remuneration_convoyeur || '';
 
       const dejaPostule = _allCandidatures.some(c => c.mission_id === m.id && c.convoyeur_nom === _convoyeurName);
       const btn = document.getElementById('cmdPostulerBtn');
@@ -1805,7 +1801,6 @@
         convoyeur_nom: _convoyeurName,
         mission_reference: mission.reference || '',
         mission_trajet: `${mission.depart || ''} → ${mission.arrivee || ''}`,
-        mission_montant: mission.montant_ht || 0,
         status: 'pending'
       }]);
 

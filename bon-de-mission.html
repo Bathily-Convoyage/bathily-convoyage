@@ -595,7 +595,7 @@
       _missionId = missionId;
 
       const client = getSB();
-      const { data: m, error } = await client.from('missions').select('*').eq('id', missionId).single();
+      const { data: m, error } = await client.from('missions').select('id,reference,depart,arrivee,trajet,vehicule,mode,mode_transport,pack,date_mission,client_nom,client_email,client_telephone,convoyeur_nom,convoyeur_id,convoyeur_telephone,remuneration_convoyeur,status,paiement_statut,notes,created_at,updated_at').eq('id', missionId).single();
 
       if (error || !m) {
         document.getElementById('topRef').textContent = 'Mission introuvable';
@@ -660,21 +660,16 @@
       document.getElementById('sigConvNom').textContent = convNom;
       document.getElementById('sigCliNom').textContent = m.client_nom || '…';
 
-      // Tarification
-      const price = parseFloat(m.montant_ht) || 0;
+      // Tarification — seul le convoyeur voit ce document, on ne montre PAS le prix client
       const rem = parseFloat(m.remuneration_convoyeur) || 0;
-      const tva = price * 0.20;
-      const ttc = price + tva;
       const pack = m.pack ? (m.pack.charAt(0).toUpperCase() + m.pack.slice(1)) : 'Standard';
       document.getElementById('packTag').textContent = `Pack ${pack}`;
       document.getElementById('tarifBody').innerHTML = `
-        <tr><td>Convoyage ${m.mode_transport || m.mode || 'routier'}</td><td>${m.vehicule || 'Automobile'} · ${pack}</td><td class="price-td">${price.toFixed(2)} €</td></tr>
-        <tr><td>Pack ${pack}</td><td>Inclus selon pack</td><td class="price-td">0,00 €</td></tr>
-        <tr><td>Double RC Pro</td><td>Inclus</td><td class="price-td">0,00 €</td></tr>
-        <tr><td>État des lieux</td><td>Photos départ + arrivée</td><td class="price-td">0,00 €</td></tr>
-        <tr class="tarif-total"><td><strong>Total HT</strong></td><td></td><td class="price-td-total">${price.toFixed(2)} €</td></tr>
-        <tr><td>TVA (20%)</td><td></td><td class="price-td">${tva.toFixed(2)} €</td></tr>
-        <tr class="tarif-total"><td><strong>Total TTC</strong></td><td></td><td class="price-td-total">${ttc.toFixed(2)} €</td></tr>
+        <tr><td>Convoyage ${m.mode_transport || m.mode || 'routier'}</td><td>${m.vehicule || 'Automobile'} · ${pack}</td><td class="price-td">—</td></tr>
+        <tr><td>Pack ${pack}</td><td>Inclus selon pack</td><td class="price-td">—</td></tr>
+        <tr><td>Double RC Pro</td><td>Inclus</td><td class="price-td">—</td></tr>
+        <tr><td>État des lieux</td><td>Photos départ + arrivée</td><td class="price-td">—</td></tr>
+        <tr class="tarif-total"><td><strong>Rémunération convoyeur (net)</strong></td><td></td><td class="price-td-total">${rem.toFixed(2)} €</td></tr>
       `;
       document.getElementById('remConvoyeur').textContent = rem > 0 ? rem.toFixed(2) + ' €' : 'à définir';
 
