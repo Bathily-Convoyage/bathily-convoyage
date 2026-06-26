@@ -1306,6 +1306,17 @@
       };
     }
 
+    // ========== UTILS ==========
+    function escapeHtml(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     // ========== SUPABASE ==========
     let _sbConvo = null;
 
@@ -1319,13 +1330,6 @@
     let _convoyeurName = '';
 
     // ========== AUTH HELPERS ==========
-    async function hashPassword(pwd) {
-      const msgBuffer = new TextEncoder().encode(pwd);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
     function convoyeurLogout() {
       const sb = getSBC();
       if (sb) sb.auth.signOut().catch(() => {});
@@ -1420,10 +1424,10 @@
       }
 
       // 3. Auth réussie : vérifier que le convoyeur est approuvé
-      let { data: profile } = await client.from('convoyeurs').select('*').eq('email', email).maybeSingle();
+      let { data: profile } = await client.from('convoyeurs').select('id, email, prenom, nom, telephone, ville, type_permis, annee_permis, disponible, niveau, zone, taux_auto, taux_moto, adresse, code_postal, notes_admin, auth_user_id, documents, created_at').eq('email', email).maybeSingle();
       if (!profile) {
         // Pas dans la table convoyeurs → vérifier la candidature de formation
-        const { data: candidature } = await client.from('convoyeur_candidatures').select('*').eq('email', email).maybeSingle();
+        const { data: candidature } = await client.from('convoyeur_candidatures').select('id, email, prenom, nom, telephone, ville, type_permis, annee_permis, statut, score_quiz, created_at').eq('email', email).maybeSingle();
         if (!candidature) {
           await client.auth.signOut();
           Swal.fire({
@@ -1456,6 +1460,11 @@
         }
         // statut 'approved' mais pas encore dans convoyeurs → créer le profil
         if (candidature.statut === 'approved') {
+          // Vérifier si le profil convoyeur existe déjà pour éviter les doublons
+          const { data: existingConv } = await client.from('convoyeurs').select('id').eq('email', email).maybeSingle();
+          if (existingConv) {
+            // Le profil existe déjà, passer directement
+          } else {
           const { data: newProfile } = await client.from('convoyeurs').insert([{
             email,
             prenom: candidature.prenom || 'Convoyeur',
@@ -1469,6 +1478,7 @@
             auth_user_id: authData.user.id
           }]).select().single();
           profile = newProfile;
+          }
         }
       } else if (!profile.auth_user_id) {
         // Mettre à jour auth_user_id si absent (ancien compte migré)
@@ -1530,7 +1540,7 @@
 
       // Charger toutes les candidatures (RLS filtre pour le convoyeur)
       const { data: candidatures, error: candErr } = await client.from('candidatures')
-        .select('*')
+        .select('id, mission_id, convoyeur_nom, status, created_at')
         .order('created_at', { ascending: false });
       
       _allCandidatures = (candidatures || []).filter(c => 
@@ -1573,8 +1583,8 @@
         document.getElementById('convDispoStatus').style.color = isDispo ? 'var(--success)' : 'var(--warning)';
         document.getElementById('convToggleIcon').className = isDispo ? 'fas fa-toggle-on' : 'fas fa-toggle-off';
         document.getElementById('convToggleLabel').textContent = isDispo ? 'Disponible' : 'Indisponible';
-        if (user.documents && user.documents.permis) {
-          document.getElementById('convDocLink').innerHTML = `<a href="${user.documents.permis}" target="_blank"><i class="fas fa-file-pdf"></i> Voir le document</a>`;
+        if (user.documents && user.documents.permis && String(user.documents.permis).startsWith('https://')) {
+          document.getElementById('convDocLink').innerHTML = `<a href="${user.documents.permis}" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i> Voir le document</a>`;
         }
       }
 
@@ -1641,15 +1651,15 @@
         return `<div class="mission-card clickable-card" onclick="showConvoMissionDetails('${m.id}')">
           <div class="mc-status ${si.class}"></div>
           <div class="mc-info">
-            <div class="mc-ref">${m.reference || '-'}</div>
-            <div class="mc-route">${dep} <em>→</em> ${arr}</div>
-            <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-'}</span><span class="mc-rem" style="color:var(--success);font-weight:600;"><i class="fas fa-hand-holding-usd"></i> Rém: ${rem}€</span></div>
+            <div class="mc-ref">${escapeHtml(m.reference || '-')}</div>
+            <div class="mc-route">${escapeHtml(dep)} <em>→</em> ${escapeHtml(arr)}</div>
+            <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${escapeHtml(m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-')}</span><span class="mc-rem" style="color:var(--success);font-weight:600;"><i class="fas fa-hand-holding-usd"></i> Rém: ${rem}€</span></div>
             <div style="margin-top:6px;"><span style="font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:20px;background:${si.color}22;color:${si.color};">${si.label}</span></div>
           </div>
           <div class="mc-actions">
-            <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Bon de mission</a>
-            <a href="etat-des-lieux.html?mission_id=${m.id}&type=depart" class="btn-sm btn-sm-ghost" target="_blank" style="text-decoration:none;"><i class="fas fa-clipboard-list"></i> EDL</a>
-            ${m.status === 'in_progress' ? `<a href="gps-emitter.html?id=${m.id}&ref=${encodeURIComponent(m.reference||'')}&route=${encodeURIComponent(dep+' → '+arr)}&vehicle=${encodeURIComponent(m.vehicule||'')}" class="btn-sm btn-sm-red" target="_blank" style="text-decoration:none;"><i class="fas fa-satellite-dish"></i> GPS</a>` : ''}
+            <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Bon de mission</a>
+            <a href="etat-des-lieux.html?mission_id=${m.id}&type=depart" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener" style="text-decoration:none;"><i class="fas fa-clipboard-list"></i> EDL</a>
+            ${m.status === 'in_progress' ? `<a href="gps-emitter.html?id=${m.id}&ref=${encodeURIComponent(m.reference||'')}&route=${encodeURIComponent(dep+' → '+arr)}&vehicle=${encodeURIComponent(m.vehicule||'')}" class="btn-sm btn-sm-red" target="_blank" rel="noopener" style="text-decoration:none;"><i class="fas fa-satellite-dish"></i> GPS</a>` : ''}
           </div>
         </div>`;
       }).join('');
@@ -1687,9 +1697,9 @@
         return `<div class="mission-card clickable-card" onclick="showConvoMissionDetails('${m.id}')">
           <div class="mc-status ${statusClass}"></div>
           <div class="mc-info">
-            <div class="mc-ref">${m.reference || '-'}</div>
-            <div class="mc-route">${dep} <em>→</em> ${arr}</div>
-            <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-'}</span><span class="mc-rem" style="color:var(--success);font-weight:600;"><i class="fas fa-hand-holding-usd"></i> Rém: ${rem}€</span></div>
+            <div class="mc-ref">${escapeHtml(m.reference || '-')}</div>
+            <div class="mc-route">${escapeHtml(dep)} <em>→</em> ${escapeHtml(arr)}</div>
+            <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${escapeHtml(m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-')}</span><span class="mc-rem" style="color:var(--success);font-weight:600;"><i class="fas fa-hand-holding-usd"></i> Rém: ${rem}€</span></div>
           </div>
           <div class="mc-actions">
             ${dejaPostule ? '<span style="font-size:0.65rem;font-weight:700;color:var(--gray-mid);"><i class="fas fa-clock"></i> Déjà postulé</span>' : `<button class="btn-sm btn-sm-red" onclick="event.stopPropagation();postulerMission('${m.id}')"><i class="fas fa-paper-plane"></i> Postuler</button>`}
@@ -1969,7 +1979,7 @@
     // ========== RESEAU SOCIAL ==========
     async function fetchReseauPosts() {
       const client = getSBC();
-      const { data, error } = await client.from('reseau_posts').select('*').order('created_at', { ascending: false });
+      const { data, error } = await client.from('reseau_posts').select('id, author_name, content, likes_count, created_at').order('created_at', { ascending: false });
       if (error) return;
       
       const container = document.getElementById('convPostsFeed');
@@ -1983,7 +1993,7 @@
         const avatar = p.author_name ? p.author_name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : 'A';
         const isAnnounce = p.is_announcement ? 'border:2px solid var(--bordeaux);' : '';
         const announceBadge = p.is_announcement ? '<span style="background:var(--bordeaux);color:white;padding:3px 10px;border-radius:20px;font-size:0.65rem;margin-bottom:10px;display:inline-block;font-weight:700;">ANNONCE OFFICIELLE</span>' : '';
-        const tagsHtml = (p.tags||[]).map(t => `<span class="post-tag">${t}</span>`).join('');
+        const tagsHtml = (p.tags||[]).map(t => `<span class="post-tag">${escapeHtml(t)}</span>`).join('');
         
         return `
           <div class="post-card" style="${isAnnounce}">
@@ -1992,12 +2002,12 @@
               <div style="display:flex;gap:12px;align-items:center;flex:1;">
                 <div class="post-ava" style="${p.is_announcement ? 'background:var(--bordeaux);' : ''}">${avatar}</div>
                 <div>
-                  <div class="post-name">${p.author_name}</div>
+                  <div class="post-name">${escapeHtml(p.author_name)}</div>
                   <div class="post-meta"><span class="post-role">${p.author_role||'Convoyeur'}</span><span>·</span><span class="post-time">${dateStr}</span></div>
                 </div>
               </div>
             </div>
-            <div class="post-body">${p.content}</div>
+            <div class="post-body">${escapeHtml(p.content)}</div>
             ${tagsHtml ? `<div class="post-tags">${tagsHtml}</div>` : ''}
             <div class="post-actions">
               <button class="post-action" onclick="likeReseauPost('${p.id}', this)"><i class="fas fa-heart"></i> <span class="likes-cnt">${p.likes_count||0}</span> J'aime</button>
@@ -2056,7 +2066,7 @@
 
     async function fetchComments(postId) {
       const client = getSBC();
-      const { data, error } = await client.from('reseau_comments').select('*').eq('post_id', postId).order('created_at', { ascending: true });
+      const { data, error } = await client.from('reseau_comments').select('id, post_id, author_name, content, created_at').eq('post_id', postId).order('created_at', { ascending: true });
       const sec = document.getElementById(`comments-list-${postId}`);
       if(error || !sec) return;
 
@@ -2067,8 +2077,8 @@
             <div class="comment-item">
               <div class="comment-ava">${cAvatar}</div>
               <div class="comment-body">
-                <div class="comment-name">${c.author_name}</div>
-                <div class="comment-text">${c.content}</div>
+                <div class="comment-name">${escapeHtml(c.author_name)}</div>
+                <div class="comment-text">${escapeHtml(c.content)}</div>
               </div>
             </div>
           `;
@@ -2097,10 +2107,19 @@
     async function likeReseauPost(postId, btnEl) {
       const client = getSBC();
       const span = btnEl.querySelector('.likes-cnt');
+      
+      // Vérifier si l'utilisateur a déjà liké ce post
+      const likedKey = `liked_post_${postId}`;
+      if (localStorage.getItem(likedKey)) {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Vous avez déjà aimé ce post', timer: 2000 });
+        return;
+      }
+      
       let current = parseInt(span.textContent) || 0;
       span.textContent = current + 1;
       btnEl.style.color = '#e74c3c';
       btnEl.disabled = true;
+      localStorage.setItem(likedKey, '1');
       
       const { data } = await client.from('reseau_posts').select('likes_count').eq('id', postId).single();
       if(data) {

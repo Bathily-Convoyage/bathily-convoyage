@@ -1,8 +1,9 @@
 // netlify/functions/lookup-vehicle.js
+const { rateLimit } = require('./_rate-limit');
 
 exports.handler = async (event, context) => {
   // CORS Headers
-  const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr'];
+  const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr', 'http://localhost:5173', 'http://localhost:3000'];
   const origin = event.headers.origin || event.headers.Origin || '';
   const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
   const headers = {
@@ -23,6 +24,10 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({ error: 'Méthode non autorisée. Utilisez GET.' })
     };
   }
+
+  // Rate limiting: 30 lookups / minute / IP
+  const rl = rateLimit(event, 'lookup-vehicle', 30, 60000);
+  if (rl) return rl;
 
   try {
     const { plaque } = event.queryStringParameters || {};
@@ -63,9 +68,14 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Clé RapidAPI : Utilise la variable Netlify ou la clé de test par défaut
-    const rapidApiKey = process.env.RAPIDAPI_KEY || '52a3036a5fmsh844f4d087cf7176p18fb51jsn0081c211f2cc';
+    // Clé RapidAPI : Utilise la variable Netlify
+    const rapidApiKey = process.env.RAPIDAPI_KEY;
     const host = 'api-siv-systeme-d-immatriculation-des-vehicules.p.rapidapi.com';
+
+    if (!rapidApiKey) {
+      console.warn('⚠️ RAPIDAPI_KEY manquante. Utilisation du générateur de repli.');
+      throw new Error('RAPIDAPI_KEY not configured');
+    }
 
     console.log(`🔍 Interrogation SIV pour la plaque : ${formattedPlate}`);
 

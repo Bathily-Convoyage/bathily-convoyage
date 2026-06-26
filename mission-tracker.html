@@ -608,6 +608,17 @@
       isAuthorized: false,
     };
     
+    // ========== UTILS ==========
+    function escapeHtml(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     // ========== INIT ==========
     document.addEventListener('firebase-ready', initTracker);
     
@@ -707,7 +718,7 @@
         // Récupérer la mission avec les infos client et convoyeur
         const { data: mission, error } = await STATE.supabase
           .from('missions')
-          .select('*')
+          .select('id, reference, depart, arrivee, vehicule, status, client_id, convoyeur_id, convoyeur_nom, date_mission')
           .eq('reference', missionRef)
           .single();
         
@@ -720,16 +731,23 @@
           // Vérifier l'autorisation : client ou convoyeur ou admin
           const userId = STATE.currentUser.id;
           
-          // Vérifier si l'utilisateur est admin
+          // Récupérer le profil client via auth_user_id (userId est l'UUID Auth)
           const { data: clientProfile } = await STATE.supabase
             .from('clients')
-            .select('role')
-            .eq('id', userId)
-            .single();
+            .select('id, role')
+            .eq('auth_user_id', userId)
+            .maybeSingle();
+          
+          // Récupérer le profil convoyeur via auth_user_id
+          const { data: convoyeurProfile } = await STATE.supabase
+            .from('convoyeurs')
+            .select('id')
+            .eq('auth_user_id', userId)
+            .maybeSingle();
           
           const isAdmin = clientProfile?.role === 'admin';
-          const isClient = mission.client_id === userId;
-          const isConvoyeur = mission.convoyeur_id === userId;
+          const isClient = clientProfile ? mission.client_id === clientProfile.id : false;
+          const isConvoyeur = convoyeurProfile ? mission.convoyeur_id === convoyeurProfile.id : false;
           
           if (!isClient && !isConvoyeur && !isAdmin) {
             console.log('Utilisateur non autorisé pour cette mission');
@@ -752,7 +770,7 @@
                           STATE.currentUser.email;
           
           const statusText = document.getElementById('statusText');
-          statusText.innerHTML = `<i class="fas fa-user" style="margin-right: 6px;"></i> ${userName} · ${isClient ? 'Client' : isConvoyeur ? 'Convoyeur' : 'Admin'}`;
+          statusText.innerHTML = `<i class="fas fa-user" style="margin-right: 6px;"></i> ${escapeHtml(userName)} · ${isClient ? 'Client' : isConvoyeur ? 'Convoyeur' : 'Admin'}`;
           
           // Afficher le bouton de déconnexion
           document.getElementById('logoutBtn').style.display = 'inline-flex';

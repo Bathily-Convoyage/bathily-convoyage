@@ -1,8 +1,9 @@
 const { createClient } = require('@supabase/supabase-js');
+const { rateLimit } = require('./_rate-limit');
 
 exports.handler = async (event, context) => {
   // CORS Headers
-  const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr'];
+  const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr', 'http://localhost:5173', 'http://localhost:3000'];
   const origin = event.headers.origin || event.headers.Origin || '';
   const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
   const headers = {
@@ -24,11 +25,15 @@ exports.handler = async (event, context) => {
     };
   }
 
+  // Rate limiting: 20 emails / minute / IP
+  const rl = rateLimit(event, 'send-email', 20, 60000);
+  if (rl) return rl;
+
   try {
     const parsedBody = JSON.parse(event.body);
-    const { trigger, id, notes, payment_url, temp_password, prenom, email: directEmail, nom: directNom } = parsedBody;
+    const { trigger, id, notes, payment_url, temp_password, prenom, email: directEmail, nom: directNom, convoyeur_nom, client_email } = parsedBody;
 
-    if (!trigger || !id) {
+    if (!trigger || (!id && trigger !== 'convoyeur_approved' && trigger !== 'mission_assigned')) {
       return {
         statusCode: 400,
         headers,
@@ -167,7 +172,7 @@ Corps: ${html.substring(0, 300)}...`);
       // ... (identique à l'original)
       const { data: devis, error } = await supabase
         .from('devis')
-        .select('*')
+        .select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, details, status, created_at')
         .eq('reference', id)
         .single();
 
@@ -226,7 +231,7 @@ Corps: ${html.substring(0, 300)}...`);
       // ... (identique à l'original)
       const { data: candidat, error } = await supabase
         .from('convoyeur_candidatures')
-        .select('*')
+        .select('id, prenom, nom, email, score_quiz, statut')
         .eq('id', id)
         .single();
 
@@ -271,7 +276,7 @@ Corps: ${html.substring(0, 300)}...`);
       // ... (identique à l'original)
       const { data: candidat, error } = await supabase
         .from('convoyeur_candidatures')
-        .select('*')
+        .select('id, prenom, nom, email, score_quiz, statut')
         .eq('id', id)
         .single();
 
@@ -322,7 +327,7 @@ Corps: ${html.substring(0, 300)}...`);
       // ... (identique à l'original)
       const { data: edl, error } = await supabase
         .from('edls')
-        .select('*, missions(*)')
+        .select('id, reference, type, mission_id, convoyeur_nom, email_client, kilometrage, niveau_carburant, conforme, dommages, signatures, photos, created_at, missions(id, reference, client_email, client_nom, depart, arrivee, vehicule)')
         .eq('mission_id', id)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -414,7 +419,7 @@ Corps: ${html.substring(0, 300)}...`);
       // ... (identique à l'original)
       const { data: mission, error } = await supabase
         .from('missions')
-        .select('*')
+        .select('id, reference, client_nom, client_email, client_telephone, depart, arrivee, vehicule, mode, pack, montant_ht, paiement_statut, status, convoyeur_nom, convoyeur_id, date_mission')
         .eq('id', id)
         .single();
 
@@ -477,7 +482,7 @@ Corps: ${html.substring(0, 300)}...`);
 
       const { data: devis, error } = await supabase
         .from('devis')
-        .select('*')
+        .select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, details, status, created_at')
         .eq('id', id)
         .single();
 
@@ -592,6 +597,71 @@ Corps: ${html.substring(0, 300)}...`);
 
       await sendEmail({ to: proEmail, subject: "Bathily Convoyage - Mise à jour de votre demande Pro", html: rejectHtml });
       resultData = { success: true, message: 'Email Pro refusé envoyé.' };
+    }
+
+    // ==========================================
+    // 9. ÉVÉNEMENT : MISSION ASSIGNÉE À UN CONVOYEUR
+    // ==========================================
+    else if (trigger === 'mission_assigned') {
+      const notifyEmail = client_email || directEmail;
+      const convName = convoyeur_nom || 'un convoyeur';
+
+      const assignHtml = wrapEmailLayout(
+        "Un convoyeur a été assigné à votre mission",
+        `<p>Bonjour,</p>
+         <p>Bonne nouvelle ! Votre mission a été assignée à <strong>${convName}</strong>.</p>
+         <p>Vous pouvez suivre l'avancement de votre mission depuis votre espace client :</p>
+         <p style="text-align: center;">
+           <a href="https://bathily-convoyage.fr/dashboard-client.html" class="btn">Suivre ma mission</a>
+         </p>
+         <p>Si vous avez des questions, n'hésitez pas à nous contacter :</p>
+         <div class="highlight-box">
+           <strong>Contact :</strong> contact@Bathily-Convoyage.fr<br>
+           <strong>Téléphone :</strong> +33 X XX XX XX XX
+         </div>`
+      );
+
+      await sendEmail({ to: notifyEmail, subject: "Bathily Convoyage - Un convoyeur a été assigné à votre mission", html: assignHtml });
+      resultData = { success: true, message: 'Email mission assignée envoyé.' };
+    }
+
+    // ==========================================
+    // 10. ÉVÉNEMENT : RÉPONSE SUPPORT TICKET
+    // ==========================================
+    else if (trigger === 'support_reply') {
+      const { data: ticket, error: ticketErr } = await supabase
+        .from('support_tickets')
+        .select('id, sujet, message, reponse, client_email, client_nom')
+        .eq('id', id)
+        .single();
+
+      if (ticketErr || !ticket) throw new Error(`Ticket introuvable: ${ticketErr?.message}`);
+
+      const replyEmail = client_email || ticket.client_email;
+      if (!replyEmail) {
+        resultData = { success: false, message: 'Pas d\'email client pour répondre.' };
+      } else {
+        const replyHtml = wrapEmailLayout(
+          "Réponse à votre demande de support",
+          `<p>Bonjour ${ticket.client_nom || ''},</p>
+           <p>Votre demande de support a reçu une réponse de notre équipe :</p>
+           <div class="highlight-box">
+             <strong>Sujet :</strong> ${ticket.sujet}<br>
+             <strong>Votre message :</strong> ${ticket.message}
+           </div>
+           <div class="highlight-box" style="background:#f0f7ff;border-color:#0A4D68;">
+             <strong>Réponse de l'équipe :</strong><br>
+             ${ticket.reponse}
+           </div>
+           <p>Si vous avez d'autres questions, n'hésitez pas à ouvrir un nouveau ticket depuis votre espace client.</p>
+           <p style="text-align: center;">
+             <a href="https://bathily-convoyage.fr/dashboard-client.html" class="btn">Accéder à mon Espace Client</a>
+           </p>`
+        );
+
+        await sendEmail({ to: replyEmail, subject: `Bathily Convoyage - Réponse à votre ticket: ${ticket.sujet}`, html: replyHtml });
+        resultData = { success: true, message: 'Email réponse support envoyé.' };
+      }
     }
 
     return {

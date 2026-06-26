@@ -1,5 +1,6 @@
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
+const { rateLimit } = require('./_rate-limit');
 
 exports.handler = async (event, context) => {
   // Configurer les headers CORS
@@ -21,6 +22,10 @@ exports.handler = async (event, context) => {
       body: ''
     };
   }
+
+  // Rate limiting: 10 checkout sessions / minute / IP
+  const rl = rateLimit(event, 'create-checkout-session', 10, 60000);
+  if (rl) return rl;
 
   if (event.httpMethod !== 'POST') {
     return {
@@ -85,7 +90,7 @@ exports.handler = async (event, context) => {
     // 1. Récupérer la mission en base de données
     const { data: mission, error: selectError } = await supabase
       .from('missions')
-      .select('*')
+      .select('id, reference, depart, arrivee, vehicule, mode, pack, montant_ht, paiement_statut, status, client_id, client_email, client_nom, convoyeur_nom')
       .eq('id', missionId)
       .single();
 

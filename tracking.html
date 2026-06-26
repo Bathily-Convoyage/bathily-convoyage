@@ -14,6 +14,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
+  <script src="/firebase-config.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     /* ====== STYLES (corrigés) ====== */
@@ -605,7 +606,7 @@
       try {
         const { data: m, error } = await sb
           .from('missions')
-          .select('*')
+          .select('id,reference,depart,arrivee,vehicule,immatriculation,mode,mode_transport,pack,date_mission,convoyeur_nom,status,created_at,updated_at')
           .eq('reference', refParam)
           .maybeSingle();
 
@@ -623,7 +624,7 @@
 
         document.getElementById('topRef').textContent = `${m.reference} • ${m.vehicule || 'Véhicule'} • ${cleanDep} → ${cleanArr}`;
         document.getElementById('missionRef').textContent = `Mission • ${m.reference}`;
-        document.getElementById('vehicleName').innerHTML = `${m.vehicule || 'Véhicule'}`;
+        document.getElementById('vehicleName').textContent = `${m.vehicule || 'Véhicule'}`;
         document.getElementById('plateNumber').textContent = m.immatriculation || m.reference || '—';
         document.getElementById('cityDepart').textContent = cleanDep;
         document.getElementById('cityArrivee').textContent = cleanArr;
@@ -645,7 +646,7 @@
         // Convoyeur
         const convNom = m.convoyeur_nom || 'Non assigné';
         const initials = convNom.split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0, 2);
-        document.getElementById('convAva').innerHTML = initials || '?';
+        document.getElementById('convAva').textContent = initials || '?';
         document.getElementById('convName').textContent = convNom;
         document.getElementById('convMeta').textContent = m.zone_convoyeur || 'Convoyeur certifié';
 
@@ -842,15 +843,7 @@
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js')
       ]).then(([{ initializeApp }, { getDatabase, ref, onValue }]) => {
-        const firebaseConfig = {
-          apiKey: "AIzaSyAbPM7pM4umkuG1k_MAUYxddHQMNP9UebM",
-          authDomain: "Bathily-Convoyage-c211b.firebaseapp.com",
-          databaseURL: "https://Bathily-Convoyage-c211b-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "Bathily-Convoyage-c211b",
-          storageBucket: "Bathily-Convoyage-c211b.firebasestorage.app",
-          messagingSenderId: "115133170172",
-          appId: "1:115133170172:web:5fcdc2b835f6df157b3279"
-        };
+        const firebaseConfig = window.FIREBASE_CONFIG || {};
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);

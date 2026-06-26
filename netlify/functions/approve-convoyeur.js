@@ -1,6 +1,8 @@
 const { createClient } = require('@supabase/supabase-js');
+const crypto = require('crypto');
+const { rateLimit } = require('./_rate-limit');
 
-const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr'];
+const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr', 'http://localhost:5173', 'http://localhost:3000'];
 
 exports.handler = async (event) => {
   const origin = event.headers.origin || event.headers.Origin || '';
@@ -14,6 +16,10 @@ exports.handler = async (event) => {
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+
+  // Rate limiting: 10 / minute / IP
+  const rl = rateLimit(event, 'approve-convoyeur', 10, 60000);
+  if (rl) return rl;
 
   try {
     // ===== VÉRIFICATION ADMIN =====
@@ -60,7 +66,7 @@ exports.handler = async (event) => {
     // 1. Récupérer le candidat (uniquement si statut 'pending')
     const { data: candidat, error: candError } = await sb
       .from('convoyeur_candidatures')
-      .select('*')
+      .select('id, email, prenom, nom, telephone, ville, zone, type_permis, statut')
       .eq('id', candidat_id)
       .eq('statut', 'pending')
       .single();
@@ -70,7 +76,7 @@ exports.handler = async (event) => {
     }
 
     // 2. Générer un mot de passe temporaire sécurisé
-    const tempPassword = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6).toUpperCase() + '!';
+    const tempPassword = crypto.randomBytes(8).toString('hex').slice(0, 10) + crypto.randomBytes(3).toString('hex').slice(0, 4).toUpperCase() + '!';
 
     // 3. Créer le compte Supabase Auth
     const { data: authData, error: authError } = await sb.auth.admin.createUser({

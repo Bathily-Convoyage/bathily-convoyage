@@ -1186,9 +1186,6 @@ async function submitCandidature() {
   Swal.fire({ title: 'Envoi en cours...', text: 'Téléversement des documents et envoi de la candidature', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
   try {
-    const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(formData.password));
-    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
-
     const sb = getSB();
 
     const docPaths = await uploadDocumentsToStorage(sb, formData.email);
@@ -1200,7 +1197,6 @@ async function submitCandidature() {
       telephone: formData.telephone,
       date_naissance: formData.date_naissance,
       ville: formData.ville,
-      mot_de_passe: hashHex,
       type_permis: formData.permis,
       annee_permis: formData.annee_permis,
       experience: formData.experience,

@@ -1,6 +1,7 @@
 -- =====================================================
--- Migration 024 : Correction fonction admin_delete_user
--- La fonction référençait convoyeur_id qui n'existe pas dans missions
+-- Migration 029 : Correction admin_delete_user
+-- La fonction utilisait convoyeur_nom au lieu de convoyeur_id
+-- pour dissocier les missions (Bug 15)
 -- =====================================================
 
 CREATE OR REPLACE FUNCTION public.admin_delete_user(target_id uuid, target_table text)
@@ -17,23 +18,16 @@ BEGIN
     -- Supprimer le client
     DELETE FROM public.clients WHERE id = target_id;
   ELSIF target_table = 'convoyeurs' THEN
-    -- Récupérer le nom complet du convoyeur
-    DECLARE
-      nom_complet text;
-    BEGIN
-      SELECT (prenom || ' ' || nom) INTO nom_complet
-      FROM public.convoyeurs WHERE id = target_id;
+    -- Dissocier les missions via convoyeur_id (plus fiable que convoyeur_nom)
+    UPDATE public.missions
+      SET convoyeur_nom = NULL, convoyeur_id = NULL, status = 'available'
+      WHERE convoyeur_id = target_id;
 
-      -- Remettre les missions sur le marché (par nom, pas par convoyeur_id)
-      UPDATE public.missions SET convoyeur_nom = NULL, status = 'available'
-        WHERE convoyeur_nom = nom_complet;
+    -- Supprimer les candidatures liées
+    DELETE FROM public.candidatures WHERE convoyeur_id = target_id;
 
-      -- Supprimer les candidatures
-      DELETE FROM public.candidatures WHERE convoyeur_nom = nom_complet;
-
-      -- Supprimer le convoyeur
-      DELETE FROM public.convoyeurs WHERE id = target_id;
-    END;
+    -- Supprimer le convoyeur
+    DELETE FROM public.convoyeurs WHERE id = target_id;
   ELSE
     RAISE EXCEPTION 'Table non supportée : %', target_table;
   END IF;

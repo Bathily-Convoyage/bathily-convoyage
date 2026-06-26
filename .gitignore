@@ -34,3 +34,7 @@ fix_*.py
 
 # Temp files
 *.tmp
+
+# Sensitive config files
+firebase-config.js
+supabase-config.js

@@ -128,8 +128,195 @@
     /* Hero */
     .hero {
       padding: 80px 0 40px;
-      background: linear-gradient(135deg, var(--cream) 0%, var(--beige) 100%);
+      background: linear-gradient(135deg, rgba(10,77,104,0.92) 0%, rgba(6,50,68,0.88) 100%),
+                  url('https://images.pexels.com/photos/925664/pexels-photo-925664.jpeg?auto=compress&cs=tinysrgb&w=1600') center/cover no-repeat;
       overflow: hidden;
+      position: relative;
+    }
+    .hero .hero-content h1,
+    .hero .hero-content p {
+      color: white;
+    }
+    .hero .hero-content h1 {
+      color: #fff;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    .hero .hero-content p {
+      color: rgba(255,255,255,0.9);
+    }
+    .hero .hero-badge {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border-color: rgba(255,255,255,0.3);
+      backdrop-filter: blur(6px);
+    }
+    .hero .hero-trust-line {
+      color: rgba(255,255,255,0.85);
+    }
+    .hero .hero-trust-line strong {
+      color: #fff;
+    }
+    .hero .quick-quote {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+    }
+    .hero .quick-quote input,
+    .hero .quick-quote select {
+      background: #fff;
+    }
+    .hero .partners-banner {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(4px);
+    }
+    .hero .partners-title {
+      color: rgba(255,255,255,0.7);
+    }
+    .hero .partner-logo {
+      color: rgba(255,255,255,0.6);
+    }
+    .hero .partner-logo:hover {
+      color: #fff;
+    }
+    .hero .partner-logo i {
+      color: var(--warning);
+    }
+
+    /* Stats Section */
+    .stats-band {
+      background: var(--bordeaux);
+      padding: 48px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .stats-band::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(90deg, var(--bordeaux-dark) 0%, var(--bordeaux) 100%);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      position: relative;
+      z-index: 1;
+    }
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    }
+    .stat-item {
+      text-align: center;
+      padding: 16px;
+    }
+    .stat-item .counter {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 2.8rem;
+      color: #fff;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .stat-item .counter-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stat-item .stat-icon {
+      font-size: 1.5rem;
+      color: var(--warning);
+      margin-bottom: 12px;
+    }
+
+    /* Process Timeline */
+    .process-timeline {
+      display: flex;
+      justify-content: space-between;
+      gap: 0;
+      margin-top: 48px;
+      position: relative;
+    }
+    .process-timeline::before {
+      content: '';
+      position: absolute;
+      top: 36px;
+      left: 10%;
+      right: 10%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--bordeaux-light) 0%, var(--bordeaux) 50%, var(--warning) 100%);
+      border-radius: 3px;
+      z-index: 0;
+    }
+    .timeline-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      padding: 0 8px;
+    }
+    .timeline-icon {
+      width: 72px;
+      height: 72px;
+      background: white;
+      border: 3px solid var(--bordeaux);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: var(--bordeaux);
+      margin: 0 auto 16px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(10,77,104,0.1);
+    }
+    .timeline-step:hover .timeline-icon {
+      transform: scale(1.1);
+      border-color: var(--warning);
+      color: var(--warning);
+      box-shadow: 0 8px 24px rgba(245,166,35,0.3);
+    }
+    .timeline-step h4 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--gray-dark);
+    }
+    .timeline-step p {
+      font-size: 0.78rem;
+      color: var(--gray-mid);
+    }
+    @media (max-width: 768px) {
+      .process-timeline { flex-direction: column; gap: 32px; }
+      .process-timeline::before { display: none; }
+    }
+
+    /* Footer Trust Badges */
+    .footer-trust {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 0;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .footer-trust-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+    }
+    .footer-trust-badge i {
+      font-size: 1.1rem;
     }
 
     .hero-grid {
@@ -1281,7 +1468,7 @@
       <div class="container hero-grid">
         <div class="hero-content fade-in">
           <div class="hero-badge">⭐ Suivi GPS en temps réel</div>
-          <h1>Convoyage Auto & Moto Partout en France.</h1>
+          <h1>Convoyage Auto & Moto<br>Partout en France.</h1>
           <p>Votre véhicule transporté en toute sécurité par des professionnels. Devis gratuit en 60s.</p>
           <div class="quick-quote">
             <div class="search-wrapper">
@@ -1321,6 +1508,34 @@
             <span class="partner-logo"><i class="fas fa-wrench"></i> Garages</span>
             <span class="partner-logo"><i class="fas fa-truck-fleet"></i> Flottes Auto</span>
             <span class="partner-logo"><i class="fas fa-handshake"></i> Loueurs</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats-band">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-item reveal">
+            <div class="stat-icon"><i class="fas fa-route"></i></div>
+            <div class="counter" id="stat1" data-target="500">0</div>
+            <div class="counter-label">Missions réalisées</div>
+          </div>
+          <div class="stat-item reveal">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="counter" id="stat2" data-target="24">0</div>
+            <div class="counter-label">Délai moyen (heures)</div>
+          </div>
+          <div class="stat-item reveal">
+            <div class="stat-icon"><i class="fas fa-star"></i></div>
+            <div class="counter" id="stat3" data-target="49">0</div>
+            <div class="counter-label">Note moyenne</div>
+          </div>
+          <div class="stat-item reveal">
+            <div class="stat-icon"><i class="fas fa-shield-halved"></i></div>
+            <div class="counter" id="stat4" data-target="100">0</div>
+            <div class="counter-label">Assurance tous risques</div>
           </div>
         </div>
       </div>
@@ -1479,29 +1694,29 @@
       <div class="container">
         <div class="section-title reveal">Comment ça marche ?</div>
         <div class="section-sub reveal">Un processus simple et transparent</div>
-        <div class="process-steps">
-          <div class="step reveal">
-            <div class="step-num">1</div>
-            <h4>demande de devis</h4>
+        <div class="process-timeline">
+          <div class="timeline-step reveal">
+            <div class="timeline-icon"><i class="fas fa-clipboard-list"></i></div>
+            <h4>Demande de devis</h4>
             <p>60 secondes suffisent</p>
           </div>
-          <div class="step reveal">
-            <div class="step-num">2</div>
+          <div class="timeline-step reveal">
+            <div class="timeline-icon"><i class="fas fa-user-check"></i></div>
             <h4>Assignation convoyeur</h4>
             <p>Certifié SIV</p>
           </div>
-          <div class="step reveal">
-            <div class="step-num">3</div>
+          <div class="timeline-step reveal">
+            <div class="timeline-icon"><i class="fas fa-camera"></i></div>
             <h4>Prise en charge</h4>
             <p>État des lieux photo + signature</p>
           </div>
-          <div class="step reveal">
-            <div class="step-num">4</div>
-            <h4>transport & suivi GPS</h4>
+          <div class="timeline-step reveal">
+            <div class="timeline-icon"><i class="fas fa-satellite-dish"></i></div>
+            <h4>Transport & suivi GPS</h4>
             <p>Géolocalisation temps réel</p>
           </div>
-          <div class="step reveal">
-            <div class="step-num">5</div>
+          <div class="timeline-step reveal">
+            <div class="timeline-icon"><i class="fas fa-flag-checkered"></i></div>
             <h4>Livraison & validation</h4>
             <p>Photos + signature client</p>
           </div>
@@ -1598,6 +1813,12 @@
             </div>
           </div>
         </div>
+      </div>
+      <div class="footer-trust">
+        <div class="footer-trust-badge"><i class="fab fa-stripe" style="color:#635BFF"></i> Paiement sécurisé Stripe</div>
+        <div class="footer-trust-badge"><i class="fas fa-shield-halved" style="color:var(--bordeaux)"></i> Double RC Pro Allianz</div>
+        <div class="footer-trust-badge"><i class="fas fa-id-card" style="color:var(--bordeaux)"></i> Certification SIV / ANTS</div>
+        <div class="footer-trust-badge"><i class="fas fa-lock" style="color:var(--success)"></i> Données chiffrées TLS</div>
       </div>
       <div class="footer-bottom">© 2025 Bathily-Convoyage — Tous droits réservés — <a href="mentions-legales.html" style="color:inherit;text-decoration:underline;">Mentions Légales & CGV/CGU</a></div>
     </div>
@@ -1880,7 +2101,7 @@
       const counters = document.querySelectorAll('.counter');
       counters.forEach(counter => {
         const target = parseInt(counter.dataset.target);
-        const suffix = counter.id === 'stat1' ? '+' : (counter.id === 'stat2' ? 'h' : (counter.id === 'stat3' ? '/5' : ''));
+        const suffix = counter.id === 'stat1' ? '+' : (counter.id === 'stat2' ? 'h' : (counter.id === 'stat3' ? '/5' : (counter.id === 'stat4' ? '%' : '')));
         animateCounter(counter, target, suffix);
       });
     }, 1000);
@@ -2065,7 +2286,7 @@
     async function loadPacksConfig() {
       try {
         const client = getSupabase();
-        const { data, error } = await client.from('system_settings').select('*');
+        const { data, error } = await client.from('system_settings').select('key, value');
         if (error || !data) return;
 
         data.forEach(setting => {

@@ -1,4 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
+const crypto = require('crypto');
+const { rateLimit } = require('./_rate-limit');
 
 exports.handler = async (event, context) => {
   const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr', 'http://localhost:5173', 'http://localhost:3000'];
@@ -19,6 +21,10 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
+
+  // Rate limiting: 10 / minute / IP
+  const rl = rateLimit(event, 'admin-create-user', 10, 60000);
+  if (rl) return rl;
 
   try {
     const authHeader = event.headers.authorization || event.headers.Authorization || '';
@@ -72,7 +78,7 @@ exports.handler = async (event, context) => {
     }
 
     // 4. Creer le compte Auth avec mot de passe temporaire (sans envoi email Supabase)
-    const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
+    const tempPassword = 'TempPass_' + crypto.randomBytes(6).toString('hex').slice(0, 8) + '!1';
     const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: tempPassword,

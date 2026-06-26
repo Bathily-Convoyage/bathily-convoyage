@@ -1,7 +1,8 @@
 const { createClient } = require('@supabase/supabase-js');
+const { rateLimit } = require('./_rate-limit');
 
 exports.handler = async (event, context) => {
-  const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr'];
+  const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr', 'http://localhost:5173', 'http://localhost:3000'];
   const origin = event.headers.origin || event.headers.Origin || '';
   const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
   const headers = {
@@ -18,6 +19,10 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
+
+  // Rate limiting: 5 signups / hour / IP
+  const rl = rateLimit(event, 'client-signup', 5, 3600000);
+  if (rl) return rl;
 
   try {
     const { email, password, prenom, nom, telephone, societe, isPro } = JSON.parse(event.body);

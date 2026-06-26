@@ -578,6 +578,8 @@ footer {
 }
 </style>
 <script src="/js/lang-switcher.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/supabase-config.js"></script>
 </head>
 <body>
 
@@ -693,7 +695,7 @@ footer {
           </div>
           <div class="cb-row" id="cbPrivacy" onclick="toggleCheckbox(this)" role="checkbox" aria-checked="false" tabindex="0">
             <div class="cb-box"></div>
-            <span class="cb-lbl">J'accepte la <a href="mentions-legales.html#privacy" target="_blank" style="color:var(--bordeaux);text-decoration:underline;">politique de confidentialité</a> et le traitement de mes données pour traiter ma demande *</span>
+            <span class="cb-lbl">J'accepte la <a href="mentions-legales.html#privacy" target="_blank" rel="noopener" style="color:var(--bordeaux);text-decoration:underline;">politique de confidentialité</a> et le traitement de mes données pour traiter ma demande *</span>
           </div>
           <div class="field-err" id="errPrivacy" style="margin-bottom:12px">Veuillez accepter la politique de confidentialité</div>
 
@@ -943,7 +945,7 @@ document.querySelectorAll('.cb-row').forEach(cb => {
 });
 
 // ========== FORM SUBMIT ==========
-function submitForm(e) {
+async function submitForm(e) {
   e.preventDefault();
   let ok = true;
   const fields = [
@@ -977,10 +979,26 @@ function submitForm(e) {
   const vehicule = document.getElementById('fVehicule').value;
   const message = document.getElementById('fMessage').value.trim();
   const newsletter = document.getElementById('cbNewsletter').classList.contains('chk');
-  const ref = 'BC-MSG-' + Math.floor(1000 + Math.random() * 9000);
-  let messages = JSON.parse(localStorage.getItem('bathily_contact_messages') || '[]');
-  messages.push({ ref, sujet, prenom, nom, email, tel, vehicule, message, newsletter, timestamp: new Date().toISOString() });
-  localStorage.setItem('bathily_contact_messages', JSON.stringify(messages));
+  const ref = 'BC-MSG-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase());
+  
+  try {
+    const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    const { error: insertError } = await sb.from('contact_messages').insert([{
+      reference: ref,
+      sujet: sujet,
+      prenom: prenom,
+      nom: nom,
+      email: email,
+      telephone: tel,
+      vehicule: vehicule,
+      message: message,
+      newsletter: newsletter
+    }]);
+    if (insertError) throw insertError;
+  } catch (err) {
+    Swal.fire('Erreur', "Impossible d'envoyer votre message : " + (err.message || 'Erreur inconnue'), 'error');
+    return;
+  }
 
   document.getElementById('contactRef').textContent = ref;
   document.getElementById('contactForm').style.display = 'none';

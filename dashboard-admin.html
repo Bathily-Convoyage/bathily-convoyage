@@ -529,6 +529,163 @@
       padding: 2px 8px;
       border-radius: 40px;
     }
+    /* ===== Packs & Options redesign ===== */
+    .packs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 8px;
+    }
+    @media (max-width: 900px) {
+      .packs-grid { grid-template-columns: 1fr; }
+    }
+    .pack-card {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: 24px;
+      padding: 0;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .pack-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(10, 77, 104, 0.15);
+    }
+    .pack-card.featured {
+      border: 2px solid var(--bordeaux);
+      box-shadow: 0 8px 24px rgba(10, 77, 104, 0.12);
+    }
+    .pack-header {
+      padding: 20px 24px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .pack-header.starter { background: linear-gradient(135deg, #E6F0F4 0%, #F0F7FA 100%); }
+    .pack-header.serenite { background: linear-gradient(135deg, #E6F0F4 0%, #d4e8ef 100%); }
+    .pack-header.excellence { background: linear-gradient(135deg, #FFF8E8 0%, #FDF0D8 100%); }
+    .pack-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .pack-icon.starter { background: #E6F0F4; color: var(--bordeaux); }
+    .pack-icon.serenite { background: var(--bordeaux); color: white; }
+    .pack-icon.excellence { background: var(--warning); color: white; }
+    .pack-title-wrap { flex: 1; min-width: 0; }
+    .pack-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--gray-dark);
+      margin-bottom: 2px;
+    }
+    .pack-subtitle {
+      font-size: 0.7rem;
+      color: var(--gray-mid);
+    }
+    .pack-price-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 40px;
+      white-space: nowrap;
+    }
+    .pack-price-badge.free { background: #D4EDDA; color: #155724; border: 1px solid #C3E6CB; }
+    .pack-price-badge.paid { background: var(--bordeaux); color: white; }
+    .pack-price-badge.premium { background: var(--warning); color: white; }
+    .pack-body { padding: 20px 24px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+    .pack-features-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pack-features-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--gray-dark);
+      line-height: 1.4;
+    }
+    .pack-features-list li i {
+      color: var(--success);
+      font-size: 0.7rem;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+    .pack-edit-area {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border-light);
+    }
+    .pack-edit-area .f-grp { margin-bottom: 10px; }
+    .pack-edit-area .f-grp label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-mid);
+      margin-bottom: 4px;
+      display: block;
+    }
+    .pack-edit-area input,
+    .pack-edit-area textarea {
+      width: 100%;
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .pack-edit-area input:focus,
+    .pack-edit-area textarea:focus { border-color: var(--bordeaux); }
+    .pack-edit-area textarea { resize: vertical; min-height: 70px; }
+    .pack-save-btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .pack-save-btn:hover { opacity: 0.9; }
+    .pack-save-btn.starter { background: #E6F0F4; color: var(--bordeaux); }
+    .pack-save-btn.serenite { background: var(--bordeaux); color: white; }
+    .pack-save-btn.excellence { background: var(--warning); color: white; }
+    .pack-recommend-badge {
+      position: absolute;
+      top: -1px;
+      right: 16px;
+      background: var(--bordeaux);
+      color: white;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 0 0 10px 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .pack-card-wrapper { position: relative; }
     .config-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1315,6 +1472,7 @@
         <div class="nav-item" data-tab="convoyeurs"><i class="fas fa-truck"></i> Convoyeurs</div>
         <div class="nav-item" data-tab="candidatures"><i class="fas fa-user-plus"></i> Candidatures <span class="nav-badge pulsing" id="candidaturesBadge" style="display:none">0</span></div>
         <div class="nav-item" data-tab="reseau-admin"><i class="fas fa-comments"></i> Réseau (Modération)</div>
+        <div class="nav-item" data-tab="support"><i class="fas fa-headset"></i> Support <span class="nav-badge" id="supportBadge" style="display:none">0</span></div>
       </div>
       <div class="nav-section">
         <div class="nav-section-lbl">Paramètres</div>
@@ -1590,6 +1748,17 @@
         </div>
       </div>
 
+      <!-- SUPPORT -->
+      <div class="tab-content" id="tab-support">
+        <div class="dash-header">
+          <h1 class="dash-hello">Support <em>client</em></h1>
+          <div class="dash-date">Tickets de support et litiges</div>
+        </div>
+        <div id="supportTicketsContainer">
+          <div style="text-align:center;padding:40px;color:var(--gray-mid);"><i class="fas fa-headset" style="font-size:2rem;margin-bottom:10px;"></i><p>Chargement des tickets...</p></div>
+        </div>
+      </div>
+
       <!-- TARIFS & PRIX -->
       <div class="tab-content" id="tab-tarifs-config">
         <div class="dash-header">
@@ -1649,38 +1818,123 @@
       <div class="tab-content" id="tab-packs-config">
         <div class="dash-header">
           <h1 class="dash-hello">Packs & <em>Options</em></h1>
+          <div class="dash-date">Configurez les prestations incluses dans chaque pack</div>
         </div>
-        <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Pack Starter</span><span class="config-card-tag" id="tag_pack_starter">Inclus</span></div>
-          <div class="f-grp"><label>Nom du pack</label><input type="text" id="name_pack_starter" value="Starter"></div>
-          <div class="f-grp"><label>Prestations incluses (une par ligne)</label><textarea id="features_pack_starter" rows="4">Logistique de convoyage standard
+        <div class="packs-grid">
+          <!-- Pack Starter -->
+          <div class="pack-card-wrapper">
+            <div class="pack-card">
+              <div class="pack-header starter">
+                <div class="pack-icon starter"><i class="fas fa-rocket"></i></div>
+                <div class="pack-title-wrap">
+                  <div class="pack-title" id="display_name_pack_starter">Starter</div>
+                  <div class="pack-subtitle">Essentiel inclus</div>
+                </div>
+                <span class="pack-price-badge free"><i class="fas fa-check"></i> Inclus</span>
+              </div>
+              <div class="pack-body">
+                <ul class="pack-features-list" id="display_features_pack_starter">
+                  <li><i class="fas fa-check-circle"></i> Logistique de convoyage standard</li>
+                  <li><i class="fas fa-check-circle"></i> Double assurance RC Pro</li>
+                  <li><i class="fas fa-check-circle"></i> Identification SIV</li>
+                  <li><i class="fas fa-check-circle"></i> État des lieux numérisé (20 photos)</li>
+                  <li><i class="fas fa-check-circle"></i> Suivi GPS basique</li>
+                </ul>
+                <div class="pack-edit-area">
+                  <div class="f-grp">
+                    <label>Nom du pack</label>
+                    <input type="text" id="name_pack_starter" value="Starter">
+                  </div>
+                  <div class="f-grp">
+                    <label>Prestations (une par ligne)</label>
+                    <textarea id="features_pack_starter" rows="4">Logistique de convoyage standard
 Double assurance RC Pro
 Identification SIV
 État des lieux numérisé (20 photos)
-Suivi GPS basique</textarea></div>
-          <button class="btn-red" data-pack="pack_starter"><i class="fas fa-save"></i> Sauvegarder</button>
-        </div>
-        <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Pack Sérénité</span><span class="config-card-tag" id="tag_pack_serenite">+49€ HT</span></div>
-          <div class="f-row">
-            <div class="f-grp"><label>Nom</label><input type="text" id="name_pack_serenite" value="Sérénité"></div>
-            <div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" id="price_pack_serenite" value="49" step="1" style="font-size:1rem; width:100px"> €</div>
+Suivi GPS basique</textarea>
+                  </div>
+                  <button class="pack-save-btn starter" data-pack="pack_starter"><i class="fas fa-save"></i> Sauvegarder</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="f-grp"><label>Prestations incluses</label><textarea id="features_pack_serenite" rows="3">Nettoyage extérieur haute pression
+
+          <!-- Pack Sérénité -->
+          <div class="pack-card-wrapper">
+            <div class="pack-recommend-badge">★ Best choix</div>
+            <div class="pack-card featured">
+              <div class="pack-header serenite">
+                <div class="pack-icon serenite"><i class="fas fa-shield-alt"></i></div>
+                <div class="pack-title-wrap">
+                  <div class="pack-title" id="display_name_pack_serenite">Sérénité</div>
+                  <div class="pack-subtitle">Confort & sérénité</div>
+                </div>
+                <span class="pack-price-badge paid" id="tag_pack_serenite">+49€ HT</span>
+              </div>
+              <div class="pack-body">
+                <ul class="pack-features-list" id="display_features_pack_serenite">
+                  <li><i class="fas fa-check-circle"></i> Nettoyage extérieur haute pression</li>
+                  <li><i class="fas fa-check-circle"></i> Mise à niveau carburant / charge</li>
+                  <li><i class="fas fa-check-circle"></i> Check-list digitale par email</li>
+                </ul>
+                <div class="pack-edit-area">
+                  <div class="f-grp">
+                    <label>Nom</label>
+                    <input type="text" id="name_pack_serenite" value="Sérénité">
+                  </div>
+                  <div class="f-grp">
+                    <label>Prix HT (€)</label>
+                    <input type="number" id="price_pack_serenite" value="49" step="1" style="width:100%;border:1px solid var(--border-light);border-radius:10px;padding:8px 12px;font-size:0.8rem;">
+                  </div>
+                  <div class="f-grp">
+                    <label>Prestations (une par ligne)</label>
+                    <textarea id="features_pack_serenite" rows="3">Nettoyage extérieur haute pression
 Mise à niveau carburant / charge
-Check-list digitale par email</textarea></div>
-          <button class="btn-red" data-pack="pack_serenite"><i class="fas fa-save"></i> Sauvegarder</button>
-        </div>
-        <div class="config-card">
-          <div class="config-card-header"><span class="config-card-title">Pack Excellence</span><span class="config-card-tag" id="tag_pack_excellence">+129€ HT</span></div>
-          <div class="f-row">
-            <div class="f-grp"><label>Nom</label><input type="text" id="name_pack_excellence" value="Excellence"></div>
-            <div class="f-grp"><label>Prix HT</label><input class="num-input" type="number" id="price_pack_excellence" value="129" step="1" style="font-size:1rem; width:100px"> €</div>
+Check-list digitale par email</textarea>
+                  </div>
+                  <button class="pack-save-btn serenite" data-pack="pack_serenite"><i class="fas fa-save"></i> Sauvegarder</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="f-grp"><label>Prestations incluses</label><textarea id="features_pack_excellence" rows="3">Préparation esthétique complète
+
+          <!-- Pack Excellence -->
+          <div class="pack-card-wrapper">
+            <div class="pack-card">
+              <div class="pack-header excellence">
+                <div class="pack-icon excellence"><i class="fas fa-crown"></i></div>
+                <div class="pack-title-wrap">
+                  <div class="pack-title" id="display_name_pack_excellence">Excellence</div>
+                  <div class="pack-subtitle">Premium & prestige</div>
+                </div>
+                <span class="pack-price-badge premium" id="tag_pack_excellence">+129€ HT</span>
+              </div>
+              <div class="pack-body">
+                <ul class="pack-features-list" id="display_features_pack_excellence">
+                  <li><i class="fas fa-check-circle"></i> Préparation esthétique complète</li>
+                  <li><i class="fas fa-check-circle"></i> Full Energy — 100% charge / plein</li>
+                  <li><i class="fas fa-check-circle"></i> Cadeau premium personnalisé</li>
+                </ul>
+                <div class="pack-edit-area">
+                  <div class="f-grp">
+                    <label>Nom</label>
+                    <input type="text" id="name_pack_excellence" value="Excellence">
+                  </div>
+                  <div class="f-grp">
+                    <label>Prix HT (€)</label>
+                    <input type="number" id="price_pack_excellence" value="129" step="1" style="width:100%;border:1px solid var(--border-light);border-radius:10px;padding:8px 12px;font-size:0.8rem;">
+                  </div>
+                  <div class="f-grp">
+                    <label>Prestations (une par ligne)</label>
+                    <textarea id="features_pack_excellence" rows="3">Préparation esthétique complète
 Full Energy — 100% charge / plein
-Cadeau premium personnalisé</textarea></div>
-          <button class="btn-red" data-pack="pack_excellence"><i class="fas fa-save"></i> Sauvegarder</button>
+Cadeau premium personnalisé</textarea>
+                  </div>
+                  <button class="pack-save-btn excellence" data-pack="pack_excellence"><i class="fas fa-save"></i> Sauvegarder</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2055,6 +2309,16 @@ Cadeau premium personnalisé</textarea></div>
   // Base de données véhicules (pour autocomplétion)
   let _vehiculesDB = null;
   let _selectedAdminMarque = '';
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 
   function getSupabase() {
     if (!_supabaseClient) {
@@ -2482,7 +2746,7 @@ Cadeau premium personnalisé</textarea></div>
   async function loadClients() {
     const client = getSupabase();
     if (!client) return;
-    const { data, error } = await client.from('clients').select('*').order('created_at', { ascending: false });
+    const { data, error } = await client.from('clients').select('id, email, prenom, nom, telephone, role, is_pro, pro_status, societe, siret, tva_intra, adresse, code_postal, ville, pays, banned, notes_admin, auth_user_id, documents, created_at').order('created_at', { ascending: false });
     if (error) { console.error('Erreur loadClients:', error); return; }
     _allClientsData = (data || []).filter(c => c.role !== 'admin');
     const allAdmins = (data || []).filter(c => c.role === 'admin');
@@ -2507,10 +2771,10 @@ Cadeau premium personnalisé</textarea></div>
       const proBadge = c.is_pro ? (c.pro_status === 'pending' ? ' <span class="sp sp-att" style="font-size:0.7rem;"><span class="sp-dot"></span>Pro en attente</span>' : c.pro_status === 'approved' ? ' <span class="sp sp-ok" style="font-size:0.7rem;"><span class="sp-dot"></span>Pro</span>' : '') : '';
       const proActions = c.is_pro && c.pro_status === 'pending' ? `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation(); approvePro('${c.id}')" title="Valider Pro"><i class="fas fa-check"></i></button><button class="btn-sm btn-sm-red" onclick="event.stopPropagation(); rejectPro('${c.id}')" title="Refuser Pro"><i class="fas fa-times"></i></button>` : '';
       return `<tr class="clickable-row" style="${rowStyle}" onclick="if(!event.target.closest('button')) { editClient('${c.id}'); }">
-        <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials}</div>${name}${proBadge}</div></td>
-        <td>${c.email || '—'}</td>
-        <td>${c.telephone || '—'}</td>
-        <td>${c.societe || '—'}</td>
+        <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials}</div>${escapeHtml(name)}${proBadge}</div></td>
+        <td>${escapeHtml(c.email || '—')}</td>
+        <td>${escapeHtml(c.telephone || '—')}</td>
+        <td>${escapeHtml(c.societe || '—')}</td>
         <td>${dateStr}</td>
         <td>${banLabel}</td>
         <td class="td-actions">
@@ -2533,9 +2797,9 @@ Cadeau premium personnalisé</textarea></div>
     tbody.innerHTML = admins.map(c => {
       const name = `${c.prenom || ''} ${c.nom || ''}`.trim() || 'Inconnu';
       return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { editAdmin('${c.id}'); }">
-        <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux);color:#fff"><i class="fas fa-user-shield" style="font-size:0.7rem"></i></div>${name}</div></td>
-        <td>${c.email || '—'}</td>
-        <td>${c.telephone || '—'}</td>
+        <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux);color:#fff"><i class="fas fa-user-shield" style="font-size:0.7rem"></i></div>${escapeHtml(name)}</div></td>
+        <td>${escapeHtml(c.email || '—')}</td>
+        <td>${escapeHtml(c.telephone || '—')}</td>
         <td><span class="sp sp-ok"><span class="sp-dot"></span>Administrateur</span></td>
         <td class="td-actions">
           <button class="btn-sm btn-sm-ghost" onclick="editAdmin('${c.id}')"><i class="fas fa-edit"></i></button>
@@ -2548,7 +2812,7 @@ Cadeau premium personnalisé</textarea></div>
   window.editAdmin = async function(id) {
     const sb = getSupabase();
     if (!sb) return;
-    const { data } = await sb.from('clients').select('*').eq('id', id).single();
+    const { data } = await sb.from('clients').select('id, email, prenom, nom, telephone, role, is_pro, pro_status, societe, siret, tva_intra, adresse, code_postal, ville, pays, banned, notes_admin, auth_user_id, documents, created_at').eq('id', id).single();
     if (!data) return;
     document.getElementById('modalClientTitle').innerHTML = `Modifier <em>administrateur</em>`;
     document.getElementById('client-id').value = id;
@@ -2678,7 +2942,7 @@ Cadeau premium personnalisé</textarea></div>
   async function loadConvoyeurs() {
     const client = getSupabase();
     if (!client) return;
-    const { data, error } = await client.from('convoyeurs').select('*').order('created_at', { ascending: false });
+    const { data, error } = await client.from('convoyeurs').select('id, email, prenom, nom, telephone, ville, type_permis, annee_permis, disponible, niveau, grade, zone, zones, note_moyenne, taux_auto, taux_moto, adresse, code_postal, banned, notes_admin, auth_user_id, documents, created_at').order('created_at', { ascending: false });
     if (error) { console.warn('Erreur chargement convoyeurs:', error.message); return; }
     _convoyeursList = data || [];
     document.getElementById('convoyeursCount').innerHTML = `${_convoyeursList.length} convoyeur${_convoyeursList.length !== 1 ? 's' : ''} <em>enregistré${_convoyeursList.length !== 1 ? 's' : ''}</em>`;
@@ -2703,8 +2967,8 @@ Cadeau premium personnalisé</textarea></div>
       const rowStyle = c.banned ? 'opacity:0.6; background:#fff5f5; cursor:pointer;' : 'cursor:pointer;';
       const statLabel = c.banned ? '<span class="sp sp-err"><span class="sp-dot"></span>Banni</span>' : `<span class="sp ${isDispo ? 'sp-ok' : 'sp-err'}"><span class="sp-dot"></span>${isDispo ? 'Disponible' : 'Indisponible'}</span>`;
       return `<tr class="clickable-row" style="${rowStyle}" onclick="if(!event.target.closest('button')) { editConvoyeur('${c.id}'); }">
-        <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials.toUpperCase()}</div>${c.prenom || ''} ${c.nom || ''}</div></td>
-        <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${zonesStr}">${zonesStr}</td>
+        <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials.toUpperCase()}</div>${escapeHtml(c.prenom || '')} ${escapeHtml(c.nom || '')}</div></td>
+        <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(zonesStr)}">${escapeHtml(zonesStr)}</td>
         <td><span class="sp ${grade.toLowerCase().includes('senior') ? 'sp-cours' : 'sp-att'}"><span class="sp-dot"></span>${grade}</span></td>
         <td><span style="color:var(--warning)">⭐</span> ${note}</td>
         <td>${(c.taux_auto || 0.47).toFixed(2)} €/km</td>
@@ -2722,7 +2986,7 @@ Cadeau premium personnalisé</textarea></div>
   function populateConvoyeursSelect() {
     const select = document.getElementById('manual-convoyeur');
     if (!select) return;
-    select.innerHTML = '<option value="">Marché (aucun convoyeur assigné)</option>' + _convoyeursList.map(c => `<option value="${c.prenom} ${c.nom}">${c.prenom} ${c.nom}</option>`).join('');
+    select.innerHTML = '<option value="">Marché (aucun convoyeur assigné)</option>' + _convoyeursList.map(c => `<option value="${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}">${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}</option>`).join('');
   }
 
   async function addConvoyeurDB() {
@@ -2779,9 +3043,6 @@ Cadeau premium personnalisé</textarea></div>
 
   // Note: Le bouton deleteConvoyeur HTML a été remplacé par adminDeleteUser.
   // L'ancienne fonction deleteConvoyeur reste par compatibilité au cas où.
-  window.deleteConvoyeur = function(id) {
-    window.adminDeleteUser(id, 'convoyeurs');
-  };
 
   // ============================================================
   // PARTIE 9 : RÉSEAU & MODÉRATION (ADMIN)
@@ -2789,7 +3050,7 @@ Cadeau premium personnalisé</textarea></div>
   window.fetchAdminReseauPosts = async function() {
     const client = getSupabase();
     if (!client) return;
-    const { data, error } = await client.from('reseau_posts').select('*').order('created_at', { ascending: false });
+    const { data, error } = await client.from('reseau_posts').select('id, author_name, author_role, content, likes_count, is_announcement, tags, created_at').order('created_at', { ascending: false });
     
     const container = document.getElementById('postsFeedAdmin');
     if (error || !data || data.length === 0) {
@@ -2811,14 +3072,14 @@ Cadeau premium personnalisé</textarea></div>
             <div style="display:flex;gap:12px;">
               <div class="post-ava" style="${p.is_announcement ? 'background:var(--bordeaux);color:white;' : 'background:rgba(41,128,185,0.15); color:#2980b9;'}">${avatar}</div>
               <div>
-                <div class="post-name">${p.author_name}</div>
-                <div class="post-meta"><span class="post-role">${p.author_role||'Convoyeur'}</span><span class="post-time">${dateStr}</span></div>
+                <div class="post-name">${escapeHtml(p.author_name)}</div>
+                <div class="post-meta"><span class="post-role">${escapeHtml(p.author_role||'Convoyeur')}</span><span class="post-time">${dateStr}</span></div>
               </div>
             </div>
             <button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border-color:#e74c3c" onclick="adminDeleteReseauPost('${p.id}')"><i class="fas fa-trash"></i></button>
           </div>
-          <div class="post-body">${p.content}</div>
-          <div class="post-tags">${tagsHtml}</div>
+          <div class="post-body">${escapeHtml(p.content)}</div>
+          <div class="post-tags">${(p.tags||[]).map(t => `<span class="post-tag">${escapeHtml(t)}</span>`).join('')}</div>
           <div class="post-actions" style="margin-bottom:8px;">
             <div style="display:flex;gap:20px">
               <button class="post-action liked" style="cursor:default"><i class="fas fa-heart"></i> ${p.likes_count||0}</button>
@@ -2852,7 +3113,7 @@ Cadeau premium personnalisé</textarea></div>
 
   window.fetchAdminComments = async function(postId) {
     const client = getSupabase();
-    const { data, error } = await client.from('reseau_comments').select('*').eq('post_id', postId).order('created_at', { ascending: true });
+    const { data, error } = await client.from('reseau_comments').select('id, post_id, author_name, content, created_at').eq('post_id', postId).order('created_at', { ascending: true });
     const sec = document.getElementById(`comments-section-admin-${postId}`);
     if(error) return;
 
@@ -2860,7 +3121,7 @@ Cadeau premium personnalisé</textarea></div>
     if(data && data.length > 0) {
       commentsHtml = data.map(c => `
         <div style="background:#f9f9f9;padding:8px 12px;border-radius:12px;margin-bottom:8px;font-size:0.8rem;display:flex;justify-content:space-between;align-items:flex-start;">
-          <div><strong style="color:#0A4D68;">${c.author_name}</strong> : ${c.content}</div>
+          <div><strong style="color:#0A4D68;">${escapeHtml(c.author_name)}</strong> : ${escapeHtml(c.content)}</div>
           <button class="btn-sm btn-sm-ghost" style="color:#e74c3c;border:none;padding:4px;margin-left:8px;" onclick="adminDeleteComment('${c.id}', '${postId}')" title="Supprimer"><i class="fas fa-trash"></i></button>
         </div>
       `).join('');
@@ -2950,7 +3211,7 @@ Cadeau premium personnalisé</textarea></div>
     }
     // Si on supprime un convoyeur, d'abord dissocier ses missions
     if (tableName === 'convoyeurs') {
-      await client.from('missions').update({ convoyeur_nom: null, status: 'available' }).eq('convoyeur_nom', userId);
+      await client.from('missions').update({ convoyeur_nom: null, convoyeur_id: null, status: 'available' }).eq('convoyeur_id', userId);
     }
     
     const { error } = await client.rpc('admin_delete_user', {
@@ -3114,7 +3375,7 @@ Cadeau premium personnalisé</textarea></div>
   async function loadMissions() {
     const client = getSupabase();
     if (!client) return;
-    const { data: missions, error } = await client.from('missions').select('*').order('created_at', { ascending: false });
+    const { data: missions, error } = await client.from('missions').select('id, reference, depart, arrivee, vehicule, mode, mode_transport, pack, status, paiement_statut, montant_ht, remuneration_convoyeur, marge, date_mission, client_id, client_email, client_nom, client_telephone, convoyeur_nom, convoyeur_id, convoyeur_telephone, immatriculation, type_vehicule, notes, stripe_session_id, created_at, updated_at').order('created_at', { ascending: false });
     if (error) { console.error(error); return; }
     _allMissions = missions || [];
     const visibleMissions = _allMissions.filter(m => m.status !== 'archived');
@@ -3160,7 +3421,7 @@ Cadeau premium personnalisé</textarea></div>
         actionsHtml = `<div class="td-actions">
           ${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="assignConvoyeurToMission('${m.id}')" title="Changer convoyeur"><i class="fas fa-user-edit"></i></button>` : ''}
           ${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i></button>` : ''}
-          ${(status === 'in_progress' || status === 'planned') ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" target="_blank" class="btn-sm btn-sm-ghost" title="Suivre GPS"><i class="fas fa-map-marker-alt"></i></a>` : ''}
+          ${(status === 'in_progress' || status === 'planned') ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" target="_blank" rel="noopener" class="btn-sm btn-sm-ghost" title="Suivre GPS"><i class="fas fa-map-marker-alt"></i></a>` : ''}
           ${status !== 'completed' && status !== 'cancelled' ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}
           <button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button>
           <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
@@ -3169,12 +3430,12 @@ Cadeau premium personnalisé</textarea></div>
         </div>`;
       }
       return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewMissionDetails('${m.id}'); }">
-        <td>${m.reference}</td>
-        <td>${m.client_nom}</td>
-        <td>${m.depart} → ${m.arrivee}</td>
-        <td>${m.convoyeur_nom || '-'}</td>
-        <td>${m.vehicule}</td>
-        <td>${m.pack}</td>
+        <td>${escapeHtml(m.reference)}</td>
+        <td>${escapeHtml(m.client_nom)}</td>
+        <td>${escapeHtml(m.depart)} → ${escapeHtml(m.arrivee)}</td>
+        <td>${escapeHtml(m.convoyeur_nom || '-')}</td>
+        <td>${escapeHtml(m.vehicule)}</td>
+        <td>${escapeHtml(m.pack)}</td>
         <td>${m.montant_ht?.toLocaleString?.('fr-FR') || m.montant_ht}€</td>
         <td>${m.remuneration_convoyeur || '-'}€</td>
         <td>${m.marge || '-'}€</td>
@@ -3203,11 +3464,11 @@ Cadeau premium personnalisé</textarea></div>
       else if (status === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
       else if (status === 'archived') { statusClass = 'sp-err'; statusText = 'Archivée'; }
       return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewMissionDetails('${m.id}'); }">
-        <td><div style="font-weight:600">${m.reference || '—'}</div></td>
-        <td>${m.client_nom || '—'}</td>
-        <td>${m.depart} → ${m.arrivee}</td>
-        <td>${m.convoyeur_nom || '—'}</td>
-        <td>${m.pack || '—'}</td>
+        <td><div style="font-weight:600">${escapeHtml(m.reference || '—')}</div></td>
+        <td>${escapeHtml(m.client_nom || '—')}</td>
+        <td>${escapeHtml(m.depart)} → ${escapeHtml(m.arrivee)}</td>
+        <td>${escapeHtml(m.convoyeur_nom || '—')}</td>
+        <td>${escapeHtml(m.pack || '—')}</td>
         <td>${m.montant_ht ? parseFloat(m.montant_ht).toFixed(2) + ' €' : '—'}</td>
         <td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusText}</span></td>
         <td><button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation(); viewMissionDetails('${m.id}')"><i class="fas fa-eye"></i></button></td>
@@ -3249,9 +3510,9 @@ Cadeau premium personnalisé</textarea></div>
       const statusClass = inv.status === 'paid' || inv.status === 'paye' ? 'sp-ok' : 'sp-err';
       const statusText = inv.status === 'paid' || inv.status === 'paye' ? 'Payée' : 'En attente';
       return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewInvoiceDetails('${inv.id}'); }">
-        <td>${inv.num}</td>
-        <td>${inv.client}</td>
-        <td>${inv.mission}</td>
+        <td>${escapeHtml(inv.num)}</td>
+        <td>${escapeHtml(inv.client)}</td>
+        <td>${escapeHtml(inv.mission)}</td>
         <td>${inv.ht.toFixed(2)} €</td>
         <td>${inv.tva.toFixed(2)} €</td>
         <td>${inv.ttc.toFixed(2)} €</td>
@@ -3273,18 +3534,18 @@ Cadeau premium personnalisé</textarea></div>
     const payClass = payStatus === 'paid' || payStatus === 'paye' ? 'sp-ok' : 'sp-err';
 
     Swal.fire({
-      title: `Facture F-${m.reference || '000'}`,
+      title: `Facture F-${escapeHtml(m.reference || '000')}`,
       html: `<div style="text-align:left;font-size:0.9rem;">
         <div style="display:flex;gap:8px;margin-bottom:12px;"><span class="sp ${payClass}"><span class="sp-dot"></span>${payText}</span></div>
-        <b>N° Facture :</b> F-${m.reference || '000'}<br>
-        <b>Client :</b> ${m.client_nom || '—'}<br>
-        <b>Email :</b> ${m.client_email || '—'}<br>
+        <b>N° Facture :</b> F-${escapeHtml(m.reference || '000')}<br>
+        <b>Client :</b> ${escapeHtml(m.client_nom || '—')}<br>
+        <b>Email :</b> ${escapeHtml(m.client_email || '—')}<br>
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Mission :</b> ${m.reference || '—'}<br>
-        <b>Trajet :</b> ${m.depart || '—'} → ${m.arrivee || '—'}<br>
-        <b>Véhicule :</b> ${m.vehicule || '—'}<br>
-        <b>Pack :</b> ${m.pack || '—'}<br>
-        <b>Convoyeur :</b> ${m.convoyeur_nom || '—'}<br>
+        <b>Mission :</b> ${escapeHtml(m.reference || '—')}<br>
+        <b>Trajet :</b> ${escapeHtml(m.depart || '—')} → ${escapeHtml(m.arrivee || '—')}<br>
+        <b>Véhicule :</b> ${escapeHtml(m.vehicule || '—')}<br>
+        <b>Pack :</b> ${escapeHtml(m.pack || '—')}<br>
+        <b>Convoyeur :</b> ${escapeHtml(m.convoyeur_nom || '—')}<br>
         <b>Date :</b> ${formatDate(m.date_mission || m.created_at)}<br>
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Montant HT :</b> ${ht.toFixed(2)} €<br>
@@ -3428,7 +3689,7 @@ Cadeau premium personnalisé</textarea></div>
   async function loadDevis() {
     const client = getSupabase();
     if (!client) return;
-    const { data, error } = await client.from('devis').select('*').order('created_at', { ascending: false });
+    const { data, error } = await client.from('devis').select('id, reference, client_id, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, status, details, date_depart, created_at').order('created_at', { ascending: false });
     if (error) { console.warn('Erreur chargement devis:', error.message); return; }
     _allDevisData = data || [];
     const pending = _allDevisData.filter(d => d.status === 'pending').length;
@@ -3449,11 +3710,11 @@ Cadeau premium personnalisé</textarea></div>
       const priceLabel = isPro ? 'HT' : 'TTC';
       const displayPrice = isPro ? (d.total_ht ? parseFloat(d.total_ht).toFixed(2) + ' € HT' : '—') : (d.details?.total_ttc ? parseFloat(d.details.total_ttc).toFixed(2) + ' € TTC' : (d.total_ht ? (parseFloat(d.total_ht) * 1.20).toFixed(2) + ' € TTC' : '—'));
       return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewDevisDetails('${d.id}'); }">
-        <td>${d.reference || '—'}</td>
-        <td>${d.client_prenom || ''} ${d.client_nom || ''}${proBadge}</td>
-        <td>${d.depart || '—'} → ${d.arrivee || '—'}</td>
-        <td>${d.vehicule || '—'}</td>
-        <td>${d.details?.pack || d.pack || '—'}</td>
+        <td>${escapeHtml(d.reference || '—')}</td>
+        <td>${escapeHtml(d.client_prenom || '')} ${escapeHtml(d.client_nom || '')}${proBadge}</td>
+        <td>${escapeHtml(d.depart || '—')} → ${escapeHtml(d.arrivee || '—')}</td>
+        <td>${escapeHtml(d.vehicule || '—')}</td>
+        <td>${escapeHtml(d.details?.pack || d.pack || '—')}</td>
         <td>${displayPrice}</td>
         <td>${dateStr}</td>
         <td class="td-actions">
@@ -3490,28 +3751,28 @@ Cadeau premium personnalisé</textarea></div>
     const totalTtc = details.total_ttc || (devis.total_ht ? Math.round(parseFloat(devis.total_ht) * 1.20) : 0);
 
     Swal.fire({
-      title: `Devis ${devis.reference}`,
+      title: `Devis ${escapeHtml(devis.reference)}`,
       html: `<div style="text-align:left;font-size:0.9rem;">
         <div style="margin-bottom:12px;">${statusBadge}${proBadgeHtml}</div>
-        <b>Client :</b> ${devis.client_prenom || ''} ${devis.client_nom || ''}<br>
-        <b>Email :</b> ${devis.client_email || '—'}<br>
-        <b>Téléphone :</b> ${coord.telephone || '—'}<br>
+        <b>Client :</b> ${escapeHtml(devis.client_prenom || '')} ${escapeHtml(devis.client_nom || '')}<br>
+        <b>Email :</b> ${escapeHtml(devis.client_email || '—')}<br>
+        <b>Téléphone :</b> ${escapeHtml(coord.telephone || '—')}<br>
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Trajet :</b> ${devis.depart || '—'} → ${devis.arrivee || '—'}<br>
-        <b>Véhicule :</b> ${devis.vehicule || '—'}<br>
-        <b>Mode :</b> ${devis.mode || details.mode || '—'}<br>
-        <b>Pack :</b> ${details.pack || '—'}<br>
+        <b>Trajet :</b> ${escapeHtml(devis.depart || '—')} → ${escapeHtml(devis.arrivee || '—')}<br>
+        <b>Véhicule :</b> ${escapeHtml(devis.vehicule || '—')}<br>
+        <b>Mode :</b> ${escapeHtml(devis.mode || details.mode || '—')}<br>
+        <b>Pack :</b> ${escapeHtml(details.pack || '—')}<br>
         <b>Distance :</b> ${details.distance ? details.distance + ' km' : '—'}<br>
-        ${details.immatriculation ? `<b>Immatriculation :</b> ${details.immatriculation}<br>` : ''}
-        ${details.marque ? `<b>Marque :</b> ${details.marque}<br>` : ''}
-        ${details.modele ? `<b>Modèle :</b> ${details.modele}<br>` : ''}
+        ${details.immatriculation ? `<b>Immatriculation :</b> ${escapeHtml(details.immatriculation)}<br>` : ''}
+        ${details.marque ? `<b>Marque :</b> ${escapeHtml(details.marque)}<br>` : ''}
+        ${details.modele ? `<b>Modèle :</b> ${escapeHtml(details.modele)}<br>` : ''}
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Montant HT :</b> ${devis.total_ht ? parseFloat(devis.total_ht).toFixed(2) + ' €' : '—'}<br>
         ${!isPro ? `<b>Montant TTC :</b> ${totalTtc.toFixed(2)} €<br>` : ''}
         ${details.opts?.urgence ? '<b>⚠️ Urgence</b><br>' : ''}
         ${details.opts?.gardiennage ? '<b>📦 Gardiennage</b><br>' : ''}
-        ${details.message ? `<hr style="margin:10px 0;border-color:#eee;"><b>Message client :</b><br>${details.message}<br>` : ''}
-        ${details.promo_code ? `<b>Code promo :</b> ${details.promo_code}<br>` : ''}
+        ${details.message ? `<hr style="margin:10px 0;border-color:#eee;"><b>Message client :</b><br>${escapeHtml(details.message)}<br>` : ''}
+        ${details.promo_code ? `<b>Code promo :</b> ${escapeHtml(details.promo_code)}<br>` : ''}
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Créé le :</b> ${formatDate(devis.created_at)}
         <hr style="margin:14px 0;border-color:#eee;">
@@ -3533,7 +3794,7 @@ Cadeau premium personnalisé</textarea></div>
         const { error: updateErr } = await sb.from('devis').update({ status: 'accepted' }).eq('id', id);
         if (updateErr) throw new Error(updateErr.message);
 
-        const { data: devis, error: devisErr } = await sb.from('devis').select('*').eq('id', id).single();
+        const { data: devis, error: devisErr } = await sb.from('devis').select('id, reference, client_id, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, status, details, date_depart, created_at').eq('id', id).single();
         if (devisErr || !devis) throw new Error("Devis introuvable.");
 
         // Chercher si le client a déjà un compte pour lier la mission
@@ -3543,7 +3804,7 @@ Cadeau premium personnalisé</textarea></div>
           if (existingClient) matchedClientId = existingClient.id;
         }
 
-        const ref = 'BC-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+        const ref = 'BC-' + new Date().getFullYear() + '-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase());
         const missionData = {
           reference: ref,
           client_nom: `${devis.client_prenom || ''} ${devis.client_nom || ''}`.trim() || 'Client',
@@ -3630,7 +3891,7 @@ Cadeau premium personnalisé</textarea></div>
   async function loadFormationCandidatures() {
     const client = getSupabase();
     if (!client) return;
-    const { data, error } = await client.from('convoyeur_candidatures').select('*').order('created_at', { ascending: false });
+    const { data, error } = await client.from('convoyeur_candidatures').select('id, email, prenom, nom, telephone, ville, type_permis, annee_permis, statut, score_quiz, experience, banned, deleted_at, created_at').order('created_at', { ascending: false });
     if (error) { console.warn('Erreur chargement candidatures formation:', error.message); return; }
     _allFormationCandidatures = data || [];
     renderFormationCandidaturesList();
@@ -3655,20 +3916,20 @@ Cadeau premium personnalisé</textarea></div>
       return `<div style="background:white; border:1px solid var(--border-light); border-radius:12px; padding:16px; margin-bottom:10px; cursor:pointer; ${rowOpacity}" onclick="if(!event.target.closest('button')){viewFormationCandidatureDetails('${c.id}')}">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
-            <strong>${nomComplet}</strong>
-            <span style="color:var(--gray-mid); font-size:0.75rem; margin-left:8px;">${c.email || ''}</span>
-            ${c.telephone ? `<span style="color:var(--gray-mid); font-size:0.75rem; margin-left:8px;"><i class="fas fa-phone"></i> ${c.telephone}</span>` : ''}
+            <strong>${escapeHtml(nomComplet)}</strong>
+            <span style="color:var(--gray-mid); font-size:0.75rem; margin-left:8px;">${escapeHtml(c.email || '')}</span>
+            ${c.telephone ? `<span style="color:var(--gray-mid); font-size:0.75rem; margin-left:8px;"><i class="fas fa-phone"></i> ${escapeHtml(c.telephone)}</span>` : ''}
             ${bannedBadge}
           </div>
           <span class="sp ${statusClass}"><span class="sp-dot"></span>${statusText}</span>
         </div>
         <div style="font-size:0.75rem; color:var(--gray-mid); margin-top:6px;">
-          <i class="fas fa-map-marker-alt"></i> ${c.ville || '-'} · 
-          <i class="fas fa-id-card"></i> Permis ${c.type_permis || '-'} (${c.annee_permis || '-'}) · 
+          <i class="fas fa-map-marker-alt"></i> ${escapeHtml(c.ville || '-')} · 
+          <i class="fas fa-id-card"></i> Permis ${escapeHtml(c.type_permis || '-')} (${escapeHtml(c.annee_permis || '-')}) · 
           <i class="fas fa-graduation-cap"></i> Quiz : ${c.score_quiz || 0}/12 (${scorePct}%) · 
           Reçu le ${dateStr}
         </div>
-        ${c.experience ? `<div style="font-size:0.72rem; color:var(--gray-mid); margin-top:4px;"><i class="fas fa-briefcase"></i> ${c.experience}</div>` : ''}
+        ${c.experience ? `<div style="font-size:0.72rem; color:var(--gray-mid); margin-top:4px;"><i class="fas fa-briefcase"></i> ${escapeHtml(c.experience)}</div>` : ''}
         <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation(); viewFormationCandidatureDetails('${c.id}')"><i class="fas fa-eye"></i> Voir détails</button>
           ${_showDeletedCandidatures ? `
@@ -3741,16 +4002,16 @@ Cadeau premium personnalisé</textarea></div>
       : '';
 
     Swal.fire({
-      title: `Dossier — ${nomComplet}`,
+      title: `Dossier — ${escapeHtml(nomComplet)}`,
       html: `<div style="text-align:left;font-size:0.9rem;">
         <div style="display:flex;gap:8px;margin-bottom:12px;"><span class="sp ${c.statut === 'pending' ? 'sp-att' : c.statut === 'approved' ? 'sp-ok' : 'sp-err'}"><span class="sp-dot"></span>${statusText}</span></div>
-        <b>Email :</b> ${c.email || '-'}<br>
-        <b>Telephone :</b> ${c.telephone || '-'}<br>
-        <b>Ville :</b> ${c.ville || '-'}<br>
-        <b>Date de naissance :</b> ${c.date_naissance || '-'}<br>
+        <b>Email :</b> ${escapeHtml(c.email || '-')}<br>
+        <b>Telephone :</b> ${escapeHtml(c.telephone || '-')}<br>
+        <b>Ville :</b> ${escapeHtml(c.ville || '-')}<br>
+        <b>Date de naissance :</b> ${escapeHtml(c.date_naissance || '-')}<br>
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Permis :</b> ${c.type_permis || '-'} (depuis ${c.annee_permis || '-'})<br>
-        <b>Experience :</b> ${c.experience || '-'}<br>
+        <b>Permis :</b> ${escapeHtml(c.type_permis || '-')} (depuis ${escapeHtml(c.annee_permis || '-')})<br>
+        <b>Experience :</b> ${escapeHtml(c.experience || '-')}<br>
         <b>Score quiz :</b> ${c.score_quiz || 0}/12 (${scorePct}%)<br>
         <hr style="margin:10px 0;border-color:#eee;">
         <div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-paperclip"></i> Documents</div>
@@ -3957,7 +4218,7 @@ Cadeau premium personnalisé</textarea></div>
   async function loadCandidatures() {
     const client = getSupabase();
     if (!client) return;
-    const { data, error } = await client.from('candidatures').select('*').order('created_at', { ascending: false });
+    const { data, error } = await client.from('candidatures').select('id, mission_id, mission_reference, mission_trajet, mission_montant, convoyeur_id, convoyeur_nom, status, created_at').order('created_at', { ascending: false });
     if (error) { console.warn('Erreur chargement candidatures:', error.message); return; }
     _allCandidatures = data || [];
     const pending = _allCandidatures.filter(c => c.status === 'pending').length;
@@ -3977,13 +4238,13 @@ Cadeau premium personnalisé</textarea></div>
       return `<div style="background:white; border:1px solid var(--border-light); border-radius:12px; padding:16px; margin-bottom:10px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
-            <strong>${c.convoyeur_nom || c.nom || 'Inconnu'}</strong>
-            <span style="color:var(--gray-mid); font-size:0.75rem; margin-left:8px;">${c.email || ''}</span>
+            <strong>${escapeHtml(c.convoyeur_nom || c.nom || 'Inconnu')}</strong>
+            <span style="color:var(--gray-mid); font-size:0.75rem; margin-left:8px;">${escapeHtml(c.email || '')}</span>
           </div>
           <span class="sp ${statusClass}"><span class="sp-dot"></span>${statusText}</span>
         </div>
         <div style="font-size:0.75rem; color:var(--gray-mid); margin-top:6px;">
-          Mission : ${c.mission_reference || c.mission_id || '—'} · Reçu le ${dateStr}
+          Mission : ${escapeHtml(c.mission_reference || c.mission_id || '—')} · Reçu le ${dateStr}
         </div>
         <div style="margin-top:10px; display:flex; gap:8px;">
           ${c.status === 'pending' ? `
@@ -3997,7 +4258,7 @@ Cadeau premium personnalisé</textarea></div>
 
   window.approveCandidature = async function(candidatureId, missionId, convoyeurNom) {
     const confirm = await Swal.fire({
-      title: `Attribuer la mission à ${convoyeurNom} ?`,
+      title: `Attribuer la mission à ${escapeHtml(convoyeurNom)} ?`,
       text: 'Cette action assignera le convoyeur à la mission.',
       icon: 'question',
       showCancelButton: true,
@@ -4081,23 +4342,23 @@ Cadeau premium personnalisé</textarea></div>
     actionsHtml += `<button class="btn-sm btn-sm-red" onclick="Swal.close(); deleteMission('${mission.id}', '${mission.reference || ''}')"><i class="fas fa-trash"></i> Supprimer</button>`;
 
     Swal.fire({
-      title: `Mission ${mission.reference}`,
+      title: `Mission ${escapeHtml(mission.reference)}`,
       html: `<div style="text-align:left;font-size:0.9rem;">
         <div style="display:flex;gap:8px;margin-bottom:12px;">${statusBadge} ${payBadge}</div>
-        <b>Client :</b> ${mission.client_nom || '—'}<br>
-        <b>Email client :</b> ${mission.client_email || '—'}<br>
-        <b>Téléphone :</b> ${mission.client_telephone || '—'}<br>
+        <b>Client :</b> ${escapeHtml(mission.client_nom || '—')}<br>
+        <b>Email client :</b> ${escapeHtml(mission.client_email || '—')}<br>
+        <b>Téléphone :</b> ${escapeHtml(mission.client_telephone || '—')}<br>
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Trajet :</b> ${mission.depart || '—'} → ${mission.arrivee || '—'}<br>
-        <b>Véhicule :</b> ${mission.vehicule || '—'}<br>
-        <b>Mode :</b> ${mission.mode || '—'}<br>
-        <b>Pack :</b> ${mission.pack || mission.details?.pack || '—'}<br>
+        <b>Trajet :</b> ${escapeHtml(mission.depart || '—')} → ${escapeHtml(mission.arrivee || '—')}<br>
+        <b>Véhicule :</b> ${escapeHtml(mission.vehicule || '—')}<br>
+        <b>Mode :</b> ${escapeHtml(mission.mode || '—')}<br>
+        <b>Pack :</b> ${escapeHtml(mission.pack || mission.details?.pack || '—')}<br>
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Montant HT :</b> ${mission.montant_ht || 0} €<br>
         <b>Rémunération convoyeur :</b> ${mission.remuneration_convoyeur || '—'} €<br>
         <b>Marge :</b> ${mission.marge || '—'} €<br>
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Convoyeur :</b> ${mission.convoyeur_nom || 'Non assigné'}<br>
+        <b>Convoyeur :</b> ${escapeHtml(mission.convoyeur_nom || 'Non assigné')}<br>
         <b>Date mission :</b> ${formatDate(mission.date_mission || mission.created_at)}<br>
         <b>Créée le :</b> ${formatDate(mission.created_at)}
         <hr style="margin:14px 0;border-color:#eee;">
@@ -4119,13 +4380,13 @@ Cadeau premium personnalisé</textarea></div>
     }
 
     const convoyeurOptions = _convoyeursList.map(c => 
-      `<option value="${c.prenom} ${c.nom}" ${mission.convoyeur_nom === `${c.prenom} ${c.nom}` ? 'selected' : ''}>${c.prenom} ${c.nom}${c.zone ? ' — ' + c.zone : ''}</option>`
+      `<option value="${c.id}" ${mission.convoyeur_id === c.id ? 'selected' : ''}>${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}${c.zone ? ' — ' + escapeHtml(c.zone) : ''}</option>`
     ).join('');
 
     const { value: formValues } = await Swal.fire({
-      title: `Attribuer un convoyeur — ${mission.reference}`,
+      title: `Attribuer un convoyeur — ${escapeHtml(mission.reference)}`,
       html: `
-        <p style="margin-bottom:10px;font-size:0.85rem;color:#666;">Mission : ${mission.depart} → ${mission.arrivee}</p>
+        <p style="margin-bottom:10px;font-size:0.85rem;color:#666;">Mission : ${escapeHtml(mission.depart)} → ${escapeHtml(mission.arrivee)}</p>
         <select id="swal-convoyeur-select" class="swal2-input" style="width:100%;">
           <option value="">— Retirer du marché (aucun convoyeur) —</option>
           ${convoyeurOptions}
@@ -4135,22 +4396,22 @@ Cadeau premium personnalisé</textarea></div>
       confirmButtonText: 'Attribuer',
       cancelButtonText: 'Annuler',
       preConfirm: () => {
-        const convoyeurNom = document.getElementById('swal-convoyeur-select').value;
-        return { convoyeurNom };
+        const convoyeurId = document.getElementById('swal-convoyeur-select').value;
+        return { convoyeurId };
       }
     });
 
     if (!formValues) return;
 
     const sb = getSupabase();
-    const convoyeurNom = formValues.convoyeurNom;
+    const convoyeurId = formValues.convoyeurId;
     
     let updateData;
-    if (convoyeurNom) {
-      // Récupérer l'ID du convoyeur sélectionné
-      const selectedConv = _convoyeursList.find(c => `${c.prenom} ${c.nom}` === convoyeurNom);
-      updateData = { convoyeur_nom: convoyeurNom, status: 'planned' };
-      if (selectedConv) updateData.convoyeur_id = selectedConv.id;
+    let assignedConvoyeur = null;
+    if (convoyeurId) {
+      assignedConvoyeur = _convoyeursList.find(c => c.id === convoyeurId);
+      const convoyeurNom = assignedConvoyeur ? `${assignedConvoyeur.prenom} ${assignedConvoyeur.nom}` : null;
+      updateData = { convoyeur_id: convoyeurId, convoyeur_nom: convoyeurNom, status: 'planned' };
     } else {
       updateData = { convoyeur_nom: null, convoyeur_id: null, status: 'available' };
     }
@@ -4160,11 +4421,26 @@ Cadeau premium personnalisé</textarea></div>
     if (error) {
       Swal.fire('Erreur', error.message, 'error');
     } else {
+      // Notifier le client par email si un convoyeur est assigné
+      if (assignedConvoyeur && mission.client_email) {
+        try {
+          await fetch('/.netlify/functions/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              trigger: 'mission_assigned',
+              id: missionId,
+              convoyeur_nom: `${assignedConvoyeur.prenom} ${assignedConvoyeur.nom}`,
+              client_email: mission.client_email
+            })
+          });
+        } catch (e) { console.warn('Notification email failed:', e); }
+      }
       Swal.fire({ 
         toast: true, 
         position: 'top-end', 
         icon: 'success', 
-        title: convoyeurNom ? `Mission attribuée à ${convoyeurNom}` : 'Mission remise sur le marché', 
+        title: assignedConvoyeur ? `Mission attribuée à ${assignedConvoyeur.prenom} ${assignedConvoyeur.nom}` : 'Mission remise sur le marché', 
         timer: 3000 
       });
       loadMissions();
@@ -4256,7 +4532,12 @@ Cadeau premium personnalisé</textarea></div>
     });
     if (!confirm.isConfirmed) return;
     const sb = getSupabase();
-    const { error } = await sb.from('missions').update({ status: archive ? 'archived' : 'completed' }).eq('id', missionId);
+    let restoreStatus = 'completed';
+    if (!archive) {
+      const { data: mission } = await sb.from('missions').select('status').eq('id', missionId).single();
+      restoreStatus = (mission && mission.status === 'archived') ? 'planned' : (mission ? mission.status : 'completed');
+    }
+    const { error } = await sb.from('missions').update({ status: archive ? 'archived' : restoreStatus }).eq('id', missionId);
     if (error) Swal.fire('Erreur', error.message, 'error');
     else { Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: archive ? 'Mission archivée' : 'Mission désarchivée', timer: 3000 }); loadMissions(); }
   };
@@ -4387,7 +4668,7 @@ Cadeau premium personnalisé</textarea></div>
       }
 
       const sb = getSupabase();
-      const ref = 'BC-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+      const ref = 'BC-' + new Date().getFullYear() + '-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase());
 
       let clientId = document.getElementById('selectedClientId').value || null;
       if (!clientId && clientEmail) {
@@ -4645,6 +4926,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         const target = document.getElementById(`tab-${tabId}`);
         if (target) target.classList.add('active');
+        if (tabId === 'support') loadSupportTickets();
       });
     });
 
@@ -4848,6 +5130,154 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       post.appendChild(commentsDiv);
     }
     commentsDiv.style.display = commentsDiv.style.display === 'none' ? 'block' : 'none';
+  };
+
+  // ========== SUPPORT TICKETS ==========
+  let _allTickets = [];
+
+  async function loadSupportTickets() {
+    const sb = getSupabase();
+    const { data, error } = await sb.from('support_tickets')
+      .select('id, created_at, updated_at, client_id, client_email, client_nom, sujet, message, statut, reponse, repondu_at, convoyeur_id, convoyeur_email, convoyeur_nom')
+      .order('created_at', { ascending: false });
+
+    const container = document.getElementById('supportTicketsContainer');
+    if (error || !data) {
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray-mid);"><p>Erreur lors du chargement des tickets.</p></div>';
+      return;
+    }
+
+    _allTickets = data;
+    const openCount = data.filter(t => t.statut === 'open' || t.statut === 'ouvert').length;
+    const badge = document.getElementById('supportBadge');
+    if (badge) {
+      badge.textContent = openCount;
+      badge.style.display = openCount > 0 ? 'inline-flex' : 'none';
+    }
+
+    if (data.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray-mid);"><i class="fas fa-check-circle" style="font-size:2rem;margin-bottom:10px;color:var(--success);"></i><p>Aucun ticket de support.</p></div>';
+      return;
+    }
+
+    container.innerHTML = data.map(t => {
+      const isOpen = t.statut === 'open' || t.statut === 'ouvert';
+      const statusBadge = isOpen
+        ? '<span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;">Ouvert</span>'
+        : '<span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;">Résolu</span>';
+      const dateStr = new Date(t.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const clientName = escapeHtml(t.client_nom || t.convoyeur_nom || 'Anonyme');
+      const clientEmail = escapeHtml(t.client_email || t.convoyeur_email || '');
+      const sujet = escapeHtml(t.sujet || 'Sans sujet');
+      const message = escapeHtml(t.message || '');
+      const reponse = t.reponse ? escapeHtml(t.reponse) : null;
+
+      return `<div style="background:white;border:1px solid var(--border-light);border-radius:16px;padding:20px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
+          <div>
+            <div style="font-weight:700;font-size:0.95rem;">${sujet} ${statusBadge}</div>
+            <div style="font-size:0.75rem;color:var(--gray-mid);margin-top:4px;">${clientName} · ${clientEmail} · ${dateStr}</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            ${isOpen ? `<button class="btn-sm btn-sm-green" onclick="replyTicket('${t.id}')"><i class="fas fa-reply"></i> Répondre</button>` : ''}
+            ${isOpen ? `<button class="btn-sm btn-sm-ghost" onclick="closeTicket('${t.id}')"><i class="fas fa-check"></i> Clôturer</button>` : ''}
+            <button class="btn-sm btn-sm-ghost" onclick="deleteTicket('${t.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div style="font-size:0.85rem;color:#333;margin-bottom:12px;white-space:pre-wrap;">${message}</div>
+        ${reponse ? `<div style="background:var(--bordeaux-light);border-radius:12px;padding:12px;margin-top:8px;"><div style="font-size:0.7rem;font-weight:700;color:var(--bordeaux);margin-bottom:4px;">RÉPONSE ADMIN</div><div style="font-size:0.85rem;white-space:pre-wrap;">${reponse}</div></div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  window.replyTicket = async function(ticketId) {
+    const ticket = _allTickets.find(t => t.id === ticketId);
+    if (!ticket) return;
+
+    const { value: reponse } = await Swal.fire({
+      title: 'Répondre au ticket',
+      input: 'textarea',
+      inputLabel: ticket.sujet,
+      inputValue: ticket.reponse || '',
+      inputPlaceholder: 'Saisissez votre réponse...',
+      showCancelButton: true,
+      confirmButtonText: 'Envoyer',
+      cancelButtonText: 'Annuler',
+      inputValidator: (val) => { if (!val.trim()) return 'La réponse ne peut pas être vide.'; }
+    });
+
+    if (!reponse) return;
+
+    Swal.fire({ title: 'Envoi...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    const sb = getSupabase();
+    const { error } = await sb.from('support_tickets')
+      .update({ reponse: reponse.trim(), statut: 'resolved', repondu_at: new Date().toISOString() })
+      .eq('id', ticketId);
+
+    if (error) {
+      Swal.fire('Erreur', error.message, 'error');
+    } else {
+      // Notifier le client par email
+      try {
+        await fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            trigger: 'support_reply',
+            id: ticketId,
+            client_email: ticket.client_email || ticket.convoyeur_email
+          })
+        });
+      } catch (e) { console.warn('Notification email failed:', e); }
+
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Réponse envoyée', timer: 3000 });
+      loadSupportTickets();
+    }
+  };
+
+  window.closeTicket = async function(ticketId) {
+    const confirm = await Swal.fire({
+      title: 'Clôturer ce ticket ?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Clôturer',
+      cancelButtonText: 'Annuler'
+    });
+    if (!confirm.isConfirmed) return;
+
+    const sb = getSupabase();
+    const { error } = await sb.from('support_tickets')
+      .update({ statut: 'resolved', repondu_at: new Date().toISOString() })
+      .eq('id', ticketId);
+
+    if (error) {
+      Swal.fire('Erreur', error.message, 'error');
+    } else {
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Ticket clôturé', timer: 3000 });
+      loadSupportTickets();
+    }
+  };
+
+  window.deleteTicket = async function(ticketId) {
+    const confirm = await Swal.fire({
+      title: 'Supprimer ce ticket ?',
+      text: 'Cette action est définitive.',
+      icon: 'error',
+      showCancelButton: true,
+      confirmButtonText: 'Supprimer',
+      cancelButtonText: 'Annuler'
+    });
+    if (!confirm.isConfirmed) return;
+
+    const sb = getSupabase();
+    const { error } = await sb.from('support_tickets').delete().eq('id', ticketId);
+
+    if (error) {
+      Swal.fire('Erreur', error.message, 'error');
+    } else {
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Ticket supprimé', timer: 3000 });
+      loadSupportTickets();
+    }
   };
   </script>
 </body>

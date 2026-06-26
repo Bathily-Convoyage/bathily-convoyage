@@ -1,7 +1,9 @@
 const { createClient } = require('@supabase/supabase-js');
+const crypto = require('crypto');
+const { rateLimit } = require('./_rate-limit');
 
 exports.handler = async (event, context) => {
-  const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr'];
+  const allowedOrigins = ['https://www.bathily-convoyage.fr', 'https://bathily-convoyage.fr', 'http://localhost:5173', 'http://localhost:3000'];
   const origin = event.headers.origin || event.headers.Origin || '';
   const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
   const headers = {
@@ -18,6 +20,10 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
+
+  // Rate limiting: 5 / hour / IP
+  const rl = rateLimit(event, 'convoyeur-reset-password', 5, 3600000);
+  if (rl) return rl;
 
   try {
     const { email } = JSON.parse(event.body);
@@ -50,7 +56,7 @@ exports.handler = async (event, context) => {
     let authUserId = convoyeur.auth_user_id;
 
     if (!authUserId) {
-      const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!1';
+      const tempPassword = 'TempPass_' + crypto.randomBytes(6).toString('hex').slice(0, 8) + '!1';
       const { data: createData, error: createError } = await supabase.auth.admin.createUser({
         email: cleanEmail,
         password: tempPassword,

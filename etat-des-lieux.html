@@ -593,6 +593,17 @@ if(window.matchMedia('(hover: hover)').matches) {
   (function loop(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(loop)})();
 }
 
+// ========== UTILS ==========
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ========== ÉTAT GLOBAL ==========
 const STATE = {
   step:1, edlType:'depart', photoExt:0, photoInt:0, dommages:[], sigConvDone:false, sigCliDone:false, fuelValue:65,
@@ -621,10 +632,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   initSignatures();
 });
 
-function hasUnsavedChanges() { return true; }
+let _lastSavedDraft = null;
+function hasUnsavedChanges() {
+  const draft = JSON.stringify(collectDraft());
+  return _lastSavedDraft !== null && draft !== _lastSavedDraft;
+}
 function autoSave() { saveDraft(); showToast('Brouillon sauvegardé'); }
-function saveDraft() {
-  const draft = {
+function collectDraft() {
+  return {
     mission_id: new URLSearchParams(window.location.search).get('mission_id') || '',
     step:STATE.step, edlType:STATE.edlType, photoExt:STATE.photoExt, photoInt:STATE.photoInt, dommages:STATE.dommages,
     sigConvDone:STATE.sigConvDone, sigCliDone:STATE.sigCliDone, fuelValue:STATE.fuelValue,
@@ -640,7 +655,12 @@ function saveDraft() {
     obsGenerales:document.getElementById('obsGenerales')?.value, remTech:document.getElementById('remTech')?.value,
     emailCli:document.getElementById('emailCli')?.value, emailConv:document.getElementById('emailConv')?.value
   };
-  localStorage.setItem('bathily_edl_draft', JSON.stringify(draft));
+}
+function saveDraft() {
+  const draft = collectDraft();
+  const draftStr = JSON.stringify(draft);
+  localStorage.setItem('bathily_edl_draft', draftStr);
+  _lastSavedDraft = draftStr;
 }
 function loadDraft() {
   const saved = localStorage.getItem('bathily_edl_draft');
@@ -669,6 +689,7 @@ function loadDraft() {
     if (d.step) goStep(d.step);
     // Rebuild zones grid to reflect loaded states
     buildZonesGrid();
+    _lastSavedDraft = saved;
   } catch(e) {}
 }
 function showToast(msg, type='success') {
@@ -1169,7 +1190,7 @@ async function initSupabaseEdl() {
 
     const { data: mission, error } = await client
       .from('missions')
-      .select('*')
+      .select('id,reference,depart,arrivee,vehicule,immatriculation,annee,carburant,puissance,type_vehicule,mode,mode_transport,pack,date_mission,client_nom,convoyeur_nom,convoyeur_id,convoyeur_telephone,remuneration_convoyeur,status,paiement_statut,notes,created_at,updated_at')
       .eq('id', missionId)
       .single();
 
@@ -1255,7 +1276,7 @@ async function lookupLicensePlate() {
       
       Swal.fire({
         title: 'Véhicule identifié !',
-        html: `<strong>Marque :</strong> ${data.marque}<br><strong>Modèle :</strong> ${data.modele || '-'}`,
+        html: `<strong>Marque :</strong> ${escapeHtml(data.marque)}<br><strong>Modèle :</strong> ${escapeHtml(data.modele || '-')}`,
         icon: 'success',
         confirmButtonColor: 'var(--bordeaux)'
       });
@@ -1277,21 +1298,21 @@ function updateRef(){
   const marque = document.getElementById('vMarque')?.value || '';
   const modele = document.getElementById('vModele')?.value || '';
   const plaque = document.getElementById('vPlaque')?.value || '';
-  document.getElementById('topRef').innerHTML = `${ref} · ${marque} ${modele} · ${plaque}`;
+  document.getElementById('topRef').textContent = `${ref} · ${marque} ${modele} · ${plaque}`;
 }
 
 function updRecap(){
-  document.getElementById('recRef').innerHTML = document.getElementById('mRef')?.value || '-';
-  document.getElementById('recType').innerHTML = STATE.edlType==='depart'?'Départ':'Arrivée';
-  document.getElementById('recConv').innerHTML = document.getElementById('mConvoyeur')?.value || '-';
-  document.getElementById('recPlaque').innerHTML = document.getElementById('vPlaque')?.value || '-';
-  document.getElementById('recVehicule').innerHTML = (document.getElementById('vMarque')?.value||'')+' '+(document.getElementById('vModele')?.value||'');
-  document.getElementById('recFuel').innerHTML = STATE.fuelValue+'%';
-  document.getElementById('recPhotoExt').innerHTML = STATE.photoExt+'/5';
-  document.getElementById('recPhotoInt').innerHTML = STATE.photoInt+'/5';
-  document.getElementById('recDommages').innerHTML = STATE.dommages.length;
-  document.getElementById('recSigConv').innerHTML = STATE.sigConvDone ? 'Signée' : 'En attente';
-  document.getElementById('recSigCli').innerHTML = STATE.sigCliDone ? 'Signée' : 'En attente';
+  document.getElementById('recRef').textContent = document.getElementById('mRef')?.value || '-';
+  document.getElementById('recType').textContent = STATE.edlType==='depart'?'Départ':'Arrivée';
+  document.getElementById('recConv').textContent = document.getElementById('mConvoyeur')?.value || '-';
+  document.getElementById('recPlaque').textContent = document.getElementById('vPlaque')?.value || '-';
+  document.getElementById('recVehicule').textContent = (document.getElementById('vMarque')?.value||'')+' '+(document.getElementById('vModele')?.value||'');
+  document.getElementById('recFuel').textContent = STATE.fuelValue+'%';
+  document.getElementById('recPhotoExt').textContent = STATE.photoExt+'/5';
+  document.getElementById('recPhotoInt').textContent = STATE.photoInt+'/5';
+  document.getElementById('recDommages').textContent = STATE.dommages.length;
+  document.getElementById('recSigConv').textContent = STATE.sigConvDone ? 'Signée' : 'En attente';
+  document.getElementById('recSigCli').textContent = STATE.sigCliDone ? 'Signée' : 'En attente';
 }
 
 async function validateEdl(){
@@ -1300,7 +1321,7 @@ async function validateEdl(){
   
   const missionRef = document.getElementById('mRef')?.value || 'BC' + Date.now().toString().slice(-6);
   const ref = 'EDL-'+missionRef+'-'+(STATE.edlType==='depart'?'DEP':'ARR');
-  document.getElementById('edlRef').innerHTML = ref;
+  document.getElementById('edlRef').textContent = ref;
   
   Swal.fire({
     title: 'Validation de l\'État des lieux...',
@@ -1370,7 +1391,7 @@ async function validateEdl(){
       type: STATE.edlType,
       convoyeur_nom: document.getElementById('mConvoyeur')?.value || 'M. Bathily',
       permis: document.getElementById('mPermis')?.value || '',
-      date_heure: new Date(document.getElementById('mDate')?.value || new Date()).toISOString(),
+      date_heure: (() => { try { return new Date(document.getElementById('mDate')?.value || new Date()).toISOString(); } catch(e) { return new Date().toISOString(); } })(),
       kilometrage: parseInt(document.getElementById('vKm')?.value) || 0,
       niveau_carburant: parseInt(STATE.fuelValue) || 0,
       photos: { ext: STATE.extPhotos || [], int: STATE.intPhotos || [], sup: STATE.supPhotos || [], ext_count: STATE.photoExt, int_count: STATE.photoInt },
@@ -1492,7 +1513,7 @@ function closeModal(id){ const el=document.getElementById(id); if(el) el.style.d
 function newEdl(){ localStorage.removeItem('bathily_edl_draft'); window.location.reload(); }
 
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.style.display='none';}));
-document.querySelectorAll('.pb-step').forEach(step=>{step.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const stepNum=step.getAttribute('onclick').match(/\d+/)[0];goStep(parseInt(stepNum));}});});
+document.querySelectorAll('.pb-step').forEach(step=>{step.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const onclick=step.getAttribute('onclick');if(!onclick)return;const stepNum=onclick.match(/\d+/)[0];goStep(parseInt(stepNum));}});});
 
 // L'initialisation des signatures est déjà appelée dans DOMContentLoaded
 </script>

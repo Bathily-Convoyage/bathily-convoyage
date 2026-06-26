@@ -1297,7 +1297,7 @@
     async function loadPacksConfig() {
       try {
         const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-        const { data, error } = await client.from('system_settings').select('*');
+        const { data, error } = await client.from('system_settings').select('key, value');
         if (error || !data) return;
 
         data.forEach(setting => {
@@ -1332,4 +1332,5 @@
 </body>
 
 </html>
+
 

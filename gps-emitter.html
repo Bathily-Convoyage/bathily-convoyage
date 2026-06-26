@@ -15,6 +15,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
+  <script src="/firebase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * {
@@ -572,11 +573,14 @@
     let timerInterval = null;
     let _missionRef = null;
     let _missionId = null;
+    let _supabaseClient = null;
+    let _isAuthChecked = false;
 
     // Firebase (pour le live GPS)
     let firebaseApp = null;
     let firebaseDb = null;
     let firebaseRef = null;
+    let firebaseSet = null;
 
     // ============================================================
     // PARTIE 2 : INITIALISATION
@@ -696,18 +700,11 @@
         Promise.all([
           import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
           import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js')
-        ]).then(([{ initializeApp }, { getDatabase, ref }]) => {
-          const firebaseConfig = {
-            apiKey: "AIzaSyAbPM7pM4umkuG1k_MAUYxddHQMNP9UebM",
-            authDomain: "Bathily-Convoyage-c211b.firebaseapp.com",
-            databaseURL: "https://Bathily-Convoyage-c211b-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "Bathily-Convoyage-c211b",
-            storageBucket: "Bathily-Convoyage-c211b.firebasestorage.app",
-            messagingSenderId: "115133170172",
-            appId: "1:115133170172:web:5fcdc2b835f6df157b3279"
-          };
+        ]).then(([{ initializeApp }, { getDatabase, ref, set }]) => {
+          const firebaseConfig = window.FIREBASE_CONFIG || {};
           firebaseApp = initializeApp(firebaseConfig);
           firebaseDb = getDatabase(firebaseApp);
+          firebaseSet = set;
           if (_missionRef) {
             firebaseRef = ref(firebaseDb, `missions/${_missionRef}/gps/current`);
           }
@@ -723,10 +720,27 @@
     // ============================================================
     // PARTIE 5 : GPS
     // ============================================================
-    function startGPS() {
+    async function startGPS() {
       if (isRunning) {
         addLog('⚠️ Le partage GPS est déjà actif.', 'warning');
         return;
+      }
+
+      // Vérifier l'authentification Supabase avant d'autoriser l'envoi de positions
+      if (!_isAuthChecked) {
+        try {
+          if (!_supabaseClient) _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+          const { data: { session }, error: sessionError } = await _supabaseClient.auth.getSession();
+          if (sessionError || !session) {
+            addLog('⛔ Authentification requise pour partager la position GPS.', 'error');
+            showAlert('danger', 'Vous devez être connecté en tant que convoyeur pour utiliser l\'émetteur GPS.');
+            return;
+          }
+          _isAuthChecked = true;
+        } catch (authErr) {
+          addLog('⛔ Erreur d\'authentification : ' + (authErr.message || 'Accès refusé'), 'error');
+          return;
+        }
       }
 
       if (!navigator.geolocation) {
@@ -810,9 +824,8 @@
       document.getElementById('statUpdates').textContent = updateCount;
 
       // Envoyer vers Firebase
-      if (firebaseRef) {
+      if (firebaseRef && firebaseSet) {
         try {
-          import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(({ set }) => {
             const data = {
               lat: lat,
               lng: lng,
@@ -822,12 +835,11 @@
               timestamp: Date.now(),
               location: 'En transit'
             };
-            set(firebaseRef, data).then(() => {
+            firebaseSet(firebaseRef, data).then(() => {
               // Pas de log pour chaque envoi pour éviter le spam
             }).catch(err => {
               addLog('⚠️ Erreur envoi Firebase : ' + err.message, 'error');
             });
-          });
         } catch (err) {
           addLog('⚠️ Erreur envoi : ' + err.message, 'error');
         }

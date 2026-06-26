@@ -567,6 +567,17 @@
       (function loop(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(loop)})();
     }
 
+    // ========== UTILS ==========
+    function escapeHtml(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     // ========== VARIABLES GLOBALES ==========
     let _missionId = null;
     let _missionRef = null;
@@ -595,7 +606,7 @@
       _missionId = missionId;
 
       const client = getSB();
-      const { data: m, error } = await client.from('missions').select('id,reference,depart,arrivee,trajet,vehicule,mode,mode_transport,pack,date_mission,client_nom,client_email,client_telephone,convoyeur_nom,convoyeur_id,convoyeur_telephone,remuneration_convoyeur,status,paiement_statut,notes,created_at,updated_at').eq('id', missionId).single();
+      const { data: m, error } = await client.from('missions').select('id,reference,depart,arrivee,trajet,vehicule,immatriculation,annee,carburant,puissance,type_vehicule,mode,mode_transport,pack,date_mission,client_nom,convoyeur_nom,convoyeur_id,convoyeur_telephone,remuneration_convoyeur,status,paiement_statut,notes,created_at,updated_at').eq('id', missionId).single();
 
       if (error || !m) {
         document.getElementById('topRef').textContent = 'Mission introuvable';
@@ -644,9 +655,9 @@
       document.getElementById('vcType').textContent = m.type_vehicule || '…';
 
       // Client
-      document.getElementById('cliNom').innerHTML = `<strong>${m.client_nom || '…'}</strong>`;
-      document.getElementById('cliEmail').textContent = m.client_email || '…';
-      document.getElementById('cliContact1').textContent = m.client_telephone || '…';
+      document.getElementById('cliNom').innerHTML = `<strong>${escapeHtml(m.client_nom || '…')}</strong>`;
+      document.getElementById('cliEmail').textContent = '—';
+      document.getElementById('cliContact1').textContent = '—';
       document.getElementById('cliContact2').textContent = m.client_telephone_livraison || '…';
 
       // Convoyeur
@@ -665,8 +676,8 @@
       const pack = m.pack ? (m.pack.charAt(0).toUpperCase() + m.pack.slice(1)) : 'Standard';
       document.getElementById('packTag').textContent = `Pack ${pack}`;
       document.getElementById('tarifBody').innerHTML = `
-        <tr><td>Convoyage ${m.mode_transport || m.mode || 'routier'}</td><td>${m.vehicule || 'Automobile'} · ${pack}</td><td class="price-td">—</td></tr>
-        <tr><td>Pack ${pack}</td><td>Inclus selon pack</td><td class="price-td">—</td></tr>
+        <tr><td>Convoyage ${escapeHtml(m.mode_transport || m.mode || 'routier')}</td><td>${escapeHtml(m.vehicule || 'Automobile')} · ${escapeHtml(pack)}</td><td class="price-td">—</td></tr>
+        <tr><td>Pack ${escapeHtml(pack)}</td><td>Inclus selon pack</td><td class="price-td">—</td></tr>
         <tr><td>Double RC Pro</td><td>Inclus</td><td class="price-td">—</td></tr>
         <tr><td>État des lieux</td><td>Photos départ + arrivée</td><td class="price-td">—</td></tr>
         <tr class="tarif-total"><td><strong>Rémunération convoyeur (net)</strong></td><td></td><td class="price-td-total">${rem.toFixed(2)} €</td></tr>
@@ -674,7 +685,7 @@
       document.getElementById('remConvoyeur').textContent = rem > 0 ? rem.toFixed(2) + ' €' : 'à définir';
 
       // QR link
-      document.getElementById('qrLink').innerHTML = `Bathily-Convoyage.fr/tracking/${m.reference || '...'}<br><span style="font-size:0.6rem">Lien valable 48h après livraison</span>`;
+      document.getElementById('qrLink').innerHTML = `Bathily-Convoyage.fr/tracking/${escapeHtml(m.reference || '...')}<br><span style="font-size:0.6rem">Lien valable 48h après livraison</span>`;
 
       // Footer
       document.getElementById('footerRef').textContent = m.reference || '…';
@@ -729,7 +740,9 @@
       item.addEventListener('keydown', (e) => {
         if(e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          const idx = parseInt(item.getAttribute('onclick').match(/(\d+)/)[1]);
+          const onclick = item.getAttribute('onclick');
+          if (!onclick) return;
+          const idx = parseInt(onclick.match(/(\d+)/)[1]);
           toggleCheck(item, idx);
         }
       });
@@ -775,7 +788,7 @@
         }
       }
 
-      if (_paiementStatut !== 'paid') {
+      if (_paiementStatut !== 'paid' && _paiementStatut !== 'paye') {
         Swal.fire({
           title: 'Démarrage bloqué',
           html: `Le paiement de cette mission n'a pas encore été validé.<br><br>Le démarrage est bloqué. Veuillez contacter l'administrateur.`,

@@ -1313,6 +1313,17 @@
       };
     }
 
+    // ========== UTILS ==========
+    function escapeHtml(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     // ========== SUPABASE ==========
     let _sbClient = null;
 
@@ -1329,13 +1340,6 @@
     let _vehiculesList = [];
 
     // ========== AUTH HELPERS ==========
-    async function hashPassword(pwd) {
-      const msgBuffer = new TextEncoder().encode(pwd);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
     function clientLogout() {
       const sb = getSBCli();
       if (sb) sb.auth.signOut().catch(() => {});
@@ -1430,7 +1434,7 @@
       }
 
       // 3. Auth réussie : vérifier que le profil client existe
-      let { data: profile } = await client.from('clients').select('*').eq('email', email).maybeSingle();
+      let { data: profile } = await client.from('clients').select('id, email, prenom, nom, telephone, role, is_pro, pro_status, societe, siret, adresse, code_postal, ville, pays, banned, documents, created_at').eq('email', email).maybeSingle();
       if (!profile) {
         // Le profil n'existe pas : refuser la connexion + proposer contact support
         Swal.fire({
@@ -1572,7 +1576,7 @@
           return;
         }
 
-        const { data: profile } = await client.from('clients').select('*').eq('email', email).maybeSingle();
+        const { data: profile } = await client.from('clients').select('id, email, prenom, nom, telephone, role, is_pro, pro_status, societe, siret, adresse, code_postal, ville, pays, banned, documents, created_at').eq('email', email).maybeSingle();
         if (profile) {
           _clientUser = profile;
           _clientName = `${prenom} ${nom}`;
@@ -1597,14 +1601,11 @@
       }
       // Charger les missions
       const client = getSBCli();
-      const { data: missionsById } = await client.from('missions').select('*').eq('client_id', profile.id).order('created_at', { ascending: false });
-      const { data: missionsByEmail } = await client.from('missions').select('*').eq('client_email', profile.email).order('created_at', { ascending: false });
-      const all = {};
-      [...(missionsById || []), ...(missionsByEmail || [])].forEach(m => all[m.id] = m);
-      _clientMissions = Object.values(all).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      const { data: missions } = await client.from('missions').select('id, reference, depart, arrivee, vehicule, mode, pack, status, paiement_statut, montant_ht, date_mission, convoyeur_nom, client_id, client_email, client_nom, client_telephone, client_telephone_livraison, immatriculation, type_vehicule, remuneration_convoyeur, stripe_session_id, created_at').or(`client_id.eq.${profile.id},client_email.eq.${profile.email}`).order('created_at', { ascending: false });
+      _clientMissions = missions || [];
 
       // Charger les véhicules
-      const { data: vehicules } = await client.from('vehicules').select('*').eq('client_id', profile.id).order('created_at', { ascending: false });
+      const { data: vehicules } = await client.from('vehicules').select('id, client_id, marque, modele, immatriculation, type_vehicule, created_at').eq('client_id', profile.id).order('created_at', { ascending: false });
       _vehiculesList = vehicules || [];
 
       initClientDashboard();
@@ -1635,8 +1636,8 @@
         document.getElementById('profilPays').value = user.pays || 'France';
         document.getElementById('profilSiret').value = user.siret || '';
         if (user.documents) {
-          if (user.documents.cni) document.getElementById('cniLink').innerHTML = `<a href="${user.documents.cni}" target="_blank"><i class="fas fa-file-pdf"></i> Voir CNI</a>`;
-          if (user.documents.kbis) document.getElementById('kbisLink').innerHTML = `<a href="${user.documents.kbis}" target="_blank"><i class="fas fa-file-pdf"></i> Voir KBIS</a>`;
+          if (user.documents.cni && String(user.documents.cni).startsWith('https://')) document.getElementById('cniLink').innerHTML = `<a href="${escapeHtml(user.documents.cni)}" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i> Voir CNI</a>`;
+          if (user.documents.kbis && String(user.documents.kbis).startsWith('https://')) document.getElementById('kbisLink').innerHTML = `<a href="${escapeHtml(user.documents.kbis)}" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i> Voir KBIS</a>`;
         }
       }
 
@@ -1702,18 +1703,18 @@
         const tagMode = (m.mode || 'route').toLowerCase().includes('plateau') ? '<span class="mc-tag tag-plateau">Plateau</span>' : '<span class="mc-tag tag-route">Route</span>';
         const tagVehicule = (m.vehicule || 'auto').toLowerCase().includes('moto') ? '<span class="mc-tag tag-moto">Moto</span>' : '<span class="mc-tag tag-auto">Automobile</span>';
         const payStatus = m.paiement_statut || 'pending';
-        const tagPay = payStatus === 'paid' ? '<span class="mc-tag" style="background:rgba(74,124,107,0.12);color:var(--success);font-weight:700;"><i class="fas fa-check-circle"></i> Payée</span>' : '<span class="mc-tag" style="background:rgba(224,163,67,0.12);color:var(--warning);font-weight:700;"><i class="fas fa-clock"></i> En attente</span>';
+        const tagPay = (payStatus === 'paid' || payStatus === 'paye') ? '<span class="mc-tag" style="background:rgba(74,124,107,0.12);color:var(--success);font-weight:700;"><i class="fas fa-check-circle"></i> Payée</span>' : '<span class="mc-tag" style="background:rgba(224,163,67,0.12);color:var(--warning);font-weight:700;"><i class="fas fa-clock"></i> En attente</span>';
 
         const trackBtn = (st === 'in_progress' || st === 'planned') ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" class="btn-sm btn-sm-red"><i class="fas fa-map-marker-alt"></i> Suivre</a>` : '';
-        const canPay = payStatus !== 'paid' && st !== 'completed' && st !== 'cancelled' && st !== 'available';
+        const canPay = payStatus !== 'paid' && payStatus !== 'paye' && st !== 'completed' && st !== 'cancelled' && st !== 'available';
         const payBtn = canPay ? `<button class="btn-sm btn-sm-red" onclick="payMission('${m.id}')" style="background:#2ecc71;color:white;border:none;"><i class="fas fa-credit-card"></i> Payer</button>` : '';
 
         return `<div class="mission-card clickable-card" onclick="if(event.target.closest('button')||event.target.closest('a')) return; showMissionDetails(encodeURIComponent(JSON.stringify(m)));">
           <div class="mc-status ${statusClass}"></div>
           <div class="mc-info">
-            <div class="mc-ref">${m.reference || '-'}</div>
-            <div class="mc-route">${m.depart || m.trajet?.split('→')[0]?.trim() || '-'} <em>→</em> ${m.arrivee || m.trajet?.split('→')[1]?.trim() || '-'}</div>
-            <div class="mc-meta">${tagVehicule}${tagMode}${tagPay}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-'} - ${m.montant_ht || '-'}€ HT</span></div>
+            <div class="mc-ref">${escapeHtml(m.reference || '-')}</div>
+            <div class="mc-route">${escapeHtml(m.depart || m.trajet?.split('→')[0]?.trim() || '-')} <em>→</em> ${escapeHtml(m.arrivee || m.trajet?.split('→')[1]?.trim() || '-')}</div>
+            <div class="mc-meta">${tagVehicule}${tagMode}${tagPay}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${escapeHtml(m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-')} - ${m.montant_ht || '-'}€ HT</span></div>
           </div>
           <div class="mc-progress">
             <svg class="progress-circle" viewBox="0 0 52 52">
@@ -1726,7 +1727,7 @@
           <div class="mc-actions">
             ${payBtn}
             ${trackBtn}
-            <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Détails</a>
+            <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Détails</a>
           </div>
         </div>`;
       }).join('');
@@ -1757,15 +1758,15 @@
       }, 0);
       document.getElementById('factTotalHt').textContent = Math.round(total) + '€ ' + priceLabel;
 
-      const unpaid = billing.filter(m => (m.paiement_statut || 'pending') !== 'paid' && m.status !== 'available' && m.status !== 'cancelled').length;
+      const unpaid = billing.filter(m => (m.paiement_statut || 'pending') !== 'paid' && (m.paiement_statut || 'pending') !== 'paye' && m.status !== 'available' && m.status !== 'cancelled').length;
       const badge = document.getElementById('cliNotifBadge');
       if (badge) { badge.textContent = unpaid;
         badge.style.display = unpaid > 0 ? 'flex' : 'none'; }
 
       container.innerHTML = billing.map(m => {
         const payStatus = m.paiement_statut || 'pending';
-        const statusClass = payStatus === 'paid' ? 'ts-ok' : 'ts-att';
-        const statusLabel = payStatus === 'paid' ? 'Payée' : 'En attente';
+        const statusClass = (payStatus === 'paid' || payStatus === 'paye') ? 'ts-ok' : 'ts-att';
+        const statusLabel = (payStatus === 'paid' || payStatus === 'paye') ? 'Payée' : 'En attente';
         const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
         const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-','') : m.id.slice(0,8).toUpperCase()}`;
         const dep = (m.depart || '').split('(')[0].trim() || '-';
@@ -1774,7 +1775,7 @@
         const displayPrice = isPro ? ht : Math.round(ht * 1.20);
         return `<div class="fact-item">
           <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
-          <div style="flex:1;"><div class="fact-ref">${invoiceRef}</div><div class="fact-date">${dateStr} - ${dep} → ${arr}</div></div>
+          <div style="flex:1;"><div class="fact-ref">${escapeHtml(invoiceRef)}</div><div class="fact-date">${dateStr} - ${escapeHtml(dep)} → ${escapeHtml(arr)}</div></div>
           <div class="fact-montant" style="margin-left:20px;font-weight:600;">${displayPrice}€ ${priceLabel}</div>
           <div class="fact-status" style="margin-left:20px;"><span class="td-status ${statusClass}">${statusLabel}</span></div>
           <button class="btn-sm btn-sm-ghost" style="margin-left:20px;" onclick="downloadClientInvoicePdf('${m.id}')"><i class="fas fa-download"></i> PDF</button>
@@ -2210,7 +2211,7 @@
       const { error } = await client.from('vehicules').insert([data]);
       if (error) return alert('Erreur : ' + error.message);
       // Recharger les véhicules
-      const { data: refreshed } = await client.from('vehicules').select('*').eq('client_id', _clientUser.id);
+      const { data: refreshed } = await client.from('vehicules').select('id, client_id, marque, modele, immatriculation, type_vehicule, created_at').eq('client_id', _clientUser.id);
       _vehiculesList = refreshed || [];
       renderVehicules();
       closeModal('modalVehicule');
@@ -2276,7 +2277,7 @@
             // Vérifier que le profil existe toujours en DB
             const sb2 = getSBCli();
             const { data: stillExists } = await sb2.from('clients').select('id, role, is_pro, pro_status').eq('email', user.email).maybeSingle();
-            if (!stillExists || stillExists.role === 'admin' || (stillExists.is_pro && stillExists.pro_status !== 'approved')) {
+            if (!stillExists || stillExists.role === 'admin' || (stillExists.is_pro && String(stillExists.pro_status).toLowerCase() !== 'approved')) {
               sessionStorage.removeItem('client_user');
               sessionStorage.removeItem('client_name');
               await sb2.auth.signOut().catch(() => {});
@@ -2313,7 +2314,7 @@
         el.addEventListener('keydown', function(e) {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            if (this.getAttribute('onclick')) eval(this.getAttribute('onclick'));
+            if (this.getAttribute('onclick')) this.click();
             else if (this.tagName === 'A' && this.getAttribute('href')) window.location.href = this.getAttribute('href');
           }
         });

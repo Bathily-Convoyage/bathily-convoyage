@@ -1,5 +1,6 @@
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
+const crypto = require('crypto');
 
 exports.handler = async (event, context) => {
   // Seuls les appels POST sont autorisés pour les webhooks
@@ -77,7 +78,7 @@ exports.handler = async (event, context) => {
       // 1. Vérifier que la mission existe
       const { data: mission, error: missionError } = await supabase
         .from('missions')
-        .select('*')
+        .select('id, reference, depart, arrivee, vehicule, mode, pack, montant_ht, paiement_statut, status, client_id, client_email, client_nom, client_telephone, convoyeur_nom, convoyeur_id, date_mission')
         .eq('id', missionId)
         .single();
 
@@ -89,11 +90,26 @@ exports.handler = async (event, context) => {
         };
       }
 
+      // Idempotency: si la mission est déjà marquée 'paid', ne pas retraiter
+      // (Stripe peut renvoyer le même webhook plusieurs fois en cas de retry)
+      if (mission.paiement_statut === 'paid' || mission.paiement_statut === 'paye') {
+        console.log(`ℹ️ Mission ${reference} déjà marquée comme payée. Idempotency skip.`);
+        return {
+          statusCode: 200,
+          body: `Mission ${reference} déjà traitée.`
+        };
+      }
+
       // 2. Mettre à jour le statut du paiement dans Supabase
-      // Ne pas toucher à `statut` (statut de la mission) — seulement paiement_statut
+      // Si la mission est 'available' (sur le marché), la passer en 'planned' après paiement
+      const updateFields = { paiement_statut: 'paid' };
+      if (mission.status === 'available') {
+        updateFields.status = 'planned';
+      }
+
       const { error: updateError } = await supabase
         .from('missions')
-        .update({ paiement_statut: 'paid' })
+        .update(updateFields)
         .eq('id', missionId);
 
       if (updateError) {
@@ -118,8 +134,8 @@ exports.handler = async (event, context) => {
 
           if (!alreadyExists) {
             // Générer un mot de passe temporaire
-            tempPassword = Math.random().toString(36).slice(2, 8).toUpperCase() + 
-                           Math.random().toString(36).slice(2, 5) + '!';
+            tempPassword = crypto.randomBytes(6).toString('hex').toUpperCase().slice(0, 8) +
+                           crypto.randomBytes(3).toString('hex').slice(0, 3) + '!';
             
             const { data: newAuthUser, error: authError } = await supabase.auth.admin.createUser({
               email: clientEmail,

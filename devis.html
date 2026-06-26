@@ -574,7 +574,7 @@
           <div class="f-grp">
             <label class="checkbox-label">
               <input type="checkbox" id="cguCheck" required>
-              J'accepte la <a href="mentions-legales.html#cgu" target="_blank">politique de confidentialité</a> et les CGU *
+              J'accepte la <a href="mentions-legales.html#cgu" target="_blank" rel="noopener">politique de confidentialité</a> et les CGU *
             </label>
             <div class="field-err" id="errCgu">Veuillez accepter les conditions</div>
           </div>
@@ -1093,10 +1093,10 @@
 
       // En mode pro, le prix affiché est HT. En mode public, le prix affiché est TTC.
       // On stocke toujours le HT en base pour la compta.
-      const totalHt = _isProMode ? totalDisplayed : Math.round(totalDisplayed / 1.20);
+      const totalHt = _isProMode ? totalDisplayed : Math.round(totalDisplayed / 1.20 * 100) / 100;
       const totalTtc = _isProMode ? Math.round(totalDisplayed * 1.20) : totalDisplayed;
 
-      const ref = 'BC-DEV-' + Math.floor(1000 + Math.random() * 9000);
+      const ref = 'BC-DEV-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase());
 
       const devisData = {
         reference: ref,
@@ -1139,9 +1139,8 @@
 
       if (error) {
         console.error('Erreur Supabase INSERT devis:', error.message, error.details, error.hint, error.code);
-        const devis = JSON.parse(localStorage.getItem('bathily_devis_list') || '[]');
-        devis.push(devisData);
-        localStorage.setItem('bathily_devis_list', JSON.stringify(devis));
+        Swal.fire('Erreur', 'Impossible d\'enregistrer votre devis en base de données : ' + (error.message || 'Erreur inconnue'), 'error');
+        return;
       }
 
       // Envoyer un email de notification
