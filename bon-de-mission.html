@@ -538,7 +538,7 @@
   <div class="doc-actions">
     <div class="da-left">
       <a href="dashboard-convoyeur.html" class="tb-btn tb-ghost"><i class="fas fa-arrow-left"></i> Dashboard</a>
-      <button class="tb-btn tb-ghost" onclick="window.location.href='etat-des-lieux.html'"><i class="fas fa-clipboard-list"></i> État des lieux</button>
+      <button class="tb-btn tb-ghost" onclick="goToEdl()"><i class="fas fa-clipboard-list"></i> État des lieux</button>
       <button class="tb-btn tb-ghost" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
     </div>
     <div class="da-right">
@@ -553,6 +553,10 @@
     function getSB() {
       if (!_sbClient) _sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
       return _sbClient;
+    }
+
+    function goToEdl() {
+      window.location.href = `etat-des-lieux.html?mission_id=${_missionId || ''}&type=depart`;
     }
 
     // ========== CURSOR ==========

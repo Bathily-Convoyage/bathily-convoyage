@@ -1650,6 +1650,7 @@
           </div>
           <div class="mc-actions">
             <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Bon de mission</a>
+            <a href="etat-des-lieux.html?mission_id=${m.id}&type=depart" class="btn-sm btn-sm-ghost" target="_blank" style="text-decoration:none;"><i class="fas fa-clipboard-list"></i> EDL</a>
             ${m.status === 'in_progress' ? `<a href="gps-emitter.html?id=${m.id}&ref=${encodeURIComponent(m.reference||'')}&route=${encodeURIComponent(dep+' → '+arr)}&vehicle=${encodeURIComponent(m.vehicule||'')}" class="btn-sm btn-sm-red" target="_blank" style="text-decoration:none;"><i class="fas fa-satellite-dish"></i> GPS</a>` : ''}
           </div>
         </div>`;
