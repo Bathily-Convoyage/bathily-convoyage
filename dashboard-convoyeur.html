@@ -1375,7 +1375,13 @@
     let _sbConvo = null;
 
     function getSBC() {
-      if (!_sbConvo) _sbConvo = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      if (!_sbConvo) {
+        if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+          console.error("Supabase credentials missing. Check supabase-config.js");
+          return null;
+        }
+        _sbConvo = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      }
       return _sbConvo;
     }
 

@@ -1334,7 +1334,13 @@
     let _sbClient = null;
 
     function getSBCli() {
-      if (!_sbClient) _sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      if (!_sbClient) {
+        if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+          console.error("Supabase credentials missing. Check supabase-config.js");
+          return null;
+        }
+        _sbClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      }
       return _sbClient;
     }
 
