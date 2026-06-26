@@ -2283,6 +2283,10 @@
     var _supabaseClient = null;
     function getSupabase() {
       if (!_supabaseClient) {
+        if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+          console.error("Supabase credentials missing. Check supabase-config.js");
+          return null;
+        }
         _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
       }
       return _supabaseClient;

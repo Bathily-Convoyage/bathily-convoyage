@@ -737,7 +737,13 @@
       // Vérifier l'authentification Supabase avant d'autoriser l'envoi de positions
       if (!_isAuthChecked) {
         try {
-          if (!_supabaseClient) _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+          if (!_supabaseClient) {
+        if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+          console.error("Supabase credentials missing. Check supabase-config.js");
+          return null;
+        }
+        _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      }
           const { data: { session }, error: sessionError } = await _supabaseClient.auth.getSession();
           if (sessionError || !session) {
             addLog('⛔ Authentification requise pour partager la position GPS.', 'error');
