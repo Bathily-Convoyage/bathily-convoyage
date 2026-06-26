@@ -323,7 +323,9 @@ Corps: ${html.substring(0, 300)}...`);
       const { data: edl, error } = await supabase
         .from('edls')
         .select('*, missions(*)')
-        .eq('id', id)
+        .eq('mission_id', id)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
 
       if (error || !edl) throw new Error(`État des lieux introuvable: ${error?.message}`);

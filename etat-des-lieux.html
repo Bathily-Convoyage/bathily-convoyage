@@ -807,8 +807,9 @@ function handlePhotoUpload(div, file, type, idx) {
     check.className = 'ps-check';
     check.innerHTML = '<i class="fas fa-check"></i>';
     div.appendChild(check);
-    if (type === 'ext') { STATE.photoExt++; document.getElementById('photoExtCount').innerText = STATE.photoExt; document.getElementById('photoExtBar').style.width = (STATE.photoExt/5*100)+'%'; }
-    if (type === 'int') { STATE.photoInt++; document.getElementById('photoIntCount').innerText = STATE.photoInt; document.getElementById('photoIntBar').style.width = (STATE.photoInt/5*100)+'%'; }
+    if (type === 'ext') { STATE.photoExt++; if(!STATE.extPhotos) STATE.extPhotos=[]; STATE.extPhotos[idx]=e.target.result; document.getElementById('photoExtCount').innerText = STATE.photoExt; document.getElementById('photoExtBar').style.width = (STATE.photoExt/5*100)+'%'; }
+    if (type === 'int') { STATE.photoInt++; if(!STATE.intPhotos) STATE.intPhotos=[]; STATE.intPhotos[idx]=e.target.result; document.getElementById('photoIntCount').innerText = STATE.photoInt; document.getElementById('photoIntBar').style.width = (STATE.photoInt/5*100)+'%'; }
+    if (type === 'sup') { if(!STATE.supPhotos) STATE.supPhotos=[]; STATE.supPhotos[idx]=e.target.result; }
     showToast('Photo ajoutée');
   };
   reader.readAsDataURL(file);
@@ -1297,7 +1298,8 @@ async function validateEdl(){
   if(!STATE.sigConvDone || !STATE.sigCliDone){ showToast('Les deux signatures sont requises', 'error'); return; }
   if(STATE.photoExt<5 || STATE.photoInt<5){ showToast('10 photos obligatoires', 'error'); return; }
   
-  const ref = 'EDL-'+(document.getElementById('mRef')?.value||'0847')+'-'+(STATE.edlType==='depart'?'DEP':'ARR');
+  const missionRef = document.getElementById('mRef')?.value || 'BC' + Date.now().toString().slice(-6);
+  const ref = 'EDL-'+missionRef+'-'+(STATE.edlType==='depart'?'DEP':'ARR');
   document.getElementById('edlRef').innerHTML = ref;
   
   Swal.fire({
@@ -1371,7 +1373,7 @@ async function validateEdl(){
       date_heure: new Date(document.getElementById('mDate')?.value || new Date()).toISOString(),
       kilometrage: parseInt(document.getElementById('vKm')?.value) || 0,
       niveau_carburant: parseInt(STATE.fuelValue) || 0,
-      photos: { ext_count: STATE.photoExt, int_count: STATE.photoInt },
+      photos: { ext: STATE.extPhotos || [], int: STATE.intPhotos || [], sup: STATE.supPhotos || [], ext_count: STATE.photoExt, int_count: STATE.photoInt },
       dommages: dommagesWithPhoto,
       documents: documentStates,
       equipements: equipStates,
@@ -1379,7 +1381,7 @@ async function validateEdl(){
       observations: document.getElementById('obsGenerales')?.value || '',
       remarques_techniques: document.getElementById('remTech')?.value || '',
       email_client: document.getElementById('emailCli')?.value || document.getElementById('cEmail')?.value || '',
-      conforme: document.querySelectorAll('.doc-btn.nok').length === 0,
+      conforme: document.querySelectorAll('#docGrid .doc-btn.nok, #equipGrid .doc-btn.nok, #mecaGrid .doc-btn.nok').length === 0,
       signatures: { convoyeur: sigConvBase64, client: sigCliBase64 }
     };
 
@@ -1396,7 +1398,7 @@ async function validateEdl(){
       await fetch('/.netlify/functions/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trigger: 'edl_completed', mission_id: missionId })
+        body: JSON.stringify({ trigger: 'edl_completed', id: missionId })
       });
     } catch (emailErr) {
       console.warn("Email non envoyé, mais EDL enregistré:", emailErr);

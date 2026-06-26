@@ -1961,7 +1961,7 @@
         convoyeur_nom: `${_convoyeurUser.prenom||''} ${_convoyeurUser.nom||''}`.trim(),
         sujet,
         message,
-        statut: 'open'
+        statut: 'ouvert'
       }]);
       if (error && !error.message.includes('does not exist')) {
         Swal.fire('Erreur', error.message, 'error');

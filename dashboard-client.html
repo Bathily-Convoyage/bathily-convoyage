@@ -1463,10 +1463,11 @@
             if (formValues) {
               try {
                 await client.from('support_tickets').insert([{
+                  client_email: formValues.email,
                   email: formValues.email,
                   sujet: 'Connexion refusée - profil introuvable',
                   message: formValues.message,
-                  statut: 'open'
+                  statut: 'ouvert'
                 }]);
                 Swal.fire('Envoyé !', 'Votre demande a été transmise à l\'administrateur. Vous serez contacté rapidement.', 'success');
               } catch (err) {
@@ -1640,8 +1641,8 @@
       }
 
       // Stats
-      const actives = missions.filter(m => m.status === 'in_progress' || m.statut === 'in_progress').length;
-      const terminees = missions.filter(m => m.status === 'completed' || m.statut === 'completed').length;
+      const actives = missions.filter(m => m.status === 'in_progress').length;
+      const terminees = missions.filter(m => m.status === 'completed').length;
       const ca = missions.filter(m => m.montant_ht).reduce((s, m) => s + parseFloat(m.montant_ht || 0), 0);
       document.getElementById('kpiActives').textContent = actives;
       document.getElementById('kpiTerminees').textContent = terminees;
@@ -1668,7 +1669,7 @@
       let filtered = missions;
       if (showAll && _activeFilter !== 'all') {
         filtered = missions.filter(m => {
-          const st = m.status || m.statut || '';
+          const st = m.status || '';
           if (_activeFilter === 'active') return st === 'in_progress';
           if (_activeFilter === 'planned') return st === 'planned' || st === 'available';
           if (_activeFilter === 'completed') return st === 'completed';
@@ -1682,7 +1683,7 @@
       }
 
       container.innerHTML = filtered.map(m => {
-        const st = m.status || m.statut || 'planned';
+        const st = m.status || 'planned';
         let statusClass = 'status-planifie', statusLabel = 'Planifiée', pct = 10, strokeColor = '#F5A623';
         if (st === 'in_progress') { statusClass = 'status-en-cours';
           statusLabel = 'En transit';
@@ -1910,7 +1911,7 @@
         client_nom: `${_clientUser.prenom||''} ${_clientUser.nom||''}`.trim(),
         sujet,
         message,
-        statut: 'open'
+        statut: 'ouvert'
       }]);
       if (error && !error.message.includes('does not exist')) {
         Swal.fire('Erreur', error.message, 'error');
