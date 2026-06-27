@@ -36,6 +36,10 @@ export default defineConfig({
         convoyageBordeaux: resolve(__dirname, 'convoyage-bordeaux.html'),
         convoyageToulouse: resolve(__dirname, 'convoyage-toulouse.html'),
         convoyageMontpellier: resolve(__dirname, 'convoyage-montpellier.html'),
+        espacePro: resolve(__dirname, 'espace-pro.html'),
+        resetPassword: resolve(__dirname, 'reset-password.html'),
+        missionTracker: resolve(__dirname, 'mission-tracker.html'),
+        charteGraphique: resolve(__dirname, 'charte-graphique-complete.html'),
       }
     }
   }
