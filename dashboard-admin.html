@@ -3803,11 +3803,12 @@ Cadeau premium personnalisé</textarea>
     if (devis.status === 'pending') {
       actionsHtml = `
         <button class="btn-sm btn-sm-green" onclick="Swal.close(); updateDevisStatus('${devis.id}', 'accepted')" style="margin-right:6px;"><i class="fas fa-check"></i> Accepter (créer mission)</button>
+        <button class="btn-sm btn-sm-ghost" onclick="Swal.close(); adjustDevisPrice('${devis.id}')" style="margin-right:6px;"><i class="fas fa-euro-sign"></i> Ajuster le prix</button>
         <button class="btn-sm btn-sm-red" onclick="Swal.close(); updateDevisStatus('${devis.id}', 'rejected')" style="margin-right:6px;"><i class="fas fa-times"></i> Refuser</button>
         <button class="btn-sm btn-sm-red" onclick="Swal.close(); deleteDevis('${devis.id}', '${devis.reference || ''}')"><i class="fas fa-trash"></i> Supprimer</button>
       `;
     } else {
-      actionsHtml = `<span style="color:#888;font-size:0.85rem;">Devis ${devis.status === 'accepted' ? 'accepté' : 'refusé'}.</span><button class="btn-sm btn-sm-red" onclick="Swal.close(); deleteDevis('${devis.id}', '${devis.reference || ''}')" style="margin-left:6px;"><i class="fas fa-trash"></i> Supprimer</button>`;
+      actionsHtml = `<span style="color:#888;font-size:0.85rem;">Devis ${devis.status === 'accepted' ? 'accepté' : 'refusé'}.</span><button class="btn-sm btn-sm-ghost" onclick="Swal.close(); adjustDevisPrice('${devis.id}')" style="margin-left:6px;"><i class="fas fa-euro-sign"></i> Ajuster le prix</button><button class="btn-sm btn-sm-red" onclick="Swal.close(); deleteDevis('${devis.id}', '${devis.reference || ''}')" style="margin-left:6px;"><i class="fas fa-trash"></i> Supprimer</button>`;
     }
 
     const details = devis.details || {};
@@ -3835,6 +3836,7 @@ Cadeau premium personnalisé</textarea>
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Montant HT :</b> ${devis.total_ht ? parseFloat(devis.total_ht).toFixed(2) + ' €' : '—'}<br>
         ${!isPro ? `<b>Montant TTC :</b> ${totalTtc.toFixed(2)} €<br>` : ''}
+        ${details.original_total_ht && details.original_total_ht !== parseFloat(devis.total_ht) ? `<span style="color:var(--warning);font-size:0.8rem;\"><b>Prix original :</b> ${parseFloat(details.original_total_ht).toFixed(2)} € HT</span><br>${details.adjust_reason ? `<span style="font-size:0.75rem;color:#888;\">Raison : ${escapeHtml(details.adjust_reason)}</span><br>` : ''}` : ''}
         ${details.opts?.urgence ? '<b>⚠️ Urgence</b><br>' : ''}
         ${details.opts?.gardiennage ? '<b>📦 Gardiennage</b><br>' : ''}
         ${details.message ? `<hr style="margin:10px 0;border-color:#eee;"><b>Message client :</b><br>${escapeHtml(details.message)}<br>` : ''}
@@ -3849,6 +3851,58 @@ Cadeau premium personnalisé</textarea>
       showConfirmButton: false,
       showCancelButton: false
     });
+  };
+
+  window.adjustDevisPrice = async function(id) {
+    const devis = _allDevisData.find(d => d.id === id);
+    if (!devis) return Swal.fire('Erreur', 'Devis introuvable', 'error');
+
+    const isPro = devis.details?.is_pro === true;
+    const currentHt = parseFloat(devis.total_ht) || 0;
+    const currentTtc = parseFloat(devis.details?.total_ttc) || Math.round(currentHt * 1.20);
+
+    const { value: formValues } = await Swal.fire({
+      title: 'Ajuster le prix du devis',
+      html: `<div style="text-align:left;">
+        <p style="margin-bottom:12px;color:#666;font-size:0.85rem;">Modifiez le montant et validez. Le prix original sera conservé dans les détails.</p>
+        <label style="display:block;margin-bottom:6px;font-weight:600;">Montant HT (€)</label>
+        <input id="swalHt" class="swal2-input" type="number" step="0.01" value="${currentHt}" style="width:100%;margin:0 0 16px 0;">
+        ${!isPro ? `<label style="display:block;margin-bottom:6px;font-weight:600;">Montant TTC (€)</label><input id="swalTtc" class="swal2-input" type="number" step="0.01" value="${currentTtc}" style="width:100%;margin:0 0 16px 0;">` : ''}
+        <label style="display:block;margin-bottom:6px;font-weight:600;">Raison de l'ajustement (optionnel)</label>
+        <textarea id="swalReason" class="swal2-textarea" placeholder="Ex: remise commerciale, ajout option..." style="width:100%;margin:0;">${escapeHtml(devis.details?.adjust_reason || '')}</textarea>
+      </div>`,
+      showCancelButton: true,
+      confirmButtonText: 'Enregistrer',
+      cancelButtonText: 'Annuler',
+      focusConfirm: false,
+      preConfirm: () => {
+        const ht = parseFloat(document.getElementById('swalHt').value);
+        const ttcInput = document.getElementById('swalTtc');
+        const ttc = ttcInput ? parseFloat(ttcInput.value) : Math.round(ht * 1.20);
+        const reason = document.getElementById('swalReason').value.trim();
+        if (!ht || ht <= 0) { Swal.showValidationMessage('Le montant HT doit être supérieur à 0'); return false; }
+        if (!isPro && (!ttc || ttc <= 0)) { Swal.showValidationMessage('Le montant TTC doit être supérieur à 0'); return false; }
+        return { ht, ttc, reason };
+      }
+    });
+
+    if (!formValues) return;
+
+    Swal.fire({ title: 'Enregistrement...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    const sb = getSupabase();
+    if (!sb) return;
+
+    const updatedDetails = { ...(devis.details || {}), total_ttc: formValues.ttc, original_total_ht: devis.details?.original_total_ht || currentHt, adjust_reason: formValues.reason, adjusted_at: new Date().toISOString() };
+
+    const { error } = await sb.from('devis').update({
+      total_ht: formValues.ht,
+      details: updatedDetails
+    }).eq('id', id);
+
+    if (error) { Swal.fire('Erreur', error.message, 'error'); return; }
+
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Prix ajusté !', timer: 2500 });
+    loadDevis();
   };
 
   window.updateDevisStatus = async function(id, newStatus) {
