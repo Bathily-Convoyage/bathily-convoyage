@@ -1425,6 +1425,15 @@
       Swal.fire({ title: 'Envoi...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
       try {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocal) {
+          const client = getSBCli();
+          const { error: resetErr } = await client.auth.resetPasswordForEmail(email.trim().toLowerCase());
+          if (resetErr) throw new Error(resetErr.message);
+          Swal.fire('Email envoyé !', 'Consultez votre boîte mail pour définir votre mot de passe.', 'success');
+          return;
+        }
+
         const response = await fetch('/.netlify/functions/client-reset-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1438,7 +1447,7 @@
           Swal.fire('Erreur', result.error || 'Impossible d\'envoyer l\'email.', 'error');
         }
       } catch (err) {
-        Swal.fire('Erreur', 'Service indisponible. Veuillez réessayer plus tard.', 'error');
+        Swal.fire('Erreur', err.message || 'Service indisponible. Veuillez réessayer plus tard.', 'error');
       }
     }
 
@@ -1585,6 +1594,49 @@
       Swal.fire({ title: 'Création du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
       try {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocal) {
+          // En local : inscription directe via Supabase Auth
+          const client = getSBCli();
+          const { data: signUpData, error: signUpErr } = await client.auth.signUp({ email, password });
+          if (signUpErr) {
+            if (signUpErr.message.includes('already')) {
+              Swal.fire({ title: 'Compte existant', text: 'Cet email est déjà utilisé. Souhaitez-vous vous connecter ?', showCancelButton: true, confirmButtonText: 'Se connecter' })
+                .then(res => { if (res.isConfirmed) { switchAuthTab('login'); document.getElementById('loginEmail').value = email; } });
+              return;
+            }
+            throw new Error(signUpErr.message);
+          }
+
+          // Créer le profil client
+          if (signUpData.user) {
+            const { error: insertErr } = await client.from('clients').insert([
+              { email, prenom, nom, telephone, societe, auth_user_id: signUpData.user.id, role: 'client' }
+            ]);
+            if (insertErr) console.warn('Profil client non créé:', insertErr.message);
+          }
+
+          // Connexion automatique
+          const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
+          if (authError) {
+            Swal.fire('Compte créé !', 'Vous pouvez maintenant vous connecter.', 'success')
+              .then(() => switchAuthTab('login'));
+            return;
+          }
+
+          const { data: profile } = await client.from('clients').select('id, email, prenom, nom, telephone, role, is_pro, pro_status, societe, siret, adresse, code_postal, ville, pays, banned, documents, created_at').eq('email', email).maybeSingle();
+          if (profile) {
+            _clientUser = profile;
+            _clientName = `${prenom} ${nom}`;
+            sessionStorage.setItem('client_user', JSON.stringify(profile));
+            sessionStorage.setItem('client_name', _clientName);
+            document.getElementById('clientLoginOverlay').style.display = 'none';
+            await loadClientData(profile);
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Bienvenue ' + prenom + ' !', timer: 3000 });
+          }
+          return;
+        }
+
         const response = await fetch('/.netlify/functions/client-signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1861,6 +1913,11 @@
 
     // ========== PAYMENT ==========
     async function payMission(missionId) {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (isLocal) {
+        Swal.fire('Mode local', 'Le paiement Stripe n\'est pas disponible en local. La mission peut être marquée comme payée manuellement par l\'admin.', 'info');
+        return;
+      }
       Swal.fire({ title: 'Redirection vers Stripe...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
       try {
         const successUrl = window.location.origin + window.location.pathname;

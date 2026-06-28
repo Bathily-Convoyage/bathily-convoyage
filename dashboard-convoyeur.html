@@ -1473,6 +1473,15 @@
       Swal.fire({ title: 'Envoi...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
       try {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocal) {
+          const client = getSBC();
+          const { error: resetErr } = await client.auth.resetPasswordForEmail(email.trim().toLowerCase());
+          if (resetErr) throw new Error(resetErr.message);
+          Swal.fire('Email envoyé !', 'Consultez votre boîte mail pour définir votre mot de passe.', 'success');
+          return;
+        }
+
         const response = await fetch('/.netlify/functions/convoyeur-reset-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1486,7 +1495,7 @@
           Swal.fire('Erreur', result.error || 'Impossible d\'envoyer l\'email.', 'error');
         }
       } catch (err) {
-        Swal.fire('Erreur', 'Service indisponible. Veuillez réessayer plus tard.', 'error');
+        Swal.fire('Erreur', err.message || 'Service indisponible. Veuillez réessayer plus tard.', 'error');
       }
     }
 
