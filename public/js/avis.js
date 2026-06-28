@@ -9,6 +9,7 @@
   // ── Helpers Supabase ──
   function getSB() {
     if (window._sbClient) return window._sbClient;
+    if (window.BathilyAuth && window.BathilyAuth.getSB) return window.BathilyAuth.getSB();
     if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY || !window.supabase) return null;
     window._sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
     return window._sbClient;
