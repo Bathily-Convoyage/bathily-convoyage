@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dépliant Professionnel Bathily-Convoyage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0A4D68;
+      --primary-dark: #063244;
+      --secondary: #088395;
+      --accent: #F5A623;
+      --cream: #FDFBF7;
+      --text: #2D2A24;
+      --muted: #6B625A;
+      --line: #E8E1D9;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 297mm; min-height: 210mm; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--cream);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .sheet {
+      position: relative;
+      width: 297mm;
+      height: 210mm;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 8% 8%, rgba(245,166,35,0.18), transparent 20%),
+        radial-gradient(circle at 92% 88%, rgba(8,131,149,0.18), transparent 23%),
+        linear-gradient(135deg, #fffaf0 0%, var(--cream) 46%, #f6efe4 100%);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .panel {
+      position: relative;
+      padding: 11mm;
+      border-right: 0.25mm dashed rgba(10,77,104,0.18);
+      overflow: hidden;
+    }
+    .panel:last-child { border-right: none; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 4mm;
+      margin-bottom: 8mm;
+    }
+    .logo { width: 24mm; height: 24mm; object-fit: contain; border-radius: 5mm; }
+    .kicker {
+      font-size: 7pt;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--secondary);
+    }
+    .brand-name {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14pt;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+      margin-top: 1.5mm;
+    }
+    h1, h2, h3 {
+      font-family: 'Montserrat', sans-serif;
+      color: var(--primary-dark);
+      letter-spacing: -0.035em;
+    }
+    h1 {
+      font-size: 26pt;
+      line-height: 0.96;
+      font-weight: 900;
+      max-width: 78mm;
+    }
+    h2 {
+      font-size: 18pt;
+      line-height: 1.05;
+      font-weight: 900;
+      margin-bottom: 5mm;
+    }
+    h3 { font-size: 10.5pt; font-weight: 900; margin-bottom: 1.6mm; }
+    .highlight { color: var(--secondary); }
+    .lead {
+      margin-top: 5mm;
+      font-size: 9.2pt;
+      line-height: 1.55;
+      color: var(--muted);
+      max-width: 78mm;
+    }
+    .hero-card {
+      margin-top: 8mm;
+      padding: 5mm;
+      border-radius: 6mm;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      box-shadow: 0 16px 36px rgba(10,77,104,0.22);
+    }
+    .hero-card strong {
+      display: block;
+      color: var(--accent);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20pt;
+      font-weight: 900;
+      margin-bottom: 1mm;
+    }
+    .hero-card span { font-size: 8pt; line-height: 1.35; color: rgba(255,255,255,0.88); }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 2.6mm;
+      margin-bottom: 4.5mm;
+      color: var(--primary);
+    }
+    .section-title::before {
+      content: '';
+      width: 9mm;
+      height: 1.2mm;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+    .cards { display: grid; gap: 3.3mm; }
+    .card {
+      padding: 4mm;
+      border-radius: 5mm;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(10,77,104,0.12);
+      box-shadow: 0 10px 24px rgba(10,77,104,0.07);
+    }
+    .card p { font-size: 7.7pt; line-height: 1.42; color: var(--muted); }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 3mm;
+      margin-top: 5mm;
+    }
+    .stat {
+      border-radius: 4.5mm;
+      padding: 3.5mm;
+      background: var(--primary-dark);
+      color: white;
+    }
+    .stat strong { display: block; color: var(--accent); font-size: 15pt; font-family: 'Montserrat', sans-serif; font-weight: 900; }
+    .stat span { font-size: 6.7pt; color: rgba(255,255,255,0.86); line-height: 1.25; }
+    .process { display: grid; gap: 3mm; }
+    .step {
+      display: grid;
+      grid-template-columns: 8mm 1fr;
+      gap: 3mm;
+      align-items: start;
+      padding: 3.5mm;
+      border-radius: 4.5mm;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid var(--line);
+    }
+    .num {
+      width: 8mm;
+      height: 8mm;
+      border-radius: 50%;
+      background: var(--accent);
+      display: grid;
+      place-items: center;
+      font-size: 7pt;
+      font-weight: 900;
+      color: var(--primary-dark);
+    }
+    .step p { font-size: 7.4pt; line-height: 1.36; color: var(--muted); }
+    .offer-box {
+      border-radius: 6mm;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 5mm;
+      margin-top: 5mm;
+      position: relative;
+      overflow: hidden;
+    }
+    .offer-box::after {
+      content: '';
+      position: absolute;
+      width: 42mm;
+      height: 42mm;
+      border-radius: 50%;
+      background: rgba(245,166,35,0.16);
+      right: -15mm;
+      top: -18mm;
+    }
+    .offer-box h3 { color: white; position: relative; z-index: 1; font-size: 13pt; }
+    .offer-list { list-style: none; display: grid; gap: 2.2mm; margin-top: 3mm; position: relative; z-index: 1; }
+    .offer-list li { font-size: 7.8pt; line-height: 1.32; color: rgba(255,255,255,0.9); }
+    .offer-list li::before { content: '✓'; color: var(--accent); font-weight: 900; margin-right: 2mm; }
+    .qr-row {
+      margin-top: 6mm;
+      display: grid;
+      grid-template-columns: 24mm 1fr;
+      gap: 4mm;
+      align-items: center;
+      padding: 4mm;
+      border-radius: 5mm;
+      background: rgba(255,255,255,0.75);
+      border: 1px solid rgba(10,77,104,0.12);
+    }
+    .qr-code { width: 24mm; height: 24mm; border-radius: 3mm; background: white; padding: 2mm; object-fit: contain; }
+    .contact { display: grid; gap: 1.8mm; font-size: 8pt; font-weight: 800; color: var(--primary-dark); }
+    .footer-note {
+      position: absolute;
+      left: 11mm;
+      right: 11mm;
+      bottom: 9mm;
+      font-size: 6.5pt;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    @page { size: A4 landscape; margin: 0; }
+    @media print { body { background: var(--cream); } }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <section class="panel">
+      <div class="brand">
+        <img src="../logo.png" alt="Bathily-Convoyage" class="logo">
+        <div>
+          <div class="kicker">Solutions B2B</div>
+          <div class="brand-name">Bathily<br>Convoyage</div>
+        </div>
+      </div>
+      <h1>Convoyage professionnel <span class="highlight">simple, traçable et rentable.</span></h1>
+      <p class="lead">Une solution opérationnelle pour concessions, marchands auto, loueurs, garages, gestionnaires de flotte et entreprises multi-sites.</p>
+      <div class="hero-card"><strong>Partenaire mobilité</strong><span>Nous absorbons vos flux de véhicules pour libérer vos équipes, réduire vos délais et sécuriser vos remises clients.</span></div>
+      <div class="stats">
+        <div class="stat"><strong>GPS</strong><span>suivi mission et visibilité en temps réel</span></div>
+        <div class="stat"><strong>Photo</strong><span>état des lieux au départ et à l’arrivée</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">Pensé pour vos volumes</h2>
+      <div class="cards">
+        <article class="card"><h3>Concessions & marchands</h3><p>Livraisons client, transferts VN/VO, reprises, échanges inter-sites et véhicules immobilisés.</p></article>
+        <article class="card"><h3>Loueurs & flottes</h3><p>Déplacements récurrents, rapatriements, rotations régionales et gestion des pics d’activité.</p></article>
+        <article class="card"><h3>Entreprises & mobilité RH</h3><p>Mutation collaborateur, véhicule de fonction, onboarding, restitution ou changement d’agence.</p></article>
+      </div>
+      <div class="offer-box">
+        <h3>Ce que vous gagnez</h3>
+        <ul class="offer-list">
+          <li>Un interlocuteur unique pour piloter vos demandes</li>
+          <li>Des missions documentées et faciles à suivre</li>
+          <li>Une meilleure expérience de livraison pour vos clients</li>
+          <li>Des devis clairs pour anticiper vos coûts logistiques</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">Process pro en 4 étapes</h2>
+      <div class="process">
+        <div class="step"><div class="num">1</div><div><h3>Demande</h3><p>Trajet, type de véhicule, contraintes horaires et documents disponibles.</p></div></div>
+        <div class="step"><div class="num">2</div><div><h3>Planification</h3><p>Validation de la faisabilité, du tarif et du créneau de prise en charge.</p></div></div>
+        <div class="step"><div class="num">3</div><div><h3>Exécution</h3><p>Convoyeur assigné, état des lieux photo, suivi GPS et notifications.</p></div></div>
+        <div class="step"><div class="num">4</div><div><h3>Clôture</h3><p>Livraison, contrôle final, documents mission et retour d’information.</p></div></div>
+      </div>
+      <div class="qr-row">
+        <img src="../images/qr-devis.png" alt="QR code devis Bathily-Convoyage" class="qr-code">
+        <div class="contact"><span>📞 07 67 21 51 00</span><span>✉️ contact@bathily-convoyage.fr</span><span>🌐 www.bathily-convoyage.fr</span></div>
+      </div>
+      <p class="footer-note">Format dépliant A4 paysage 3 volets. Idéal pour prospection B2B, salons, concessions, garages, réseaux partenaires et rendez-vous commerciaux.</p>
+    </section>
+  </main>
+</body>
+</html>

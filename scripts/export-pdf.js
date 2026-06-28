@@ -23,6 +23,7 @@ async function generatePDF(htmlPath, outputPath, options = {}) {
   const pdfOptions = {
     path: outputPath,
     format: options.format || 'A4',
+    landscape: options.landscape || false,
     printBackground: true,
     scale: 1.25, // 300dpi approximation
     margin: {
@@ -117,6 +118,29 @@ async function main() {
     }
   } catch (err) {
     console.log('⚠ Copy error (files in exports/):', err.message);
+  }
+  
+  // Generate professional tri-fold brochure PDF
+  const plaquetteProHtml = path.join(designDir, 'plaquette-pro.html');
+  const plaquetteProPDF = path.join(exportsDir, 'plaquette-pro-v1.pdf');
+  const plaquetteProPNG = path.join(exportsDir, 'plaquette-pro-v1.png');
+  const plaquetteProWebP = path.join(exportsDir, 'plaquette-pro-v1.webp');
+  
+  await generatePDF(plaquetteProHtml, plaquetteProPDF, { format: 'A4', landscape: true });
+  await generatePNG(plaquetteProHtml, plaquetteProPNG);
+  await convertPNGToWebP(plaquetteProPNG, plaquetteProWebP, 80);
+  
+  try {
+    if (fs.existsSync(plaquetteProPDF)) {
+      fs.copyFileSync(plaquetteProPDF, path.join(imagesDir, 'plaquette-professionnelle-v1.pdf'));
+      console.log('✓ Pro brochure PDF copied to images');
+    }
+    if (fs.existsSync(plaquetteProWebP)) {
+      fs.copyFileSync(plaquetteProWebP, path.join(imagesDir, 'plaquette-professionnelle-v1.webp'));
+      console.log('✓ Pro brochure WebP copied to images');
+    }
+  } catch (err) {
+    console.log('⚠ Pro brochure copy error (files in exports/):', err.message);
   }
   
   // Generate business card PDF
