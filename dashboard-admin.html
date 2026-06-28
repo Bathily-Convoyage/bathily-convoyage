@@ -1435,14 +1435,14 @@
 
   <!-- AUTH OVERLAY -->
   <div id="authOverlay">
-    <div class="auth-box">
+    <form class="auth-box" onsubmit="event.preventDefault();">
       <div class="auth-logo"><img src="/logo.png" alt="Bathily-Convoyage" style="height:48px;" /></div>
       <div class="auth-sub">Accès administrateur sécurisé</div>
       <input type="email" id="adminEmailInput" class="auth-input" placeholder="Email admin" autocomplete="email">
       <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Mot de passe" autocomplete="current-password">
       <div class="auth-error" id="authError">Identifiants incorrects ou compte non admin.</div>
-      <button class="auth-btn" id="loginBtn"><i class="fas fa-unlock-alt"></i> Se connecter</button>
-    </div>
+      <button type="submit" class="auth-btn" id="loginBtn"><i class="fas fa-unlock-alt"></i> Se connecter</button>
+    </form>
   </div>
 
   <div id="mobileNavOverlay" class="mobile-overlay" onclick="closeMobileNav()"></div>
@@ -2615,6 +2615,7 @@ Cadeau premium personnalisé</textarea>
     if (_vehiculesDB) return _vehiculesDB;
     try {
       const response = await fetch('/data/vehicules-fr.json');
+      if (!response.ok) { _vehiculesDB = []; return _vehiculesDB; }
       _vehiculesDB = await response.json();
       return _vehiculesDB;
     } catch (err) {
@@ -3730,7 +3731,7 @@ Cadeau premium personnalisé</textarea>
   async function loadDevis() {
     const client = getSupabase();
     if (!client) return;
-    const { data, error } = await client.from('devis').select('id, reference, client_id, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, status, details, date_depart, created_at').order('created_at', { ascending: false });
+    const { data, error } = await client.from('devis').select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, status, details, date_depart, created_at').order('created_at', { ascending: false });
     if (error) { console.warn('Erreur chargement devis:', error.message); return; }
     _allDevisData = data || [];
     const pending = _allDevisData.filter(d => d.status === 'pending').length;
@@ -3835,7 +3836,7 @@ Cadeau premium personnalisé</textarea>
         const { error: updateErr } = await sb.from('devis').update({ status: 'accepted' }).eq('id', id);
         if (updateErr) throw new Error(updateErr.message);
 
-        const { data: devis, error: devisErr } = await sb.from('devis').select('id, reference, client_id, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, status, details, date_depart, created_at').eq('id', id).single();
+        const { data: devis, error: devisErr } = await sb.from('devis').select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, status, details, date_depart, created_at').eq('id', id).single();
         if (devisErr || !devis) throw new Error("Devis introuvable.");
 
         // Chercher si le client a déjà un compte pour lier la mission

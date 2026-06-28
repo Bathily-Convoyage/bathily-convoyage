@@ -1,0 +1,196 @@
+{
+  "marques": [
+    {
+      "nom": "Renault",
+      "modeles": ["Clio", "Clio II", "Clio III", "Clio IV", "Clio V", "Captur", "Captur II", "Mégane", "Mégane II", "Mégane III", "Mégane IV", "Mégane E-Tech", "Scénic", "Scénic II", "Scénic III", "Scénic IV", "Grand Scénic", "Laguna", "Laguna II", "Laguna III", "Talisman", "Vel Satis", "Safrane", "Espace", "Espace IV", "Espace V", "Twingo", "Twingo II", "Twingo III", "Kangoo", "Kangoo II", "Kangoo III", "Express", "Master", "Master III", "Trafic", "Trafic III", "Kadjar", "Arkana", "Austral", "Koleos", "Zoe", "Duster", "Fluence", "Latitude", "Wind", "Modus", "5", "9", "11", "19", "21", "25", "4L", "R5"]
+    },
+    {
+      "nom": "Peugeot",
+      "modeles": ["106", "107", "108", "205", "206", "206+", "207", "208", "208 II", "301", "305", "306", "307", "308", "308 II", "308 III", "309", "405", "406", "407", "408", "508", "508 II", "605", "607", "806", "807", "1007", "2008", "2008 II", "3008", "3008 II", "4007", "4008", "5008", "5008 II", "Bipper", "Boxer", "Expert", "Partner", "Rifter", "Traveller", "RCZ", "iOn", "e-208", "e-2008", "e-308"]
+    },
+    {
+      "nom": "Citroën",
+      "modeles": ["AX", "BX", "C1", "C2", "C3", "C3 II", "C3 III", "C3 Aircross", "C3 Picasso", "C4", "C4 II", "C4 III", "C4 Cactus", "C4 Picasso", "C4 Grand Picasso", "C4 SpaceTourer", "C5", "C5 II", "C5 X", "C5 Aircross", "C6", "C8", "C15", "C-Elysée", "DS3", "DS4", "DS5", "Xsara", "Xsara Picasso", "Saxo", "ZX", "Berlingo", "Berlingo II", "Berlingo III", "Jumper", "Jumpy", "Nemo", "Spacetourer", "AMI", "ë-C4"]
+    },
+    {
+      "nom": "DS",
+      "modeles": ["DS 3", "DS 3 Crossback", "DS 4", "DS 5", "DS 7", "DS 7 Crossback", "DS 9"]
+    },
+    {
+      "nom": "Dacia",
+      "modeles": ["Sandero", "Sandero II", "Sandero III", "Sandero Stepway", "Duster", "Duster II", "Duster III", "Jogger", "Spring", "Logan", "Logan II", "Logan MCV", "Lodgy", "Dokker"]
+    },
+    {
+      "nom": "Volkswagen",
+      "modeles": ["Polo", "Polo IV", "Polo V", "Polo VI", "Golf", "Golf IV", "Golf V", "Golf VI", "Golf VII", "Golf VIII", "Golf Plus", "Golf Sportsvan", "Tiguan", "Tiguan II", "T-Roc", "T-Cross", "Taigo", "Passat", "Passat CC", "Arteon", "Jetta", "Bora", "Scirocco", "Eos", "Beetle", "New Beetle", "Touran", "Touran II", "Sharan", "Sharan II", "Caddy", "Caddy V", "Transporter", "Transporter T5", "Transporter T6", "Multivan", "Caravelle", "Crafter", "Amarok", "Up!", "ID.3", "ID.4", "ID.5", "ID.7", "ID. Buzz", "Lupo", "Fox"]
+    },
+    {
+      "nom": "BMW",
+      "modeles": ["Série 1", "Série 1 (E87)", "Série 1 (F20)", "Série 1 (F40)", "Série 2", "Série 2 Active Tourer", "Série 2 Gran Coupé", "Série 3", "Série 3 (E46)", "Série 3 (E90)", "Série 3 (F30)", "Série 3 (G20)", "Série 4", "Série 4 Grand Coupé", "Série 5", "Série 5 (E60)", "Série 5 (F10)", "Série 5 (G30)", "Série 6", "Série 6 Grand Turismo", "Série 7", "Série 8", "X1", "X1 (E84)", "X1 (F48)", "X1 (U11)", "X2", "X3", "X3 (F25)", "X3 (G01)", "X4", "X5", "X5 (E70)", "X5 (F15)", "X5 (G05)", "X6", "X7", "Z3", "Z4", "iX", "iX1", "iX3", "i3", "i4", "i5", "i7", "M2", "M3", "M4", "M5"]
+    },
+    {
+      "nom": "Mercedes",
+      "modeles": ["Classe A", "Classe A (W176)", "Classe A (W177)", "Classe B", "Classe B (W246)", "Classe B (W247)", "Classe C", "Classe C (W203)", "Classe C (W204)", "Classe C (W205)", "Classe C (W206)", "Classe E", "Classe E (W211)", "Classe E (W212)", "Classe E (W213)", "Classe S", "CLA", "CLS", "GLA", "GLB", "GLC", "GLC Coupé", "GLE", "GLE Coupé", "GLS", "Classe G", "Classe V", "Vito", "Viano", "Sprinter", "Citan", "EQA", "EQB", "EQC", "EQE", "EQS", "AMG GT", "SL", "SLK", "CLK"]
+    },
+    {
+      "nom": "Audi",
+      "modeles": ["A1", "A1 Sportback", "A2", "A3", "A3 (8P)", "A3 (8V)", "A3 Sportback", "A4", "A4 (B6)", "A4 (B7)", "A4 (B8)", "A4 (B9)", "A4 Avant", "A5", "A5 Sportback", "A6", "A6 (C6)", "A6 (C7)", "A6 (C8)", "A7", "A8", "Q2", "Q3", "Q3 Sportback", "Q4 e-tron", "Q5", "Q5 Sportback", "Q7", "Q8", "Q8 e-tron", "TT", "TTS", "R8", "e-tron", "e-tron GT", "RS3", "RS4", "RS5", "RS6", "RS7", "S3", "S4", "S5", "S6"]
+    },
+    {
+      "nom": "Toyota",
+      "modeles": ["Aygo", "Aygo X", "Yaris", "Yaris II", "Yaris III", "Yaris IV", "Yaris Cross", "Corolla", "Corolla XII", "Corolla Cross", "Auris", "Auris II", "Avensis", "Avensis II", "Avensis III", "C-HR", "C-HR II", "RAV4", "RAV4 IV", "RAV4 V", "Highlander", "Camry", "Prius", "Prius IV", "Prius V", "Land Cruiser", "Land Cruiser 150", "Land Cruiser 300", "Hilux", "Proace", "Proace City", "bZ4X", "Supra", "GT86", "GR86", "Verso"]
+    },
+    {
+      "nom": "Ford",
+      "modeles": ["Ka", "Ka+", "Fiesta", "Fiesta VI", "Fiesta VII", "Focus", "Focus II", "Focus III", "Focus IV", "Mondeo", "Mondeo IV", "Mondeo V", "C-Max", "S-Max", "S-Max II", "Galaxy", "Galaxy III", "Puma", "Puma II", "Kuga", "Kuga II", "Kuga III", "EcoSport", "Explorer", "Edge", "Mustang", "Mustang Mach-E", "Ranger", "Transit", "Transit Custom", "Transit Connect", "Transit Courier", "Tourneo", "Tourneo Connect", "Tourneo Custom", "B-Max"]
+    },
+    {
+      "nom": "Hyundai",
+      "modeles": ["i10", "i10 II", "i10 III", "i20", "i20 II", "i20 III", "i30", "i30 II", "i30 III", "i40", "Bayon", "Kona", "Kona II", "Kona Electric", "Tucson", "Tucson III", "Tucson IV", "Santa Fe", "Santa Fe IV", "Santa Fe V", "Ioniq", "Ioniq 5", "Ioniq 6", "Nexo", "ix20", "ix35"]
+    },
+    {
+      "nom": "Kia",
+      "modeles": ["Picanto", "Picanto II", "Picanto III", "Rio", "Rio III", "Rio IV", "Stonic", "Ceed", "Ceed II", "Ceed III", "ProCeed", "Cerato", "Sportage", "Sportage IV", "Sportage V", "Sorento", "Sorento III", "Sorento IV", "EV6", "EV9", "Niro", "Niro II", "Stinger", "XCeed", "Soul", "Venga", "Carens"]
+    },
+    {
+      "nom": "Opel",
+      "modeles": ["Adam", "Agila", "Astra", "Astra G", "Astra H", "Astra J", "Astra K", "Astra L", "Corsa", "Corsa C", "Corsa D", "Corsa E", "Corsa F", "Crossland", "Crossland X", "Grandland", "Grandland X", "Insignia", "Insignia B", "Karl", "Meriva", "Meriva B", "Mokka", "Mokka B", "Mokka X", "Combo", "Combo Life", "Vivaro", "Vivaro C", "Movano", "Zafira", "Zafira B", "Zafira Tourer", "Cascada", "Ampera", "Ampera-e"]
+    },
+    {
+      "nom": "Fiat",
+      "modeles": ["500", "500 (2007)", "500 (2020)", "500X", "500L", "500e", "Panda", "Panda II", "Panda III", "Punto", "Punto Evo", "Grande Punto", "Tipo", "Tipo II", "Bravo", "Stilo", "Croma", "Qubo", "Doblo", "Doblo II", "Fiorino", "Ducato", "Ducato III", "Scudo", "Talento", "Ulysse", "Multipla", "Sedici", "Freemont", "124 Spider", "Fullback"]
+    },
+    {
+      "nom": "Nissan",
+      "modeles": ["Micra", "Micra IV", "Micra V", "Note", "Note II", "Juke", "Juke II", "Qashqai", "Qashqai II", "Qashqai III", "X-Trail", "X-Trail III", "X-Trail IV", "Ariya", "Leaf", "Leaf II", "Navara", "NV200", "NV300", "NV400", "Primastar", "Pulsar", "Tiida", "370Z", "350Z", "GT-R", "Pathfinder", "Murano"]
+    },
+    {
+      "nom": "Seat",
+      "modeles": ["Mii", "Ibiza", "Ibiza IV", "Ibiza V", "Arona", "Leon", "Leon II", "Leon III", "Leon IV", "Ateca", "Tarraco", "Alhambra", "Altea", "Toledo", "Exeo"]
+    },
+    {
+      "nom": "Cupra",
+      "modeles": ["Born", "Formentor", "Leon", "Ateca", "Tavascan"]
+    },
+    {
+      "nom": "Skoda",
+      "modeles": ["Citigo", "Fabia", "Fabia II", "Fabia III", "Fabia IV", "Rapid", "Scala", "Octavia", "Octavia II", "Octavia III", "Octavia IV", "Superb", "Superb II", "Superb III", "Kamiq", "Karoq", "Kodiaq", "Enyaq", "Enyaq Coupé", "Roomster", "Yeti"]
+    },
+    {
+      "nom": "Honda",
+      "modeles": ["Jazz", "Jazz II", "Jazz III", "Jazz IV", "Civic", "Civic VIII", "Civic IX", "Civic X", "Civic XI", "Accord", "CR-V", "CR-V III", "CR-V IV", "CR-V V", "HR-V", "HR-V II", "ZR-V", "e", "e:Ny1", "Insight", "FR-V", "CR-Z", "S2000", "NSX"]
+    },
+    {
+      "nom": "Mazda",
+      "modeles": ["2", "3", "3 (BL)", "3 (BM)", "3 (BP)", "5", "6", "6 (GH)", "6 (GJ)", "6 (GL)", "CX-3", "CX-30", "CX-5", "CX-5 II", "CX-60", "CX-80", "MX-30", "MX-5", "MX-5 (ND)", "RX-8"]
+    },
+    {
+      "nom": "Mitsubishi",
+      "modeles": ["Space Star", "Space Star II", "ASX", "Eclipse Cross", "Outlander", "Outlander III", "Outlander PHEV", "L200", "Pajero", "Colt", "Lancer", "i-MiEV"]
+    },
+    {
+      "nom": "Suzuki",
+      "modeles": ["Alto", "Celerio", "Swift", "Swift IV", "Swift V", "Swift VI", "Baleno", "Ignis", "Ignis II", "Vitara", "Vitara II", "S-Cross", "S-Cross II", "Across", "Jimny", "Jimny IV", "SX4", "SX4 S-Cross", "Splash", "Grand Vitara"]
+    },
+    {
+      "nom": "Mini",
+      "modeles": ["Cooper", "Cooper S", "Cooper SE", "One", "3 portes", "5 portes", "Cabrio", "Clubman", "Clubman II", "Countryman", "Countryman II", "Paceman", "Coupé", "Roadster", "John Cooper Works"]
+    },
+    {
+      "nom": "Tesla",
+      "modeles": ["Model 3", "Model 3 Highland", "Model Y", "Model S", "Model X", "Cybertruck", "Roadster"]
+    },
+    {
+      "nom": "Porsche",
+      "modeles": ["911", "911 (991)", "911 (992)", "718 Boxster", "718 Cayman", "Taycan", "Panamera", "Panamera II", "Macan", "Macan II", "Cayenne", "Cayenne III", "Cayenne IV"]
+    },
+    {
+      "nom": "Jeep",
+      "modeles": ["Renegade", "Compass", "Compass II", "Cherokee", "Grand Cherokee", "Grand Cherokee V", "Wrangler", "Wrangler (JL)", "Gladiator", "Avenger", "Commander"]
+    },
+    {
+      "nom": "Land Rover",
+      "modeles": ["Defender", "Defender (L663)", "Discovery", "Discovery 4", "Discovery 5", "Discovery Sport", "Range Rover", "Range Rover (L405)", "Range Rover (L460)", "Range Rover Sport", "Range Rover Sport II", "Range Rover Sport III", "Range Rover Velar", "Range Rover Evoque", "Range Rover Evoque II", "Freelander", "Freelander 2"]
+    },
+    {
+      "nom": "Jaguar",
+      "modeles": ["XE", "XF", "XF II", "XJ", "F-Pace", "E-Pace", "I-Pace", "F-Type", "S-Type", "X-Type"]
+    },
+    {
+      "nom": "Alfa Romeo",
+      "modeles": ["Tonale", "Stelvio", "Giulia", "Giulietta", "MiTo", "159", "147", "156", "GT", "Brera", "Spider", "4C"]
+    },
+    {
+      "nom": "Lexus",
+      "modeles": ["CT", "IS", "IS III", "ES", "GS", "LS", "UX", "NX", "NX II", "RX", "RX IV", "RX V", "RZ", "LC", "LBX", "RC"]
+    },
+    {
+      "nom": "Volvo",
+      "modeles": ["C30", "C40", "C70", "S40", "S60", "S60 II", "S60 III", "S80", "S90", "V40", "V40 II", "V50", "V60", "V60 II", "V70", "V90", "XC40", "XC40 Recharge", "XC60", "XC60 II", "XC70", "XC90", "XC90 II", "EX30", "EX90"]
+    },
+    {
+      "nom": "Subaru",
+      "modeles": ["Impreza", "XV", "Crosstrek", "Forester", "Outback", "Levorg", "WRX", "BRZ", "Solterra", "Legacy"]
+    },
+    {
+      "nom": "Smart",
+      "modeles": ["Fortwo", "Fortwo (451)", "Fortwo (453)", "Forfour", "Forfour (453)", "#1", "#3"]
+    },
+    {
+      "nom": "MG",
+      "modeles": ["MG3", "MG4", "MG5", "ZS", "ZS EV", "HS", "Marvel R", "4"]
+    },
+    {
+      "nom": "BYD",
+      "modeles": ["Atto 3", "Dolphin", "Seal", "Tang", "Han"]
+    },
+    {
+      "nom": "Cupra",
+      "modeles": ["Born", "Formentor", "Leon", "Leon Sportstourer", "Ateca", "Tavascan", "Terramar"]
+    },
+    {
+      "nom": "Alpine",
+      "modeles": ["A110", "A110 S", "A110 R", "A290"]
+    },
+    {
+      "nom": "Maserati",
+      "modeles": ["Ghibli", "Quattroporte", "Levante", "Grecale", "GranTurismo", "MC20"]
+    },
+    {
+      "nom": "Lamborghini",
+      "modeles": ["Huracán", "Urus", "Revuelto", "Aventador", "Gallardo"]
+    },
+    {
+      "nom": "Ferrari",
+      "modeles": ["296 GTB", "SF90", "F8 Tributo", "Roma", "Purosangue", "812", "488", "458", "California"]
+    },
+    {
+      "nom": "Aston Martin",
+      "modeles": ["DB11", "DB12", "DBS", "Vantage", "DBX", "Rapide"]
+    },
+    {
+      "nom": "Bentley",
+      "modeles": ["Continental GT", "Flying Spur", "Bentayga"]
+    },
+    {
+      "nom": "Rolls-Royce",
+      "modeles": ["Ghost", "Phantom", "Wraith", "Dawn", "Cullinan", "Spectre"]
+    },
+    {
+      "nom": "Lancia",
+      "modeles": ["Ypsilon", "Ypsilon (2024)", "Delta", "Musa"]
+    },
+    {
+      "nom": "Ssangyong",
+      "modeles": ["Tivoli", "Korando", "Rexton", "Musso", "Torres"]
+    },
+    {
+      "nom": "Isuzu",
+      "modeles": ["D-Max", "D-Max II"]
+    },
+    {
+      "nom": "Iveco",
+      "modeles": ["Daily", "Daily VI", "Daily VII"]
+    }
+  ]
+}
