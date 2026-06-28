@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bathily-convoyage-v2';
+const CACHE_NAME = 'bathily-convoyage-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -12,8 +12,7 @@ const STATIC_ASSETS = [
   '/js/lang-switcher.js',
   '/js/vehicule-autocomplete.js',
   '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  '/favicon.png'
 ];
 
 // Install: pre-cache static assets
@@ -103,8 +102,8 @@ self.addEventListener('push', (event) => {
   const data = event.data.json();
   const options = {
     body: data.body || 'Nouvelle notification Bathily-Convoyage',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: '/favicon.png',
+    badge: '/favicon.png',
     vibrate: [100, 50, 100],
     data: { url: data.url || '/' }
   };
