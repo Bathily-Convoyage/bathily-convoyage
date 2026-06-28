@@ -53,14 +53,14 @@ exports.handler = async (event, context) => {
     }
 
     // Base de données Mock locale pour la démo / tests rapides
-    const mockSIV = {
+    const mock= {
       'AB123CD': { marque: 'Renault', modele: 'CLIO V', energie: 'Essence', couleur: 'Gris', annee: '2022', vin: 'VF1RJA00000000000', puissance: '130' },
       'IJ789KL': { marque: 'BMW', modele: 'SERIE 3', energie: 'Hybride', couleur: 'Noir', annee: '2023', vin: 'WBA5F310000000000', puissance: '190' },
       'MN012OP': { marque: 'Tesla', modele: 'MODEL 3', energie: 'Électrique', couleur: 'Blanc', annee: '2023', vin: '5YJ3E1EA000000000', puissance: '283' }
     };
 
     if (mockSIV[formattedPlate]) {
-      console.log(`🎯 Match dans la base mock locale SIV pour la plaque : ${formattedPlate}`);
+      console.log(`🎯 Match dans la base mock locale pour la plaque : ${formattedPlate}`);
       return {
         statusCode: 200,
         headers,
@@ -77,7 +77,7 @@ exports.handler = async (event, context) => {
       throw new Error('RAPIDAPI_KEY not configured');
     }
 
-    console.log(`🔍 Interrogation SIV pour la plaque : ${formattedPlate}`);
+    console.log(`🔍 Interrogation pour la plaque : ${formattedPlate}`);
 
     try {
       const response = await fetch(`https://${host}/${formattedPlate}`, {
@@ -92,8 +92,8 @@ exports.handler = async (event, context) => {
       const data = await response.json();
 
       if (!response.ok || data.error || (data.code && data.code !== 200)) {
-        console.error('Erreur API SIV:', data);
-        throw new Error(data.message || `Erreur SIV ou véhicule introuvable (${data.code || response.status})`);
+        console.error('Erreur API:', data);
+        throw new Error(data.message || `Erreur ou véhicule introuvable (${data.code || response.status})`);
       }
 
       console.log('Données brutes reçues de la plaque:', data);
@@ -124,7 +124,7 @@ exports.handler = async (event, context) => {
       };
 
     } catch (apiError) {
-      console.warn("⚠️ API SIV en échec (non souscrit ou quota). Utilisation du générateur de repli pour la démo.", apiError.message);
+      console.warn("⚠️ API en échec (non souscrit ou quota). Utilisation du générateur de repli pour la démo.", apiError.message);
 
       // Générateur déterministe de véhicule basé sur les caractères de la plaque
       const brands = ['Peugeot', 'Citroën', 'Volkswagen', 'Audi', 'Toyota', 'Ford'];

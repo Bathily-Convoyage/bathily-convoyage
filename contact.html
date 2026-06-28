@@ -583,9 +583,10 @@ footer {
   .f-row { grid-template-columns: 1fr; }
 }
 </style>
-<script src="/js/lang-switcher.js" defer></script>
+<script src="public/js/lang-switcher.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/supabase-config.js"></script>
+  <link rel="stylesheet" href="public/css/mobile-nav.css">
 </head>
 <body>
 
@@ -595,7 +596,7 @@ footer {
 <header>
   <div class="container header-inner">
     <a href="index.html" class="logo">Bathily-Convoyage<span>.</span></a>
-    <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</div>
+    <div class="menu-toggle" id="menuToggle">☰</div>
     <div class="nav-links">
       <a href="index.html">Accueil</a>
       <a href="formation-convoyeur.html">Devenir convoyeur</a>
@@ -1040,5 +1041,6 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+<script src="public/js/mobile-nav.js" defer></script>
 </body>
 </html>

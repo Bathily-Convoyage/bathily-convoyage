@@ -409,6 +409,66 @@
       display: none;
     }
     .field-err.show { display: block; }
+
+    /* ── Tunnel multi-étapes ── */
+    .wizard-steps { display: flex; justify-content: center; gap: 0; margin-bottom: 32px; flex-wrap: wrap; }
+    .wizard-step { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 0.75rem; font-weight: 600; color: var(--gray-mid); position: relative; }
+    .wizard-step .step-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; background: var(--border-light); color: var(--gray-mid); transition: all 0.3s; }
+    .wizard-step.active .step-num { background: var(--bordeaux); color: white; }
+    .wizard-step.completed .step-num { background: var(--success); color: white; }
+    .wizard-step.active { color: var(--bordeaux); }
+    .wizard-step::after { content: ''; width: 32px; height: 2px; background: var(--border-light); position: absolute; right: -16px; top: 50%; }
+    .wizard-step:last-child::after { display: none; }
+    .wizard-step.completed::after { background: var(--success); }
+    .wizard-panel { display: none; }
+    .wizard-panel.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .wizard-nav { display: flex; justify-content: space-between; margin-top: 24px; gap: 16px; }
+    .btn-next, .btn-prev { padding: 12px 28px; border-radius: 40px; font-size: 0.8rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-next { background: var(--bordeaux); color: white; }
+    .btn-next:hover { background: var(--bordeaux-dark); transform: translateY(-2px); }
+    .btn-prev { background: transparent; color: var(--gray-mid); border: 1px solid var(--border-light); }
+    .btn-prev:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
+
+    /* ── Véhicule roulant / non-roulant ── */
+    .cond-tabs { display: flex; gap: 12px; margin-bottom: 12px; }
+    .cond-tab { flex: 1; padding: 16px; border-radius: 16px; border: 2px solid var(--border-light); cursor: pointer; text-align: center; transition: all 0.2s; background: white; }
+    .cond-tab.active { border-color: var(--bordeaux); background: var(--bordeaux-light); }
+    .cond-tab .cond-icon { font-size: 1.8rem; margin-bottom: 8px; }
+    .cond-tab .cond-label { font-size: 0.85rem; font-weight: 600; color: var(--gray-dark); }
+    .cond-tab .cond-desc { font-size: 0.7rem; color: var(--gray-mid); margin-top: 4px; }
+
+    /* ── Taille utilitaire ── */
+    .util-sizes { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 12px; }
+    .util-size { padding: 16px; border-radius: 16px; border: 2px solid var(--border-light); cursor: pointer; text-align: center; transition: all 0.2s; background: white; }
+    .util-size.active { border-color: var(--bordeaux); background: var(--bordeaux-light); }
+    .util-size .size-m3 { font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--bordeaux); }
+    .util-size .size-desc { font-size: 0.7rem; color: var(--gray-mid); margin-top: 4px; }
+    .util-size .size-price { font-size: 0.75rem; font-weight: 600; color: var(--success); margin-top: 6px; }
+
+    /* ── Badge tout inclus ── */
+    .included-badge { background: #F0FAF5; border: 1px solid var(--success); border-radius: 16px; padding: 16px 20px; margin: 16px 0; }
+    .included-badge .included-title { font-size: 0.8rem; font-weight: 700; color: var(--success); margin-bottom: 8px; }
+    .included-badge .included-items { display: flex; flex-wrap: wrap; gap: 12px; }
+    .included-badge .included-item { font-size: 0.75rem; color: var(--gray-dark); display: flex; align-items: center; gap: 6px; }
+    .included-badge .included-item i { color: var(--success); }
+
+    /* ── Garantie + assurance ── */
+    .trust-info { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0; }
+    .trust-pill { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 40px; background: white; border: 1px solid var(--border-light); font-size: 0.75rem; font-weight: 600; color: var(--gray-dark); }
+    .trust-pill i { color: var(--bordeaux); }
+
+    /* ── Alerte collection ── */
+    .collection-alert { background: #FFF5E6; border: 1px solid var(--warning); border-radius: 12px; padding: 12px 16px; margin: 12px 0; font-size: 0.8rem; color: #8B6914; display: none; }
+    .collection-alert.show { display: block; }
+
+    /* ── VE recharge info ── */
+    .ve-recharge-info { background: #E6F0F4; border: 1px solid var(--bordeaux); border-radius: 12px; padding: 12px 16px; margin: 12px 0; font-size: 0.8rem; color: var(--bordeaux); display: none; }
+    .ve-recharge-info.show { display: block; }
+
+    /* ── Effets personnels ── */
+    .personal-effects-warn { background: #FEF2F2; border: 1px solid #DC2626; border-radius: 12px; padding: 12px 16px; margin: 12px 0; font-size: 0.75rem; color: #991B1B; }
+
     @media (max-width: 768px) {
       .f-row { grid-template-columns: 1fr; }
       .devis-form-wrapper { padding: 24px; }
@@ -417,6 +477,7 @@
       .price-display { flex-direction: column; text-align: center; }
     }
   </style>
+  <link rel="stylesheet" href="public/css/mobile-nav.css">
 </head>
 
 <body>
@@ -440,162 +501,303 @@
     <section class="container">
       <div class="devis-form-wrapper">
         <h2 class="section-title">Estimation en <em>2 minutes</em></h2>
-        <p class="section-sub">Remplissez les informations ci-dessous pour recevoir une estimation de prix.</p>
+        <p class="section-sub">Suivez les étapes pour recevoir votre estimation de prix.</p>
+
+        <!-- Indicateur d'étapes -->
+        <div class="wizard-steps">
+          <div class="wizard-step active" id="wstep-1"><span class="step-num">1</span> Véhicule & trajet</div>
+          <div class="wizard-step" id="wstep-2"><span class="step-num">2</span> Transport & options</div>
+          <div class="wizard-step" id="wstep-3"><span class="step-num">3</span> Coordonnées</div>
+          <div class="wizard-step" id="wstep-4"><span class="step-num">4</span> Récapitulatif</div>
+        </div>
 
         <form id="devisForm" onsubmit="submitDevis(event)">
-          <!-- Type véhicule -->
-          <div class="f-grp">
-            <label>Type de véhicule</label>
-            <div class="veh-tabs">
-              <button type="button" class="veh-tab active" data-value="Automobile" onclick="setVehicleType('Automobile')">🚗 Automobile</button>
-              <button type="button" class="veh-tab" data-value="Moto" onclick="setVehicleType('Moto')">🏍️ Moto</button>
-            </div>
-            <input type="hidden" id="vehiculeType" value="Automobile">
-          </div>
+          <input type="hidden" id="vehiculeType" value="Automobile">
+          <input type="hidden" id="vehicleCondition" value="working">
+          <input type="hidden" id="utilSize" value="">
+          <input type="hidden" id="isCollection" value="false">
 
-          <!-- Identification véhicule (SIV + Marque/Modèle) -->
-          <div class="f-grp">
-            <label>Plaque d'immatriculation</label>
-            <div style="display:flex; gap:8px; align-items:center;">
-              <input type="text" id="plaqueInput" placeholder="AB-123-CD" maxlength="9" style="flex:1; text-transform:uppercase;" oninput="formatPlaque(this)">
-              <button type="button" onclick="lookupDevisPlaque()" class="btn-siv"><i class="fas fa-search"></i> Identifier (SIV)</button>
-            </div>
-            <div class="siv-result" id="sivResult">
-              <div class="siv-success"><i class="fas fa-check-circle"></i> <strong id="sivVehicleName">—</strong></div>
-              <div class="siv-specs">
-                <span><i class="fas fa-calendar"></i> <span id="sivYear">—</span></span>
-                <span><i class="fas fa-gas-pump"></i> <span id="sivEnergy">—</span></span>
-                <span><i class="fas fa-bolt"></i> <span id="sivPower">—</span> CV</span>
-                <span><i class="fas fa-palette"></i> <span id="sivColor">—</span></span>
+          <!-- ═══ ÉTAPE 1 : Véhicule & trajet ═══ -->
+          <div class="wizard-panel active" id="panel-1">
+            <!-- Type véhicule -->
+            <div class="f-grp">
+              <label>Type de véhicule</label>
+              <div class="veh-tabs">
+                <button type="button" class="veh-tab active" data-value="Automobile" onclick="setVehicleType('Automobile')">🚗 Automobile</button>
+                <button type="button" class="veh-tab" data-value="Moto" onclick="setVehicleType('Moto')">🏍️ Moto</button>
+                <button type="button" class="veh-tab" data-value="Utilitaire" onclick="setVehicleType('Utilitaire')">🚐 Utilitaire</button>
+                <button type="button" class="veh-tab" data-value="Luxe" onclick="setVehicleType('Luxe')">🏎️ Luxe / Collection</button>
               </div>
             </div>
-          </div>
 
-          <div class="f-row">
+            <!-- État du véhicule -->
             <div class="f-grp">
-              <label>Marque du véhicule</label>
-              <input type="text" id="marqueInput" placeholder="Ex: Peugeot" autocomplete="off" oninput="suggestMarque(this.value)">
-              <div class="suggest-box" id="marqueSuggests"></div>
-            </div>
-            <div class="f-grp">
-              <label>Modèle</label>
-              <input type="text" id="modeleInput" placeholder="Ex: 207" autocomplete="off" oninput="suggestModele(this.value)">
-              <div class="suggest-box" id="modeleSuggests"></div>
-            </div>
-          </div>
-          <div class="f-grp" id="manualVehicleBlock" style="display:none;">
-            <label>Véhicule non listé ? Saisissez-le manuellement</label>
-            <input type="text" id="vehiculeManuel" placeholder="Ex: Dodge RAM 1500, Camping-car Fiat...">
-          </div>
-
-          <!-- Trajet -->
-          <div class="f-row">
-            <div class="f-grp">
-              <label>Ville / Adresse de départ *</label>
-              <input type="text" id="depart" placeholder="Ex: Paris" autocomplete="off" required>
-              <div class="suggest-box" id="departSuggests"></div>
-              <div class="field-err" id="errDepart">Veuillez renseigner le lieu de départ</div>
-            </div>
-            <div class="f-grp">
-              <label>Ville / Adresse d'arrivée *</label>
-              <input type="text" id="arrivee" placeholder="Ex: Lyon" autocomplete="off" required>
-              <div class="suggest-box" id="arriveeSuggests"></div>
-              <div class="field-err" id="errArrivee">Veuillez renseigner le lieu d'arrivée</div>
-            </div>
-          </div>
-
-          <!-- Mode transport -->
-          <div class="f-grp">
-            <label>Mode de transport</label>
-            <select id="modeTransport">
-              <option value="route">Route (pilote professionnel)</option>
-              <option value="plateau">Plateau (sans kilomètres au compteur)</option>
-            </select>
-          </div>
-
-          <!-- Pack -->
-          <div class="f-grp">
-            <label>Pack de service</label>
-            <select id="packSelect">
-              <option value="starter">Starter — Inclus</option>
-              <option value="serenite">Sérénité — +49€</option>
-              <option value="excellence">Excellence — +129€</option>
-            </select>
-          </div>
-
-          <!-- Options -->
-          <div class="f-grp">
-            <label>Options complémentaires</label>
-            <div class="opts-grid">
-              <div class="opt-item">
-                <input type="checkbox" id="optUrgence">
-                <label for="optUrgence">Urgence (+30%)</label>
-              </div>
-              <div class="opt-item">
-                <input type="checkbox" id="optGardiennage">
-                <label for="optGardiennage">Gardiennage +100€/nuit</label>
+              <label>État du véhicule</label>
+              <div class="cond-tabs">
+                <div class="cond-tab active" onclick="setVehicleCondition('working', this)">
+                  <div class="cond-icon">✅</div>
+                  <div class="cond-label">Roulant</div>
+                  <div class="cond-desc">Conduite par chauffeur possible</div>
+                </div>
+                <div class="cond-tab" onclick="setVehicleCondition('non_working', this)">
+                  <div class="cond-icon">🔧</div>
+                  <div class="cond-label">Non-roulant</div>
+                  <div class="cond-desc">Transport par plateau requis</div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Code Promo -->
-          <div class="f-grp" style="margin-top: 16px;">
-            <label>Code Promo</label>
-            <input type="text" id="promoCodeInput" placeholder="Ex: HELLO10" style="text-transform: uppercase;">
-            <div class="field-err" id="promoCodeMessage" style="color:var(--success); display:none; margin-top:6px; font-weight:600;"></div>
-          </div>
-
-          <!-- Coordonnées client -->
-          <div class="f-row">
-            <div class="f-grp">
-              <label>Prénom *</label>
-              <input type="text" id="clientPrenom" placeholder="Jean" required>
-              <div class="field-err" id="errPrenom">Champ requis</div>
+            <!-- Alerte collection -->
+            <div class="collection-alert" id="collectionAlert">
+              <i class="fas fa-info-circle"></i> <strong>Véhicule de collection :</strong> Pour garantir la sécurité de votre véhicule, nous recommandons le transport par plateau (sans kilomètres au compteur). Le mode "route" reste disponible si votre véhicule est en parfait état de marche.
             </div>
-            <div class="f-grp">
-              <label>Nom *</label>
-              <input type="text" id="clientNom" placeholder="Dupont" required>
-              <div class="field-err" id="errNom">Champ requis</div>
-            </div>
-          </div>
-          <div class="f-row">
-            <div class="f-grp">
-              <label>Email *</label>
-              <input type="email" id="clientEmail" placeholder="jean.dupont@email.fr" required>
-              <div class="field-err" id="errEmail">Email invalide</div>
-            </div>
-            <div class="f-grp">
-              <label>Téléphone</label>
-              <input type="tel" id="clientTel" placeholder="+33 6 12 34 56 78">
-            </div>
-          </div>
 
-          <!-- Message -->
-          <div class="f-grp">
-            <label>Message (optionnel)</label>
-            <textarea id="messageDevis" rows="3" placeholder="Précisions sur le véhicule, dates souhaitées, contraintes particulières…"></textarea>
-          </div>
-
-          <!-- CGU -->
-          <div class="f-grp">
-            <label class="checkbox-label">
-              <input type="checkbox" id="cguCheck" required>
-              J'accepte la <a href="mentions-legales.html#cgu" target="_blank" rel="noopener">politique de confidentialité</a> et les CGU *
-            </label>
-            <div class="field-err" id="errCgu">Veuillez accepter les conditions</div>
-          </div>
-
-          <!-- Price display -->
-          <div class="price-display">
-            <div>
-              <div class="price-label">Estimation de votre convoyage</div>
-              <div class="price-amount" id="priceDisplay">— <span>€ HT</span></div>
-              <div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">
-                Sous réserve de validation définitive
-                <span id="distanceDisplay" style="font-weight:600; margin-left:8px;"></span>
+            <!-- Taille utilitaire (conditionnel) -->
+            <div class="f-grp" id="utilSizeBlock" style="display:none;">
+              <label>Taille de l'utilitaire (volume)</label>
+              <div class="util-sizes">
+                <div class="util-size" onclick="setUtilSize('3', this)">
+                  <div class="size-m3">3 m³</div>
+                  <div class="size-desc">Petit utilitaire (ex: C15, Kangoo)</div>
+                  <div class="size-price">+0% — tarif standard</div>
+                </div>
+                <div class="util-size" onclick="setUtilSize('6', this)">
+                  <div class="size-m3">6 m³</div>
+                  <div class="size-desc">Moyen (ex: Trafic, Vivaro)</div>
+                  <div class="size-price">+10%</div>
+                </div>
+                <div class="util-size" onclick="setUtilSize('10', this)">
+                  <div class="size-m3">10 m³</div>
+                  <div class="size-desc">Grand (ex: Master, Boxer)</div>
+                  <div class="size-price">+20%</div>
+                </div>
+                <div class="util-size" onclick="setUtilSize('14', this)">
+                  <div class="size-m3">14 m³</div>
+                  <div class="size-desc">Très grand (ex: Maxi Daily)</div>
+                  <div class="size-price">+30%</div>
+                </div>
+                <div class="util-size" onclick="setUtilSize('20', this)">
+                  <div class="size-m3">20 m³</div>
+                  <div class="size-desc">Porte-auto / Poids lourd</div>
+                  <div class="size-price">+50%</div>
+                </div>
               </div>
             </div>
-            <button type="submit" class="btn-red" id="submitBtn"><i class="fas fa-paper-plane"></i> Envoyer la demande</button>
+
+            <!-- Identification véhicule -->
+            <div class="f-grp">
+              <label>Plaque d'immatriculation</label>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input type="text" id="plaqueInput" placeholder="AB-123-CD" maxlength="9" style="flex:1; text-transform:uppercase;" oninput="formatPlaque(this)">
+                <button type="button" onclick="lookupDevisPlaque()" class="btn-siv"><i class="fas fa-search"></i> Identifier</button>
+              </div>
+              <div class="siv-result" id="sivResult">
+                <div class="siv-success"><i class="fas fa-check-circle"></i> <strong id="sivVehicleName">—</strong></div>
+                <div class="siv-specs">
+                  <span><i class="fas fa-calendar"></i> <span id="sivYear">—</span></span>
+                  <span><i class="fas fa-gas-pump"></i> <span id="sivEnergy">—</span></span>
+                  <span><i class="fas fa-bolt"></i> <span id="sivPower">—</span> CV</span>
+                  <span><i class="fas fa-palette"></i> <span id="sivColor">—</span></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="f-row">
+              <div class="f-grp">
+                <label>Marque du véhicule</label>
+                <input type="text" id="marqueInput" placeholder="Ex: Peugeot" autocomplete="off" oninput="suggestMarque(this.value)">
+                <div class="suggest-box" id="marqueSuggests"></div>
+              </div>
+              <div class="f-grp">
+                <label>Modèle</label>
+                <input type="text" id="modeleInput" placeholder="Ex: 207" autocomplete="off" oninput="suggestModele(this.value)">
+                <div class="suggest-box" id="modeleSuggests"></div>
+              </div>
+            </div>
+            <div class="f-grp" id="manualVehicleBlock" style="display:none;">
+              <label>Véhicule non listé ? Saisissez-le manuellement</label>
+              <input type="text" id="vehiculeManuel" placeholder="Ex: Dodge RAM 1500, Camping-car Fiat...">
+            </div>
+
+            <!-- Trajet -->
+            <div class="f-row">
+              <div class="f-grp">
+                <label>Ville / Adresse de départ *</label>
+                <input type="text" id="depart" placeholder="Ex: Paris" autocomplete="off" required>
+                <div class="suggest-box" id="departSuggests"></div>
+                <div class="field-err" id="errDepart">Veuillez renseigner le lieu de départ</div>
+              </div>
+              <div class="f-grp">
+                <label>Ville / Adresse d'arrivée *</label>
+                <input type="text" id="arrivee" placeholder="Ex: Lyon" autocomplete="off" required>
+                <div class="suggest-box" id="arriveeSuggests"></div>
+                <div class="field-err" id="errArrivee">Veuillez renseigner le lieu d'arrivée</div>
+              </div>
+            </div>
+
+            <!-- Badge tout inclus -->
+            <div class="included-badge">
+              <div class="included-title"><i class="fas fa-check-circle"></i> Tout inclus dans le prix</div>
+              <div class="included-items">
+                <div class="included-item"><i class="fas fa-road"></i> Péages inclus</div>
+                <div class="included-item"><i class="fas fa-gas-pump"></i> Carburant inclus</div>
+                <div class="included-item"><i class="fas fa-shield-alt"></i> Assurance tous risques (100 000€)</div>
+                <div class="included-item"><i class="fas fa-headset"></i> Service client dédié</div>
+              </div>
+            </div>
+
+            <!-- Trust pills -->
+            <div class="trust-info">
+              <div class="trust-pill"><i class="fas fa-clock"></i> Garantie prise en charge sous 72h</div>
+              <div class="trust-pill"><i class="fas fa-shield-halved"></i> Double RC Pro</div>
+              <div class="trust-pill"><i class="fas fa-map-marker-alt"></i> Suivi GPS temps réel</div>
+            </div>
+
+            <div class="wizard-nav">
+              <span></span>
+              <button type="button" class="btn-next" onclick="goToStep(2)">Suivant <i class="fas fa-arrow-right"></i></button>
+            </div>
+          </div>
+
+          <!-- ═══ ÉTAPE 2 : Transport & options ═══ -->
+          <div class="wizard-panel" id="panel-2">
+            <!-- Mode transport -->
+            <div class="f-grp">
+              <label>Mode de transport</label>
+              <select id="modeTransport" onchange="onModeChange()">
+                <option value="route">Route (pilote professionnel)</option>
+                <option value="plateau">Plateau (sans kilomètres au compteur)</option>
+              </select>
+            </div>
+
+            <!-- Info recharge VE -->
+            <div class="ve-recharge-info" id="veRechargeInfo">
+              <i class="fas fa-bolt"></i> <strong>Véhicule électrique :</strong> Les temps de recharge sur le trajet sont inclus dans le devis. Le délai de livraison peut être légèrement allongé.
+            </div>
+
+            <!-- Pack -->
+            <div class="f-grp">
+              <label>Pack de service</label>
+              <select id="packSelect">
+                <option value="starter">Starter — Inclus (convoyeur certifié, suivi GPS, état des lieux 20 photos)</option>
+                <option value="serenite">Sérénité — +69€ (nettoyage int./ext., lavage, RDV planifié, support VIP)</option>
+                <option value="excellence">Excellence — +159€ (plein carburant, photos 4K, livraison dim./férié, priorité)</option>
+              </select>
+            </div>
+
+            <!-- Options complémentaires (à la carte, hors packs) -->
+            <div class="f-grp">
+              <label>Options complémentaires</label>
+              <div class="opts-grid">
+                <div class="opt-item">
+                  <input type="checkbox" id="optUrgence">
+                  <label for="optUrgence">Urgence (+30%)</label>
+                </div>
+                <div class="opt-item">
+                  <input type="checkbox" id="optGardiennage">
+                  <label for="optGardiennage">Gardiennage +100€/nuit</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Effets personnels -->
+            <div class="personal-effects-warn">
+              <i class="fas fa-exclamation-triangle"></i> <strong>Effets personnels interdits :</strong> Par mesure de sécurité et conformément aux conditions d'assurance, aucun effet personnel ne peut être transporté dans le véhicule lors du convoyage.
+            </div>
+
+            <!-- Code Promo -->
+            <div class="f-grp" style="margin-top: 16px;">
+              <label>Code Promo</label>
+              <input type="text" id="promoCodeInput" placeholder="Ex: HELLO10" style="text-transform: uppercase;">
+              <div class="field-err" id="promoCodeMessage" style="color:var(--success); display:none; margin-top:6px; font-weight:600;"></div>
+            </div>
+
+            <!-- Price display -->
+            <div class="price-display">
+              <div>
+                <div class="price-label">Estimation de votre convoyage</div>
+                <div class="price-amount" id="priceDisplay">— <span>€ HT</span></div>
+                <div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">
+                  Sous réserve de validation définitive
+                  <span id="distanceDisplay" style="font-weight:600; margin-left:8px;"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="wizard-nav">
+              <button type="button" class="btn-prev" onclick="goToStep(1)"><i class="fas fa-arrow-left"></i> Retour</button>
+              <button type="button" class="btn-next" onclick="goToStep(3)">Suivant <i class="fas fa-arrow-right"></i></button>
+            </div>
+          </div>
+
+          <!-- ═══ ÉTAPE 3 : Coordonnées ═══ -->
+          <div class="wizard-panel" id="panel-3">
+            <div class="f-row">
+              <div class="f-grp">
+                <label>Prénom *</label>
+                <input type="text" id="clientPrenom" placeholder="Jean" required>
+                <div class="field-err" id="errPrenom">Champ requis</div>
+              </div>
+              <div class="f-grp">
+                <label>Nom *</label>
+                <input type="text" id="clientNom" placeholder="Dupont" required>
+                <div class="field-err" id="errNom">Champ requis</div>
+              </div>
+            </div>
+            <div class="f-row">
+              <div class="f-grp">
+                <label>Email *</label>
+                <input type="email" id="clientEmail" placeholder="jean.dupont@email.fr" required>
+                <div class="field-err" id="errEmail">Email invalide</div>
+              </div>
+              <div class="f-grp">
+                <label>Téléphone</label>
+                <input type="tel" id="clientTel" placeholder="+33 6 12 34 56 78">
+              </div>
+            </div>
+
+            <!-- Message -->
+            <div class="f-grp">
+              <label>Message (optionnel)</label>
+              <textarea id="messageDevis" rows="3" placeholder="Précisions sur le véhicule, dates souhaitées, contraintes particulières…"></textarea>
+            </div>
+
+            <!-- CGU -->
+            <div class="f-grp">
+              <label class="checkbox-label">
+                <input type="checkbox" id="cguCheck" required>
+                J'accepte la <a href="mentions-legales.html#cgu" target="_blank" rel="noopener">politique de confidentialité</a> et les CGU *
+              </label>
+              <div class="field-err" id="errCgu">Veuillez accepter les conditions</div>
+            </div>
+
+            <div class="wizard-nav">
+              <button type="button" class="btn-prev" onclick="goToStep(2)"><i class="fas fa-arrow-left"></i> Retour</button>
+              <button type="button" class="btn-next" onclick="goToStep(4)">Récapitulatif <i class="fas fa-arrow-right"></i></button>
+            </div>
+          </div>
+
+          <!-- ═══ ÉTAPE 4 : Récapitulatif ═══ -->
+          <div class="wizard-panel" id="panel-4">
+            <div id="recapContent" style="background:var(--bordeaux-light);border-radius:20px;padding:24px;margin-bottom:20px;">
+              <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement du récapitulatif...</div>
+            </div>
+
+            <div class="price-display">
+              <div>
+                <div class="price-label">Estimation finale</div>
+                <div class="price-amount" id="priceDisplayFinal">— <span>€ HT</span></div>
+                <div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">
+                  Tout inclus : péages, carburant, assurance 100 000€, service client
+                </div>
+              </div>
+              <button type="submit" class="btn-red" id="submitBtn"><i class="fas fa-paper-plane"></i> Envoyer la demande</button>
+            </div>
+
+            <div class="wizard-nav">
+              <button type="button" class="btn-prev" onclick="goToStep(3)"><i class="fas fa-arrow-left"></i> Retour</button>
+              <span></span>
+            </div>
           </div>
         </form>
       </div>
@@ -629,10 +831,193 @@
       document.querySelectorAll('.veh-tab').forEach(tab => {
         tab.classList.toggle('active', tab.dataset.value === type);
       });
+
+      // Afficher/masquer le bloc taille utilitaire
+      var utilBlock = document.getElementById('utilSizeBlock');
+      if (utilBlock) utilBlock.style.display = (type === 'Utilitaire') ? 'block' : 'none';
+
+      // Alerte collection pour le type Luxe
+      var collAlert = document.getElementById('collectionAlert');
+      var isColl = (type === 'Luxe');
+      document.getElementById('isCollection').value = isColl;
+      if (collAlert) collAlert.classList.toggle('show', isColl);
+
+      // Si non-roulant, forcer le mode plateau
+      var cond = document.getElementById('vehicleCondition').value;
+      if (cond === 'non_working') {
+        var modeSel = document.getElementById('modeTransport');
+        if (modeSel) modeSel.value = 'plateau';
+      }
+
+      // Si Luxe et non-roulant, forcer plateau
+      if (isColl) {
+        var modeSel2 = document.getElementById('modeTransport');
+        if (modeSel2 && cond === 'non_working') modeSel2.value = 'plateau';
+      }
+
       calculatePrice();
     }
 
-    // ========== IDENTIFICATION VÉHICULE (SIV + MARQUES/MODÈLES) ==========
+    // ========== ÉTAT DU VÉHICULE ==========
+    function setVehicleCondition(cond, el) {
+      document.getElementById('vehicleCondition').value = cond;
+      document.querySelectorAll('.cond-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+
+      // Si non-roulant, forcer le mode plateau
+      if (cond === 'non_working') {
+        var modeSel = document.getElementById('modeTransport');
+        if (modeSel) {
+          modeSel.value = 'plateau';
+          onModeChange();
+        }
+      }
+
+      calculatePrice();
+    }
+
+    // ========== TAILLE UTILITAIRE ==========
+    var _utilSizeCoeffs = { '3': 1.0, '6': 1.10, '10': 1.20, '14': 1.30, '20': 1.50 };
+    function setUtilSize(size, el) {
+      document.getElementById('utilSize').value = size;
+      document.querySelectorAll('.util-size').forEach(s => s.classList.remove('active'));
+      el.classList.add('active');
+      calculatePrice();
+    }
+
+    // ========== MODE TRANSPORT ==========
+    function onModeChange() {
+      calculatePrice();
+    }
+
+    // ========== TUNNEL MULTI-ÉTAPES ==========
+    var _currentStep = 1;
+
+    function goToStep(step) {
+      // Validation avant de passer à l'étape suivante
+      if (step > _currentStep) {
+        if (_currentStep === 1 && !validateStep1()) return;
+        if (_currentStep === 2 && !validateStep2()) return;
+        if (_currentStep === 3 && !validateStep3()) return;
+      }
+
+      // Masquer toutes les étapes
+      document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
+      // Mettre à jour l'indicateur
+      for (var i = 1; i <= 4; i++) {
+        var ws = document.getElementById('wstep-' + i);
+        ws.classList.remove('active', 'completed');
+        if (i < step) ws.classList.add('completed');
+        else if (i === step) ws.classList.add('active');
+      }
+
+      // Afficher l'étape cible
+      document.getElementById('panel-' + step).classList.add('active');
+      _currentStep = step;
+
+      // Si étape 4, générer le récapitulatif
+      if (step === 4) generateRecap();
+
+      // Scroll vers le haut du formulaire
+      document.querySelector('.devis-form-wrapper').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function validateStep1() {
+      var ok = true;
+      var depart = document.getElementById('depart').value.trim();
+      var arrivee = document.getElementById('arrivee').value.trim();
+
+      if (!depart) { document.getElementById('errDepart').classList.add('show'); ok = false; }
+      else document.getElementById('errDepart').classList.remove('show');
+
+      if (!arrivee) { document.getElementById('errArrivee').classList.add('show'); ok = false; }
+      else document.getElementById('errArrivee').classList.remove('show');
+
+      return ok;
+    }
+
+    function validateStep2() {
+      return true; // Pas de champs obligatoires supplémentaires
+    }
+
+    function validateStep3() {
+      var ok = true;
+      var prenom = document.getElementById('clientPrenom').value.trim();
+      var nom = document.getElementById('clientNom').value.trim();
+      var email = document.getElementById('clientEmail').value.trim();
+      var cgu = document.getElementById('cguCheck').checked;
+
+      if (!prenom) { document.getElementById('errPrenom').classList.add('show'); ok = false; }
+      else document.getElementById('errPrenom').classList.remove('show');
+
+      if (!nom) { document.getElementById('errNom').classList.add('show'); ok = false; }
+      else document.getElementById('errNom').classList.remove('show');
+
+      if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) { document.getElementById('errEmail').classList.add('show'); ok = false; }
+      else document.getElementById('errEmail').classList.remove('show');
+
+      if (!cgu) { document.getElementById('errCgu').classList.add('show'); ok = false; }
+      else document.getElementById('errCgu').classList.remove('show');
+
+      return ok;
+    }
+
+    function generateRecap() {
+      var type = document.getElementById('vehiculeType').value;
+      var cond = document.getElementById('vehicleCondition').value;
+      var condLabel = cond === 'working' ? 'Roulant' : 'Non-roulant';
+      var depart = document.getElementById('depart').value.trim();
+      var arrivee = document.getElementById('arrivee').value.trim();
+      var mode = document.getElementById('modeTransport').value;
+      var modeLabel = mode === 'plateau' ? 'Plateau (sans km au compteur)' : 'Route (pilote professionnel)';
+      var pack = document.getElementById('packSelect').value;
+      var packLabel = { starter: 'Starter (inclus)', serenite: 'Sérénité (+69€)', excellence: 'Excellence (+159€)' }[pack];
+      var marque = document.getElementById('marqueInput').value.trim();
+      var modele = document.getElementById('modeleInput').value.trim();
+      var vehLabel = (marque && modele) ? marque + ' ' + modele : type;
+      var utilSize = document.getElementById('utilSize').value;
+      var prenom = document.getElementById('clientPrenom').value.trim();
+      var nom = document.getElementById('clientNom').value.trim();
+      var email = document.getElementById('clientEmail').value.trim();
+      var tel = document.getElementById('clientTel').value.trim();
+      var isUrgence = document.getElementById('optUrgence').checked;
+      var isGardiennage = document.getElementById('optGardiennage').checked;
+
+      var html = '<div style="display:grid;gap:16px;">';
+      html += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">🚗 Véhicule</strong><br><span style="font-size:0.9rem;">' + escapeHtml(vehLabel) + ' — ' + type + ' — ' + condLabel;
+      if (utilSize) html += ' — ' + utilSize + ' m³';
+      html += '</span></div>';
+      html += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">📍 Trajet</strong><br><span style="font-size:0.9rem;">' + escapeHtml(depart) + ' → ' + escapeHtml(arrivee) + '</span></div>';
+      html += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">🚚 Transport</strong><br><span style="font-size:0.9rem;">' + modeLabel + ' — Pack ' + packLabel;
+      if (isUrgence) html += ' — ⚡ Urgence';
+      if (isGardiennage) html += ' — 🏠 Gardiennage';
+      html += '</span></div>';
+      html += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">👤 Client</strong><br><span style="font-size:0.9rem;">' + escapeHtml(prenom + ' ' + nom) + ' — ' + escapeHtml(email);
+      if (tel) html += ' — ' + escapeHtml(tel);
+      html += '</span></div>';
+      html += '<div style="margin-top:8px;padding:12px;background:white;border-radius:12px;font-size:0.75rem;color:var(--gray-mid);">';
+      html += '<i class="fas fa-check-circle" style="color:var(--success);"></i> Tout inclus : péages, carburant, assurance 100 000€, service client<br>';
+      html += '<i class="fas fa-clock" style="color:var(--bordeaux);"></i> Garantie prise en charge sous 72h<br>';
+      html += '<i class="fas fa-shield-halved" style="color:var(--bordeaux);"></i> Double RC Pro + suivi GPS temps réel';
+      html += '</div>';
+      html += '</div>';
+
+      document.getElementById('recapContent').innerHTML = html;
+
+      // Copier le prix dans le display final
+      var priceEl = document.getElementById('priceDisplay');
+      var finalEl = document.getElementById('priceDisplayFinal');
+      if (priceEl && finalEl) finalEl.innerHTML = priceEl.innerHTML;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ========== IDENTIFICATION VÉHICULE (+ MARQUES/MODÈLES) ==========
     let _vehiculesDB = null;
     let _selectedMarque = '';
 
@@ -651,7 +1036,7 @@
       }
 
       Swal.fire({
-        title: 'Recherche SIV en cours...',
+        title: 'Recherche en cours...',
         text: 'Identification du véhicule...',
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading()
@@ -661,7 +1046,7 @@
         const response = await fetch(`/.netlify/functions/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
         const data = await response.json();
 
-        if (!response.ok) throw new Error(data.error || 'Erreur SIV');
+        if (!response.ok) throw new Error(data.error || 'Erreur');
 
         if (data.marque) {
           document.getElementById('sivVehicleName').textContent = `${data.marque} ${data.modele || ''}`;
@@ -687,7 +1072,7 @@
       } catch (err) {
         Swal.fire({
           title: 'Identification impossible',
-          text: err.message || 'Le service SIV est indisponible. Sélectionnez manuellement.',
+          text: err.message || 'Le service est indisponible. Sélectionnez manuellement.',
           icon: 'error',
           confirmButtonColor: 'var(--bordeaux)'
         });
@@ -944,10 +1329,25 @@
       const depart = document.getElementById('depart').value.trim();
       const arrivee = document.getElementById('arrivee').value.trim();
       const type = document.getElementById('vehiculeType').value;
-      const mode = document.getElementById('modeTransport').value;
+      var mode = document.getElementById('modeTransport').value;
       const pack = document.getElementById('packSelect').value;
       const isUrgence = document.getElementById('optUrgence').checked;
       const isGardiennage = document.getElementById('optGardiennage').checked;
+      const vehicleCondition = document.getElementById('vehicleCondition').value;
+      const utilSize = document.getElementById('utilSize').value;
+
+      // Si non-roulant, forcer le mode plateau
+      if (vehicleCondition === 'non_working') {
+        mode = 'plateau';
+        var modeSel = document.getElementById('modeTransport');
+        if (modeSel) modeSel.value = 'plateau';
+      }
+
+      // Détection VE pour info recharge
+      var sivEnergy = document.getElementById('sivEnergy')?.textContent || '';
+      var isVE = (sivEnergy === 'Électrique' || sivEnergy === 'Electric');
+      var veInfo = document.getElementById('veRechargeInfo');
+      if (veInfo) veInfo.classList.toggle('show', isVE);
 
       const priceDisplay = document.getElementById('priceDisplay');
       const distanceDisplay = document.getElementById('distanceDisplay');
@@ -975,15 +1375,19 @@
         return;
       }
 
-      // Tarifs — Public TTC / Pro HT
+      // Tarifs — Public TTC / Pro HT (avec nouveaux types)
       const baseRates = _isProMode ? {
         'Automobile': { route: 1.00, plateau: 0.67 },
-        'Moto': { route: 0.77, plateau: 0.67 }
+        'Moto': { route: 0.77, plateau: 0.67 },
+        'Utilitaire': { route: 1.15, plateau: 0.85 },
+        'Luxe': { route: 1.50, plateau: 1.20 }
       } : {
         'Automobile': { route: 1.20, plateau: 0.80 },
-        'Moto': { route: 1.00, plateau: 0.80 }
+        'Moto': { route: 1.00, plateau: 0.80 },
+        'Utilitaire': { route: 1.40, plateau: 1.00 },
+        'Luxe': { route: 1.80, plateau: 1.45 }
       };
-      const rate = baseRates[type]?.[mode] || 1.20;
+      var rate = baseRates[type]?.[mode] || 1.20;
 
       let basePrice = Math.round(dist * rate);
       if (mode === 'plateau') {
@@ -994,13 +1398,32 @@
         if (basePrice < min) basePrice = min;
       }
 
+      // Coefficient taille utilitaire
+      if (type === 'Utilitaire' && utilSize) {
+        var sizeCoeff = _utilSizeCoeffs[utilSize] || 1.0;
+        basePrice = Math.round(basePrice * sizeCoeff);
+      }
+
       // Pack
       const packPrices = _isProMode
-        ? { starter: 0, serenite: 35, excellence: 99 }
-        : { starter: 0, serenite: 49, excellence: 129 };
+        ? { starter: 0, serenite: 55, excellence: 125 }
+        : { starter: 0, serenite: 69, excellence: 159 };
       let total = basePrice + (packPrices[pack] || 0);
 
-      // Options
+      // ── Tarification dynamique ──
+      var dynamicDetails = [];
+      if (window.BathilyPricing) {
+        var coeffs = window.BathilyPricing.COEFFS;
+        // Remise distance
+        if (dist >= 800) { total = Math.round(total * coeffs.dist_800plus); dynamicDetails.push('Remise longue distance (-15%)'); }
+        else if (dist >= 500) { total = Math.round(total * coeffs.dist_500plus); dynamicDetails.push('Remise distance (-10%)'); }
+        // Haute saison (juin-septembre)
+        var _now = new Date();
+        var _month = _now.getMonth();
+        if (_month >= 5 && _month <= 8) { total = Math.round(total * coeffs.haute_saison); dynamicDetails.push('Tarif haute saison (+15%)'); }
+      }
+
+      // Options (à la carte, hors packs)
       if (isUrgence) total = Math.round(total * (_isProMode ? 1.25 : 1.30));
       if (isGardiennage) total += _isProMode ? 20 : 30;
 
@@ -1029,7 +1452,11 @@
 
       _currentPrice = total;
 
-      priceDisplay.innerHTML = `${total} <span>€ ${_priceSuffix}</span>${discount > 0 ? `<br><span style="font-size:0.75rem; color:var(--success); font-weight:600;">Remise de ${discount}€ appliquée</span>` : ''}`;
+      var dynamicHtml = '';
+      if (dynamicDetails.length > 0) {
+        dynamicHtml = '<br><span style="font-size:0.7rem;color:var(--gray-mid);font-weight:400;">' + dynamicDetails.join(' · ') + '</span>';
+      }
+      priceDisplay.innerHTML = `${total} <span>€ ${_priceSuffix}</span>${discount > 0 ? `<br><span style="font-size:0.75rem; color:var(--success); font-weight:600;">Remise de ${discount}€ appliquée</span>` : ''}${dynamicHtml}`;
       distanceDisplay.textContent = `📏 ${dist} km`;
     }
 
@@ -1090,6 +1517,9 @@
       const modele = document.getElementById('modeleInput').value.trim();
       const vehiculeManuel = document.getElementById('vehiculeManuel').value.trim();
       const promoCode = document.getElementById('promoCodeInput').value.trim().toUpperCase();
+      const vehicleCondition = document.getElementById('vehicleCondition').value;
+      const utilSize = document.getElementById('utilSize').value;
+      const isCollection = document.getElementById('isCollection').value === 'true';
 
       const totalDisplayed = _currentPrice || 0;
       if (totalDisplayed === 0) {
@@ -1126,6 +1556,9 @@
           pack: pack,
           distance: _currentDistance || null,
           opts: { urgence: isUrgence, gardiennage: isGardiennage },
+          vehicle_condition: vehicleCondition,
+          utilitaire_size: utilSize || null,
+          is_collection: isCollection,
           message: message || '',
           promo_code: promoCode || null,
           is_pro: _isProMode,
@@ -1236,6 +1669,7 @@
     });
   </script>
 
+<script src="public/js/pricing.js" defer></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function() {
@@ -1245,6 +1679,7 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+<script src="public/js/mobile-nav.js" defer></script>
 </body>
 </html>
 

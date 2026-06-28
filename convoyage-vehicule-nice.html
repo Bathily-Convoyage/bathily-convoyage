@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="mobile-web-app-capable" content="yes">
   <title>Convoyage Auto & Moto Nice | Transport Sécurisé de Véhicules | Bathily-Convoyage</title>
-  <meta name="description" content="Besoin de transporter ou rapatrier votre voiture ou moto depuis ou vers Nice ? Devis gratuit en 2min, suivi GPS temps réel et double assurance Allianz tous risques.">
+  <meta name="description" content="Besoin de transporter ou rapatrier votre voiture ou moto depuis ou vers Nice ? Devis gratuit en 2min, suivi GPS temps réel et double RC Pro tous risques.">
   <meta property="og:title" content="Convoyage Auto & Moto Nice | Transport Sécurisé - Bathily-Convoyage">
   <meta property="og:description" content="Devis gratuit instantané, suivi GPS en direct, photos certifiées. Rapatriement de votre véhicule (voiture, utilitaire, deux-roues) à Nice en toute sécurité.">
   <meta property="og:image" content="https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg">
@@ -37,7 +37,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
-  <link rel="stylesheet" href="./css/design-system.css">
+  <link rel="stylesheet" href=".public/css/design-system.css">
   <style>
     * {
       margin: 0;
@@ -792,7 +792,8 @@
       }
     }
   </style>
-<script src="/js/lang-switcher.js" defer></script>
+<script src="public/js/lang-switcher.js" defer></script>
+  <link rel="stylesheet" href="public/css/mobile-nav.css">
 </head>
 
 <body>
@@ -800,7 +801,7 @@
   <header>
     <div class="container header-inner">
       <a href="index.html" class="logo"><img src="/logo.png" alt="Bathily-Convoyage" /></a>
-      <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')" aria-label="Menu principal" style="background:none;border:none;">☰</button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu principal" style="background:none;border:none;"><i class="fas fa-bars icon-bars"></i><i class="fas fa-times icon-times"></i></button>
       <div class="nav-links">
         <a href="index.html">Accueil</a>
         <a href="formation-convoyeur.html">Devenir convoyeur</a>
@@ -819,7 +820,7 @@
           <div class="hero-badge">⭐ Spécialiste Nice</div>
           <h1>Convoyage Auto & Moto Nice : <span>Votre véhicule livré</span> en toute confiance</h1>
           <div class="badge-trust" style="margin-top: 10px; margin-bottom: 20px;">📍 Suivi GPS en temps réel</div>
-          <p>Profitez d'un service de rapatriement et de convoyage de voiture et moto de Nice vers toute la France. Estimations en 60s, suivi GPS direct et double assurance RC Pro Allianz.</p>
+          <p>Profitez d'un service de rapatriement et de convoyage de voiture et moto de Nice vers toute la France. Estimations en 60s, suivi GPS direct et double assurance RC Pro .</p>
           <div class="quick-quote">
             <div class="search-wrapper">
               <input type="text" id="depart" placeholder="Adresse de départ" value="Nice, France" autocomplete="off" aria-label="Adresse de départ">
@@ -872,7 +873,7 @@
           <p><strong>La solution Bathily-Convoyage :</strong> Nous prenons en charge votre voiture ou votre moto directement chez vous, en entreprise ou en concession à Nice, et la livrons à destination sans que vous ayez à lever le petit doigt.</p>
           <ul class="pas-list">
             <li><i class="fas fa-check-circle"></i> <strong>Zéro stress :</strong> Nos pilotes et convoyeurs professionnels certifiés s'occupent de tout de A à Z.</li>
-            <li><i class="fas fa-check-circle"></i> <strong>Protection maximale :</strong> Double assurance Allianz couvrant votre véhicule tous risques jusqu'à la livraison.</li>
+            <li><i class="fas fa-check-circle"></i> <strong>Protection maximale :</strong> Double assurance  couvrant votre véhicule tous risques jusqu'à la livraison.</li>
             <li><i class="fas fa-check-circle"></i> <strong>Transparence totale :</strong> Vous suivez la position de votre véhicule en temps réel sur une carte interactive dédiée.</li>
           </ul>
           <div style="margin-top: 32px;">
@@ -922,10 +923,10 @@
             <div class="price-card-val">1,00 €<span> HT / km (Voiture)</span></div>
             <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif Moto : 0,85 € HT / km. Min. 100€ – 120€ HT par trajet.</p>
             <ul class="price-card-features">
-              <li><i class="fas fa-check"></i> Chauffeur professionnel certifié SIV</li>
+              <li><i class="fas fa-check"></i> Chauffeur professionnel</li>
               <li><i class="fas fa-check"></i> Suivi GPS temps réel (Lien de partage client)</li>
               <li><i class="fas fa-check"></i> État des lieux numérique (20 photos HD)</li>
-              <li><i class="fas fa-check"></i> Double assurance RC Pro Allianz</li>
+              <li><i class="fas fa-check"></i> Double assurance RC Pro </li>
             </ul>
             <a href="devis.html?mode=route" class="btn-primary">Choisir cette formule</a>
           </div>
@@ -985,7 +986,7 @@
         <div class="faq-accordion reveal">
           <details class="faq-item" open>
             <summary>Quelles sont les garanties d'assurance en cas de pépin ?</summary>
-            <p>Chez Bathily-Convoyage, la sécurité est notre priorité absolue. Chaque convoyage est couvert par notre double assurance multirisque Allianz (RC Pro). En cas d'incident, de rayure ou d'accrochage, les réparations matérielles de votre voiture ou moto sont entièrement prises en charge. De plus, notre état des lieux complet de 20 photos certifie l'état exact du véhicule au départ et à l'arrivée.</p>
+            <p>Chez Bathily-Convoyage, la sécurité est notre priorité absolue. Chaque convoyage est couvert par notre double double RC Pro (Bathily-Convoyage + convoyeur). En cas d'incident, de rayure ou d'accrochage, les réparations matérielles de votre voiture ou moto sont entièrement prises en charge. De plus, notre état des lieux complet de 20 photos certifie l'état exact du véhicule au départ et à l'arrivée.</p>
           </details>
 
           <details class="faq-item">
@@ -1331,6 +1332,7 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+<script src="public/js/mobile-nav.js" defer></script>
 </body>
 
 </html>

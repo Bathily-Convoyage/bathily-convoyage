@@ -275,6 +275,19 @@
       border-color: var(--bordeaux-light);
       box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.08);
     }
+
+    /* Fidelite & Parrainage */
+    .fidelite-grid { display: flex; gap: 20px; margin-bottom: 32px; flex-wrap: wrap; }
+    .fidelite-card { background: white; border-radius: 24px; padding: 28px; border: 1px solid var(--border-light); flex: 1; min-width: 200px; text-align: center; }
+    .fidelite-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -12px rgba(0,0,0,0.08); transition: all 0.3s; }
+    .fidelite-icon { font-size: 1.8rem; color: var(--bordeaux); margin-bottom: 12px; }
+    .fidelite-value { font-family: 'Montserrat',sans-serif; font-size: 2.2rem; font-weight: 800; color: var(--gray-dark); line-height: 1; }
+    .fidelite-label { font-size: 0.8rem; color: var(--gray-mid); margin-top: 6px; }
+    .parrainage-section { background: white; border-radius: 24px; padding: 28px; border: 1px solid var(--border-light); margin-bottom: 24px; }
+    .histo-section { background: white; border-radius: 24px; padding: 28px; border: 1px solid var(--border-light); }
+    .histo-list { display: flex; flex-direction: column; gap: 10px; }
+    .histo-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-light); }
+    .histo-item:last-child { border-bottom: none; }
     .stat-ico {
       font-size: 1.3rem;
       color: var(--bordeaux);
@@ -1032,6 +1045,7 @@
       <div class="nav-section">
         <div class="nav-section-lbl">Compte</div>
         <div class="nav-item" onclick="showTab('profil',this)" role="button" tabindex="0"><i class="fas fa-user"></i> Mon profil</div>
+        <div class="nav-item" onclick="showTab('fidelite',this)" role="button" tabindex="0"><i class="fas fa-gift"></i> Fidélité & parrainage</div>
         <div class="nav-item" onclick="showTab('support',this)" role="button" tabindex="0"><i class="fas fa-headset"></i> Support</div>
         <a href="devis.html" class="nav-item"><i class="fas fa-calculator"></i> Nouveau devis</a>
         <a href="index.html" class="nav-item"><i class="fas fa-globe"></i> Site public</a>
@@ -1219,6 +1233,16 @@
           <div class="f-grp"><label>Référence mission (optionnel)</label><input type="text" placeholder="BC-2025-XXXX" id="supportRef"></div>
           <div class="f-grp"><label>Message</label><textarea id="supportMessage" rows="5" placeholder="Décrivez votre demande"></textarea></div>
           <button class="btn-red" onclick="submitSupportTicket()"><i class="fas fa-paper-plane"></i> Envoyer</button>
+        </div>
+      </div>
+
+      <!-- Fidelite & Parrainage -->
+      <div class="tab-content" id="tab-fidelite">
+        <div class="dash-header">
+          <h1 class="dash-hello">Fidélité & <em>parrainage</em></h1>
+        </div>
+        <div id="fideliteContainer" style="max-width:600px;">
+          <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
         </div>
       </div>
     </main>
@@ -2334,6 +2358,7 @@
     });
   </script>
 
+<script src="public/js/fidelite.js" defer></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function() {

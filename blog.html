@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0A4D68">
+  <title>Blog Convoyage Auto & Moto | Bathily-Convoyage</title>
+  <meta name="description" content="Conseils, guides et actualités sur le convoyage automobile. Tout savoir sur le transport de véhicules en France.">
+  <meta property="og:title" content="Blog — Bathily-Convoyage">
+  <meta property="og:description" content="Conseils et guides sur le convoyage automobile en France.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚗%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="public/css/design-system.css">
+  <link rel="stylesheet" href="public/css/mobile-nav.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bordeaux: #0A4D68;
+      --bordeaux-dark: #063244;
+      --bordeaux-light: #E6F0F4;
+      --cream: #FDFBF7;
+      --beige: #F9F6F0;
+      --gray-dark: #2D2A24;
+      --gray-mid: #6B625A;
+      --border-light: #E8E1D9;
+      --success: #4A7C6B;
+      --warning: #F5A623;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--gray-dark); line-height: 1.6; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .blog-header { background: linear-gradient(135deg, var(--bordeaux) 0%, #088395 100%); color: white; padding: 80px 0 60px; text-align: center; }
+    .blog-header h1 { font-family: 'Montserrat', sans-serif; font-size: 2.8rem; font-weight: 800; margin-bottom: 12px; }
+    .blog-header p { font-size: 1.1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; }
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 28px; padding: 60px 0; }
+    .blog-card { background: white; border-radius: 24px; overflow: hidden; border: 1px solid var(--border-light); transition: all 0.3s; text-decoration: none; color: inherit; display: block; }
+    .blog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
+    .blog-card-img { height: 200px; background: var(--bordeaux-light); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+    .blog-card-body { padding: 24px; }
+    .blog-card-cat { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--bordeaux); margin-bottom: 8px; }
+    .blog-card h2 { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; color: var(--gray-dark); }
+    .blog-card p { font-size: 0.85rem; color: var(--gray-mid); margin-bottom: 12px; }
+    .blog-card-meta { font-size: 0.75rem; color: var(--gray-mid); display: flex; gap: 16px; }
+    .blog-card-meta span { display: flex; align-items: center; gap: 4px; }
+    @media (max-width: 768px) { .blog-grid { grid-template-columns: 1fr; } .blog-header h1 { font-size: 2rem; } }
+  </style>
+</head>
+<body>
+
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">Bathily-Convoyage<span>.</span></a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu principal" style="background:none;border:none;"><i class="fas fa-bars icon-bars"></i><i class="fas fa-times icon-times"></i></button>
+      <div class="nav-links">
+        <a href="index.html">Accueil</a>
+        <a href="formation-convoyeur.html">Devenir convoyeur</a>
+        <a href="espace-pro.html">Espace Pro</a>
+        <a href="blog.html" class="active">Blog</a>
+        <a href="contact.html">Contact</a>
+        <a href="dashboard-convoyeur.html">Espace convoyeur</a>
+        <a href="dashboard-client.html" class="btn-outline">Espace client</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="blog-header">
+    <div class="container">
+      <h1>Blog Convoyage</h1>
+      <p>Conseils, guides pratiques et actualités sur le transport de véhicules en France.</p>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="blog-grid">
+      <a href="blog/convoyage-ou-transport-camion.html" class="blog-card">
+        <div class="blog-card-img">🚗 vs 🚛</div>
+        <div class="blog-card-body">
+          <div class="blog-card-cat">Guide</div>
+          <h2>Convoyage par la route ou transport par camion : que choisir ?</h2>
+          <p>Quelle solution est la plus adaptée pour votre véhicule ? On compare les deux options : prix, délais, sécurité.</p>
+          <div class="blog-card-meta">
+            <span><i class="fas fa-calendar"></i> 28 juin 2025</span>
+            <span><i class="fas fa-clock"></i> 5 min</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="blog/convoyage-vehicule-electrique.html" class="blog-card">
+        <div class="blog-card-img">⚡🚗</div>
+        <div class="blog-card-body">
+          <div class="blog-card-cat">Guide</div>
+          <h2>Convoyer un véhicule électrique : ce qu'il faut savoir</h2>
+          <p>Temps de recharge, autonomie, précautions spécifiques : tout ce qu'il faut savoir avant de convoyer un VE.</p>
+          <div class="blog-card-meta">
+            <span><i class="fas fa-calendar"></i> 28 juin 2025</span>
+            <span><i class="fas fa-clock"></i> 4 min</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="blog/devenir-convoyeur-professionnel.html" class="blog-card">
+        <div class="blog-card-img">🧑‍✈️</div>
+        <div class="blog-card-body">
+          <div class="blog-card-cat">Métier</div>
+          <h2>Devenir convoyeur professionnel : le guide complet</h2>
+          <p>Comment se lancer dans le convoyage automobile ? Conditions, formations, rémunération et conseils pour réussir.</p>
+          <div class="blog-card-meta">
+            <span><i class="fas fa-calendar"></i> 28 juin 2025</span>
+            <span><i class="fas fa-clock"></i> 7 min</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer style="background:var(--gray-dark);color:rgba(255,255,255,0.6);text-align:center;padding:24px;font-size:0.8rem;">
+    <p>&copy; 2025 Bathily-Convoyage — <a href="index.html" style="color:var(--warning);text-decoration:none;">Retour au site</a></p>
+  </footer>
+
+  <script src="public/js/mobile-nav.js" defer></script>
+  <script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function() {
+      navigator.serviceWorker.register("/sw.js").catch(function(e) { console.warn("SW registration failed:", e); });
+    });
+  }
+  </script>
+</body>
+</html>

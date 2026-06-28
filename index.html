@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="fr">
 
 <head>
@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="mobile-web-app-capable" content="yes">
-  <title>convoyage Auto & Moto France | Bathily-Convoyage</title>
+  <title>Convoyage Auto & Moto France | Bathily-Convoyage</title>
   <meta name="description" content="Convoyage auto et moto partout en France. Devis en 60s, suivi GPS temps réel, double assurance RC Pro. Expérience client inégalée.">
   <meta property="og:title" content="Bathily-Convoyage — Convoyage Auto & Moto France">
   <meta property="og:description" content="Devis instantanéé, suivi GPS, photos état des lieux. +500 émissions réalisées.">
@@ -21,6 +21,7 @@
   <link rel="icon" type="image/png" href="/logo.png">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="public/css/mobile-nav.css">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="None">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -1451,7 +1452,7 @@
   <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"LocalBusiness","name":"Bathily-Convoyage","areaServed":"France","serviceType":["Convoyage automobile","Convoyage moto"]}
 </script>
-<script src="/js/lang-switcher.js" defer="None"></script>
+<script src="public/js/lang-switcher.js" defer="None"></script>
 </head>
 
 <body>
@@ -1464,7 +1465,7 @@
   <header>
     <div class="container header-inner">
       <a href="index.html" class="logo"><img src="/logo.png" alt="Bathily-Convoyage" /></a>
-      <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')" aria-label="Menu principal" style="background:none;border:none;"><i class="fas fa-bars"></i></button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu principal" style="background:none;border:none;"><i class="fas fa-bars icon-bars"></i><i class="fas fa-times icon-times"></i></button>
       <div class="nav-links">
         <a href="index.html" class="active">Accueil</a>
         <a href="formation-convoyeur.html">Devenir convoyeur</a>
@@ -1500,14 +1501,19 @@
             </div>
             <button id="btnEstimate" onclick="goToDevis()">Estimer mon prix ?</button>
           </div>
-          <div id="quickQuoteResult" style="display:none; margin-top: 16px; padding: 12px 24px; background: var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius: 40px; align-items: center; justify-content: center; gap: 16px; font-weight: 600; color: var(--bordeaux); font-size: 0.95rem; box-shadow: 0 4px 12px rgba(122,46,26,0.1); width: max-content; max-width: 100%;">
-            <span>⭐ Distance : <strong id="quickQuoteDist">— km</strong></span>
+          <div id="quickQuoteResult" style="display:none; margin-top: 16px; padding: 16px 24px; background: var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius: 20px; align-items: center; justify-content: center; gap: 16px; font-weight: 600; color: var(--bordeaux); font-size: 0.95rem; box-shadow: 0 4px 12px rgba(122,46,26,0.1); max-width: 100%; flex-wrap:wrap;">
+            <span>📍 Distance : <strong id="quickQuoteDist">— km</strong></span>
             <span style="color: var(--gray-mid);">|</span>
-            <span>⭐ Tarif estimé : <strong id="quickQuotePrice">— € HT</strong></span>
+            <span>💰 Tarif estimé : <strong id="quickQuotePrice">— € TTC</strong></span>
+            <button onclick="goToDevis()" style="background:var(--bordeaux);color:white;border:none;padding:8px 20px;border-radius:30px;font-size:0.85rem;cursor:pointer;font-weight:600;white-space:nowrap;">Obtenir mon devis →</button>
           </div>
           <div class="hero-trust-line">
-            <span class="stars">⭐⭐⭐</span>
-            <span><strong>4.9/5</strong>  - basé sur +500 avis</span>
+            <span class="stars">⭐⭐⭐⭐⭐</span>
+            <span><strong>4.9/5</strong> — basé sur +500 avis</span>
+            <span style="margin-left:16px;">|</span>
+            <span><strong>+1 200</strong> clients satisfaits</span>
+            <span style="margin-left:16px;">|</span>
+            <span><strong>+50</strong> convoyeurs certifiés</span>
           </div>
         </div>
         <div class="hero-map-container">
@@ -1569,7 +1575,7 @@
           <div class="trust-item">
             <i class="fas fa-id-card-clip" style="color:var(--bordeaux);"></i>
             <div>
-              <div class="trust-item-title">ANTS SIV</div>
+              <div class="trust-item-title">Identification vehicule</div>
               <div class="trust-item-sub">Identification en temps réel</div>
             </div>
           </div>
@@ -1577,7 +1583,7 @@
             <i class="fas fa-shield-halved" style="color:var(--bordeaux);"></i>
             <div>
               <div class="trust-item-title">Double RC Pro</div>
-              <div class="trust-item-sub">Couverture Allianz tous risques</div>
+              <div class="trust-item-sub">Couverture  tous risques</div>
             </div>
           </div>
           <div class="trust-item">
@@ -1597,21 +1603,21 @@
         <div class="section-title reveal">Des services pensés pour vous</div>
         <div class="section-sub reveal">Une expérience de convoyage fluide, transparente et digitale</div>
         <div class="grid-6">
-          <div class="service-card card-1 reveal">
+          <a href="devis.html?mode=route" class="service-card card-1 reveal" style="text-decoration:none;display:block;cursor:pointer;">
             <div class="service-icon"><i class="fas fa-car"></i></div>
             <h3>Convoyage par la route</h3>
             <p>convoyeur certifié, suivi GPS en temps réel, livraison porte-à-porte.</p>
-          </div>
-          <div class="service-card card-2 reveal">
+          </a>
+          <a href="devis.html?mode=plateau" class="service-card card-2 reveal" style="text-decoration:none;display:block;cursor:pointer;">
             <div class="service-icon"><i class="fas fa-truck"></i></div>
             <h3>Transport plateau</h3>
             <p>Protection maximale pour véhicules de collection, motos ou utilitaires.</p>
-          </div>
-          <div class="service-card card-3 reveal">
+          </a>
+          <a href="devis.html" class="service-card card-3 reveal" style="text-decoration:none;display:block;cursor:pointer;">
             <div class="service-icon"><i class="fas fa-mobile-alt"></i></div>
             <h3>Solution 100% digitale</h3>
             <p>Devis en 60s, suivi client, état des lieux photo 20 points.</p>
-          </div>
+          </a>
         </div>
       </div>
     </section>
@@ -1629,10 +1635,10 @@
             <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Min. 150 € TTC
               par trajet · Moto : 1.00 € TTC/km</p>
             <ul class="price-card-features">
-              <li><i class="fas fa-check"></i> convoyeur professionnel certifié SIV</li>
+              <li><i class="fas fa-check"></i> convoyeur professionnel</li>
               <li><i class="fas fa-check"></i> Suivi GPS en temps réel (Lien dédié)</li>
               <li><i class="fas fa-check"></i> État des lieux numérique (20 photos)</li>
-              <li><i class="fas fa-check"></i> Double Assurance RC Pro Allianz</li>
+              <li><i class="fas fa-check"></i> Double RC Pro (Bathily-Convoyage + convoyeur)</li>
             </ul>
             <a href="devis.html?mode=route" class="btn-primary">Choisir cette formule</a>
           </div>
@@ -1653,32 +1659,27 @@
           </div>
         </div>
 
-        <!-- Optionnel / Personnalisation de service -->
+        <!-- Packs de service -->
         <div style="margin-top: 50px; text-align: center;" class="reveal">
           <h4 style="font-family: 'Montserrat', sans-serif; font-size: 1.2rem; margin-bottom: 16px; color: var(--gray-dark);">
-            niveaux de service optionnels</h4>
+            Niveaux de service optionnels</h4>
           <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;">
             <div onclick="window.location.href='devis.html?pack=starter'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
-              <strong id="idx_pack_starter_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Formule Starter</strong>
-              <span id="idx_pack_starter_desc" style="font-size: 0.8rem; color: var(--gray-mid);">Inclus par défaut. convoyeur certifié, service
-                client standard.</span>
+              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Formule Starter — Inclus</strong>
+              <span style="font-size: 0.8rem; color: var(--gray-mid);">Convoyeur certifié, suivi GPS, état des lieux 20 photos, service client standard.</span>
             </div>
             <div onclick="window.location.href='devis.html?pack=serenite'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
-              <strong id="idx_pack_serenite_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Sérénité (+49€ TTC)</strong>
-              <span id="idx_pack_serenite_desc" style="font-size: 0.8rem; color: var(--gray-mid);">Nettoyage intérieur/extérieur, rendez-vous
-                planifié précis, support VIP.</span>
+              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Sérénité — +69€ TTC</strong>
+              <span style="font-size: 0.8rem; color: var(--gray-mid);">Tout Starter + nettoyage int./ext., lavage avant livraison, RDV planifié, support VIP.</span>
             </div>
             <div onclick="window.location.href='devis.html?pack=excellence'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
-              <strong id="idx_pack_excellence_name" style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Excellence (+129€ TTC)</strong>
-              <span id="idx_pack_excellence_desc" style="font-size: 0.8rem; color: var(--gray-mid);">Plein de carburant offert, nettoyage complet
-                prestige, priorité d'affectation.</span>
+              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Excellence — +159€ TTC</strong>
+              <span style="font-size: 0.8rem; color: var(--gray-mid);">Tout Sérénité + plein de carburant, photos pro 4K, livraison dim./férié, priorité d'affectation.</span>
             </div>
           </div>
         </div>
       </div>
     </section>
-
-    <!-- Pourquoi Bathily (3 cartes) -->
     <section>
       <div class="container">
         <div class="section-title reveal">Pourquoi Bathily-Convoyage ?</div>
@@ -1692,7 +1693,7 @@
           <div class="why-card card-5 reveal">
             <div class="why-icon"><i class="fas fa-shield-alt"></i></div>
             <h3>Confiance absolue</h3>
-            <p>Double RC Pro, certification SIV, état des lieux exhaustif.</p>
+            <p>Double RC Pro, identification par plaque, état des lieux exhaustif.</p>
           </div>
           <div class="why-card card-6 reveal">
             <div class="why-icon"><i class="fas fa-hand-holding-heart"></i></div>
@@ -1717,7 +1718,7 @@
           <div class="timeline-step reveal">
             <div class="timeline-icon"><i class="fas fa-user-check"></i></div>
             <h4>Assignation convoyeur</h4>
-            <p>Certifié SIV</p>
+            <p>Convoyeur professionnel</p>
           </div>
           <div class="timeline-step reveal">
             <div class="timeline-icon"><i class="fas fa-camera"></i></div>
@@ -1738,37 +1739,19 @@
       </div>
     </section>
 
-    <!-- Témoignages -->
-    <section>
+    <!-- Avis clients & convoyeurs -->
+    <section id="avis">
       <div class="container">
         <div class="section-title reveal">Ils nous font confiance</div>
-        <div class="testimonial-carousel" id="testimonialCarousel">
-          <div class="testimonial-card">
-            <div class="testimonial-text">"Excellente prestation. Suivi précis, communication fluide. Je recommande
-              vivement Bathily-Convoyage."</div>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">LM</div>
-              <div class="testimonial-info"><strong>Laurent M.</strong><span>Client particulier</span></div>
-            </div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testimonial-text">"Un gain de temps considérable. La plateforme est intuitive et les convoyeurs
-              très pros."</div>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">SK</div>
-              <div class="testimonial-info"><strong>Sabrina K.</strong><span>Gestionnaire de flotte</span></div>
-            </div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testimonial-text">"Ma voiture de collection livrée avec un soin exceptionnel. Merci à toute
-              l'éééquipe !"</div>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">TR</div>
-              <div class="testimonial-info"><strong>Thomas R.</strong><span>Collectionneur</span></div>
-            </div>
-          </div>
+        <div class="section-sub reveal">Découvrez les avis de nos clients et convoyeurs</div>
+        <div id="avisContainer" style="margin-top:32px;">
+          <p style="text-align:center;color:var(--gray-mid);font-size:0.9rem;">Chargement des avis...</p>
         </div>
-        <div class="carousel-nav" id="carouselNav"></div>
+        <div style="text-align:center;margin-top:24px;">
+          <button id="btnLaisserAvis" class="btn-primary" style="background:var(--bordeaux);color:white;border:none;padding:12px 32px;border-radius:30px;font-size:0.9rem;cursor:pointer;font-weight:600;">
+            <i class="fas fa-star" style="margin-right:6px;"></i> Laisser un avis
+          </button>
+        </div>
       </div>
     </section>
 
@@ -1830,11 +1813,19 @@
       </div>
       <div class="footer-trust">
         <div class="footer-trust-badge"><i class="fab fa-stripe" style="color:#635BFF"></i> Paiement sécurisé Stripe</div>
-        <div class="footer-trust-badge"><i class="fas fa-shield-halved" style="color:var(--bordeaux)"></i> Double RC Pro Allianz</div>
-        <div class="footer-trust-badge"><i class="fas fa-id-card" style="color:var(--bordeaux)"></i> Certification SIV / ANTS</div>
+        <div class="footer-trust-badge"><i class="fas fa-shield-halved" style="color:var(--bordeaux)"></i> Double RC Pro </div>
+        <div class="footer-trust-badge"><i class="fas fa-id-card" style="color:var(--bordeaux)"></i> Identification par plaque</div>
         <div class="footer-trust-badge"><i class="fas fa-lock" style="color:var(--success)"></i> Données chiffrées TLS</div>
       </div>
       <div class="footer-bottom">© 2025 Bathily-Convoyage — Tous droits réservés — <a href="mentions-legales.html" style="color:inherit;text-decoration:underline;">Mentions Légales & CGV/CGU</a></div>
+      <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.1);text-align:center;">
+        <h4 style="color:white;font-family:Montserrat,sans-serif;font-size:1rem;margin-bottom:12px;">📬 Newsletter</h4>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-bottom:16px;">Recevez nos offres exclusives et actualités</p>
+        <form id="newsletterForm" style="display:flex;gap:8px;max-width:400px;margin:0 auto;flex-wrap:wrap;justify-content:center;">
+          <input type="email" name="email" placeholder="Votre email" required style="flex:1;min-width:200px;padding:10px 16px;border-radius:30px;border:none;font-size:0.85rem;">
+          <button type="submit" style="background:var(--bordeaux);color:white;border:none;padding:10px 24px;border-radius:30px;cursor:pointer;font-weight:600;font-size:0.85rem;">S'inscrire</button>
+        </form>
+      </div>
     </div>
   </footer>
 
@@ -1978,6 +1969,29 @@
     const arriveeInput = document.getElementById('arrivee');
     if (departInput) setupAddressAutocomplete(departInput, 'departSuggests');
     if (arriveeInput) setupAddressAutocomplete(arriveeInput, 'arriveeSuggests');
+
+    // Pre-remplissage geolocalise du depart
+    if (departInput && !departInput.value && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(pos) {
+        var lat = pos.coords.latitude.toFixed(5);
+        var lon = pos.coords.longitude.toFixed(5);
+        fetch('https://api-adresse.data.gouv.fr/reverse/?lon=' + lon + '&lat=' + lat + '&limit=1')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.features && data.features[0]) {
+              departInput.value = data.features[0].properties.label;
+            }
+          })
+          .catch(function() {});
+      }, function() {}, { timeout: 5000, enableHighAccuracy: false });
+    }
+
+    // Restaurer le brouillon depuis localStorage
+    try {
+      var saved = JSON.parse(localStorage.getItem('bathily_devis') || '{}');
+      if (saved.depart && departInput && !departInput.value) departInput.value = saved.depart;
+      if (saved.arrivee && arriveeInput && !arriveeInput.value) arriveeInput.value = saved.arrivee;
+    } catch(e) {}
 
     // Listen to select type changes
     document.getElementById('vehType').addEventListener('change', calculateQuickQuote);
@@ -2123,6 +2137,8 @@
     // ----- Carrousel témoignages -----
     const carousel = document.getElementById('testimonialCarousel');
     const navContainer = document.getElementById('carouselNav');
+    if (!carousel || !navContainer) { /* carrousel non présent sur cette page */ }
+    else {
     const cards = Array.from(carousel.children);
     let currentIndex = 0;
 
@@ -2149,6 +2165,7 @@
       });
     }
     initCarousel();
+    }
 
     // ----- Chargement asynchrone et dynamique de Leaflet (Lazy Load) -----
     let leafletPromise = null;
@@ -2359,7 +2376,7 @@
         <details class="faq-item">
           <summary>Le véhicule convoyé est-il assuré pendant le trajet ?</summary>
           <p>Oui, absolument. toutes nos émissions de convoyage sont entièrement couvertes par notre double assurance
-            professionnelle multirisque Allianz (RC Pro). En cas de sinistre, les dommages matériels et corporéels sont
+            professionnelle multirisque  (RC Pro). En cas de sinistre, les dommages matériels et corporéels sont
             pris en charge.</p>
         </details>
 
@@ -2396,6 +2413,9 @@
   </a>
 
 
+<script src="public/js/avis.js" defer></script>
+<script src="public/js/newsletter.js" defer></script>
+<script src="public/js/mobile-nav.js" defer></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function() {

@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="mobile-web-app-capable" content="yes">
   <title>Convoyage Auto &amp; Moto Lyon | Transport Sécurisé de Véhicules | Bathily-Convoyage</title>
-  <meta name="description" content="Besoin de transporter votre voiture ou moto depuis Lyon vers Paris, Marseille ou toute la France ? Devis gratuit en 2min, suivi GPS temps réel et double assurance Allianz tous risques.">
+  <meta name="description" content="Besoin de transporter votre voiture ou moto depuis Lyon vers Paris, Marseille ou toute la France ? Devis gratuit en 2min, suivi GPS temps réel et double RC Pro tous risques.">
   <meta property="og:title" content="Convoyage Auto &amp; Moto Lyon | Transport Sécurisé - Bathily-Convoyage">
   <meta property="og:description" content="Devis gratuit instantané, suivi GPS en direct, photos certifiées. Rapatriement de votre véhicule (voiture, utilitaire, deux-roues) à Lyon en toute sécurité.">
   <meta property="og:image" content="https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg">
@@ -37,7 +37,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
-  <link rel="stylesheet" href="./css/design-system.css">
+  <link rel="stylesheet" href=".public/css/design-system.css">
   <style>
     * {
       margin: 0;
@@ -806,7 +806,8 @@
       }
     }
   </style>
-<script src="/js/lang-switcher.js" defer></script>
+<script src="public/js/lang-switcher.js" defer></script>
+  <link rel="stylesheet" href="public/css/mobile-nav.css">
 </head>
 
 <body>
@@ -814,7 +815,7 @@
   <header>
     <div class="container header-inner">
       <a href="index.html" class="logo"><img src="/logo.png" alt="Bathily-Convoyage" /></a>
-      <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')" aria-label="Menu principal" style="background:none;border:none;">☰</button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu principal" style="background:none;border:none;"><i class="fas fa-bars icon-bars"></i><i class="fas fa-times icon-times"></i></button>
       <div class="nav-links">
         <a href="index.html">Accueil</a>
         <a href="formation-convoyeur.html">Devenir convoyeur</a>
@@ -833,7 +834,7 @@
           <div class="hero-badge">⭐ Spécialiste Auvergne-Rhône-Alpes &amp; Rapatriements</div>
           <h1>Convoyage Auto &amp; Moto Lyon : <span>Estimez votre tarif</span> depuis la capitale</h1>
           <div class="badge-trust" style="margin-top: 10px; margin-bottom: 20px;">📍 Suivi GPS en temps réel</div>
-          <p>Organisez le convoyage ou le rapatriement de votre véhicule (voiture ou moto) depuis Lyon vers Paris, Marseille et toute la France. Devis immédiat, suivi GPS en direct et double assurance Allianz tous risques.</p>
+          <p>Organisez le convoyage ou le rapatriement de votre véhicule (voiture ou moto) depuis Lyon vers Paris, Marseille et toute la France. Devis immédiat, suivi GPS en direct et double RC Pro tous risques.</p>
           <div class="quick-quote">
             <div class="search-wrapper">
               <input type="text" id="depart" placeholder="Adresse de départ" value="Lyon, France" autocomplete="off" aria-label="Adresse de départ">
@@ -886,7 +887,7 @@
           <p><strong>La solution Bathily-Convoyage :</strong> Nos chauffeurs et pilotes professionnels prennent en charge votre véhicule directement à Lyon et s'occupent de toute la logistique routière à votre place.</p>
           <ul class="pas-list">
             <li><i class="fas fa-check-circle"></i> <strong>Zéro contrainte :</strong> Prise en charge à domicile, en concession ou en sous-sol à Lyon.</li>
-            <li><i class="fas fa-check-circle"></i> <strong>Assurance Allianz tous risques :</strong> <strong>Et si ma voiture est rayée ou ma moto tombe ?</strong> Notre double couverture professionnelle indemnise les dommages à 100 %.</li>
+            <li><i class="fas fa-check-circle"></i> <strong>RC Pro tous risques :</strong> <strong>Et si ma voiture est rayée ou ma moto tombe ?</strong> Notre double couverture RC Pro indemnise les dommages à 100 %.</li>
             <li><i class="fas fa-check-circle"></i> <strong>Géolocalisation en continu :</strong> Suivez votre véhicule en direct depuis votre smartphone.</li>
           </ul>
           <div style="margin-top: 32px;">
@@ -908,7 +909,7 @@
           <div class="service-card card-1 reveal">
             <div class="service-icon"><i class="fas fa-road"></i></div>
             <h3>Pilotes par la route</h3>
-            <p>Un convoyeur professionnel certifié SIV assure la conduite de votre auto (1,00 € HT/km) ou de votre moto (0,85 € HT/km) vers sa destination.</p>
+            <p>Un convoyeur professionnel assure la conduite de votre auto (1,00 € HT/km) ou de votre moto (0,85 € HT/km) vers sa destination.</p>
           </div>
           <div class="service-card card-2 reveal">
             <div class="service-icon"><i class="fas fa-truck-flatbed"></i></div>
@@ -936,10 +937,10 @@
             <div class="price-card-val">1,00 €<span> HT / km (Voiture)</span></div>
             <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif Moto : 0,85 € HT / km. Min. 100€ – 120€ HT par trajet.</p>
             <ul class="price-card-features">
-              <li><i class="fas fa-check"></i> Chauffeur professionnel certifié SIV</li>
+              <li><i class="fas fa-check"></i> Chauffeur professionnel</li>
               <li><i class="fas fa-check"></i> Suivi GPS en direct (Lien dédié)</li>
               <li><i class="fas fa-check"></i> État des lieux (20 photos HD)</li>
-              <li><i class="fas fa-check"></i> Double Assurance RC Pro Allianz</li>
+              <li><i class="fas fa-check"></i> Double RC Pro (Bathily-Convoyage + convoyeur)</li>
             </ul>
             <a href="devis.html?mode=route" class="btn-primary">Choisir cette formule</a>
           </div>
@@ -1014,7 +1015,7 @@
 
           <details class="faq-item">
             <summary>Quelles sont les garanties d'assurance en cas de pépin ?</summary>
-            <p>Chaque mission de convoyage est couverte par notre double assurance multirisque Allianz (RC Pro). En cas d'incident ou de dommages matériels sur votre voiture ou votre moto pendant le trajet, les frais de réparation sont pris en charge tous risques sans impacter votre assurance personnelle.</p>
+            <p>Chaque mission de convoyage est couverte par notre double double RC Pro (Bathily-Convoyage + convoyeur). En cas d'incident ou de dommages matériels sur votre voiture ou votre moto pendant le trajet, les frais de réparation sont pris en charge tous risques sans impacter votre assurance personnelle.</p>
           </details>
         </div>
       </div>
@@ -1352,6 +1353,7 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+<script src="public/js/mobile-nav.js" defer></script>
 </body>
 
 </html>

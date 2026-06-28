@@ -19,7 +19,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link rel="stylesheet" href="/css/design-system.css">
+  <link rel="stylesheet" href="public/css/design-system.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #FDFBF7; color: #2D2A24; line-height: 1.5; }
@@ -293,6 +293,7 @@
     }
     .pro-footer a { color: #F5A623; text-decoration: none; }
   </style>
+  <link rel="stylesheet" href="public/css/mobile-nav.css">
 </head>
 <body>
 
@@ -317,10 +318,10 @@
           <div class="price-card-val">0,90 €<span> HT / km</span></div>
           <p style="font-size:0.85rem;color:#6B625A;margin-top:-12px;margin-bottom:24px;">Min. 125 € HT par trajet · Moto : 0,77 € HT/km</p>
           <ul class="price-card-features">
-            <li><i class="fas fa-check"></i> Convoyeur certifié SIV</li>
+            <li><i class="fas fa-check"></i> Convoyeur professionnel</li>
             <li><i class="fas fa-check"></i> Suivi GPS temps réel</li>
             <li><i class="fas fa-check"></i> État des lieux numérique (20 photos)</li>
-            <li><i class="fas fa-check"></i> Double RC Pro Allianz</li>
+            <li><i class="fas fa-check"></i> Double RC Pro </li>
           </ul>
           <a href="devis.html?pro=1&mode=route" class="btn-primary">Demander un devis</a>
         </div>
@@ -362,6 +363,33 @@
           </div>
         </div>
       </div>
+
+      <!-- Services premium additionnels -->
+      <div style="margin-top:40px;text-align:center;">
+        <h4 style="font-family:'Montserrat',sans-serif;font-size:1.2rem;margin-bottom:16px;color:#2D2A24;">Services premium additionnels</h4>
+        <div class="options-grid">
+          <div class="option-card">
+            <strong>Lavage avant livraison (+29€ HT)</strong>
+            <span>Véhicule livré propre et prêt à rouler</span>
+          </div>
+          <div class="option-card">
+            <strong>Plein de carburant (+50€ HT)</strong>
+            <span>Réservoir rempli à l'arrivée</span>
+          </div>
+          <div class="option-card">
+            <strong>Photos pro 4K (+39€ HT)</strong>
+            <span>Reportage photo 50 photos haute définition</span>
+          </div>
+          <div class="option-card">
+            <strong>Livraison dimanche/férié (+49€ HT)</strong>
+            <span>Prise en charge ou livraison le week-end</span>
+          </div>
+          <div class="option-card">
+            <strong>Nettoyage intérieur détaillé (+59€ HT)</strong>
+            <span>Aspiration, shampoing sièges, vitres</span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -389,8 +417,63 @@
         <div class="benefit-card">
           <div class="benefit-icon"><i class="fas fa-shield-alt"></i></div>
           <h3>Double assurance</h3>
-          <p>RC Pro Allianz + assurance transport premium incluses.</p>
+          <p>RC Pro  + assurance transport premium incluses.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B2B Features -->
+  <section class="b2b-section" style="padding:60px 0;background:white;">
+    <div class="container">
+      <div class="section-title">Services B2B avancés</div>
+      <div class="section-sub">Des outils dédiés aux professionnels de l'automobile</div>
+      <div class="b2b-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:40px;">
+        <div style="background:#FDFBF7;border-radius:24px;padding:28px;border:1px solid #E8E0D5;">
+          <div style="font-size:2rem;color:#0A4D68;margin-bottom:16px;"><i class="fas fa-code"></i></div>
+          <h3 style="font-family:Montserrat,sans-serif;font-size:1.2rem;margin-bottom:12px;color:#2D2A24;">API d'intégration</h3>
+          <p style="color:#6B625A;font-size:0.9rem;line-height:1.6;">Intégrez nos services de convoyage directement dans votre ERP ou logiciel de gestion. API REST sécurisée avec documentation complète.</p>
+          <ul style="list-style:none;margin-top:16px;font-size:0.85rem;color:#6B625A;">
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> Création de missions automatisée</li>
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> Suivi de statut en temps réel</li>
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> Webhooks de notification</li>
+          </ul>
+        </div>
+        <div style="background:#FDFBF7;border-radius:24px;padding:28px;border:1px solid #E8E0D5;">
+          <div style="font-size:2rem;color:#0A4D68;margin-bottom:16px;"><i class="fas fa-layer-group"></i></div>
+          <h3 style="font-family:Montserrat,sans-serif;font-size:1.2rem;margin-bottom:12px;color:#2D2A24;">Devis en masse</h3>
+          <p style="color:#6B625A;font-size:0.9rem;line-height:1.6;">Importez un fichier CSV avec plusieurs véhicules à convoyer. Recevez un devis global optimisé en un seul clic.</p>
+          <ul style="list-style:none;margin-top:16px;font-size:0.85rem;color:#6B625A;">
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> Import CSV / Excel</li>
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> Tarification groupée dégressive</li>
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> Facturation centralisée mensuelle</li>
+          </ul>
+        </div>
+        <div style="background:#FDFBF7;border-radius:24px;padding:28px;border:1px solid #E8E0D5;">
+          <div style="font-size:2rem;color:#0A4D68;margin-bottom:16px;"><i class="fas fa-car-side"></i></div>
+          <h3 style="font-family:Montserrat,sans-serif;font-size:1.2rem;margin-bottom:12px;color:#2D2A24;">Gestion de flotte</h3>
+          <p style="color:#6B625A;font-size:0.9rem;line-height:1.6;">Suivez l'ensemble de vos véhicules en transit sur un tableau de bord unique. Historique, statistiques et reporting.</p>
+          <ul style="list-style:none;margin-top:16px;font-size:0.85rem;color:#6B625A;">
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> Dashboard flotte en temps réel</li>
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> Export comptable (CSV, PDF)</li>
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> Multi-sites et multi-concessions</li>
+          </ul>
+        </div>
+        <div style="background:#FDFBF7;border-radius:24px;padding:28px;border:1px solid #E8E0D5;">
+          <div style="font-size:2rem;color:#0A4D68;margin-bottom:16px;"><i class="fas fa-handshake"></i></div>
+          <h3 style="font-family:Montserrat,sans-serif;font-size:1.2rem;margin-bottom:12px;color:#2D2A24;">Contrats-cadres</h3>
+          <p style="color:#6B625A;font-size:0.9rem;line-height:1.6;">Tarifs négociés sur volume engagement annuel. Account manager dédié et SLA garanti.</p>
+          <ul style="list-style:none;margin-top:16px;font-size:0.85rem;color:#6B625A;">
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> Tarifs dégressifs sur volume</li>
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> Account manager dédié</li>
+            <li style="margin-bottom:6px;"><i class="fas fa-check" style="color:#4A7C6B;"></i> SLA 24h garanti</li>
+          </ul>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:40px;">
+        <a href="mailto:contact@bathily-convoyage.fr?subject=Demande%20partenariat%20B2B" style="display:inline-block;background:#0A4D68;color:white;padding:14px 32px;border-radius:40px;text-decoration:none;font-weight:600;font-size:0.95rem;">
+          <i class="fas fa-handshake" style="margin-right:8px;"></i>Demander un rendez-vous B2B
+        </a>
       </div>
     </div>
   </section>
@@ -442,7 +525,7 @@
 
   <!-- Footer -->
   <footer class="pro-footer">
-    <p>&copy; 2024 Bathily-Convoyage — <a href="index.html">Retour au site</a> · <a href="devis.html?pro=1">Devis Pro</a></p>
+    <p>&copy; 2025 Bathily-Convoyage — <a href="index.html">Retour au site</a> · <a href="devis.html?pro=1">Devis Pro</a> · <a href="mailto:contact@bathily-convoyage.fr?subject=Partenariat%20B2B">Partenariat B2B</a></p>
   </footer>
 
   <script>
@@ -506,5 +589,6 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+<script src="public/js/mobile-nav.js" defer></script>
 </body>
 </html>

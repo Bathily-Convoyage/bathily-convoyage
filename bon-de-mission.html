@@ -329,7 +329,7 @@
     <div class="section reveal">
       <div class="section-header">
         <div class="sh-left"><i class="fas fa-car sh-ico"></i><span class="sh-title">Véhicule à convoyer</span></div>
-        <span class="sh-tag">Identification SIV</span>
+        <span class="sh-tag">Identification par plaque</span>
       </div>
       <div class="section-body">
         <div class="vehicule-card">
@@ -380,7 +380,7 @@
     <div class="section reveal">
       <div class="section-header">
         <div class="sh-left"><i class="fas fa-truck sh-ico"></i><span class="sh-title">Convoyeur assigné</span></div>
-        <span class="sh-tag">Certifié SIV</span>
+        <span class="sh-tag">Convoyeur professionnel</span>
       </div>
       <div class="section-body">
         <div class="conv-card">
@@ -395,7 +395,7 @@
           <div class="data-item"><div class="data-lbl">Validité permis</div><div class="data-val">15 juin 2030</div></div>
           <div class="data-item"><div class="data-lbl">RC Pro</div><div class="data-val">AXA-2025-XX-XXXX</div></div>
           <div class="data-item"><div class="data-lbl">Missions</div><div class="data-val green">47 missions ★ 4.9</div></div>
-          <div class="data-item"><div class="data-lbl">Certification SIV</div><div class="data-val green">Valide 2025</div></div>
+          <div class="data-item"><div class="data-lbl">Certification</div><div class="data-val green">Valide 2025</div></div>
           <div class="data-item"><div class="data-lbl">Expérience</div><div class="data-val">+3 ans</div></div>
         </div>
       </div>
@@ -800,6 +800,22 @@
       }
 
       // Vérifier le statut de paiement en temps réel
+      const sbAuth = getSB();
+      if (!sbAuth) {
+        Swal.fire('Erreur', 'Configuration Supabase manquante.', 'error');
+        return;
+      }
+      const { data: { session }, error: authError } = await sbAuth.auth.getSession();
+      if (authError || !session) {
+        Swal.fire({
+          title: 'Authentification requise',
+          html: 'Vous devez être connecté en tant que convoyeur pour démarrer une mission.<br><br><a href="dashboard-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">Se connecter</a>',
+          icon: 'warning',
+          confirmButtonColor: 'var(--bordeaux)'
+        });
+        return;
+      }
+
       if (_missionId) {
         const client = getSB();
         const { data: payData, error: payError } = await client.from('missions').select('paiement_statut').eq('id', _missionId).single();

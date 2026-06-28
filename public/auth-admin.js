@@ -14,13 +14,13 @@ document.addEventListener('DOMContentLoaded', function() {
       const password = document.getElementById('adminPasswordInput').value;
       
       if (!email || !password) {
-        alert('Veuillez saisir email et mot de passe.');
+        Swal.fire('Champs requis', 'Veuillez saisir email et mot de passe.', 'warning');
         return;
       }
       
       try {
         if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-          alert('Erreur de configuration Supabase');
+          Swal.fire('Erreur', 'Configuration Supabase manquante.', 'error');
           return;
         }
         
@@ -47,7 +47,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('.dash-layout').style.display = 'flex';
         document.getElementById('adminName').textContent = (profile.prenom || 'Admin').toUpperCase();
         
-        alert('Connexion réussie ! Bienvenue ' + profile.prenom);
+        Swal.fire({
+          title: 'Connexion réussie',
+          text: 'Bienvenue ' + profile.prenom,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
         
         // Charger les données si la fonction existe
         if (typeof loadAllData === 'function') {

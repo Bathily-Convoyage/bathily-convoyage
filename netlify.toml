@@ -23,3 +23,7 @@
   for = "/manifest.json"
   [headers.values]
     Cache-Control = "no-cache"
+
+[[scheduled]]
+  function = "cron-relances"
+  schedule = "0 8 * * *"

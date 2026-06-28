@@ -48,13 +48,14 @@ CREATE POLICY "missions_select_own_or_admin"
     )
   );
 
--- SELECT: anon access for active missions (tracking, EDL, bon-de-mission)
+-- SELECT: anon access for in_progress missions only (tracking page)
+-- planned and available missions are NOT visible to unauthenticated users
 CREATE POLICY "missions_select_active_anon"
   ON public.missions
   FOR SELECT
   USING (
     auth.uid() IS NULL
-    AND status IN ('in_progress', 'planned', 'available')
+    AND status = 'in_progress'
   );
 
 -- UPDATE: admin or convoyeur (for EDL updates)
@@ -77,20 +78,7 @@ CREATE POLICY "missions_update_own_or_admin"
 
 NOTIFY pgrst, 'reload schema';
 
--- =====================================================
--- Fix missions_update_active_anon: statut -> status
--- =====================================================
-DROP POLICY IF EXISTS "missions_update_active_anon" ON public.missions;
-CREATE POLICY "missions_update_active_anon"
-  ON public.missions
-  FOR UPDATE
-  USING (
-    auth.uid() IS NULL
-    AND status IN ('planned', 'available', 'in_progress')
-  )
-  WITH CHECK (
-    auth.uid() IS NULL
-    AND status IN ('planned', 'available', 'in_progress', 'completed')
-  );
-
+-- NOTE: missions_update_active_anon supprimée définitivement par migration 028
+-- et consolidation dans migration 037. Ne pas recréer — faille de sécurité.
+-- Le bon-de-mission.html et gps-emitter.html nécessitent une authentification.
 NOTIFY pgrst, 'reload schema';

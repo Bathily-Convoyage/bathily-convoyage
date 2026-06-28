@@ -1,6 +1,6 @@
 /**
  * Autocomplétion véhicules - Base locale JSON
- * S'utilise en complément de la recherche SIV par plaque
+ * S'utilise en complément de la recherche par plaque
  */
 
 (function() {

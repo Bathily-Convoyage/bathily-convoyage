@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./supabase-config.js"></script>
+  <script src="/supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -274,6 +274,24 @@
       border-color: var(--bordeaux-light);
       box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.08);
     }
+
+    /* Gamification */
+    .gamif-level-card { display: flex; gap: 20px; align-items: center; background: white; border-radius: 24px; padding: 28px; border: 1px solid var(--border-light); margin-bottom: 24px; }
+    .gamif-level-icon { font-size: 2.5rem; }
+    .gamif-level-info { flex: 1; }
+    .gamif-level-name { font-family: 'Montserrat',sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--gray-dark); }
+    .gamif-level-points { font-size: 0.9rem; color: var(--gray-mid); margin-bottom: 10px; }
+    .gamif-progress-bar { height: 8px; background: var(--border-light); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+    .gamif-progress-fill { height: 100%; background: var(--bordeaux); border-radius: 4px; transition: width 0.5s; }
+    .gamif-progress-text { font-size: 0.75rem; color: var(--gray-mid); }
+    .gamif-badges-section { background: white; border-radius: 24px; padding: 28px; border: 1px solid var(--border-light); }
+    .gamif-badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; }
+    .gamif-badge { text-align: center; padding: 16px 8px; border-radius: 16px; border: 1px solid var(--border-light); position: relative; }
+    .gamif-badge.earned { background: var(--bordeaux-light); border-color: var(--bordeaux); }
+    .gamif-badge.locked { background: #f9f9f9; }
+    .gamif-badge-icon { font-size: 1.8rem; margin-bottom: 8px; }
+    .gamif-badge-name { font-size: 0.75rem; font-weight: 600; color: var(--gray-dark); }
+    .gamif-badge-locked { position: absolute; top: 4px; right: 4px; font-size: 0.6rem; color: var(--gray-mid); }
     .stat-ico {
       font-size: 1.3rem;
       color: var(--bordeaux);
@@ -1105,6 +1123,7 @@
       <div class="nav-section">
         <div class="nav-section-lbl">Compte</div>
         <div class="nav-item" onclick="showConvTab('profil',this)" role="button" tabindex="0"><i class="fas fa-user"></i> Mon profil</div>
+        <div class="nav-item" onclick="showConvTab('gamification',this)" role="button" tabindex="0"><i class="fas fa-trophy"></i> Badges & niveau</div>
         <div class="nav-item" onclick="showConvTab('support',this)" role="button" tabindex="0"><i class="fas fa-headset"></i> Support</div>
         <a href="index.html" class="nav-item"><i class="fas fa-globe"></i> Site public</a>
       </div>
@@ -1314,6 +1333,21 @@
           <div class="f-grp"><label>Référence mission (optionnel)</label><input type="text" id="convSupportRef" placeholder="BC-2025-XXXX"></div>
           <div class="f-grp"><label>Message</label><textarea id="convSupportMessage" rows="5" placeholder="Décrivez votre demande"></textarea></div>
           <button class="btn-red" onclick="submitConvoyeurSupport()"><i class="fas fa-paper-plane"></i> Envoyer</button>
+        </div>
+      </div>
+
+      <!-- Gamification -->
+      <div class="tab-content" id="conv-tab-gamification">
+        <div class="dash-header">
+          <h1 class="dash-hello">Badges & <em>niveau</em></h1>
+        </div>
+        <div id="gamificationContainer" style="max-width:700px;">
+          <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+        </div>
+        <div style="margin-top:24px;max-width:700px;">
+          <h4 style="font-family:Montserrat,sans-serif;font-size:1rem;margin-bottom:12px;color:var(--bordeaux);"><i class="fas fa-bell" style="margin-right:8px;"></i>Notifications push</h4>
+          <p style="font-size:0.85rem;color:var(--gray-mid);margin-bottom:16px;">Recevez des notifications pour les nouvelles missions, rappels et badges.</p>
+          <button id="btnEnablePush" style="background:var(--bordeaux);color:white;border:none;padding:10px 24px;border-radius:30px;cursor:pointer;font-weight:600;font-size:0.85rem;"><i class="fas fa-bell"></i> Activer les notifications</button>
         </div>
       </div>
     </main>
@@ -2199,7 +2233,7 @@
 
     // ========== SHOW TAB ==========
     function showConvTab(id, el) {
-      document.querySelectorAll('#conv-tab-accueil, #conv-tab-missions, #conv-tab-mes-missions, #conv-tab-candidatures, #conv-tab-profil, #conv-tab-support, #conv-tab-reseau')
+      document.querySelectorAll('#conv-tab-accueil, #conv-tab-missions, #conv-tab-mes-missions, #conv-tab-candidatures, #conv-tab-profil, #conv-tab-support, #conv-tab-reseau, #conv-tab-gamification')
         .forEach(t => t.classList.remove('active'));
       const target = document.getElementById('conv-tab-' + id);
       if (target) target.classList.add('active');
@@ -2304,6 +2338,7 @@
     });
   </script>
 
+<script src="public/js/gamification.js" defer></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function() {

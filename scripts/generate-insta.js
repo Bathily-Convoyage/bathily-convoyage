@@ -250,8 +250,8 @@ const VISUALS = [
       </div>
       <div class="main">
         <div class="icon-circle">${SVGS.shield}</div>
-        <h2 class="slide-title">Double Assurance Allianz</h2>
-        <p class="slide-desc">Votre véhicule est couvert à <strong>100% tous risques</strong> par notre assurance partenaire Allianz pendant tout le convoyage. Aucune franchise à votre charge en cas de sinistre.</p>
+        <h2 class="slide-title">Double RC Pro</h2>
+        <p class="slide-desc">Votre véhicule est couvert à <strong>100% tous risques</strong> par notre double RC Pro (Bathily-Convoyage + convoyeur) pendant tout le convoyage. Aucune franchise à votre charge en cas de sinistre.</p>
         <div class="reassurance-card">
           <span class="card-badge">INCLUS SANS FRAIS</span>
           <h3>Responsabilité Civile Professionnelle</h3>
@@ -259,7 +259,7 @@ const VISUALS = [
       </div>
       <div class="footer">
         <div class="footer-text">Défilez pour la suite ➔</div>
-        <div class="footer-text">Allianz 🤝 Bathily</div>
+        <div class="footer-text">RC Pro 🤝 Bathily</div>
       </div>
     `, `
       .icon-circle {
@@ -682,7 +682,7 @@ const VISUALS = [
           <div class="inclusion-item">
             <div class="check-icon">${SVGS.check}</div>
             <div>
-              <h3>Chauffeur professionnel certifié SIV</h3>
+              <h3>Chauffeur professionnel</h3>
               <p>Chauffeurs validés et assurés pour tout type de véhicule.</p>
             </div>
           </div>
@@ -696,7 +696,7 @@ const VISUALS = [
           <div class="inclusion-item">
             <div class="check-icon">${SVGS.check}</div>
             <div>
-              <h3>Assurance Allianz tous risques</h3>
+              <h3>Double RC Pro tous risques</h3>
               <p>Couverture de la valeur totale du véhicule sans surcoût.</p>
             </div>
           </div>
@@ -1107,7 +1107,7 @@ const VISUALS = [
       </div>
       <div class="footer">
         <div class="footer-text">Défilez pour l'étape 3 ➔</div>
-        <div class="footer-text">Assuré Allianz 🛡️</div>
+        <div class="footer-text">Double RC Pro 🛡️</div>
       </div>
     `, `
       .step-badge {
@@ -1990,7 +1990,7 @@ Retrouvez ici toutes les légendes (captions) prêtes à copier-coller accompagn
 > Pourquoi ne pas déléguer cette tâche à des professionnels ?
 > 
 > Chez **Bathily Convoyage**, nous assurons un transport simple, transparent et sécurisé de votre véhicule :
-> 🛡️ **Assurance Allianz Tous Risques** incluse (aucune franchise à votre charge).
+> 🛡️ **Double RC Pro tous risques** incluse (Bathily-Convoyage + convoyeur, aucune franchise à votre charge).
 > 📍 **Suivi GPS en temps réel** pour garder un œil sur votre auto/moto tout au long du trajet.
 > 📸 **État des lieux numérique certifié** avec 20 photos haute définition au départ et à l'arrivée.
 > 
@@ -1998,7 +1998,7 @@ Retrouvez ici toutes les légendes (captions) prêtes à copier-coller accompagn
 > 
 > 👉 Estimez votre tarif en 60 secondes chrono sur notre site : **bathily-convoyage.fr** (lien direct en bio).
 > 
-> #convoyageauto #convoyage #transportvehicule #suivigps #assuranceallianz #transitvoiture #carsofinstagram #bathilyconvoyage
+> #convoyageauto #convoyage #transportvehicule #suivigps #rcpro #transitvoiture #carsofinstagram #bathilyconvoyage
 
 ---
 
@@ -2011,9 +2011,9 @@ Retrouvez ici toutes les légendes (captions) prêtes à copier-coller accompagn
 > Profitez de notre offre spéciale de convoyage sur ce trajet populaire pour seulement **299€ HT tout inclus** !
 > 
 > Ce qui est compris dans le prix :
-> 👨‍✈️ Un chauffeur certifié SIV dédié.
+> 👨‍✈️ Un chauffeur professionnel dédié.
 > ⛽ Tous les frais de carburant et de péages d'autoroute.
-> 🛡️ La couverture assurance tous risques Allianz.
+> 🛡️ La couverture double RC Pro tous risques (Bathily-Convoyage + convoyeur).
 > 📍 Le suivi de position GPS en direct.
 > 
 > Moins de tracas, plus rapide et plus flexible qu'un transport par camion plateau classique. Vous décidez du lieu et de l'heure exacte de livraison !

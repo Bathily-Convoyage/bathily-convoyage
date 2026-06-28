@@ -141,8 +141,7 @@ exports.handler = async (event) => {
       headers,
       body: JSON.stringify({
         success: true,
-        message: `Compte créé pour ${candidat.prenom} ${candidat.nom}`,
-        temp_password: tempPassword
+        message: `Compte créé pour ${candidat.prenom} ${candidat.nom}`
       })
     };
 

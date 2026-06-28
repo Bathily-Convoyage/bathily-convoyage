@@ -8,7 +8,6 @@ const STATIC_ASSETS = [
   '/dashboard-client.html',
   '/dashboard-admin.html',
   '/formation-convoyeur.html',
-  '/supabase-config.js',
   '/css/design-system.css',
   '/js/lang-switcher.js',
   '/js/vehicule-autocomplete.js',
@@ -54,6 +53,20 @@ self.addEventListener('fetch', (event) => {
 
   // Skip Netlify functions
   if (url.pathname.startsWith('/.netlify/')) return;
+
+  // Config files: network-first (always fresh, generated from env vars)
+  if (url.pathname.endsWith('-config.js')) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          return res;
+        })
+        .catch(() => caches.match(req).then((cached) => cached || new Response('', { status: 404 })))
+    );
+    return;
+  }
 
   // HTML pages: network-first (always fresh content)
   if (req.headers.get('accept')?.includes('text/html')) {

@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./supabase-config.js"></script>
+  <script src="/supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -1492,6 +1492,7 @@
         <div class="nav-section-lbl">Finances</div>
         <div class="nav-item" data-tab="facturation"><i class="fas fa-file-invoice"></i> Facturation</div>
         <div class="nav-item" data-tab="analytics"><i class="fas fa-chart-bar"></i> Analytics</div>
+        <div class="nav-item" data-tab="campagnes"><i class="fas fa-paper-plane"></i> Campagnes email</div>
       </div>
     </nav>
 
@@ -1842,7 +1843,7 @@
                 <ul class="pack-features-list" id="display_features_pack_starter">
                   <li><i class="fas fa-check-circle"></i> Logistique de convoyage standard</li>
                   <li><i class="fas fa-check-circle"></i> Double assurance RC Pro</li>
-                  <li><i class="fas fa-check-circle"></i> Identification SIV</li>
+                  <li><i class="fas fa-check-circle"></i> Identification par plaque</li>
                   <li><i class="fas fa-check-circle"></i> État des lieux numérisé (20 photos)</li>
                   <li><i class="fas fa-check-circle"></i> Suivi GPS basique</li>
                 </ul>
@@ -1855,7 +1856,7 @@
                     <label>Prestations (une par ligne)</label>
                     <textarea id="features_pack_starter" rows="4">Logistique de convoyage standard
 Double assurance RC Pro
-Identification SIV
+Identification par plaque
 État des lieux numérisé (20 photos)
 Suivi GPS basique</textarea>
                   </div>
@@ -2032,6 +2033,40 @@ Cadeau premium personnalisé</textarea>
           <div class="toggle-wrap"><div class="toggle" onclick="this.classList.toggle('on')" role="switch" aria-checked="false"></div><span class="toggle-lbl">Paiement en ligne (Stripe)</span></div>
         </div>
       </div>
+
+      <!-- CAMPAGNES EMAIL -->
+      <div class="tab-content" id="tab-campagnes">
+        <div class="dash-header">
+          <h1 class="dash-hello">Campagnes <em>email</em></h1>
+          <div class="dash-date">Newsletter et marketing</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px;">
+          <div class="stat-card">
+            <div class="stat-ico"><i class="fas fa-users"></i></div>
+            <div class="stat-val" id="newsletterCount">-</div>
+            <div class="stat-lbl">Abonnés newsletter</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ico"><i class="fas fa-paper-plane"></i></div>
+            <div class="stat-val" id="campagnesCount">-</div>
+            <div class="stat-lbl">Campagnes envoyées</div>
+          </div>
+        </div>
+        <div class="sec-title">
+          <h2 class="sec-h">Nouvelle <em>campagne</em></h2>
+        </div>
+        <div style="max-width:700px;background:white;border-radius:24px;padding:28px;border:1px solid var(--border-light);">
+          <div class="f-grp"><label>Sujet</label><input type="text" id="campagneSujet" placeholder="Sujet de l'email"></div>
+          <div class="f-grp"><label>Contenu (HTML)</label><textarea id="campagneContenu" rows="8" placeholder="Contenu HTML de votre campagne"></textarea></div>
+          <button class="btn-red" onclick="sendCampagne()"><i class="fas fa-paper-plane"></i> Envoyer à tous les abonnés</button>
+        </div>
+        <div class="sec-title" style="margin-top:32px;">
+          <h2 class="sec-h">Campagnes <em>précédentes</em></h2>
+        </div>
+        <div id="campagnesList" style="max-width:700px;">
+          <div style="text-align:center;color:var(--gray-mid);padding:20px;">Chargement...</div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -2104,7 +2139,7 @@ Cadeau premium personnalisé</textarea>
         <label>Plaque d'immatriculation</label>
         <div style="display:flex; gap:8px; align-items:center;">
           <input type="text" id="adminPlaqueInput" placeholder="AB-123-CD" maxlength="9" style="flex:1; text-transform:uppercase;" oninput="formatAdminPlaque(this)">
-          <button type="button" onclick="lookupAdminPlaque()" class="btn-siv"><i class="fas fa-search"></i> Identifier (SIV)</button>
+          <button type="button" onclick="lookupAdminPlaque()" class="btn-siv"><i class="fas fa-search"></i> Identifier</button>
         </div>
         <div class="siv-result" id="adminSivResult" style="display:none;">
           <div class="siv-success"><i class="fas fa-check-circle"></i> <strong id="adminSivVehicleName">—</strong></div>
@@ -2666,7 +2701,7 @@ Cadeau premium personnalisé</textarea>
   }
 
   // ============================================================
-  // PARTIE 7 : IDENTIFICATION SIV (ADMIN)
+  // PARTIE 7 : IDENTIFICATION (ADMIN)
   // ============================================================
   function formatAdminPlaque(input) {
     let v = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -2683,7 +2718,7 @@ Cadeau premium personnalisé</textarea>
     }
 
     Swal.fire({
-      title: 'Recherche SIV en cours...',
+      title: 'Recherche en cours...',
       text: 'Identification du véhicule...',
       allowOutsideClick: false,
       didOpen: () => Swal.showLoading()
@@ -2693,7 +2728,7 @@ Cadeau premium personnalisé</textarea>
       const response = await fetch(`/.netlify/functions/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.error || 'Erreur SIV');
+      if (!response.ok) throw new Error(data.error || 'Erreur');
 
       if (data.marque) {
         document.getElementById('adminSivVehicleName').textContent = `${data.marque} ${data.modele || ''}`;
@@ -2719,7 +2754,7 @@ Cadeau premium personnalisé</textarea>
     } catch (err) {
       Swal.fire({
         title: 'Identification impossible',
-        text: err.message || 'Le service SIV est indisponible. Sélectionnez manuellement.',
+        text: err.message || 'Le service est indisponible. Sélectionnez manuellement.',
         icon: 'error',
         confirmButtonColor: 'var(--bordeaux)'
       });
@@ -5285,6 +5320,88 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       loadSupportTickets();
     }
   };
+
+  // ========== CAMPAGNES EMAIL ==========
+  async function loadNewsletterStats() {
+    const sb = getSupabase();
+    try {
+      const { count: newsCount } = await sb.from('newsletter_subscribers').select('*', { count: 'exact', head: true }).eq('statut', 'actif');
+      const el1 = document.getElementById('newsletterCount');
+      if (el1) el1.textContent = newsCount || 0;
+
+      const { count: campCount } = await sb.from('campagnes').select('*', { count: 'exact', head: true }).eq('statut', 'envoyee');
+      const el2 = document.getElementById('campagnesCount');
+      if (el2) el2.textContent = campCount || 0;
+
+      const { data: campagnes } = await sb.from('campagnes').select('*').order('created_at', { ascending: false }).limit(10);
+      const list = document.getElementById('campagnesList');
+      if (list && campagnes) {
+        if (campagnes.length === 0) {
+          list.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:20px;">Aucune campagne envoyée.</div>';
+        } else {
+          list.innerHTML = campagnes.map(c => {
+            var date = new Date(c.created_at).toLocaleDateString('fr-FR');
+            var statusColor = c.statut === 'envoyee' ? 'var(--success)' : 'var(--gray-mid)';
+            return '<div style="background:white;border-radius:16px;padding:16px 20px;border:1px solid var(--border-light);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">' +
+              '<div><strong>' + escapeHtml(c.sujet) + '</strong><br><span style="font-size:0.75rem;color:var(--gray-mid);">' + date + ' · ' + (c.destinataires || 0) + ' destinataires</span></div>' +
+              '<span style="font-size:0.75rem;color:' + statusColor + ';font-weight:600;">' + c.statut + '</span></div>';
+          }).join('');
+        }
+      }
+    } catch (err) {
+      console.warn('Erreur loadNewsletterStats:', err);
+    }
+  }
+
+  async function sendCampagne() {
+    var sujet = document.getElementById('campagneSujet').value.trim();
+    var contenu = document.getElementById('campagneContenu').value.trim();
+    if (!sujet || !contenu) {
+      Swal.fire('Champs requis', 'Sujet et contenu sont obligatoires.', 'warning');
+      return;
+    }
+    var confirm = await Swal.fire({
+      title: 'Confirmer l\'envoi ?',
+      text: 'L\'email sera envoyé à tous les abonnés actifs.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Envoyer',
+      cancelButtonText: 'Annuler',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const resp = await fetch('/.netlify/functions/send-campagne', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sujet: sujet, contenu: contenu })
+      });
+      const result = await resp.json();
+      if (resp.ok) {
+        Swal.fire('Envoyé !', result.sent + ' emails envoyés.', 'success');
+        document.getElementById('campagneSujet').value = '';
+        document.getElementById('campagneContenu').value = '';
+        loadNewsletterStats();
+      } else {
+        Swal.fire('Erreur', result.error || 'Échec de l\'envoi.', 'error');
+      }
+    } catch (err) {
+      Swal.fire('Erreur', err.message, 'error');
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Charger les stats quand on clique sur l'onglet campagnes
+  document.querySelectorAll('.nav-item[data-tab="campagnes"]').forEach(el => {
+    el.addEventListener('click', loadNewsletterStats);
+  });
   </script>
 
 <script>

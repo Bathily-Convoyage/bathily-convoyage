@@ -344,6 +344,7 @@
       .footer-grid { grid-template-columns: 1fr; }
     }
   </style>
+  <link rel="stylesheet" href="public/css/mobile-nav.css">
 </head>
 <body>
 
@@ -353,7 +354,7 @@
 <header>
   <div class="container header-inner">
     <a href="index.html" class="logo"><img src="/logo.png" alt="Bathily-Convoyage" /></a>
-    <div class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</div>
+    <div class="menu-toggle" id="menuToggle"><i class="fas fa-bars icon-bars"></i><i class="fas fa-times icon-times"></i></div>
     <div class="nav-links">
       <a href="index.html">Accueil</a>
       <a href="formation-convoyeur.html">Devenir convoyeur</a>
@@ -439,7 +440,7 @@
         <p>Nous collectons uniquement les données strictement nécessaires aux prestations proposées :</p>
         <ul>
           <li><strong>Données clients :</strong> Nom, prénom, adresse email, numéro de téléphone, raison sociale (optionnel), adresses de prise en charge et de livraison.</li>
-          <li><strong>Données véhicules :</strong> Plaque d'immatriculation (via le système SIV pour identification automatique), marque, modèle, année, motorisation, valeur estimée.</li>
+          <li><strong>Données véhicules :</strong> Plaque d'immatriculation (via API d'identification par plaque), marque, modèle, année, motorisation, valeur estimée.</li>
           <li><strong>Données convoyeurs :</strong> Nom, prénom, permis de conduire, coordonnées géographiques en temps réel (lors de l'exécution des missions).</li>
           <li><strong>Données de mission :</strong> Photos de l'État des lieux (EDL) départ et arrivée, signatures numériques.</li>
           <li><strong>Données de géolocalisation :</strong> Durant la mission, le véhicule est géolocalisé en temps réel afin de fournir au client et au dispatch un lien de suivi en direct.</li>
@@ -549,9 +550,7 @@
 
 <script>
   // Mobile navigation toggle
-  document.querySelector('.menu-toggle').addEventListener('click', () => {
-    document.querySelector('.nav-links').classList.toggle('show');
-  });
+  // Mobile nav gere par public/js/mobile-nav.js
 
   // Tab switching logic
   function switchTab(tabId) {
@@ -621,6 +620,7 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+<script src="public/js/mobile-nav.js" defer></script>
 </body>
 </html>
 
