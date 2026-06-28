@@ -2949,6 +2949,17 @@ Cadeau premium personnalisé</textarea>
 
     // Nouveau client
     try {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (isLocal) {
+        // En local : insert direct sans Netlify Function
+        const { error: insertErr } = await sb.from('clients').insert([payload]);
+        if (insertErr) throw new Error(insertErr.message);
+        closeModal('modalClient');
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Client créé (mode local - sans email)', timer: 4000 });
+        loadClients();
+        return;
+      }
+
       const session = (await sb.auth.getSession()).data.session;
       const response = await fetch('/.netlify/functions/admin-create-user', {
         method: 'POST',
@@ -3048,6 +3059,23 @@ Cadeau premium personnalisé</textarea>
     if (!sb) return;
 
     try {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const convPayload = {
+        prenom, nom, email, telephone: phone,
+        taux_auto: tauxAuto, taux_moto: tauxMoto,
+        zone, niveau
+      };
+
+      if (isLocal) {
+        // En local : insert direct sans Netlify Function
+        const { error: insertErr } = await sb.from('convoyeurs').insert([convPayload]);
+        if (insertErr) throw new Error(insertErr.message);
+        closeModal('modalConvoyeur');
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convoyeur créé (mode local - sans email)', timer: 4000 });
+        await loadConvoyeurs();
+        return;
+      }
+
       const session = (await sb.auth.getSession()).data.session;
       const response = await fetch('/.netlify/functions/admin-create-user', {
         method: 'POST',
@@ -3057,11 +3085,7 @@ Cadeau premium personnalisé</textarea>
         },
         body: JSON.stringify({
           targetTable: 'convoyeurs',
-          payload: {
-            prenom, nom, email, telephone: phone,
-            taux_auto: tauxAuto, taux_moto: tauxMoto,
-            zone, niveau
-          }
+          payload: convPayload
         })
       });
 
