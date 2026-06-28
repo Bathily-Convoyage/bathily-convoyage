@@ -45,7 +45,19 @@ async function main() {
     { html: 'visuel-plateau.html', name: 'visuel-plateau.png' },
     { html: 'visuel-convoyeur.html', name: 'visuel-convoyeur.png' },
     { html: 'visuel-temoignage.html', name: 'visuel-temoignage.png' },
-    { html: 'visuel-offre-juillet.html', name: 'visuel-offre-juillet.png' }
+    { html: 'visuel-offre-juillet.html', name: 'visuel-offre-juillet.png' },
+    { html: 'visuel-pack-starter.html', name: 'visuel-pack-starter.png' },
+    { html: 'visuel-pack-serenite.html', name: 'visuel-pack-serenite.png' },
+    { html: 'visuel-pack-excellence.html', name: 'visuel-pack-excellence.png' },
+    { html: 'visuel-concession.html', name: 'visuel-concession.png' },
+    { html: 'visuel-loueur.html', name: 'visuel-loueur.png' },
+    { html: 'visuel-flotte.html', name: 'visuel-flotte.png' },
+    { html: 'visuel-devis.html', name: 'visuel-devis.png' },
+    { html: 'visuel-urgence.html', name: 'visuel-urgence.png' },
+    { html: 'visuel-ete.html', name: 'visuel-ete.png' },
+    { html: 'visuel-auto-moto.html', name: 'visuel-auto-moto.png' },
+    { html: 'visuel-offre-fin.html', name: 'visuel-offre-fin.png' },
+    { html: 'visuel-recap.html', name: 'visuel-recap.png' }
   ];
   
   for (const info of infographies) {
