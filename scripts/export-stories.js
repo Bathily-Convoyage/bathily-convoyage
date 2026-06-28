@@ -12,19 +12,20 @@ async function generatePNG(htmlPath, outputPath) {
   });
   
   const page = await browser.newPage();
+  await page.setViewport({ width: 1080, height: 1920, deviceScaleFactor: 2 });
   
   const htmlUrl = `file://${path.resolve(htmlPath)}`;
   await page.goto(htmlUrl, { waitUntil: 'networkidle0' });
   
   await page.screenshot({
     path: outputPath,
-    fullPage: true,
+    clip: { x: 0, y: 0, width: 1080, height: 1920 },
     type: 'png'
   });
   
   await browser.close();
   
-  console.log(`✓ PNG generated: ${outputPath}`);
+  console.log(`✓ PNG generated (1080x1920): ${outputPath}`);
 }
 
 async function main() {
