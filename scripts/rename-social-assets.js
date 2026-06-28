@@ -64,4 +64,4 @@ function main() {
   console.log('📁 Assets directory:', assetsDir);
 }
 
-main().catch(console.error);
+main();
