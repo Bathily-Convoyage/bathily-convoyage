@@ -2,11 +2,12 @@ import fs from 'fs';
 import path from 'path';
 
 async function scheduleJuly2026Posts() {
-  const token = process.env.BUFFER_ACCESS_TOKEN;
-  const profileIds = process.env.BUFFER_PROFILE_IDS ? process.env.BUFFER_PROFILE_IDS.split(',') : [];
+  const token = 'pu4Xem4CjrtuPt0jeQTlGuV7TAyRYwZoA7PqHwf40mf';
+  // Channel IDs extraits des URLs Buffer
+  const profileIds = ['6a36abc838b5579345b7f883', '6a419f085ab6d2f10681d3ac', '6a2bd39638b5579345898778'];
 
-  if (!token || profileIds.length === 0) {
-    console.error("❌ Les variables d'environnement BUFFER_ACCESS_TOKEN et BUFFER_PROFILE_IDS sont requises.");
+  if (!token) {
+    console.error("❌ La clé API Buffer est requise.");
     process.exit(1);
   }
 
@@ -19,6 +20,10 @@ async function scheduleJuly2026Posts() {
 
   const posts = JSON.parse(fs.readFileSync(postsPath, 'utf8'));
   console.log(`📅 ${posts.length} posts à planifier pour juillet 2026\n`);
+
+  // TEST : Planifier seulement les 5 premiers posts
+  const testPosts = posts.slice(0, 5);
+  console.log(`🧪 TEST : Planification des ${testPosts.length} premiers posts...\n`);
 
   // Mapper les plateformes aux channel IDs
   const platformChannelMap = {};
@@ -41,7 +46,7 @@ async function scheduleJuly2026Posts() {
   let successCount = 0;
   let errorCount = 0;
 
-  for (const post of posts) {
+  for (const post of testPosts) {
     const channelId = platformChannelMap[post.platform];
     if (!channelId) {
       console.log(`⚠ Platforme non reconnue: ${post.platform}`);
@@ -57,19 +62,18 @@ async function scheduleJuly2026Posts() {
       assets.push({ image: { url: post.media } });
     }
 
-    // Déterminer le type de post Instagram
-    const isStory = post.platform === 'instagram-story';
-    const metadata = isStory ? {
-      instagram: {
-        type: 'story',
-        shouldShareToFeed: false
-      }
-    } : {
-      instagram: {
-        type: 'post',
-        shouldShareToFeed: true
-      }
-    };
+    // Déterminer le type de post selon la plateforme
+    let metadata = {};
+    if (post.platform === 'instagram' || post.platform === 'instagram-story') {
+      const isStory = post.platform === 'instagram-story';
+      metadata = {
+        instagram: {
+          type: isStory ? 'story' : 'post',
+          shouldShareToFeed: !isStory
+        }
+      };
+    }
+    // TikTok et LinkedIn n'ont pas besoin de metadata spécifique
 
     const query = `
       mutation CreatePost($input: CreatePostInput!) {
@@ -91,8 +95,7 @@ async function scheduleJuly2026Posts() {
       input: {
         text: post.text,
         channelId: channelId,
-        schedulingType: 'scheduled',
-        scheduledAt: `${post.date}T09:00:00Z`, // 9h UTC par défaut
+        schedulingType: 'automatic',
         mode: 'shareNow',
         metadata: metadata,
         assets: assets.length > 0 ? assets : undefined
