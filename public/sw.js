@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bathily-convoyage-v3';
+const CACHE_NAME = 'bathily-convoyage-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
