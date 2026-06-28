@@ -1,0 +1,350 @@
+/* ============================================================
+   Navigation Mobile — Bathily-Convoyage
+   1. Barre nav fixe en bas (actions principales)
+   2. Menu slide-in lateral (pages secondaires)
+   3. Overlay + animations fluides
+   ============================================================ */
+
+/* ============================================================
+   1. BARRE NAV FIXE EN BAS (mobile uniquement)
+   ============================================================ */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid #E8E1D9;
+  z-index: 9998;
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.06);
+  justify-content: space-around;
+  align-items: center;
+  height: calc(60px + env(safe-area-inset-bottom, 0px));
+}
+
+.mobile-bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  height: 60px;
+  text-decoration: none;
+  color: #6B625A;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: color 0.2s ease, transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.mobile-bottom-nav__item:active {
+  transform: scale(0.92);
+}
+
+.mobile-bottom-nav__item.active {
+  color: #0A4D68;
+}
+
+.mobile-bottom-nav__item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: #0A4D68;
+}
+
+.mobile-bottom-nav__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.mobile-bottom-nav__label {
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+/* Badge notification optionnel */
+.mobile-bottom-nav__badge {
+  position: absolute;
+  top: 6px;
+  right: 50%;
+  transform: translateX(14px);
+  background: #e74c3c;
+  color: white;
+  font-size: 0.5rem;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+/* ============================================================
+   2. MENU SLIDE-IN LATERAL (pages secondaires)
+   ============================================================ */
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  z-index: 9996;
+  transition: background 0.3s ease;
+  pointer-events: none;
+}
+
+.mobile-menu-overlay.active {
+  display: block;
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+}
+
+.mobile-menu-panel {
+  position: fixed;
+  top: 0;
+  right: -280px;
+  width: 280px;
+  max-width: 85vw;
+  height: 100vh;
+  height: 100dvh;
+  background: #FDFBF7;
+  z-index: 9997;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-menu-panel.active {
+  right: 0;
+}
+
+.mobile-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E8E1D9;
+  flex-shrink: 0;
+}
+
+.mobile-menu-header__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2D2A24;
+}
+
+.mobile-menu-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #F9F6F0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6B625A;
+  font-size: 1.1rem;
+  transition: background 0.2s, color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-menu-close:active {
+  background: #E8E1D9;
+  transform: scale(0.92);
+}
+
+.mobile-menu-links {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  flex: 1;
+}
+
+.mobile-menu-links li {
+  margin: 0;
+}
+
+.mobile-menu-links a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 24px;
+  text-decoration: none;
+  color: #2D2A24;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-menu-links a:active {
+  background: #F9F6F0;
+}
+
+.mobile-menu-links a.active {
+  color: #0A4D68;
+  font-weight: 700;
+  background: #E6F0F4;
+}
+
+.mobile-menu-links a i {
+  width: 22px;
+  text-align: center;
+  font-size: 1rem;
+  color: #6B625A;
+}
+
+.mobile-menu-links a.active i {
+  color: #0A4D68;
+}
+
+.mobile-menu-divider {
+  height: 1px;
+  background: #E8E1D9;
+  margin: 8px 24px;
+}
+
+.mobile-menu-footer {
+  padding: 20px 24px;
+  border-top: 1px solid #E8E1D9;
+  flex-shrink: 0;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.mobile-menu-footer__phone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #0A4D68;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+.mobile-menu-footer__phone i {
+  font-size: 1.1rem;
+}
+
+.mobile-menu-footer__cta {
+  display: block;
+  text-align: center;
+  background: #0A4D68;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 40px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.mobile-menu-footer__cta:active {
+  background: #063244;
+}
+
+/* ============================================================
+   3. BOUTON HAMBURGER ANIME
+   ============================================================ */
+.menu-toggle {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-toggle .icon-bars {
+  display: inline-block;
+  transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+.menu-toggle .icon-times {
+  display: none;
+  transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+.menu-toggle.open .icon-bars {
+  display: none;
+}
+
+.menu-toggle.open .icon-times {
+  display: inline-block;
+}
+
+/* ============================================================
+   4. AJUSTEMENTS POUR LE CONTENU (mobile)
+   ============================================================ */
+
+/* Eviter que le contenu soit cache par la barre du bas */
+@media (max-width: 900px) {
+  body {
+    padding-bottom: 60px;
+  }
+
+  .mobile-bottom-nav {
+    display: flex;
+  }
+
+  /* Les boutons flottants doivent etre au-dessus de la barre */
+  .floating-devis,
+  .sticky-call-mobile {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Reduire les paddings en bas de page */
+  footer {
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* ============================================================
+   5. SCROLL SMOOTH + SMOOTH TOUCH
+   ============================================================ */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
+}
+
+/* Eviter la selection accidentelle sur les boutons */
+button,
+a.button,
+.btn-outline,
+.mobile-bottom-nav__item,
+.mobile-menu-links a,
+.menu-toggle {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* ============================================================
+   6. SAFE AREA POUR IPHONE NOTCH
+   ============================================================ */
+@supports (padding: env(safe-area-inset-top)) {
+  .promo-bar {
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+  }
+
+  header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
