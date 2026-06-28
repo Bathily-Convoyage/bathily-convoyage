@@ -3868,6 +3868,15 @@ Cadeau premium personnalisé</textarea>
         const { data: newMission, error: missionErr } = await sb.from('missions').insert([missionData]).select().single();
         if (missionErr) throw new Error("Erreur création mission: " + missionErr.message);
 
+        // En local (sans Netlify Functions), skip Stripe + email
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocal) {
+          console.warn('Mode local: Stripe et email ignorés. Mission créée avec succès.');
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Devis accepté (mode local - sans paiement/email)', timer: 4000 });
+          loadDevis();
+          return;
+        }
+
         const sessionToken = (await sb.auth.getSession()).data?.session?.access_token;
         const response = await fetch('/.netlify/functions/create-checkout-session', {
           method: 'POST',
@@ -3889,16 +3898,13 @@ Cadeau premium personnalisé</textarea>
         }
         let checkoutData;
         try { checkoutData = JSON.parse(responseText); } catch { checkoutData = {}; }
-        if (!checkoutData.url) {
-          console.warn('Pas d\'URL de checkout (mode local ?). Mission créée sans paiement.');
-        }
 
         const emailResponse = await fetch('/.netlify/functions/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ trigger: 'devis_confirmed', id: devis.id, payment_url: checkoutData.url })
         });
-        if (!emailResponse.ok) console.warn('Email non envoyé (mode local ?).');
+        if (!emailResponse.ok) console.warn('Email non envoyé.');
 
         Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Devis accepté et client notifié', timer: 3000 });
       } catch (err) {
