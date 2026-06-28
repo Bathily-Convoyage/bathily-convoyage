@@ -52,17 +52,15 @@
 
     var rate = BASE_RATES[vehType] || BASE_RATES.Automobile;
 
-    // ── Tarif de base ──
-    var prix;
-    if (mode === 'plateau') {
-      prix = COEFFS.plateau_base + (distance * COEFFS.plateau_perKm);
-    } else {
-      prix = distance * rate.perKm;
-    }
+    // ── Tarif de base (route) ──
+    prix = distance * rate.perKm;
+    prix = Math.max(prix, rate.min);
 
-    // ── Minimum ──
-    var min = mode === 'plateau' ? COEFFS.plateau_base : rate.min;
-    prix = Math.max(prix, min);
+    // ── Plateau s'AJOUTE au prix route (minimum 350€) ──
+    if (mode === 'plateau') {
+      var plateauCost = COEFFS.plateau_base + (distance * COEFFS.plateau_perKm);
+      prix += Math.max(plateauCost, COEFFS.plateau_base);
+    }
 
     // ── Coefficient distance (remise volume) ──
     if (distance >= 800) prix *= COEFFS.dist_800plus;

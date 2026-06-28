@@ -1387,15 +1387,19 @@
         'Utilitaire': { route: 1.40, plateau: 1.00 },
         'Luxe': { route: 1.80, plateau: 1.45 }
       };
-      var rate = baseRates[type]?.[mode] || 1.20;
+      // Prix de base du trajet (mode route)
+      var routeRate = baseRates[type]?.['route'] || 1.20;
+      let basePrice = Math.round(dist * routeRate);
+      const minRoute = _isProMode ? (type === 'Moto' ? 100 : 125) : (type === 'Moto' ? 120 : 150);
+      if (basePrice < minRoute) basePrice = minRoute;
 
-      let basePrice = Math.round(dist * rate);
+      // Le plateau s'AJOUTE au prix du trajet (minimum 350€ / 292€ HT)
       if (mode === 'plateau') {
+        var plateauRate = baseRates[type]?.['plateau'] || 0.80;
+        let plateauPrice = Math.round(dist * plateauRate);
         const minPlateau = _isProMode ? 292 : 350;
-        if (basePrice < minPlateau) basePrice = minPlateau;
-      } else {
-        const min = _isProMode ? (type === 'Moto' ? 100 : 125) : (type === 'Moto' ? 120 : 150);
-        if (basePrice < min) basePrice = min;
+        if (plateauPrice < minPlateau) plateauPrice = minPlateau;
+        basePrice += plateauPrice;
       }
 
       // Coefficient taille utilitaire
