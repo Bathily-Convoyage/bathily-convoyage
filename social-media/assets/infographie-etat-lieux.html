@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infographie État des lieux Bathily-Convoyage</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0A4D68;
+      --primary-dark: #063244;
+      --secondary: #088395;
+      --accent: #F5A623;
+      --cream: #FDFBF7;
+      --text: #2D2A24;
+      --muted: #6B625A;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--cream);
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      width: 1080px;
+      height: 1080px;
+      background:
+        radial-gradient(circle at 85% 15%, rgba(245,166,35,0.16), transparent 30%),
+        radial-gradient(circle at 15% 85%, rgba(8,131,149,0.16), transparent 30%),
+        linear-gradient(135deg, #fffaf0 0%, var(--cream) 46%, #f6efe4 100%);
+      border-radius: 48px;
+      padding: 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .logo { width: 80px; height: 80px; object-fit: contain; border-radius: 20px; }
+    .brand h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+    }
+    .brand p {
+      font-size: 16px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 52px;
+      font-weight: 900;
+      color: var(--primary-dark);
+      line-height: 1.05;
+      margin-bottom: 48px;
+    }
+    .title span { color: var(--secondary); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .panel {
+      padding: 36px;
+      border-radius: 32px;
+      background: rgba(255,255,255,0.8);
+      border: 2px solid rgba(10,77,104,0.12);
+      box-shadow: 0 12px 32px rgba(10,77,104,0.08);
+    }
+    .panel h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+    .panel ul { list-style: none; }
+    .panel li {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 12px;
+      padding-left: 32px;
+      position: relative;
+    }
+    .panel li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 900;
+    }
+    .footer {
+      position: absolute;
+      bottom: 40px;
+      left: 60px;
+      right: 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 24px;
+      border-top: 2px solid rgba(10,77,104,0.12);
+    }
+    .footer p { font-size: 16px; color: var(--muted); }
+    .footer strong { color: var(--primary); font-weight: 800; }
+    .cta {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <img src="../../logo.png" alt="Bathily-Convoyage" class="logo">
+      <div class="brand">
+        <h1>Bathily Convoyage</h1>
+        <p>Auto & moto France</p>
+      </div>
+    </div>
+    <h2 class="title">État des lieux <span>photo</span></h2>
+    <div class="grid">
+      <div class="panel">
+        <h3>📍 Au départ</h3>
+        <ul>
+          <li>Photos extérieures (4 angles)</li>
+          <li>Photos intérieures (tableau de bord, kilométrage)</li>
+          <li>État général (carrosserie, pneus)</li>
+          <li>Documents validés</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>🎯 À l’arrivée</h3>
+        <ul>
+          <li>Photos extérieures (4 angles)</li>
+          <li>Photos intérieures (tableau de bord, kilométrage)</li>
+          <li>Contrôle conformité</li>
+          <li>Signature remise</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer">
+      <p>📞 <strong>07 58 36 22 49</strong> | ✉️ contact@bathily-convoyage.fr</p>
+      <p class="cta">Devis gratuit sur bathily-convoyage.fr</p>
+    </div>
+  </div>
+</body>
+</html>
