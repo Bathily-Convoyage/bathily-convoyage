@@ -3,199 +3,234 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carte de Visite Bathily-Convoyage</title>
+  <title>Carte de Visite Premium Bathily-Convoyage</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary: #0A4D68;
+      --primary-dark: #063244;
       --secondary: #088395;
       --accent: #F5A623;
-      --text: #1A1A1A;
-      --bg: #FFFFFF;
+      --cream: #FDFBF7;
+      --text: #2D2A24;
+      --muted: #6B625A;
+      --line: #E8E1D9;
     }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', sans-serif;
-      color: var(--text);
-      background: #f0f0f0;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      padding: 20px;
-    }
-    .card {
-      width: 85mm;
-      height: 55mm;
-      border-radius: 8px;
-      overflow: hidden;
-      position: relative;
-    }
-    .card-recto {
-      background: var(--bg);
-      padding: 8mm;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .card-verso {
-      background: var(--primary);
-      padding: 8mm;
-      display: flex;
-      flex-direction: column;
+      gap: 8mm;
       align-items: center;
       justify-content: center;
-      color: white;
+      padding: 10mm;
+      background: #ece7dd;
+      font-family: 'Inter', sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
-    .logo {
-      height: 24px;
-      width: auto;
-      margin-bottom: 8px;
+    .card {
+      position: relative;
+      width: 85mm;
+      height: 55mm;
+      overflow: hidden;
+      border-radius: 4mm;
+      box-shadow: 0 18px 46px rgba(10,77,104,0.18);
+      isolation: isolate;
     }
-    .company-name {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 800;
-      font-size: 14px;
-      color: var(--primary);
-      margin-bottom: 4px;
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 2.2mm;
+      border: 0.35mm solid rgba(245,166,35,0.5);
+      border-radius: 3mm;
+      pointer-events: none;
+      z-index: 3;
     }
-    .tagline {
-      font-size: 9px;
-      color: var(--secondary);
-      margin-bottom: 16px;
-      font-weight: 500;
-    }
-    .contact-info {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .contact-item {
-      display: flex;
+    .card-recto {
+      background:
+        radial-gradient(circle at 96% 0%, rgba(245,166,35,0.22), transparent 34%),
+        radial-gradient(circle at 0% 100%, rgba(8,131,149,0.18), transparent 34%),
+        linear-gradient(135deg, #fffaf0, var(--cream));
+      padding: 5.8mm;
+      display: grid;
+      grid-template-columns: 21mm 1fr;
+      gap: 5mm;
       align-items: center;
-      gap: 8px;
-      font-size: 8pt;
-      font-weight: 500;
     }
-    .contact-icon {
-      font-size: 10px;
+    .logo-wrap {
+      width: 21mm;
+      height: 21mm;
+      border-radius: 4mm;
+      overflow: hidden;
+      background: var(--cream);
+      box-shadow: 0 10px 24px rgba(10,77,104,0.13);
+      display: grid;
+      place-items: center;
+    }
+    .logo { width: 100%; height: 100%; object-fit: contain; }
+    .name {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13pt;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: var(--primary-dark);
+      line-height: 0.96;
+    }
+    .role {
+      margin-top: 2mm;
+      display: inline-flex;
+      width: fit-content;
+      padding: 1.2mm 2.4mm;
+      border-radius: 999px;
+      background: rgba(245,166,35,0.2);
       color: var(--primary);
+      font-size: 6.4pt;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .baseline {
+      margin-top: 3.2mm;
+      color: var(--muted);
+      font-size: 7.2pt;
+      line-height: 1.38;
+      max-width: 48mm;
+    }
+    .contact {
+      margin-top: 4mm;
+      display: grid;
+      gap: 1.55mm;
+      color: var(--primary-dark);
+      font-size: 6.8pt;
+      font-weight: 800;
+    }
+    .contact span { color: var(--secondary); margin-right: 1.5mm; }
+    .signature-line {
+      position: absolute;
+      left: 30mm;
+      right: 5.8mm;
+      bottom: 5.4mm;
+      height: 0.7mm;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--secondary));
+    }
+    .card-verso {
+      background:
+        radial-gradient(circle at 88% 18%, rgba(245,166,35,0.24), transparent 28%),
+        linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 5.8mm;
+      display: grid;
+      grid-template-columns: 1fr 23mm;
+      gap: 5mm;
+      align-items: center;
+    }
+    .verso-kicker {
+      color: var(--accent);
+      font-size: 6.4pt;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
     }
     .verso-title {
+      margin-top: 1.8mm;
       font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
-      font-size: 12px;
-      margin-bottom: 12px;
-      text-align: center;
+      font-weight: 900;
+      font-size: 13.5pt;
+      line-height: 0.98;
+      letter-spacing: -0.03em;
     }
-    .services-grid {
+    .promise {
+      margin-top: 2.8mm;
+      font-size: 7.2pt;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.84);
+      max-width: 49mm;
+    }
+    .services {
+      margin-top: 3.8mm;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 1.8mm;
     }
-    .service-item {
+    .service {
+      border: 0.25mm solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.08);
+      border-radius: 2.5mm;
+      padding: 2mm 1.6mm;
       text-align: center;
+      font-size: 5.8pt;
+      font-weight: 800;
+      color: rgba(255,255,255,0.94);
     }
-    .service-icon {
-      font-size: 18px;
-      margin-bottom: 4px;
+    .service strong { display: block; color: var(--accent); font-size: 9pt; margin-bottom: 0.6mm; }
+    .qr-area {
+      justify-self: end;
+      text-align: center;
+      position: relative;
+      z-index: 4;
     }
-    .service-text {
-      font-size: 7pt;
-      font-weight: 500;
-    }
-    .qr-container {
+    .qr-box {
+      width: 22mm;
+      height: 22mm;
       background: white;
-      padding: 6px;
-      border-radius: 6px;
-      margin-bottom: 8px;
+      border-radius: 3mm;
+      padding: 2mm;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.18);
     }
-    .qr-code {
-      width: 50px;
-      height: 50px;
-    }
-    .whatsapp-cta {
-      font-size: 8pt;
-      font-weight: 600;
+    .qr-img { width: 18mm; height: 18mm; object-fit: contain; }
+    .qr-label {
+      margin-top: 2mm;
       color: var(--accent);
+      font-size: 6.1pt;
+      font-weight: 900;
+      line-height: 1.1;
     }
+    @page { size: 85mm 55mm; margin: 0; }
     @media print {
-      body {
-        margin: 0;
-        padding: 0;
-        background: white;
-      }
-      .card {
-        page-break-inside: avoid;
-      }
+      body { background: white; padding: 0; display: block; }
+      .card { box-shadow: none; border-radius: 0; page-break-after: always; }
     }
   </style>
 </head>
 <body>
-  <!-- Recto -->
-  <div class="card card-recto">
+  <section class="card card-recto" aria-label="Carte de visite recto Bathily-Convoyage">
+    <div class="logo-wrap"><img src="../logo.png" alt="Bathily-Convoyage" class="logo"></div>
     <div>
-      <img src="/images/logo.png" alt="Bathily-Convoyage" class="logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 60%22><text x=%2210%22 y=%2245%22 font-size=%2240%22 font-weight=%22800%22 fill=%22%230A4D68%22>Bathily</text></svg>'">
-      <div class="company-name">Bathily-Convoyage</div>
-      <div class="tagline">Convoyage Auto France</div>
-    </div>
-    <div class="contact-info">
-      <div class="contact-item">
-        <span class="contact-icon">📞</span>
-        <span>01 23 45 67 89</span>
-      </div>
-      <div class="contact-item">
-        <span class="contact-icon">✉️</span>
-        <span>contact@Bathily-Convoyage.fr</span>
-      </div>
-      <div class="contact-item">
-        <span class="contact-icon">🌐</span>
-        <span>www.Bathily-Convoyage.fr</span>
+      <div class="name">Bathily<br>Convoyage</div>
+      <div class="role">Auto & moto France</div>
+      <p class="baseline">Convoyage par la route, transport plateau, suivi GPS et accompagnement premium.</p>
+      <div class="contact">
+        <div><span>📞</span>07 67 21 51 00</div>
+        <div><span>✉</span>contact@bathily-convoyage.fr</div>
+        <div><span>🌐</span>www.bathily-convoyage.fr</div>
       </div>
     </div>
-  </div>
+    <div class="signature-line"></div>
+  </section>
 
-  <!-- Verso -->
-  <div class="card card-verso">
-    <div class="verso-title">Nos Services</div>
-    <div class="services-grid">
-      <div class="service-item">
-        <div class="service-icon">🚗</div>
-        <div class="service-text">Particuliers</div>
-      </div>
-      <div class="service-item">
-        <div class="service-icon">🏢</div>
-        <div class="service-text">Pros</div>
-      </div>
-      <div class="service-item">
-        <div class="service-icon">🌍</div>
-        <div class="service-text">International</div>
+  <section class="card card-verso" aria-label="Carte de visite verso Bathily-Convoyage">
+    <div>
+      <div class="verso-kicker">Devis gratuit</div>
+      <h2 class="verso-title">Votre véhicule livré avec sérénité.</h2>
+      <p class="promise">Un interlocuteur dédié, des convoyeurs vérifiés, un état des lieux photo et une visibilité claire jusqu’à la livraison.</p>
+      <div class="services">
+        <div class="service"><strong>🚗</strong>Route</div>
+        <div class="service"><strong>🚚</strong>Plateau</div>
+        <div class="service"><strong>📍</strong>Suivi GPS</div>
       </div>
     </div>
-    <div class="qr-container">
-      <canvas id="qrCode" class="qr-code"></canvas>
+    <div class="qr-area">
+      <div class="qr-box"><img src="../images/qr-devis.png" alt="QR code devis Bathily-Convoyage" class="qr-img"></div>
+      <div class="qr-label">Scanner<br>pour un devis</div>
     </div>
-    <div class="whatsapp-cta">💬 Devis WhatsApp</div>
-  </div>
+  </section>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-  <script>
-    QRCode.toCanvas(document.getElementById('qrCode'), 'https://www.Bathily-Convoyage.fr', {
-      width: 50,
-      margin: 0,
-      color: {
-        dark: '#0A4D68',
-        light: '#FFFFFF'
-      }
-    });
-  </script>
 </body>
 </html>
-
-

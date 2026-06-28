@@ -3,320 +3,298 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plaquette Bathily-Convoyage</title>
+  <title>Plaquette Commerciale Bathily-Convoyage</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary: #0A4D68;
+      --primary-dark: #063244;
       --secondary: #088395;
       --accent: #F5A623;
-      --text: #1A1A1A;
-      --bg: #FFFFFF;
+      --cream: #FDFBF7;
+      --cream-2: #F6EFE4;
+      --text: #2D2A24;
+      --muted: #6B625A;
+      --line: #E8E1D9;
     }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 210mm; min-height: 297mm; }
     body {
       font-family: 'Inter', sans-serif;
       color: var(--text);
-      background: var(--bg);
-      width: 210mm;
-      min-height: 297mm;
-      margin: 0;
-      padding: 20mm;
+      background: var(--cream);
+      padding: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .page {
-      width: 100%;
-      min-height: 257mm;
+      position: relative;
+      width: 210mm;
+      min-height: 297mm;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 88% 12%, rgba(245, 166, 35, 0.18), transparent 22%),
+        radial-gradient(circle at 4% 88%, rgba(8, 131, 149, 0.16), transparent 24%),
+        linear-gradient(135deg, #fffaf0 0%, var(--cream) 46%, #f8f1e7 100%);
+      padding: 13mm;
     }
-    .header {
-      display: flex;
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(0.2px);
+      opacity: 0.18;
+    }
+    .orb-a { width: 90mm; height: 90mm; background: var(--secondary); top: -34mm; right: -28mm; }
+    .orb-b { width: 62mm; height: 62mm; background: var(--accent); bottom: -24mm; left: -18mm; }
+    .content { position: relative; z-index: 1; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.12fr 0.88fr;
+      gap: 10mm;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 32px;
-      padding-bottom: 20px;
-      border-bottom: 3px solid var(--primary);
+      padding: 7mm;
+      border: 1px solid rgba(10,77,104,0.14);
+      border-radius: 10mm;
+      background: rgba(255,255,255,0.62);
+      box-shadow: 0 18px 60px rgba(10,77,104,0.12);
     }
-    .logo {
-      height: 80px;
-      width: auto;
-    }
-    .header-text h1 {
-      font-family: 'Montserrat', sans-serif;
+    .brand-row { display: flex; align-items: center; gap: 5mm; margin-bottom: 7mm; }
+    .logo { width: 31mm; height: 31mm; object-fit: contain; border-radius: 6mm; }
+    .brand-kicker {
+      font-size: 8.2pt;
       font-weight: 800;
-      font-size: 28px;
-      color: var(--primary);
-      line-height: 1.2;
-    }
-    .header-text p {
-      font-size: 14px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
       color: var(--secondary);
-      margin-top: 4px;
     }
-    .section {
-      margin-bottom: 28px;
+    .brand-name {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 18pt;
+      line-height: 1;
+      font-weight: 900;
+      color: var(--primary);
+      margin-top: 2mm;
     }
+    h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 28pt;
+      line-height: 0.98;
+      font-weight: 900;
+      color: var(--primary-dark);
+      letter-spacing: -0.04em;
+      max-width: 118mm;
+    }
+    .highlight { color: var(--secondary); }
+    .lead {
+      margin-top: 5mm;
+      font-size: 10.4pt;
+      line-height: 1.58;
+      color: var(--muted);
+      max-width: 122mm;
+    }
+    .hero-panel {
+      background: linear-gradient(145deg, var(--primary) 0%, var(--secondary) 100%);
+      color: white;
+      border-radius: 8mm;
+      padding: 7mm;
+      min-height: 92mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 16px 36px rgba(10,77,104,0.22);
+    }
+    .metric { padding-bottom: 5mm; border-bottom: 1px solid rgba(255,255,255,0.18); }
+    .metric strong { display: block; font-family: 'Montserrat', sans-serif; font-size: 24pt; font-weight: 900; color: var(--accent); }
+    .metric span { display: block; font-size: 8.7pt; line-height: 1.35; color: rgba(255,255,255,0.88); }
+    .cta-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      padding: 3.2mm 5mm;
+      border-radius: 999px;
+      background: var(--accent);
+      color: var(--primary-dark);
+      font-weight: 900;
+      font-size: 9pt;
+      box-shadow: 0 10px 24px rgba(245,166,35,0.35);
+    }
+    .section { margin-top: 8mm; }
     .section-title {
       font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
-      font-size: 20px;
+      font-size: 15pt;
+      font-weight: 900;
       color: var(--primary);
-      margin-bottom: 16px;
+      letter-spacing: -0.02em;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 3mm;
+      margin-bottom: 4.2mm;
     }
-    .section-title::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      background: var(--accent);
+    .section-title::before { content: ''; width: 10mm; height: 1.3mm; border-radius: 999px; background: var(--accent); }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+    .card {
+      min-height: 45mm;
+      padding: 5mm;
+      border-radius: 6mm;
+      background: rgba(255,255,255,0.74);
+      border: 1px solid rgba(10,77,104,0.12);
+      box-shadow: 0 10px 28px rgba(10,77,104,0.08);
+    }
+    .icon {
+      width: 10mm;
+      height: 10mm;
+      display: grid;
+      place-items: center;
+      border-radius: 3mm;
+      background: rgba(245,166,35,0.16);
+      color: var(--primary);
+      font-size: 14pt;
+      margin-bottom: 4mm;
+    }
+    .card h3 { font-family: 'Montserrat', sans-serif; font-size: 10.5pt; color: var(--primary-dark); margin-bottom: 2mm; }
+    .card p { font-size: 8.2pt; line-height: 1.45; color: var(--muted); }
+    .proof-grid { display: grid; grid-template-columns: 0.86fr 1.14fr; gap: 5mm; }
+    .trust {
+      border-radius: 7mm;
+      padding: 6mm;
+      background: var(--primary-dark);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .trust::after { content: ''; position: absolute; width: 42mm; height: 42mm; border-radius: 50%; right: -15mm; top: -14mm; background: rgba(245,166,35,0.18); }
+    .trust h3 { font-family: 'Montserrat', sans-serif; font-size: 14pt; line-height: 1.08; margin-bottom: 4mm; position: relative; z-index: 1; }
+    .trust ul { list-style: none; display: grid; gap: 2.4mm; position: relative; z-index: 1; }
+    .trust li { font-size: 8.5pt; line-height: 1.38; color: rgba(255,255,255,0.9); }
+    .trust li::before { content: '✓'; color: var(--accent); font-weight: 900; margin-right: 2mm; }
+    .steps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3.6mm; }
+    .step {
+      background: rgba(255,255,255,0.7);
+      border: 1px solid var(--line);
+      border-radius: 5mm;
+      padding: 4mm;
+      display: flex;
+      gap: 3mm;
+      align-items: flex-start;
+    }
+    .num {
+      flex: 0 0 8mm;
+      height: 8mm;
       border-radius: 50%;
-    }
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-    .service-card {
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      border: 2px solid var(--primary);
-    }
-    .service-icon {
-      font-size: 32px;
-      margin-bottom: 12px;
-    }
-    .service-title {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
-      font-size: 14px;
-      color: var(--primary);
-      margin-bottom: 8px;
-    }
-    .service-desc {
-      font-size: 11px;
-      line-height: 1.4;
-      color: #555;
-    }
-    .france-section {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-      border-radius: 16px;
-      padding: 24px;
-      color: white;
-    }
-    .france-section .section-title {
-      color: white;
-    }
-    .france-section .section-title::before {
       background: var(--accent);
-    }
-    .cities-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-top: 16px;
+      place-items: center;
+      color: var(--primary-dark);
+      font-weight: 900;
+      font-size: 8pt;
     }
-    .city {
-      background: rgba(255,255,255,0.15);
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .arguments-grid {
+    .step h4 { font-family: 'Montserrat', sans-serif; font-size: 9pt; color: var(--primary); margin-bottom: 1mm; }
+    .step p { font-size: 7.5pt; line-height: 1.35; color: var(--muted); }
+    .offer-band {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-    .argument {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px;
-      background: #f8f9fa;
-      border-radius: 12px;
-      border-left: 4px solid var(--accent);
-    }
-    .argument-icon {
-      font-size: 24px;
-      color: var(--primary);
-    }
-    .argument-text {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .footer {
-      background: var(--primary);
-      border-radius: 16px;
-      padding: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      margin-top: 32px;
-    }
-    .footer-cta {
-      flex: 1;
-    }
-    .footer-cta h2 {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 800;
-      font-size: 22px;
-      color: white;
-      margin-bottom: 8px;
-    }
-    .footer-cta p {
-      color: rgba(255,255,255,0.9);
-      font-size: 13px;
-    }
-    .footer-contact {
-      display: flex;
-      gap: 24px;
-      align-items: center;
-    }
-    .footer-item {
-      text-align: center;
-    }
-    .footer-item-icon {
-      font-size: 20px;
-      color: var(--accent);
-      margin-bottom: 4px;
-    }
-    .footer-item-text {
-      color: white;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .qr-section {
-      text-align: center;
-    }
-    .qr-code {
-      width: 80px;
-      height: 80px;
+      gap: 0;
+      overflow: hidden;
+      border-radius: 7mm;
+      border: 1px solid rgba(10,77,104,0.12);
       background: white;
-      padding: 8px;
-      border-radius: 8px;
+      box-shadow: 0 14px 34px rgba(10,77,104,0.08);
     }
-    @media print {
-      body {
-        margin: 0;
-        padding: 20mm;
-      }
-      @page {
-        size: A4;
-        margin: 0;
-      }
+    .offer { padding: 5mm; border-right: 1px solid var(--line); }
+    .offer:last-child { border-right: none; background: linear-gradient(180deg, rgba(245,166,35,0.12), rgba(255,255,255,0.5)); }
+    .offer .label { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.18em; color: var(--secondary); font-weight: 900; }
+    .offer h3 { font-family: 'Montserrat', sans-serif; font-size: 11pt; color: var(--primary-dark); margin: 1.8mm 0; }
+    .offer p { font-size: 7.8pt; line-height: 1.42; color: var(--muted); }
+    .footer {
+      margin-top: 8mm;
+      border-radius: 8mm;
+      padding: 5.5mm;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr auto;
+      align-items: center;
+      gap: 5mm;
     }
+    .footer h2 { font-family: 'Montserrat', sans-serif; font-size: 16pt; line-height: 1.08; color: white; }
+    .footer p { margin-top: 2mm; font-size: 8.2pt; color: rgba(255,255,255,0.78); line-height: 1.42; }
+    .contact-lines { display: grid; gap: 2mm; font-size: 8.2pt; font-weight: 700; color: rgba(255,255,255,0.9); }
+    .qr-code { width: 24mm; height: 24mm; border-radius: 3mm; background: white; padding: 2mm; object-fit: contain; }
+    @page { size: A4; margin: 0; }
+    @media print { body { background: var(--cream); } }
   </style>
 </head>
 <body>
-  <div class="page">
-    <div class="header">
-      <img src="/images/logo.png" alt="Bathily-Convoyage" class="logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 60%22><text x=%2210%22 y=%2245%22 font-size=%2240%22 font-weight=%22800%22 fill=%22%230A4D68%22>Bathily</text></svg>'">
-      <div class="header-text">
-        <h1>Bathily-Convoyage</h1>
-        <p>Convoyage automobile France</p>
-      </div>
-    </div>
+  <main class="page">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="content">
+      <section class="hero">
+        <div>
+          <div class="brand-row">
+            <img src="../logo.png" alt="Bathily-Convoyage" class="logo">
+            <div>
+              <div class="brand-kicker">Convoyage auto & moto</div>
+              <div class="brand-name">Bathily-Convoyage</div>
+            </div>
+          </div>
+          <h1>Le transport de véhicule <span class="highlight">premium</span>, simple et sécurisé partout en France.</h1>
+          <p class="lead">Nous prenons en charge votre voiture, moto ou utilitaire avec un convoyeur sélectionné, un suivi GPS, une assurance adaptée et un état des lieux photo à chaque étape.</p>
+        </div>
+        <aside class="hero-panel">
+          <div class="metric"><strong>60s</strong><span>pour obtenir une estimation claire et lancer votre demande en ligne.</span></div>
+          <div class="metric"><strong>GPS</strong><span>suivi en temps réel, notifications et visibilité complète sur la mission.</span></div>
+          <div class="metric"><strong>RC Pro</strong><span>transport encadré, documents de mission et contrôle photo.</span></div>
+          <div class="cta-pill">Devis gratuit immédiat</div>
+        </aside>
+      </section>
 
-    <div class="section">
-      <div class="section-title">Nos Services</div>
-      <div class="services-grid">
-        <div class="service-card">
-          <div class="service-icon">🚗</div>
-          <div class="service-title">Particuliers</div>
-          <div class="service-desc">Transport de votre véhicule en toute sécurité partout en France</div>
+      <section class="section">
+        <h2 class="section-title">Nos solutions</h2>
+        <div class="cards">
+          <article class="card"><div class="icon">🚗</div><h3>Convoyage par la route</h3><p>Un convoyeur professionnel conduit votre véhicule de porte à porte avec inspection complète.</p></article>
+          <article class="card"><div class="icon">🚚</div><h3>Transport plateau</h3><p>Solution idéale pour véhicules de collection, immobilisés, premium, utilitaires ou motos.</p></article>
+          <article class="card"><div class="icon">🏢</div><h3>Flottes & professionnels</h3><p>Gestion structurée pour concessions, loueurs, entreprises et mutations collaborateurs.</p></article>
         </div>
-        <div class="service-card">
-          <div class="service-icon">🏢</div>
-          <div class="service-title">Professionnels</div>
-          <div class="service-desc">Solutions adaptées pour flottes et concessionnaires</div>
-        </div>
-        <div class="service-card">
-          <div class="service-icon">🌍</div>
-          <div class="service-title">Import/Export</div>
-          <div class="service-desc">Transport international vers l'Europe</div>
-        </div>
-      </div>
-    </div>
+      </section>
 
-    <div class="section france-section">
-      <div class="section-title">Zone Desservie</div>
-      <div class="cities-grid">
-        <div class="city">Paris</div>
-        <div class="city">Lyon</div>
-        <div class="city">Marseille</div>
-        <div class="city">Toulouse</div>
-        <div class="city">Bordeaux</div>
-        <div class="city">Lille</div>
-        <div class="city">Nantes</div>
-        <div class="city">Nice</div>
-        <div class="city">Strasbourg</div>
-        <div class="city">Rennes</div>
-        <div class="city">Montpellier</div>
-        <div class="city">France entière</div>
-      </div>
-    </div>
+      <section class="section proof-grid">
+        <div class="trust">
+          <h3>Une expérience client digne des standards premium.</h3>
+          <ul>
+            <li>État des lieux photo au départ et à l’arrivée</li>
+            <li>Convoyeurs vérifiés et missions encadrées</li>
+            <li>Suivi GPS et notifications automatiques</li>
+            <li>Accompagnement humain du devis à la livraison</li>
+          </ul>
+        </div>
+        <div class="steps">
+          <div class="step"><div class="num">1</div><div><h4>Demande</h4><p>Vous renseignez le trajet, le véhicule et vos contraintes.</p></div></div>
+          <div class="step"><div class="num">2</div><div><h4>Validation</h4><p>Nous confirmons la faisabilité, le prix et les documents.</p></div></div>
+          <div class="step"><div class="num">3</div><div><h4>Prise en charge</h4><p>Inspection photo, signature et départ sécurisé.</p></div></div>
+          <div class="step"><div class="num">4</div><div><h4>Livraison</h4><p>Suivi jusqu’à destination et validation finale.</p></div></div>
+        </div>
+      </section>
 
-    <div class="section">
-      <div class="section-title">Pourquoi Nous Choisir ?</div>
-      <div class="arguments-grid">
-        <div class="argument">
-          <div class="argument-icon">🛡️</div>
-          <div class="argument-text">Assurance tous risques</div>
+      <section class="section">
+        <h2 class="section-title">Offres adaptées à chaque besoin</h2>
+        <div class="offer-band">
+          <div class="offer"><div class="label">Essentiel</div><h3>Pack Starter</h3><p>Transport sécurisé avec documents, suivi et livraison de référence.</p></div>
+          <div class="offer"><div class="label">Confort</div><h3>Pack Sérénité</h3><p>Plus de tranquillité avec options premium intégrées et accompagnement renforcé.</p></div>
+          <div class="offer"><div class="label">Signature</div><h3>Pack Excellence</h3><p>Expérience complète, idéale pour véhicules sensibles, pros et clients exigeants.</p></div>
         </div>
-        <div class="argument">
-          <div class="argument-icon">📍</div>
-          <div class="argument-text">Traçabilité GPS temps réel</div>
-        </div>
-        <div class="argument">
-          <div class="argument-icon">⚡</div>
-          <div class="argument-text">Livraison en 48h</div>
-        </div>
-      </div>
-    </div>
+      </section>
 
-    <div class="footer">
-      <div class="footer-cta">
-        <h2>Devis gratuit en 2min</h2>
-        <p>Obtenez votre tarif instantanément sur notre site</p>
-      </div>
-      <div class="footer-contact">
-        <div class="footer-item">
-          <div class="footer-item-icon">📞</div>
-          <div class="footer-item-text">01 23 45 67 89</div>
-        </div>
-        <div class="footer-item">
-          <div class="footer-item-icon">💬</div>
-          <div class="footer-item-text">WhatsApp</div>
-        </div>
-        <div class="qr-section">
-          <div class="qr-code" id="qrCode"></div>
-        </div>
-      </div>
+      <footer class="footer">
+        <div><h2>Un véhicule à déplacer ? Parlons-en.</h2><p>Devis gratuit, réponse rapide et accompagnement personnalisé partout en France.</p></div>
+        <div class="contact-lines"><span>📞 07 67 21 51 00</span><span>✉️ contact@bathily-convoyage.fr</span><span>🌐 www.bathily-convoyage.fr</span></div>
+        <img src="../images/qr-devis.png" alt="QR code devis Bathily-Convoyage" class="qr-code">
+      </footer>
     </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-  <script>
-    QRCode.toCanvas(document.getElementById('qrCode'), 'https://www.Bathily-Convoyage.fr', {
-      width: 80,
-      margin: 0,
-      color: {
-        dark: '#0A4D68',
-        light: '#FFFFFF'
-      }
-    });
-  </script>
+  </main>
 </body>
 </html>
 
