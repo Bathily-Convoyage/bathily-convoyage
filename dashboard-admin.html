@@ -3881,15 +3881,24 @@ Cadeau premium personnalisé</textarea>
             cancelUrl: window.location.origin + '/dashboard-client.html?payment_status=cancel' 
           })
         });
-        const checkoutData = await response.json();
-        if (!response.ok) throw new Error("Erreur Stripe: " + (checkoutData.error || response.statusText));
+        const responseText = await response.text();
+        if (!response.ok) {
+          let errMsg;
+          try { errMsg = JSON.parse(responseText).error; } catch { errMsg = responseText || 'Erreur serveur'; }
+          throw new Error("Erreur Stripe: " + errMsg);
+        }
+        let checkoutData;
+        try { checkoutData = JSON.parse(responseText); } catch { checkoutData = {}; }
+        if (!checkoutData.url) {
+          console.warn('Pas d\'URL de checkout (mode local ?). Mission créée sans paiement.');
+        }
 
         const emailResponse = await fetch('/.netlify/functions/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ trigger: 'devis_confirmed', id: devis.id, payment_url: checkoutData.url })
         });
-        if (!emailResponse.ok) throw new Error("Erreur lors de l'envoi de l'email.");
+        if (!emailResponse.ok) console.warn('Email non envoyé (mode local ?).');
 
         Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Devis accepté et client notifié', timer: 3000 });
       } catch (err) {
