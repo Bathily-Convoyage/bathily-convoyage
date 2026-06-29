@@ -82,3 +82,10 @@ export function getQueryParams(request) {
   }
   return params;
 }
+
+// Web Crypto helper: generate random hex string (replaces Node.js crypto.randomBytes(n).toString('hex'))
+export function randomHex(bytes) {
+  const arr = new Uint8Array(bytes);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+}

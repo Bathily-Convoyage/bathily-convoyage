@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
-import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody } from '../_utils.js';
+import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody, randomHex } from '../_utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -48,7 +47,7 @@ export async function onRequest(context) {
       return jsonResponse({ error: 'Candidature introuvable ou déjà traitée' }, 404, getCorsHeaders(request));
     }
 
-    const tempPassword = crypto.randomBytes(8).toString('hex').slice(0, 10) + crypto.randomBytes(3).toString('hex').slice(0, 4).toUpperCase() + '!';
+    const tempPassword = randomHex(8).slice(0, 10) + randomHex(3).slice(0, 4).toUpperCase() + '!';
 
     const { data: authData, error: authError } = await sb.auth.admin.createUser({
       email: candidat.email, password: tempPassword, email_confirm: true,

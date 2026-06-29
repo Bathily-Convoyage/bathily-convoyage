@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
-import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody } from '../_utils.js';
+import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody, randomHex } from '../_utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -59,7 +58,7 @@ export async function onRequest(context) {
       return jsonResponse({ error: 'Email obligatoire.' }, 400, getCorsHeaders(request));
     }
 
-    const tempPassword = 'TempPass_' + crypto.randomBytes(6).toString('hex').slice(0, 8) + '!1';
+    const tempPassword = 'TempPass_' + randomHex(6).slice(0, 8) + '!1';
     const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: email, password: tempPassword, email_confirm: true
     });

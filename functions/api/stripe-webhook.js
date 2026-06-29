@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
+import { randomHex } from '../_utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -72,7 +72,7 @@ export async function onRequest(context) {
           const alreadyExists = existingUsers?.users?.some(u => u.email === clientEmail);
 
           if (!alreadyExists) {
-            tempPassword = crypto.randomBytes(6).toString('hex').toUpperCase().slice(0, 8) + crypto.randomBytes(3).toString('hex').slice(0, 3) + '!';
+            tempPassword = randomHex(6).toUpperCase().slice(0, 8) + randomHex(3).slice(0, 3) + '!';
 
             const { data: newAuthUser, error: authError } = await supabase.auth.admin.createUser({
               email: clientEmail, password: tempPassword, email_confirm: true,
