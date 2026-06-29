@@ -1395,7 +1395,7 @@
 
       // Le plateau s'AJOUTE au prix du trajet (minimum 350€ / 292€ HT)
       if (mode === 'plateau') {
-        var plateauRate = baseRates[type]?.['plateau'] || 0.80;
+        var plateauRate = baseRates[type]?.['plateau'] || 1.40;
         let plateauPrice = Math.round(dist * plateauRate);
         const minPlateau = _isProMode ? 292 : 350;
         if (plateauPrice < minPlateau) plateauPrice = minPlateau;
