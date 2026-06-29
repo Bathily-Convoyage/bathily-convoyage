@@ -3,13 +3,8 @@ import path from 'path';
 
 async function scheduleJuly2026Posts() {
   const token = 'pu4Xem4CjrtuPt0jeQTlGuV7TAyRYwZoA7PqHwf40mf';
-  // Channel IDs identifiés via les erreurs API
-  // 6a36abc838b5579345b7f883 = LinkedIn
-  // 6a419f085ab6d2f10681d3ac = TikTok
-  // 6a2bd39638b5579345898778 = Instagram
   const profileIds = {
     instagram: '6a2bd39638b5579345898778',
-    'instagram-story': '6a2bd39638b5579345898778',
     tiktok: '6a419f085ab6d2f10681d3ac',
     linkedin: '6a36abc838b5579345b7f883'
   };
@@ -19,48 +14,64 @@ async function scheduleJuly2026Posts() {
     process.exit(1);
   }
 
-  // Lire les posts juillet 2026
+  // Lire les posts
   const postsPath = path.join(process.cwd(), 'data', 'social-posts-juillet-2026.json');
   if (!fs.existsSync(postsPath)) {
     console.error("❌ Fichier social-posts-juillet-2026.json introuvable.");
     process.exit(1);
   }
 
-  const posts = JSON.parse(fs.readFileSync(postsPath, 'utf8'));
-  console.log(`📅 ${posts.length} posts à planifier pour juillet 2026\n`);
+  const allPosts = JSON.parse(fs.readFileSync(postsPath, 'utf8'));
 
-  // Charger les posts déjà publiés pour éviter les doublons
-  const publishedPath = path.join(process.cwd(), 'data', 'published-posts.json');
-  let publishedIds = new Set();
+  // === FILTRER : 1 seul post par jour (Instagram uniquement) ===
+  const seenDates = new Set();
+  const dailyPosts = allPosts.filter(post => {
+    if (post.platform !== 'instagram') return false;
+    if (seenDates.has(post.date)) return false;
+    seenDates.add(post.date);
+    return true;
+  });
+
+  console.log(`📅 ${allPosts.length} posts au total → ${dailyPosts.length} posts retenus (1/jour, Instagram)\n`);
+
+  // Charger les dates déjà publiées
+  const publishedPath = path.join(process.cwd(), 'data', 'published-dates.json');
+  let publishedDates = new Set();
   if (fs.existsSync(publishedPath)) {
-    publishedIds = new Set(JSON.parse(fs.readFileSync(publishedPath, 'utf8')));
-    console.log(`📋 ${publishedIds.size} posts déjà publiés (seront ignorés)\n`);
+    publishedDates = new Set(JSON.parse(fs.readFileSync(publishedPath, 'utf8')));
+    console.log(`📋 ${publishedDates.size} dates déjà publiées (seront ignorées)\n`);
   }
-  const newPublishedIds = [];
 
-  const postsToPublish = posts.filter((_, i) => !publishedIds.has(i));
-  console.log(`🚀 ${postsToPublish.length} posts restants à planifier\n`);
-
-  console.log('Mapping plateformes → Channel IDs:');
-  console.log('  Instagram →', profileIds['instagram']);
-  console.log('  TikTok →', profileIds['tiktok']);
-  console.log('  LinkedIn →', profileIds['linkedin']);
-  console.log();
+  // Heure de publication : 12h00 (heure locale)
+  const PUBLISH_HOUR = 12;
+  const PUBLISH_MINUTE = 0;
 
   let successCount = 0;
   let errorCount = 0;
+  let skippedCount = 0;
+  const newPublishedDates = [];
 
-  for (let idx = 0; idx < posts.length; idx++) {
-    if (publishedIds.has(idx)) continue;
-    const post = posts[idx];
-    const channelId = profileIds[post.platform];
-    if (!channelId) {
-      console.log(`⚠ Platforme non reconnue: ${post.platform}`);
-      errorCount++;
+  for (const post of dailyPosts) {
+    if (publishedDates.has(post.date)) {
+      console.log(`⏭ ${post.date} déjà publié, on ignore`);
+      skippedCount++;
       continue;
     }
 
-    console.log(`📤 Planification: ${post.date} - ${post.platform} - "${post.text.substring(0, 40)}..."`);
+    // Calculer la date/heure de planification
+    const [year, month, day] = post.date.split('-').map(Number);
+    const scheduledDate = new Date(year, month - 1, day, PUBLISH_HOUR, PUBLISH_MINUTE, 0);
+    const now = new Date();
+
+    // Si la date est déjà passée, on saute
+    if (scheduledDate <= now) {
+      console.log(`⏭ ${post.date} date déjà passée, on ignore`);
+      skippedCount++;
+      continue;
+    }
+
+    const scheduledAt = scheduledDate.toISOString();
+    console.log(`📤 Planification: ${post.date} à ${PUBLISH_HOUR}h${String(PUBLISH_MINUTE).padStart(2, '0')} - "${post.text.substring(0, 50)}..."`);
 
     // Préparer les assets
     const assets = [];
@@ -68,18 +79,13 @@ async function scheduleJuly2026Posts() {
       assets.push({ image: { url: post.media } });
     }
 
-    // Déterminer le type de post selon la plateforme
-    let metadata = {};
-    if (post.platform === 'instagram' || post.platform === 'instagram-story') {
-      const isStory = post.platform === 'instagram-story';
-      metadata = {
-        instagram: {
-          type: isStory ? 'story' : 'post',
-          shouldShareToFeed: !isStory
-        }
-      };
-    }
-    // TikTok et LinkedIn: pas de metadata (envoyer objet vide provoque des erreurs)
+    // Metadata Instagram (post classique)
+    const metadata = {
+      instagram: {
+        type: 'post',
+        shouldShareToFeed: true
+      }
+    };
 
     const query = `
       mutation CreatePost($input: CreatePostInput!) {
@@ -100,10 +106,10 @@ async function scheduleJuly2026Posts() {
     const variables = {
       input: {
         text: post.text,
-        channelId: channelId,
-        schedulingType: 'automatic',
-        mode: 'shareNow',
-        metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+        channelId: profileIds.instagram,
+        schedulingType: 'fixed',
+        scheduledAt: scheduledAt,
+        metadata: metadata,
         assets: assets.length > 0 ? assets : undefined
       }
     };
@@ -125,9 +131,7 @@ async function scheduleJuly2026Posts() {
 
         data = await response.json();
 
-        // Vérifier si rate limited
         const isRateLimited = data.errors && data.errors.some(e => e.message && e.message.includes('Too many requests'));
-
         if (!isRateLimited) break;
 
         retries--;
@@ -140,30 +144,33 @@ async function scheduleJuly2026Posts() {
       if (response.ok && data.data && data.data.createPost) {
         const result = data.data.createPost;
         if (result.__typename === 'PostActionSuccess') {
-          console.log(`✅ Post planifié avec succès ! ID: ${result.post.id}`);
+          console.log(`✅ Planifié pour le ${post.date} à ${PUBLISH_HOUR}h ! ID: ${result.post.id}`);
           successCount++;
-          newPublishedIds.push(idx);
+          newPublishedDates.push(post.date);
           // Sauvegarder immédiatement
-          const allPublished = [...publishedIds, ...newPublishedIds];
-          fs.writeFileSync(publishedPath, JSON.stringify([...allPublished]));
+          const allDates = [...publishedDates, ...newPublishedDates];
+          fs.writeFileSync(publishedPath, JSON.stringify([...allDates]));
         } else {
-          console.error(`❌ Échec de la planification:`, result.message);
+          console.error(`❌ Échec:`, result.message);
           errorCount++;
         }
       } else {
-        console.error(`❌ Échec de la requête API:`, data);
+        console.error(`❌ Échec API:`, JSON.stringify(data).substring(0, 200));
         errorCount++;
       }
     } catch (err) {
-      console.error(`❌ Erreur de requête:`, err.message);
+      console.error(`❌ Erreur: ${err.message}`);
       errorCount++;
     }
 
-    // Attendre 3s entre chaque post pour éviter rate limiting
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Attendre 5s entre chaque post
+    await new Promise(resolve => setTimeout(resolve, 5000));
   }
 
-  console.log(`\n📊 Résumé: ${successCount} succès, ${errorCount} erreurs sur ${posts.length} posts`);
+  console.log(`\n📊 Résumé: ${successCount} planifiés, ${errorCount} erreurs, ${skippedCount} ignorés`);
+  if (newPublishedDates.length > 0) {
+    console.log(`📅 Dates planifiées: ${newPublishedDates.join(', ')}`);
+  }
 }
 
 scheduleJuly2026Posts();
