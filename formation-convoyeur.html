@@ -1241,7 +1241,7 @@ async function submitCandidature() {
 
     // Envoi de l'email de notification
     const candidatureId = newCand?.id;
-    fetch('/.netlify/functions/send-email', {
+    fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ trigger: 'candidature_submitted', id: candidatureId, email: formData.email })

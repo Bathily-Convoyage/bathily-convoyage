@@ -1043,7 +1043,7 @@
       });
 
       try {
-        const response = await fetch(`/.netlify/functions/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
+        const response = await fetch(`/api/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
         const data = await response.json();
 
         if (!response.ok) throw new Error(data.error || 'Erreur');
@@ -1588,7 +1588,7 @@
 
       // Envoyer un email de notification
       try {
-        await fetch('/.netlify/functions/send-email', {
+        await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

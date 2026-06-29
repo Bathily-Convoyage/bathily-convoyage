@@ -1,0 +1,10 @@
+name = "bathily-convoyage"
+compatibility_date = "2024-12-01"
+pages_build_output_dir = "."
+
+[vars]
+# Environment variables are set via Cloudflare dashboard or CLI:
+# SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY
+# STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+# RESEND_API_KEY, EMAIL_FROM, EMAIL_ADMIN
+# RAPIDAPI_KEY, CRON_SECRET, URL

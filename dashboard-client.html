@@ -1434,7 +1434,7 @@
           return;
         }
 
-        const response = await fetch('/.netlify/functions/client-reset-password', {
+        const response = await fetch('/api/client-reset-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: email.trim().toLowerCase() })
@@ -1637,7 +1637,7 @@
           return;
         }
 
-        const response = await fetch('/.netlify/functions/client-signup', {
+        const response = await fetch('/api/client-signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, prenom, nom, telephone, societe, isPro: false })
@@ -1924,7 +1924,7 @@
         const cancelUrl = window.location.origin + window.location.pathname;
         const client = getSBCli();
         const sessionToken = (await client.auth.getSession()).data?.session?.access_token;
-        const response = await fetch('/.netlify/functions/create-checkout-session', {
+        const response = await fetch('/api/create-checkout-session', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',

@@ -547,7 +547,7 @@
       Swal.fire({ title: 'Création du compte...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
       try {
-        const response = await fetch('/.netlify/functions/client-signup', {
+        const response = await fetch('/api/client-signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, prenom, nom, telephone, societe, isPro: true })

@@ -2726,7 +2726,7 @@ Cadeau premium personnalisé</textarea>
     });
 
     try {
-      const response = await fetch(`/.netlify/functions/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
+      const response = await fetch(`/api/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || 'Erreur');
@@ -2961,7 +2961,7 @@ Cadeau premium personnalisé</textarea>
       }
 
       const session = (await sb.auth.getSession()).data.session;
-      const response = await fetch('/.netlify/functions/admin-create-user', {
+      const response = await fetch('/api/admin-create-user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -3077,7 +3077,7 @@ Cadeau premium personnalisé</textarea>
       }
 
       const session = (await sb.auth.getSession()).data.session;
-      const response = await fetch('/.netlify/functions/admin-create-user', {
+      const response = await fetch('/api/admin-create-user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -3304,7 +3304,7 @@ Cadeau premium personnalisé</textarea>
     const clientData = _allClientsData.find(c => c.id === clientId);
     if (clientData) {
       try {
-        await fetch('/.netlify/functions/send-email', {
+        await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3332,7 +3332,7 @@ Cadeau premium personnalisé</textarea>
     const clientData = _allClientsData.find(c => c.id === clientId);
     if (clientData) {
       try {
-        await fetch('/.netlify/functions/send-email', {
+        await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3956,7 +3956,7 @@ Cadeau premium personnalisé</textarea>
         }
 
         const sessionToken = (await sb.auth.getSession()).data?.session?.access_token;
-        const response = await fetch('/.netlify/functions/create-checkout-session', {
+        const response = await fetch('/api/create-checkout-session', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
@@ -3977,7 +3977,7 @@ Cadeau premium personnalisé</textarea>
         let checkoutData;
         try { checkoutData = JSON.parse(responseText); } catch { checkoutData = {}; }
 
-        const emailResponse = await fetch('/.netlify/functions/send-email', {
+        const emailResponse = await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ trigger: 'devis_confirmed', id: devis.id, payment_url: checkoutData.url })
@@ -4214,7 +4214,7 @@ Cadeau premium personnalisé</textarea>
     try {
       const session = (await sb.auth.getSession()).data.session;
       if (session) {
-        const response = await fetch('/.netlify/functions/admin-create-user', {
+        const response = await fetch('/api/admin-create-user', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -4265,7 +4265,7 @@ Cadeau premium personnalisé</textarea>
     loadFormationCandidatures();
     loadConvoyeurs();
 
-    fetch('/.netlify/functions/send-email', {
+    fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ trigger: 'candidature_status_changed', id })
@@ -4285,7 +4285,7 @@ Cadeau premium personnalisé</textarea>
     Swal.fire({ toast: true, icon: 'info', title: 'Candidature refusée', timer: 2000 });
     loadFormationCandidatures();
 
-    fetch('/.netlify/functions/send-email', {
+    fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ trigger: 'candidature_status_changed', id })
@@ -4559,7 +4559,7 @@ Cadeau premium personnalisé</textarea>
       // Notifier le client par email si un convoyeur est assigné
       if (assignedConvoyeur && mission.client_email) {
         try {
-          await fetch('/.netlify/functions/send-email', {
+          await fetch('/api/send-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -5354,7 +5354,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     } else {
       // Notifier le client par email
       try {
-        await fetch('/.netlify/functions/send-email', {
+        await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -5466,7 +5466,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     if (!confirm.isConfirmed) return;
 
     try {
-      const resp = await fetch('/.netlify/functions/send-campagne', {
+      const resp = await fetch('/api/send-campagne', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sujet: sujet, contenu: contenu })
