@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody } from './_utils.js';
+import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody } from '../_utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
