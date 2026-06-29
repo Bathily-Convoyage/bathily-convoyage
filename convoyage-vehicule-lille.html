@@ -840,7 +840,7 @@
           <div id="quickQuoteResult" style="display:none; margin-top: 16px; padding: 12px 24px; background: var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius: 40px; align-items: center; justify-content: center; gap: 16px; font-weight: 600; color: var(--bordeaux); font-size: 0.95rem; box-shadow: 0 4px 12px rgba(122,46,26,0.1); width: max-content; max-width: 100%;">
             <span>📍 Distance : <strong id="quickQuoteDist">— km</strong></span>
             <span style="color: var(--gray-mid);">|</span>
-            <span>💰 Tarif estimé : <strong id="quickQuotePrice">— € HT</strong></span>
+            <span>💰 Tarif estimé : <strong id="quickQuotePrice">— € TTC</strong></span>
           </div>
           <div class="hero-stats">
             <div class="stat">
@@ -920,8 +920,8 @@
           <div class="price-card popular reveal">
             <div class="price-card-title">Convoyage par la Route</div>
             <div class="price-card-desc">Transport flexible par pilote professionnel qualifié</div>
-            <div class="price-card-val">1,00 €<span> HT / km (Voiture)</span></div>
-            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif Moto : 0,85 € HT / km. Min. 100€-120€ HT par trajet.</p>
+            <div class="price-card-val">1,20 €<span> TTC / km (Voiture)</span></div>
+            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif Moto : 1,00 € TTC / km. Min. 150€ TTC par trajet.</p>
             <ul class="price-card-features">
               <li><i class="fas fa-check"></i> Chauffeur professionnel</li>
               <li><i class="fas fa-check"></i> Suivi GPS temps réel (Lien de partage client)</li>
@@ -934,7 +934,7 @@
           <div class="price-card reveal">
             <div class="price-card-title">Transport sur Plateau</div>
             <div class="price-card-desc">Sécurité maximale pour véhicules de valeur ou non roulants</div>
-            <div class="price-card-val">350 €<span> HT (forfait)</span></div>
+            <div class="price-card-val">1,40 €<span> TTC / km</span></div>
             <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif dégressif selon la distance réelle parcourue.</p>
             <ul class="price-card-features">
               <li><i class="fas fa-check"></i> Aucun kilomètre supplémentaire au compteur</li>
@@ -1002,7 +1002,7 @@
           <details class="faq-item">
             <summary>Les convoyeurs conduisent-ils le véhicule ou est-il transporté ?</summary>
             <p>Nous proposons les deux formules selon votre préférence :
-              <br>- <strong>Par la route :</strong> Un convoyeur certifié conduit votre automobile (1,00 € HT/km) ou votre moto (0,85 € HT/km). C'est la formule la plus économique et rapide.
+              <br>- <strong>Par la route :</strong> Un convoyeur certifié conduit votre automobile (1,20 € TTC/km) ou votre moto (1,00 € TTC/km). C'est la formule la plus économique et rapide.
               <br>- <strong>Sur plateau :</strong> Votre véhicule est chargé sur un plateau adapté. Zéro kilomètre ajouté et protection contre l'usure de la route.
             </p>
           </details>
@@ -1141,11 +1141,11 @@
 
           quickQuoteDistVal = dist;
           const isMoto = document.getElementById('vehType').value === 'Moto';
-          const rate = isMoto ? 0.85 : 1.0;
-          const base = Math.round(Math.max(dist * rate, isMoto ? 100 : 120));
+          const rate = isMoto ? 1.0 : 1.2;
+          const base = Math.round(Math.max(dist * rate, isMoto ? 120 : 150));
 
           if (distEl) distEl.textContent = dist + ' km';
-          if (priceEl) priceEl.textContent = base + ' € HT';
+          if (priceEl) priceEl.textContent = base + ' € TTC';
           if (btn) btn.innerHTML = "Confirmer ce tarif →";
         } else {
           if (distEl) distEl.textContent = 'Adresse non reconnue';
