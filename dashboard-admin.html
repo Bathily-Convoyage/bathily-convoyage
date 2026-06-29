@@ -3864,10 +3864,10 @@ Cadeau premium personnalisé</textarea>
     const { value: formValues } = await Swal.fire({
       title: 'Ajuster le prix du devis',
       html: `<div style="text-align:left;">
-        <p style="margin-bottom:12px;color:#666;font-size:0.85rem;">Modifiez le montant et validez. Le prix original sera conservé dans les détails.</p>
+        <p style="margin-bottom:12px;color:#666;font-size:0.85rem;">Modifiez le montant HT et le TTC sera calculé automatiquement (×1,20). Le prix original sera conservé dans les détails.</p>
         <label style="display:block;margin-bottom:6px;font-weight:600;">Montant HT (€)</label>
-        <input id="swalHt" class="swal2-input" type="number" step="0.01" value="${currentHt}" style="width:100%;margin:0 0 16px 0;">
-        ${!isPro ? `<label style="display:block;margin-bottom:6px;font-weight:600;">Montant TTC (€)</label><input id="swalTtc" class="swal2-input" type="number" step="0.01" value="${currentTtc}" style="width:100%;margin:0 0 16px 0;">` : ''}
+        <input id="swalHt" class="swal2-input" type="number" step="0.01" value="${currentHt}" style="width:100%;margin:0 0 16px 0;" oninput="if(document.getElementById('swalTtc')){document.getElementById('swalTtc').value=(parseFloat(this.value||0)*1.20).toFixed(2);}">
+        ${!isPro ? `<label style="display:block;margin-bottom:6px;font-weight:600;">Montant TTC (€) — auto-calculé, modifiable si besoin</label><input id="swalTtc" class="swal2-input" type="number" step="0.01" value="${currentTtc.toFixed(2)}" style="width:100%;margin:0 0 16px 0;">` : ''}
         <label style="display:block;margin-bottom:6px;font-weight:600;">Raison de l'ajustement (optionnel)</label>
         <textarea id="swalReason" class="swal2-textarea" placeholder="Ex: remise commerciale, ajout option..." style="width:100%;margin:0;">${escapeHtml(devis.details?.adjust_reason || '')}</textarea>
       </div>`,
