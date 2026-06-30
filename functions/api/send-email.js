@@ -18,6 +18,27 @@ export async function onRequest(context) {
     const parsedBody = await parseBody(request);
     const { trigger, id, notes, payment_url, temp_password, prenom, email: directEmail, nom: directNom, convoyeur_nom, client_email } = parsedBody;
 
+    const PUBLIC_TRIGGERS = ['devis_created', 'candidature_submitted'];
+    const ADMIN_TRIGGERS = ['devis_confirmed', 'convoyeur_approved', 'payment_success', 'edl_completed', 'candidature_status_changed', 'mission_assigned', 'support_reply', 'pro_approved', 'pro_rejected', 'reset_password'];
+
+    if (ADMIN_TRIGGERS.includes(trigger)) {
+      const internalSecret = request.headers.get('x-internal-secret') || '';
+      if (internalSecret && internalSecret === env.INTERNAL_SECRET) {
+        // Appel interne (webhook Stripe, cron, etc.) — autorisé
+      } else {
+        const authHeader = request.headers.get('authorization') || '';
+        if (!authHeader.startsWith('Bearer ')) {
+          return jsonResponse({ error: 'Authentification requise pour ce trigger.' }, 401, getCorsHeaders(request));
+        }
+        const token = authHeader.split(' ')[1];
+        const sbAuth = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY || env.SUPABASE_SERVICE_ROLE_KEY);
+        const { data: { user }, error: userErr } = await sbAuth.auth.getUser(token);
+        if (userErr || !user) {
+          return jsonResponse({ error: 'Token invalide.' }, 401, getCorsHeaders(request));
+        }
+      }
+    }
+
     if (!trigger || (!id && trigger !== 'convoyeur_approved' && trigger !== 'mission_assigned')) {
       return jsonResponse({ error: 'Paramètres trigger et id requis.' }, 400, getCorsHeaders(request));
     }

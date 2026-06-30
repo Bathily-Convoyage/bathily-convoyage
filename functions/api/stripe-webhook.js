@@ -97,7 +97,7 @@ export async function onRequest(context) {
         const siteUrl = env.URL || 'https://www.bathily-convoyage.fr';
         await fetch(`${siteUrl}/api/send-email`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-internal-secret': env.INTERNAL_SECRET || '' },
           body: JSON.stringify({ trigger: 'payment_success', id: missionId, temp_password: tempPassword })
         });
       } catch (emailErr) {

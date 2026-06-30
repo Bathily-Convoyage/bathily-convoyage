@@ -1,12 +1,9 @@
-const CACHE_NAME = 'bathily-convoyage-v4';
+const CACHE_NAME = 'bathily-convoyage-v5';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/devis.html',
   '/contact.html',
-  '/dashboard-convoyeur.html',
-  '/dashboard-client.html',
-  '/dashboard-admin.html',
   '/formation-convoyeur.html',
   '/css/design-system.css',
   '/js/lang-switcher.js',

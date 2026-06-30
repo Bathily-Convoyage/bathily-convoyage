@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { jsonResponse, handleOptions, parseBody } from '../_utils.js';
+import { getCorsHeaders, jsonResponse, handleOptions, parseBody } from '../_utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -7,10 +7,21 @@ export async function onRequest(context) {
   const optionsRes = handleOptions(request);
   if (optionsRes) return optionsRes;
 
-  const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
+  const headers = getCorsHeaders(request);
 
   if (request.method !== 'POST') {
     return jsonResponse({ error: 'POST requis' }, 405, headers);
+  }
+
+  const authHeader = request.headers.get('authorization') || '';
+  if (!authHeader.startsWith('Bearer ')) {
+    return jsonResponse({ error: 'Authentification admin requise.' }, 401, headers);
+  }
+  const token = authHeader.split(' ')[1];
+  const sbAuth = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY || env.SUPABASE_SERVICE_ROLE_KEY);
+  const { data: { user }, error: userErr } = await sbAuth.auth.getUser(token);
+  if (userErr || !user) {
+    return jsonResponse({ error: 'Token invalide.' }, 401, headers);
   }
 
   const supabaseUrl = env.SUPABASE_URL;

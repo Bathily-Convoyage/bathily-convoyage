@@ -3381,9 +3381,11 @@ Cadeau premium personnalisé</textarea>
     const clientData = _allClientsData.find(c => c.id === clientId);
     if (clientData) {
       try {
+        const sbAuth1 = getSupabase();
+        const tok1 = (await sbAuth1.auth.getSession()).data?.session?.access_token;
         await fetch('/api/send-email', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(tok1 ? { 'Authorization': `Bearer ${tok1}` } : {}) },
           body: JSON.stringify({
             trigger: 'pro_approved',
             id: clientData.email,
@@ -3409,9 +3411,11 @@ Cadeau premium personnalisé</textarea>
     const clientData = _allClientsData.find(c => c.id === clientId);
     if (clientData) {
       try {
+        const sbAuth2 = getSupabase();
+        const tok2 = (await sbAuth2.auth.getSession()).data?.session?.access_token;
         await fetch('/api/send-email', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(tok2 ? { 'Authorization': `Bearer ${tok2}` } : {}) },
           body: JSON.stringify({
             trigger: 'pro_rejected',
             id: clientData.email,
@@ -4058,7 +4062,7 @@ Cadeau premium personnalisé</textarea>
 
         const emailResponse = await fetch('/api/send-email', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {}) },
           body: JSON.stringify({ trigger: 'devis_confirmed', id: devis.id, payment_url: checkoutData.url })
         });
         if (!emailResponse.ok) console.warn('Email non envoyé.');
@@ -4351,9 +4355,11 @@ Cadeau premium personnalisé</textarea>
     Swal.fire({ toast: true, icon: 'info', title: 'Candidature refusée', timer: 2000 });
     loadFormationCandidatures();
 
+    const sbA2 = getSupabase();
+    const tokA2 = (await sbA2.auth.getSession()).data?.session?.access_token;
     fetch('/api/send-email', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(tokA2 ? { 'Authorization': `Bearer ${tokA2}` } : {}) },
       body: JSON.stringify({ trigger: 'candidature_status_changed', id })
     }).catch(err => console.warn('Erreur envoi email refus:', err));
   };
@@ -4625,9 +4631,11 @@ Cadeau premium personnalisé</textarea>
       // Notifier le client par email si un convoyeur est assigné
       if (assignedConvoyeur && mission.client_email) {
         try {
+          const sbA3 = getSupabase();
+          const tokA3 = (await sbA3.auth.getSession()).data?.session?.access_token;
           await fetch('/api/send-email', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...(tokA3 ? { 'Authorization': `Bearer ${tokA3}` } : {}) },
             body: JSON.stringify({
               trigger: 'mission_assigned',
               id: missionId,
@@ -5439,9 +5447,11 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     } else {
       // Notifier le client par email
       try {
+        const sbA4 = getSupabase();
+        const tokA4 = (await sbA4.auth.getSession()).data?.session?.access_token;
         await fetch('/api/send-email', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(tokA4 ? { 'Authorization': `Bearer ${tokA4}` } : {}) },
           body: JSON.stringify({
             trigger: 'support_reply',
             id: ticketId,
@@ -5551,9 +5561,11 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     if (!confirm.isConfirmed) return;
 
     try {
+      const sb = getSupabase();
+      const sessionToken = (await sb.auth.getSession()).data?.session?.access_token;
       const resp = await fetch('/api/send-campagne', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {}) },
         body: JSON.stringify({ sujet: sujet, contenu: contenu })
       });
       const result = await resp.json();
