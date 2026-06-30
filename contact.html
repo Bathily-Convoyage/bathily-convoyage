@@ -990,18 +990,26 @@ async function submitForm(e) {
   
   try {
     const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-    const { error: insertError } = await sb.from('contact_messages').insert([{
-      reference: ref,
+    const { error: insertError } = await sb.from('support_tickets').insert([{
       sujet: sujet,
-      prenom: prenom,
-      nom: nom,
-      email: email,
-      telephone: tel,
-      vehicule: vehicule,
-      message: message,
-      newsletter: newsletter
+      client_nom: prenom + ' ' + nom,
+      client_email: email,
+      message: message + (tel ? ' | Tel: ' + tel : '') + (vehicule ? ' | Véhicule: ' + vehicule : ''),
+      statut: 'open'
     }]);
     if (insertError) throw insertError;
+
+    // Inscription newsletter si cochée
+    if (newsletter) {
+      try {
+        await sb.from('newsletter_subscribers').upsert({
+          email: email,
+          nom: prenom + ' ' + nom,
+          source: 'contact_form',
+          statut: 'actif'
+        }, { onConflict: 'email' });
+      } catch (e) { console.warn('Newsletter inscription échouée:', e); }
+    }
   } catch (err) {
     Swal.fire('Erreur', "Impossible d'envoyer votre message : " + (err.message || 'Erreur inconnue'), 'error');
     return;

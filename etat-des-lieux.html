@@ -1423,9 +1423,10 @@ async function validateEdl(){
 
     // Envoi email
     try {
+      const sessionToken = (await client.auth.getSession()).data?.session?.access_token;
       await fetch('/api/send-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {}) },
         body: JSON.stringify({ trigger: 'edl_completed', id: missionId })
       });
     } catch (emailErr) {
