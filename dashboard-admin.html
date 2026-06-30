@@ -5288,8 +5288,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       renderMissionsTable(_allMissions);
     });
 
-    // Mobile menu
-    document.getElementById('mobileMenuBtn')?.addEventListener('click', toggleMobileNav);
+    // Mobile menu (onclick déjà attaché dans le HTML, pas besoin de double listener)
 
     // ---- Mise à jour automatique de la marge ----
     document.getElementById('manual-price')?.addEventListener('input', function() {
