@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>État des lieux - Bathily-Convoyage</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <img src="../logo.png" alt="Bathily-Convoyage" class="logo">
+      <div class="header-info">
+        <h1>Bathily-Convoyage</h1>
+        <p>État des lieux véhicule</p>
+      </div>
+    </header>
+
+    <div class="alert">
+      <strong>Document papier</strong> à utiliser en cas d'indisponibilité de l'application numérique.
+    </div>
+
+    <h2>IDENTIFICATION DE LA MISSION</h2>
+    <div class="grid-3">
+      <div><div class="label">N° mission</div><div class="field"></div></div>
+      <div><div class="label">Date départ</div><div class="field"></div></div>
+      <div><div class="label">Date livraison</div><div class="field"></div></div>
+    </div>
+
+    <h2>IDENTITÉS</h2>
+    <div class="grid-2">
+      <div class="box">
+        <h3>Client</h3>
+        <p>Nom : <span class="field"></span></p>
+        <p>Tél : <span class="field"></span></p>
+        <p>Signature :</p>
+      </div>
+      <div class="box">
+        <h3>Convoyeur / Transporteur</h3>
+        <p>Nom : <span class="field"></span></p>
+        <p>Permis : <span class="field"></span></p>
+        <p>Signature :</p>
+      </div>
+    </div>
+
+    <h2>VÉHICULE</h2>
+    <div class="grid-3">
+      <div><div class="label">Marque</div><div class="field"></div></div>
+      <div><div class="label">Modèle</div><div class="field"></div></div>
+      <div><div class="label">Immatriculation</div><div class="field"></div></div>
+      <div><div class="label">SIV / N° chassis</div><div class="field"></div></div>
+      <div><div class="label">Couleur</div><div class="field"></div></div>
+      <div><div class="label">Type de véhicule</div><div class="field"></div></div>
+    </div>
+
+    <h2>ÉTAT AU DÉPART</h2>
+    <div class="grid-3">
+      <div><div class="label">Kilométrage</div><div class="field"></div></div>
+      <div><div class="label">Niveau carburant</div><div class="field"></div></div>
+      <div><div class="label">État général</div><div class="field"></div></div>
+    </div>
+
+    <h3>Schéma du véhicule - Dégâts constatés avant départ</h3>
+    <div class="car-schema"></div>
+    <p style="font-size:9pt; color:#666;">Indiquer par une croix (X) ou un cercle la position des rayures, bosses, éclats, fissures ou autre dommage. Préciser la nature de chaque dégât dans le tableau ci-dessous.</p>
+
+    <table class="table">
+      <tr>
+        <th>N°</th>
+        <th>Position sur le véhicule</th>
+        <th>Description du dommage</th>
+        <th>Photo n°</th>
+      </tr>
+      <tr><td>1</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+      <tr><td>2</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+      <tr><td>3</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+      <tr><td>4</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+      <tr><td>5</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+    </table>
+
+    <h3>Documents remis au convoyeur</h3>
+    <ul class="checkbox-list">
+      <li>Carte grise</li>
+      <li>Attestation d'assurance</li>
+      <li>Clé du véhicule</li>
+      <li>Double des clés</li>
+      <li>Code autoradio / GPS</li>
+      <li>Carnet d'entretien</li>
+      <li>Autre : <span class="field" style="display:inline-block; min-width:200px;"></span></li>
+    </ul>
+
+    <h3>Objets personnels dans le véhicule</h3>
+    <p style="font-size:9pt; color:#666;">Bathily-Convoyage décline toute responsabilité pour les objets personnels oubliés dans le véhicule.</p>
+    <div class="field" style="min-height:80px;"></div>
+
+    <h2>ÉTAT À L'ARRIVÉE</h2>
+    <div class="grid-3">
+      <div><div class="label">Kilométrage arrivée</div><div class="field"></div></div>
+      <div><div class="label">Niveau carburant</div><div class="field"></div></div>
+      <div><div class="label">État général</div><div class="field"></div></div>
+    </div>
+
+    <h3>Nouveaux dégâts constatés à l'arrivée</h3>
+    <div class="car-schema"></div>
+    <table class="table">
+      <tr>
+        <th>N°</th>
+        <th>Position sur le véhicule</th>
+        <th>Description du dommage</th>
+        <th>Photo n°</th>
+      </tr>
+      <tr><td>1</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+      <tr><td>2</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+      <tr><td>3</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+    </table>
+
+    <h3>Observations particulières</h3>
+    <div class="field" style="min-height:80px;"></div>
+
+    <h2>SIGNATURES</h2>
+    <div class="grid-2">
+      <div class="signature-box">
+        <span class="signature-label">Client ou mandataire (départ)</span>
+        <p>"Je certifie l'exactitude de l'état des lieux au départ"</p>
+        <p style="margin-top:50px;">Date : <span class="field" style="display:inline-block; min-width:100px;"></span> - Signature :</p>
+      </div>
+      <div class="signature-box">
+        <span class="signature-label">Convoyeur (départ)</span>
+        <p>"Je certifie l'exactitude de l'état des lieux au départ"</p>
+        <p style="margin-top:50px;">Date : <span class="field" style="display:inline-block; min-width:100px;"></span> - Signature :</p>
+      </div>
+      <div class="signature-box">
+        <span class="signature-label">Client ou mandataire (arrivée)</span>
+        <p>"Je certifie l'exactitude de l'état des lieux à l'arrivée"</p>
+        <p style="margin-top:50px;">Date : <span class="field" style="display:inline-block; min-width:100px;"></span> - Signature :</p>
+      </div>
+      <div class="signature-box">
+        <span class="signature-label">Convoyeur (arrivée)</span>
+        <p>"Je certifie l'exactitude de l'état des lieux à l'arrivée"</p>
+        <p style="margin-top:50px;">Date : <span class="field" style="display:inline-block; min-width:100px;"></span> - Signature :</p>
+      </div>
+    </div>
+
+    <p class="footer-note">Bathily-Convoyage - État des lieux papier - Document à conserver 5 ans</p>
+  </div>
+</body>
+</html>
