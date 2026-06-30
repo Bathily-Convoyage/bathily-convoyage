@@ -1426,6 +1426,28 @@
         </div>
       </div>
 
+      <div style="display:flex;gap:16px;">
+        <div class="f-grp" style="flex:1;">
+          <label>VIN (Numéro de châssis)</label>
+          <input type="text" id="vehi-vin" placeholder="17 caractères" maxlength="17" style="text-transform:uppercase;">
+        </div>
+        <div class="f-grp" style="flex:1;">
+          <label>Couleur</label>
+          <input type="text" id="vehi-couleur" placeholder="Ex: Noir, Blanc...">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:16px;">
+        <div class="f-grp" style="flex:1;">
+          <label>Date 1ère mise en circulation</label>
+          <input type="date" id="vehi-date-mec">
+        </div>
+        <div class="f-grp" style="flex:1;">
+          <label>N° carte grise (SIV)</label>
+          <input type="text" id="vehi-num-cg" placeholder="Ex: 1234567 89">
+        </div>
+      </div>
+
       <div class="modal-btns">
         <button class="btn-red" onclick="triggerVehicleSave()"><i class="fas fa-save"></i> Enregistrer</button>
         <button class="btn-outline" onclick="closeModal('modalVehicule')">Annuler</button>
@@ -2437,7 +2459,7 @@
       const { error } = await client.from('vehicules').insert([data]);
       if (error) return alert('Erreur : ' + error.message);
       // Recharger les véhicules
-      const { data: refreshed } = await client.from('vehicules').select('id, client_id, marque, modele, immatriculation, type_vehicule, annee, carburant, created_at').eq('client_id', _clientUser.id);
+      const { data: refreshed } = await client.from('vehicules').select('id, client_id, marque, modele, immatriculation, type_vehicule, annee, carburant, vin, couleur, date_premiere_circulation, numero_carte_grise, created_at').eq('client_id', _clientUser.id);
       _vehiculesList = refreshed || [];
       renderVehicules();
       closeModal('modalVehicule');
@@ -2457,7 +2479,11 @@
         marque,
         modele,
         annee: parseInt(document.getElementById('vehi-anne').value) || null,
-        carburant: document.getElementById('vehi-carbu').value
+        carburant: document.getElementById('vehi-carbu').value,
+        vin: document.getElementById('vehi-vin').value.trim().toUpperCase() || null,
+        couleur: document.getElementById('vehi-couleur').value.trim() || null,
+        date_premiere_circulation: document.getElementById('vehi-date-mec').value || null,
+        numero_carte_grise: document.getElementById('vehi-num-cg').value.trim() || null
       };
       saveVehicule(data);
     }

@@ -69,11 +69,11 @@ export async function onRequest(context) {
       return jsonResponse({ error: insertError.message }, 500, getCorsHeaders(request));
     }
 
-    if (isPro) {
-      const resendApiKey = env.RESEND_API_KEY;
-      const FROM_EMAIL = env.EMAIL_FROM || 'onboarding@resend.dev';
-      if (resendApiKey) {
-        try {
+    const resendApiKey = env.RESEND_API_KEY;
+    const FROM_EMAIL = env.EMAIL_FROM || 'onboarding@resend.dev';
+    if (resendApiKey) {
+      try {
+        if (isPro) {
           await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
@@ -96,8 +96,43 @@ export async function onRequest(context) {
               </div>`
             })
           });
-        } catch (e) { console.warn('Email pro non envoyé:', e.message); }
-      }
+        } else {
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              from: `Bathily Convoyage <${FROM_EMAIL}>`,
+              to: [email.trim().toLowerCase()],
+              subject: 'Bienvenue sur Bathily-Convoyage !',
+              html: `<div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #FDFBF7; padding: 40px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="color: #0A4D68; font-size: 1.5rem; margin: 0;">Bathily-Convoyage</h1>
+                </div>
+                <div style="background: white; border-radius: 16px; padding: 30px;">
+                  <h2 style="color: #0A4D68;">Bonjour ${prenom},</h2>
+                  <p style="color: #2D2A24; font-size: 0.95rem; line-height: 1.6;">
+                    Votre compte client a été créé avec succès !<br>
+                    Vous pouvez désormais accéder à votre espace client pour :
+                  </p>
+                  <ul style="color: #2D2A24; font-size: 0.9rem; line-height: 1.8;">
+                    <li>Suivre vos missions de convoyage</li>
+                    <li>Ajouter et gérer vos véhicules</li>
+                    <li>Demander des devis personnalisés</li>
+                    <li>Profiter de notre programme de fidélité</li>
+                  </ul>
+                  <div style="text-align: center; margin: 25px 0;">
+                    <a href="${env.SITE_URL || 'https://bathily-convoyage.fr'}/dashboard-client.html" style="background: #0A4D68; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">Accéder à mon espace</a>
+                  </div>
+                  <p style="color: #6B625A; font-size: 0.85rem;">Si vous avez des questions, n'hésitez pas à nous contacter.</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                  <p style="color: #6B625A; font-size: 0.8rem;">Bathily-Convoyage — Convoyage automobile professionnel</p>
+                </div>
+              </div>`
+            })
+          });
+        }
+      } catch (e) { console.warn('Email non envoyé:', e.message); }
     }
 
     return jsonResponse({ success: true, userId: newUserId, isPro: !!isPro }, 200, getCorsHeaders(request));

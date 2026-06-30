@@ -4282,48 +4282,35 @@ Cadeau premium personnalisé</textarea>
     if (!confirm.isConfirmed) return;
 
     const sb = getSupabase();
-    const { error: errUpdate } = await sb.from('convoyeur_candidatures').update({ statut: 'approved' }).eq('id', id);
-    if (errUpdate) return Swal.fire('Erreur', errUpdate.message, 'error');
-
     const nomComplet = `${c.prenom || ''} ${c.nom || ''}`.trim();
 
-    let authUserId = null;
+    let approved = false;
     try {
       const session = (await sb.auth.getSession()).data.session;
       if (session) {
-        const response = await fetch('/api/admin-create-user', {
+        const response = await fetch('/api/approve-convoyeur', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.access_token}`
           },
-          body: JSON.stringify({
-            targetTable: 'convoyeurs',
-            payload: {
-              prenom: c.prenom,
-              nom: c.nom,
-              email: c.email,
-              telephone: c.telephone,
-              ville: c.ville,
-              type_permis: c.type_permis,
-              annee_permis: c.annee_permis,
-              niveau: 'junior',
-              disponible: true
-            }
-          })
+          body: JSON.stringify({ candidat_id: id })
         });
         const result = await response.json();
         if (response.ok && result.success) {
-          authUserId = result.userId || null;
+          approved = true;
         } else {
-          console.warn('admin-create-user a échoué:', result.error);
+          console.warn('approve-convoyeur a échoué:', result.error);
         }
       }
     } catch (err) {
-      console.warn('Netlify Function indisponible, fallback direct:', err.message);
+      console.warn('approve-convoyeur indisponible, fallback:', err.message);
     }
 
-    if (!authUserId) {
+    if (!approved) {
+      const { error: errUpdate } = await sb.from('convoyeur_candidatures').update({ statut: 'approved' }).eq('id', id);
+      if (errUpdate) return Swal.fire('Erreur', errUpdate.message, 'error');
+
       const { error: errConv } = await sb.from('convoyeurs').insert([{
         prenom: c.prenom,
         nom: c.nom,
@@ -4336,17 +4323,17 @@ Cadeau premium personnalisé</textarea>
         disponible: true
       }]);
       if (errConv) console.warn('Erreur ajout convoyeur:', errConv.message);
+
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trigger: 'candidature_status_changed', id })
+      }).catch(err => console.warn('Erreur envoi email approbation:', err));
     }
 
-    Swal.fire('Approuvé !', `${nomComplet} a été ajouté aux convoyeurs. Un email lui a été envoyé.`, 'success');
+    Swal.fire('Approuvé !', `${nomComplet} a été ajouté aux convoyeurs. Un email avec ses identifiants lui a été envoyé.`, 'success');
     loadFormationCandidatures();
     loadConvoyeurs();
-
-    fetch('/api/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trigger: 'candidature_status_changed', id })
-    }).catch(err => console.warn('Erreur envoi email approbation:', err));
   };
 
   window.rejectFormationCandidature = async function(id) {

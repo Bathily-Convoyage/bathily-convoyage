@@ -635,6 +635,19 @@
               </div>
             </div>
 
+            <!-- Date et heure de livraison souhaitée -->
+            <div class="f-row">
+              <div class="f-grp">
+                <label>Date de livraison souhaitée *</label>
+                <input type="date" id="dateLivraison" required>
+                <div class="field-err" id="errDateLivraison">Veuillez renseigner une date de livraison</div>
+              </div>
+              <div class="f-grp">
+                <label>Heure de livraison souhaitée</label>
+                <input type="time" id="heureLivraison">
+              </div>
+            </div>
+
             <!-- Badge tout inclus -->
             <div class="included-badge">
               <div class="included-title"><i class="fas fa-check-circle"></i> Tout inclus dans le prix</div>
@@ -1480,6 +1493,7 @@
       const fields = [
         { id: 'depart', err: 'errDepart', check: v => v.trim().length > 2 },
         { id: 'arrivee', err: 'errArrivee', check: v => v.trim().length > 2 },
+        { id: 'dateLivraison', err: 'errDateLivraison', check: v => v.trim().length > 0 },
         { id: 'clientPrenom', err: 'errPrenom', check: v => v.trim().length > 1 },
         { id: 'clientNom', err: 'errNom', check: v => v.trim().length > 1 },
         { id: 'clientEmail', err: 'errEmail', check: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) },
@@ -1513,6 +1527,8 @@
       const nom = document.getElementById('clientNom').value.trim();
       const email = document.getElementById('clientEmail').value.trim();
       const tel = document.getElementById('clientTel').value.trim();
+      const dateLivraison = document.getElementById('dateLivraison').value;
+      const heureLivraison = document.getElementById('heureLivraison').value;
       const message = document.getElementById('messageDevis').value.trim();
       const isUrgence = document.getElementById('optUrgence').checked;
       const isGardiennage = document.getElementById('optGardiennage').checked;
@@ -1545,6 +1561,8 @@
         client_email: email,
         depart: depart,
         arrivee: arrivee,
+        date_livraison: dateLivraison || null,
+        heure_livraison: heureLivraison || null,
         vehicule: vehicule,
         mode: mode,
         total_ht: totalHt,
@@ -1552,6 +1570,8 @@
           coordonnees: { prenom, nom, email, telephone: tel || '' },
           dep: depart,
           arr: arrivee,
+          date_livraison: dateLivraison || null,
+          heure_livraison: heureLivraison || null,
           immatriculation: plaque || '',
           marque: marque || '',
           modele: modele || '',

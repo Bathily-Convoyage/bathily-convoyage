@@ -51,7 +51,12 @@ export async function onRequest(context) {
 
     const { data: profile } = await supabaseAnon.from('clients').select('role, id, email').eq('auth_user_id', user.id).maybeSingle();
     const isAdmin = profile?.role === 'admin';
-    const isClient = mission.client_id === profile?.id || mission.client_email === user.email;
+    const clientEmailLower = (mission.client_email || '').toLowerCase().trim();
+    const userEmailLower = (user.email || '').toLowerCase().trim();
+    const profileEmailLower = (profile?.email || '').toLowerCase().trim();
+    const isClient = mission.client_id === profile?.id
+      || clientEmailLower === userEmailLower
+      || clientEmailLower === profileEmailLower;
 
     if (!isClient && !isAdmin) {
       return jsonResponse({ error: 'Vous n\'êtes pas autorisé à payer cette mission.' }, 403, getCorsHeaders(request));
