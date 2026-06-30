@@ -5139,24 +5139,24 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
         syncAdminMobileNav(tabId);
       });
     });
-    function syncAdminMobileNav(id) {
+    window.syncAdminMobileNav = function(id) {
       document.querySelectorAll('.mob-nav-item').forEach(b => b.classList.remove('active'));
       const btn = document.querySelector(`.mob-nav-item[data-tab="${id}"]`);
       if (btn) btn.classList.add('active');
-    }
-    function adminMobileNavClick(tabId) {
+    };
+    window.adminMobileNavClick = function(tabId) {
       const navItem = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
       if (navItem) navItem.click();
-      closeMobMore();
-    }
-    function openMobMore() {
+      window.closeMobMore();
+    };
+    window.openMobMore = function() {
       document.getElementById('mobMorePanel').classList.add('open');
       document.getElementById('mobMoreOverlay').classList.add('open');
-    }
-    function closeMobMore() {
+    };
+    window.closeMobMore = function() {
       document.getElementById('mobMorePanel').classList.remove('open');
       document.getElementById('mobMoreOverlay').classList.remove('open');
-    }
+    };
 
     // Save inline buttons
     document.querySelectorAll('.save-inline').forEach(btn => {
