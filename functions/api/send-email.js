@@ -85,7 +85,7 @@ export async function onRequest(context) {
     }
     else if (trigger === 'devis_created') {
       const { data: devis, error } = await supabase.from('devis')
-        .select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, details, status, created_at')
+        .select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, details, date_livraison, heure_livraison, status, created_at')
         .eq('reference', id).single();
       if (error || !devis) throw new Error(`Devis introuvable: ${error?.message}`);
       const details = devis.details || {};
@@ -99,11 +99,13 @@ export async function onRequest(context) {
          <h3>Récapitulatif de votre demande :</h3><ul class="meta-list">
          <li><span>Véhicule :</span> <strong>${devis.vehicule}</strong></li><li><span>Départ :</span> <strong>${devis.depart}</strong></li>
          <li><span>Arrivée :</span> <strong>${devis.arrivee}</strong></li><li><span>Mode de transport :</span> <strong>${details.mode === 'plateau' ? 'Plateau' : 'Par la route'}</strong></li>
-         <li><span>Pack choisi :</span> <strong>${details.pack || 'Starter'}</strong></li></ul>
+         <li><span>Pack choisi :</span> <strong>${details.pack || 'Starter'}</strong></li>
+         ${devis.date_livraison ? `<li><span>Date de livraison :</span> <strong>${new Date(devis.date_livraison).toLocaleDateString('fr-FR')}</strong></li>` : ''}
+         ${devis.heure_livraison ? `<li><span>Heure de livraison :</span> <strong>${devis.heure_livraison}</strong></li>` : ''}</ul>
          <p style="text-align:center"><a href="${devisURL}" class="btn">Accéder à mon Espace Client</a></p>`);
       const adminHtml = wrapEmailLayout("Nouvelle demande de devis à valider",
         `<p>Bonjour l'administrateur,</p><p>Un nouveau devis vient d'être soumis sur la plateforme et attend votre validation.</p>
-         <div class="highlight-box"><strong>Référence :</strong> ${devis.reference}<br><strong>Client :</strong> ${devis.client_prenom} ${devis.client_nom} (${devis.client_email})</div>
+         <div class="highlight-box"><strong>Référence :</strong> ${devis.reference}<br><strong>Client :</strong> ${devis.client_prenom} ${devis.client_nom} (${devis.client_email})${devis.date_livraison ? `<br><strong>Date de livraison :</strong> ${new Date(devis.date_livraison).toLocaleDateString('fr-FR')}${devis.heure_livraison ? ' à ' + devis.heure_livraison : ''}` : ''}</div>
          <p>Veuillez vous rendre sur le panel d'administration pour valider le tarif et assigner un convoyeur.</p>
          <p style="text-align:center"><a href="https://bathily-convoyage.fr/dashboard-admin.html" class="btn">Accéder au panel Admin</a></p>`);
       await sendEmail({ to: devis.client_email, subject: `Bathily Convoyage - Demande de devis ${devis.reference}`, html: clientHtml });
@@ -215,12 +217,12 @@ export async function onRequest(context) {
     else if (trigger === 'devis_confirmed') {
       const paymentUrl = payment_url;
       const { data: devis, error } = await supabase.from('devis')
-        .select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, details, status, created_at')
+        .select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, details, date_livraison, heure_livraison, status, created_at')
         .eq('id', id).single();
       if (error || !devis) throw new Error(`Devis introuvable: ${error?.message}`);
       const clientHtml = wrapEmailLayout("Votre devis a été validé — Procédez au paiement",
         `<p>Bonjour ${devis.client_prenom || 'Client'},</p><p>Bonne nouvelle ! Votre devis a été validé. Vous pouvez maintenant procéder au paiement sécurisé.</p>
-         <div class="highlight-box"><strong>Référence :</strong> ${devis.reference}<br><strong>Trajet :</strong> ${devis.depart} → ${devis.arrivee}<br><strong>Montant HT :</strong> ${devis.total_ht} €</div>
+         <div class="highlight-box"><strong>Référence :</strong> ${devis.reference}<br><strong>Trajet :</strong> ${devis.depart} → ${devis.arrivee}<br><strong>Montant HT :</strong> ${devis.total_ht} €${devis.date_livraison ? `<br><strong>Date de livraison :</strong> ${new Date(devis.date_livraison).toLocaleDateString('fr-FR')}${devis.heure_livraison ? ' à ' + devis.heure_livraison : ''}` : ''}</div>
          <p style="text-align:center"><a href="${paymentUrl}" class="btn">Payer maintenant</a></p>`);
       await sendEmail({ to: devis.client_email, subject: `Bathily Convoyage - Votre devis ${devis.reference} est prêt`, html: clientHtml });
       resultData = { success: true, message: 'Email lien paiement envoyé.' };

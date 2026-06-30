@@ -1829,7 +1829,7 @@
       _clientMissions = missions || [];
 
       // Charger les véhicules
-      const { data: vehicules } = await client.from('vehicules').select('id, client_id, marque, modele, immatriculation, type_vehicule, annee, carburant, created_at').eq('client_id', profile.id).order('created_at', { ascending: false });
+      const { data: vehicules } = await client.from('vehicules').select('id, client_id, marque, modele, immatriculation, type_vehicule, annee, carburant, vin, couleur, date_premiere_circulation, numero_carte_grise, created_at').eq('client_id', profile.id).order('created_at', { ascending: false });
       _vehiculesList = vehicules || [];
 
       initClientDashboard();
@@ -2021,12 +2021,12 @@
         return;
       }
       container.innerHTML = _vehiculesList.map(v => {
-        const ico = v.type === 'moto' ? 'fa-motorcycle' : (v.carburant === 'Électrique' ? 'fa-bolt' : 'fa-car');
+        const ico = v.type_vehicule === 'Moto' ? 'fa-motorcycle' : (v.carburant === 'Électrique' ? 'fa-bolt' : 'fa-car');
         return `<div class="vehi-card">
           <div class="vehi-ico"><i class="fas ${ico}"></i></div>
           <div class="vehi-name">${v.marque} ${v.modele}</div>
           <div class="vehi-plate">${v.immatriculation || ''}</div>
-          <div class="vehi-meta">${v.annee || ''} - ${v.carburant || ''}<br>${v.type || 'Auto'}</div>
+          <div class="vehi-meta">${v.annee || ''} - ${v.carburant || ''}<br>${v.type_vehicule || 'Auto'}</div>
           <div class="vehi-actions">
             <button class="btn-sm btn-sm-ghost" onclick="deleteVehicule('${v.id}')"><i class="fas fa-trash"></i></button>
           </div>

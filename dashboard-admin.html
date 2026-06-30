@@ -3832,7 +3832,7 @@ Cadeau premium personnalisé</textarea>
   async function loadDevis() {
     const client = getSupabase();
     if (!client) return;
-    const { data, error } = await client.from('devis').select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, status, details, date_depart, created_at').order('created_at', { ascending: false });
+    const { data, error } = await client.from('devis').select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, status, details, date_livraison, heure_livraison, created_at').order('created_at', { ascending: false });
     if (error) { console.warn('Erreur chargement devis:', error.message); return; }
     _allDevisData = data || [];
     const pending = _allDevisData.filter(d => d.status === 'pending').length;
@@ -3903,6 +3903,8 @@ Cadeau premium personnalisé</textarea>
         <b>Téléphone :</b> ${escapeHtml(coord.telephone || '—')}<br>
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Trajet :</b> ${escapeHtml(devis.depart || '—')} → ${escapeHtml(devis.arrivee || '—')}<br>
+        <b>Date de livraison :</b> ${devis.date_livraison ? new Date(devis.date_livraison).toLocaleDateString('fr-FR') : '—'}<br>
+        <b>Heure de livraison :</b> ${escapeHtml(devis.heure_livraison || '—')}<br>
         <b>Véhicule :</b> ${escapeHtml(devis.vehicule || '—')}<br>
         <b>Mode :</b> ${escapeHtml(devis.mode || details.mode || '—')}<br>
         <b>Pack :</b> ${escapeHtml(details.pack || '—')}<br>
@@ -3991,7 +3993,7 @@ Cadeau premium personnalisé</textarea>
         const { error: updateErr } = await sb.from('devis').update({ status: 'accepted' }).eq('id', id);
         if (updateErr) throw new Error(updateErr.message);
 
-        const { data: devis, error: devisErr } = await sb.from('devis').select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, status, details, date_depart, created_at').eq('id', id).single();
+        const { data: devis, error: devisErr } = await sb.from('devis').select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, status, details, date_livraison, heure_livraison, created_at').eq('id', id).single();
         if (devisErr || !devis) throw new Error("Devis introuvable.");
 
         // Chercher si le client a déjà un compte pour lier la mission
@@ -4014,7 +4016,7 @@ Cadeau premium personnalisé</textarea>
           montant_ht: devis.total_ht || 0,
           status: 'available',
           paiement_statut: 'pending',
-          date_mission: devis.date_depart || new Date().toISOString().split('T')[0],
+          date_mission: devis.date_livraison || new Date().toISOString().split('T')[0],
           client_id: matchedClientId,
           marge: (devis.total_ht || 0) - (devis.details?.remuneration_convoyeur || 0),
           remuneration_convoyeur: devis.details?.remuneration_convoyeur || null
