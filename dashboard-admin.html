@@ -1130,6 +1130,83 @@
       .stats-row {
         grid-template-columns: 1fr 1fr;
       }
+      body.has-bottom-nav .dash-main { padding-bottom: 80px; }
+    }
+    /* ===== BOTTOM NAV MOBILE ===== */
+    .mobile-bottom-nav { display: none; }
+    @media (max-width: 900px) {
+      .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 64px;
+        background: white;
+        border-top: 1px solid var(--border-light);
+        z-index: 1000;
+        box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+      }
+      .mob-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--gray-mid);
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        background: none;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-nav-item i { font-size: 1.1rem; }
+      .mob-nav-item.active { color: var(--bordeaux); }
+      .mob-nav-item.active i { transform: scale(1.15); }
+      .mob-nav-more-panel {
+        display: none;
+        position: fixed;
+        bottom: 64px; left: 0; right: 0;
+        background: white;
+        border-radius: 16px 16px 0 0;
+        border-top: 1px solid var(--border-light);
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+        z-index: 999;
+        padding: 16px 0 8px;
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+      .mob-nav-more-panel.open { display: block; }
+      .mob-more-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 24px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-dark);
+        cursor: pointer;
+        transition: background 0.15s;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        text-decoration: none;
+      }
+      .mob-more-item i { width: 20px; color: var(--bordeaux); font-size: 1rem; }
+      .mob-more-item:hover, .mob-more-item:active { background: var(--bordeaux-light); }
+      .mob-more-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.3);
+        z-index: 998;
+      }
+      .mob-more-overlay.open { display: block; }
     }
     @media (max-width: 600px) {
       .stats-row {
@@ -2103,7 +2180,7 @@ Cadeau premium personnalisé</textarea>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Téléphone client</label><input type="tel" id="manual-client-phone" placeholder="Téléphone du client"></div>
-        <div class="f-grp"><label>Adresse postale client</label><input type="text" id="manual-client-address" placeholder="Adresse complète du client"></div>
+        <div class="f-grp" style="position:relative;"><label>Adresse postale client</label><input type="text" id="manual-client-address" placeholder="Adresse complète du client" autocomplete="off"><div class="suggest-box" id="manualClientAddrSuggests"></div></div>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Convoyeur</label><select id="manual-convoyeur">
@@ -2208,10 +2285,10 @@ Cadeau premium personnalisé</textarea>
         <div class="f-grp"><label>SIRET</label><input type="text" id="clientSiret" placeholder="Ex: 123 456 789 00012"></div>
         <div class="f-grp"><label>TVA Intra.</label><input type="text" id="clientTva" placeholder="Ex: FR 12 345678900"></div>
       </div>
-      <div class="f-grp"><label>Adresse</label><input type="text" id="clientAdresse" placeholder="N° et rue"></div>
+      <div class="f-grp" style="position:relative;"><label>Adresse</label><input type="text" id="clientAdresse" placeholder="N° et rue" autocomplete="off"><div class="suggest-box" id="clientAdresseSuggests"></div></div>
       <div class="f-row">
         <div class="f-grp"><label>Code Postal</label><input type="text" id="clientCp"></div>
-        <div class="f-grp"><label>Ville</label><input type="text" id="clientVille"></div>
+        <div class="f-grp" style="position:relative;"><label>Ville</label><input type="text" id="clientVille" autocomplete="off"><div class="suggest-box" id="clientVilleSuggests"></div></div>
       </div>
       <div class="f-grp"><label>Notes internes (visibles uniquement par l'admin)</label><textarea id="clientNotes" rows="2" placeholder="Remarques particulières, client VIP, etc..."></textarea></div>
       <div class="modal-btns" style="display:flex; align-items:center; gap:10px;">
@@ -2272,10 +2349,10 @@ Cadeau premium personnalisé</textarea>
         <div class="f-grp"><label>Taux moto (€/km)</label><input type="number" id="convEditTauxMoto" step="0.01"></div>
       </div>
       <div style="border-top:1px solid var(--border-light); margin:15px 0; padding-top:10px;"><strong style="font-size:0.7rem; color:var(--bordeaux); text-transform:uppercase;">Adresse & Zone</strong></div>
-      <div class="f-grp"><label>Adresse <span style="color:#e74c3c">*</span></label><input type="text" id="convEditAdresse" placeholder="N° et rue" required></div>
+      <div class="f-grp" style="position:relative;"><label>Adresse <span style="color:#e74c3c">*</span></label><input type="text" id="convEditAdresse" placeholder="N° et rue" autocomplete="off" required><div class="suggest-box" id="convEditAdresseSuggests"></div></div>
       <div class="f-row">
         <div class="f-grp"><label>Code Postal <span style="color:#e74c3c">*</span></label><input type="text" id="convEditCp" required></div>
-        <div class="f-grp"><label>Ville <span style="color:#e74c3c">*</span></label><input type="text" id="convEditVille" required></div>
+        <div class="f-grp" style="position:relative;"><label>Ville <span style="color:#e74c3c">*</span></label><input type="text" id="convEditVille" autocomplete="off" required><div class="suggest-box" id="convEditVilleSuggests"></div></div>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Zone d'intervention</label><input type="text" id="convEditZone" placeholder="IDF, Rhône-Alpes…"></div>
@@ -4026,7 +4103,7 @@ Cadeau premium personnalisé</textarea>
   async function loadFormationCandidatures() {
     const client = getSupabase();
     if (!client) return;
-    const { data, error } = await client.from('convoyeur_candidatures').select('id, email, prenom, nom, telephone, ville, type_permis, annee_permis, statut, score_quiz, experience, banned, deleted_at, created_at').order('created_at', { ascending: false });
+    const { data, error } = await client.from('convoyeur_candidatures').select('id, email, prenom, nom, telephone, ville, type_permis, annee_permis, statut, score_quiz, experience, banned, deleted_at, created_at, documents, date_naissance').order('created_at', { ascending: false });
     if (error) { console.warn('Erreur chargement candidatures formation:', error.message); return; }
     _allFormationCandidatures = data || [];
     renderFormationCandidaturesList();
@@ -5062,8 +5139,27 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
         const target = document.getElementById(`tab-${tabId}`);
         if (target) target.classList.add('active');
         if (tabId === 'support') loadSupportTickets();
+        syncAdminMobileNav(tabId);
       });
     });
+    function syncAdminMobileNav(id) {
+      document.querySelectorAll('.mob-nav-item').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector(`.mob-nav-item[data-tab="${id}"]`);
+      if (btn) btn.classList.add('active');
+    }
+    function adminMobileNavClick(tabId) {
+      const navItem = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
+      if (navItem) navItem.click();
+      closeMobMore();
+    }
+    function openMobMore() {
+      document.getElementById('mobMorePanel').classList.add('open');
+      document.getElementById('mobMoreOverlay').classList.add('open');
+    }
+    function closeMobMore() {
+      document.getElementById('mobMorePanel').classList.remove('open');
+      document.getElementById('mobMoreOverlay').classList.remove('open');
+    }
 
     // Save inline buttons
     document.querySelectorAll('.save-inline').forEach(btn => {
@@ -5498,6 +5594,36 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
   });
   </script>
 
+<!-- BOTTOM NAV MOBILE -->
+<nav class="mobile-bottom-nav" role="navigation" aria-label="Navigation mobile">
+  <button class="mob-nav-item active" data-tab="dashboard" onclick="adminMobileNavClick('dashboard')">
+    <i class="fas fa-chart-line"></i><span>Dashboard</span>
+  </button>
+  <button class="mob-nav-item" data-tab="missions" onclick="adminMobileNavClick('missions')">
+    <i class="fas fa-route"></i><span>Missions</span>
+  </button>
+  <button class="mob-nav-item" data-tab="devis" onclick="adminMobileNavClick('devis')">
+    <i class="fas fa-calculator"></i><span>Devis</span>
+  </button>
+  <button class="mob-nav-item" data-tab="clients" onclick="adminMobileNavClick('clients')">
+    <i class="fas fa-users"></i><span>Clients</span>
+  </button>
+  <button class="mob-nav-item" onclick="openMobMore()">
+    <i class="fas fa-ellipsis-h"></i><span>Plus</span>
+  </button>
+</nav>
+<div class="mob-more-overlay" id="mobMoreOverlay" onclick="closeMobMore()"></div>
+<div class="mob-nav-more-panel" id="mobMorePanel">
+  <button class="mob-more-item" onclick="adminMobileNavClick('convoyeurs')"><i class="fas fa-truck"></i> Convoyeurs</button>
+  <button class="mob-more-item" onclick="adminMobileNavClick('candidatures')"><i class="fas fa-user-plus"></i> Candidatures</button>
+  <button class="mob-more-item" onclick="adminMobileNavClick('support')"><i class="fas fa-headset"></i> Support</button>
+  <button class="mob-more-item" onclick="adminMobileNavClick('facturation')"><i class="fas fa-file-invoice"></i> Facturation</button>
+  <button class="mob-more-item" onclick="adminMobileNavClick('analytics')"><i class="fas fa-chart-bar"></i> Analytics</button>
+  <button class="mob-more-item" onclick="adminMobileNavClick('tarifs-config')"><i class="fas fa-euro-sign"></i> Tarifs & Prix</button>
+  <button class="mob-more-item" onclick="adminMobileNavClick('systeme')"><i class="fas fa-cog"></i> Système</button>
+</div>
+<script>document.body.classList.add('has-bottom-nav');</script>
+
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function() {
@@ -5506,6 +5632,21 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
+</script>
+<script src="js/address-autocomplete.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.AddressAutocomplete) {
+      // Mission creation — adresse client
+      AddressAutocomplete.setupAddress('manual-client-address', 'manualClientAddrSuggests');
+      // Modal client — adresse + ville (remplit CP auto)
+      AddressAutocomplete.setupAddressWithCity('clientAdresse', 'clientAdresseSuggests', 'clientCp', 'clientVille');
+      AddressAutocomplete.setupCity('clientVille', 'clientVilleSuggests');
+      // Modal convoyeur — adresse + ville (remplit CP auto)
+      AddressAutocomplete.setupAddressWithCity('convEditAdresse', 'convEditAdresseSuggests', 'convEditCp', 'convEditVille');
+      AddressAutocomplete.setupCity('convEditVille', 'convEditVilleSuggests');
+    }
+  });
 </script>
 </body>
 </html>

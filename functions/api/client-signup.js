@@ -15,7 +15,7 @@ export async function onRequest(context) {
   if (rl) return rl;
 
   try {
-    const { email, password, prenom, nom, telephone, societe, isPro } = await parseBody(request);
+    const { email, password, prenom, nom, telephone, societe, adresse, code_postal, ville, isPro } = await parseBody(request);
     if (!email || !password) {
       return jsonResponse({ error: 'Email et mot de passe requis.' }, 400, getCorsHeaders(request));
     }
@@ -49,6 +49,10 @@ export async function onRequest(context) {
       email: email.trim().toLowerCase(),
       telephone: telephone || null,
       societe: societe || null,
+      adresse: adresse || null,
+      code_postal: code_postal || null,
+      ville: ville || null,
+      pays: 'France',
       role: 'client',
       auth_user_id: newUserId
     };

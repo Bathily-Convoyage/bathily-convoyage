@@ -813,6 +813,83 @@
       z-index: 200;
     }
     .mobile-nav-overlay.open { display: block; }
+    /* ===== BOTTOM NAV MOBILE ===== */
+    .mobile-bottom-nav { display: none; }
+    @media (max-width: 900px) {
+      .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 64px;
+        background: white;
+        border-top: 1px solid var(--border-light);
+        z-index: 1000;
+        box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+      }
+      .mob-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--gray-mid);
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        background: none;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-nav-item i { font-size: 1.1rem; }
+      .mob-nav-item.active { color: var(--bordeaux); }
+      .mob-nav-item.active i { transform: scale(1.15); }
+      .mob-nav-more-panel {
+        display: none;
+        position: fixed;
+        bottom: 64px; left: 0; right: 0;
+        background: white;
+        border-radius: 16px 16px 0 0;
+        border-top: 1px solid var(--border-light);
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+        z-index: 999;
+        padding: 16px 0 8px;
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+      .mob-nav-more-panel.open { display: block; }
+      .mob-more-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 24px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-dark);
+        cursor: pointer;
+        transition: background 0.15s;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        text-decoration: none;
+      }
+      .mob-more-item i { width: 20px; color: var(--bordeaux); font-size: 1rem; }
+      .mob-more-item:hover, .mob-more-item:active { background: var(--bordeaux-light); }
+      .mob-more-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.3);
+        z-index: 998;
+      }
+      .mob-more-overlay.open { display: block; }
+      body.has-bottom-nav .dash-main { padding-bottom: 80px; }
+    }
     @media (max-width: 900px) {
       .mobile-menu-toggle { display: block; }
       .dash-nav {
@@ -2241,6 +2318,24 @@
     }
 
     // ========== SHOW TAB ==========
+    function syncConvMobileNav(id) {
+      document.querySelectorAll('.mob-nav-item').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector(`.mob-nav-item[data-tab="${id}"]`);
+      if (btn) btn.classList.add('active');
+    }
+    function convMobileNavClick(id) {
+      const fakeEl = document.querySelector(`.dash-nav .nav-item[onclick*="'${id}'"]`);
+      showConvTab(id, fakeEl);
+      closeMobMore();
+    }
+    function openMobMore() {
+      document.getElementById('mobMorePanel').classList.add('open');
+      document.getElementById('mobMoreOverlay').classList.add('open');
+    }
+    function closeMobMore() {
+      document.getElementById('mobMorePanel').classList.remove('open');
+      document.getElementById('mobMoreOverlay').classList.remove('open');
+    }
     function showConvTab(id, el) {
       document.querySelectorAll('#conv-tab-accueil, #conv-tab-missions, #conv-tab-mes-missions, #conv-tab-candidatures, #conv-tab-profil, #conv-tab-support, #conv-tab-reseau, #conv-tab-gamification')
         .forEach(t => t.classList.remove('active'));
@@ -2248,7 +2343,8 @@
       if (target) target.classList.add('active');
       document.querySelectorAll('.dash-nav .nav-item').forEach(n => n.classList.remove('active'));
       if (el) el.classList.add('active');
-      if (window.innerWidth <= 900) toggleMobileNav();
+      syncConvMobileNav(id);
+      if (window.innerWidth <= 900) { const nav = document.querySelector('.dash-nav'); if (nav && nav.classList.contains('open')) toggleMobileNav(); }
       if (id === 'candidatures') {
         filterCandidatures(_candidatureFilter, document.querySelector('#conv-tab-candidatures .btn-sm-ghost'));
       }
@@ -2347,6 +2443,32 @@
     });
   </script>
 
+<!-- BOTTOM NAV MOBILE -->
+<nav class="mobile-bottom-nav" role="navigation" aria-label="Navigation mobile">
+  <button class="mob-nav-item active" data-tab="accueil" onclick="convMobileNavClick('accueil')">
+    <i class="fas fa-home"></i><span>Accueil</span>
+  </button>
+  <button class="mob-nav-item" data-tab="missions" onclick="convMobileNavClick('missions')">
+    <i class="fas fa-route"></i><span>Missions</span>
+  </button>
+  <button class="mob-nav-item" data-tab="mes-missions" onclick="convMobileNavClick('mes-missions')">
+    <i class="fas fa-briefcase"></i><span>Mes miss.</span>
+  </button>
+  <button class="mob-nav-item" data-tab="candidatures" onclick="convMobileNavClick('candidatures')">
+    <i class="fas fa-file-signature"></i><span>Candid.</span>
+  </button>
+  <button class="mob-nav-item" onclick="openMobMore()">
+    <i class="fas fa-ellipsis-h"></i><span>Plus</span>
+  </button>
+</nav>
+<div class="mob-more-overlay" id="mobMoreOverlay" onclick="closeMobMore()"></div>
+<div class="mob-nav-more-panel" id="mobMorePanel">
+  <button class="mob-more-item" onclick="convMobileNavClick('profil')"><i class="fas fa-user"></i> Mon profil</button>
+  <button class="mob-more-item" onclick="convMobileNavClick('reseau')"><i class="fas fa-comments"></i> Communauté</button>
+  <button class="mob-more-item" onclick="convMobileNavClick('gamification')"><i class="fas fa-trophy"></i> Badges & niveau</button>
+  <button class="mob-more-item" onclick="convMobileNavClick('support')"><i class="fas fa-headset"></i> Support</button>
+</div>
+<script>document.body.classList.add('has-bottom-nav');</script>
 <script src="js/gamification.js" defer></script>
 <script>
 if ("serviceWorker" in navigator) {

@@ -891,6 +891,101 @@
       gap: 12px;
       margin-top: 24px;
     }
+    /* ===== BOTTOM NAV MOBILE ===== */
+    .mobile-bottom-nav {
+      display: none;
+    }
+    @media (max-width: 900px) {
+      .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 64px;
+        background: white;
+        border-top: 1px solid var(--border-light);
+        z-index: 1000;
+        box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+      }
+      .mob-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--gray-mid);
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        background: none;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-nav-item i {
+        font-size: 1.1rem;
+      }
+      .mob-nav-item.active {
+        color: var(--bordeaux);
+      }
+      .mob-nav-item.active i {
+        transform: scale(1.15);
+      }
+      .mob-nav-more-panel {
+        display: none;
+        position: fixed;
+        bottom: 64px; left: 0; right: 0;
+        background: white;
+        border-top: 1px solid var(--border-light);
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+        z-index: 999;
+        padding: 16px 0 8px;
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+      .mob-nav-more-panel.open {
+        display: block;
+      }
+      .mob-more-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 24px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-dark);
+        cursor: pointer;
+        transition: background 0.15s;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        text-decoration: none;
+      }
+      .mob-more-item i {
+        width: 20px;
+        color: var(--bordeaux);
+        font-size: 1rem;
+      }
+      .mob-more-item:hover, .mob-more-item:active {
+        background: var(--bordeaux-light);
+      }
+      .mob-more-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.3);
+        z-index: 998;
+      }
+      .mob-more-overlay.open { display: block; }
+      body.has-bottom-nav .dash-main {
+        padding-bottom: 80px;
+      }
+    }
     @media (max-width: 900px) {
       .dash-nav { display: none; }
       .dash-main { padding: 24px; }
@@ -1022,6 +1117,22 @@
         <div style="margin-bottom:12px;text-align:left;">
           <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Société (Optionnel)</label>
           <input id="signupSociete" type="text" placeholder="Dupont Inc." style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+        </div>
+        <div style="margin-bottom:12px;text-align:left;position:relative;">
+          <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Adresse postale *</label>
+          <input id="signupAdresse" type="text" required placeholder="12 rue de la République" autocomplete="off" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+          <div class="suggest-box" id="signupAdresseSuggests"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div style="text-align:left;">
+            <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Code postal *</label>
+            <input id="signupCp" type="text" required placeholder="75001" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+          </div>
+          <div style="text-align:left;position:relative;">
+            <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Ville *</label>
+            <input id="signupVille" type="text" required placeholder="Paris" autocomplete="off" style="width:100%;padding:10px 14px;border:1.5px solid #E8E1D9;border-radius:12px;font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;background:white;">
+            <div class="suggest-box" id="signupVilleSuggests"></div>
+          </div>
         </div>
         <div style="margin-bottom:20px;text-align:left;">
           <label style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6B625A;display:block;margin-bottom:6px;">Mot de passe</label>
@@ -1580,9 +1691,12 @@
       const email = document.getElementById('signupEmail').value.trim().toLowerCase();
       const telephone = document.getElementById('signupTel').value.trim();
       const societe = document.getElementById('signupSociete').value.trim();
+      const adresse = document.getElementById('signupAdresse').value.trim();
+      const code_postal = document.getElementById('signupCp').value.trim();
+      const ville = document.getElementById('signupVille').value.trim();
       const password = document.getElementById('signupPassword').value;
 
-      if (!prenom || !nom || !email || !password) {
+      if (!prenom || !nom || !email || !password || !adresse || !code_postal || !ville) {
         Swal.fire('Champs requis', 'Tous les champs obligatoires doivent être remplis.', 'warning');
         return;
       }
@@ -1611,7 +1725,7 @@
           // Créer le profil client
           if (signUpData.user) {
             const { error: insertErr } = await client.from('clients').insert([
-              { email, prenom, nom, telephone, societe, auth_user_id: signUpData.user.id, role: 'client' }
+              { email, prenom, nom, telephone, societe, adresse, code_postal, ville, pays: 'France', auth_user_id: signUpData.user.id, role: 'client' }
             ]);
             if (insertErr) console.warn('Profil client non créé:', insertErr.message);
           }
@@ -1640,7 +1754,7 @@
         const response = await fetch('/api/client-signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, prenom, nom, telephone, societe, isPro: false })
+          body: JSON.stringify({ email, password, prenom, nom, telephone, societe, adresse, code_postal, ville, isPro: false })
         });
         const result = await response.json();
 
@@ -1693,7 +1807,7 @@
       _clientMissions = missions || [];
 
       // Charger les véhicules
-      const { data: vehicules } = await client.from('vehicules').select('id, client_id, marque, modele, immatriculation, type_vehicule, created_at').eq('client_id', profile.id).order('created_at', { ascending: false });
+      const { data: vehicules } = await client.from('vehicules').select('id, client_id, marque, modele, immatriculation, type_vehicule, annee, carburant, created_at').eq('client_id', profile.id).order('created_at', { ascending: false });
       _vehiculesList = vehicules || [];
 
       initClientDashboard();
@@ -2093,6 +2207,25 @@
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       if (el) el.classList.add('active');
       if (id === 'missions') filterMissions(_activeFilter, document.querySelector('.tab-btn.active'));
+      syncMobileNav(id);
+    }
+    function syncMobileNav(id) {
+      document.querySelectorAll('.mob-nav-item').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector(`.mob-nav-item[data-tab="${id}"]`);
+      if (btn) btn.classList.add('active');
+    }
+    function mobileNavClick(id) {
+      const fakeEl = document.querySelector(`.nav-item[onclick*="'${id}'"]`);
+      showTab(id, fakeEl);
+      closeMobMore();
+    }
+    function openMobMore() {
+      document.getElementById('mobMorePanel').classList.add('open');
+      document.getElementById('mobMoreOverlay').classList.add('open');
+    }
+    function closeMobMore() {
+      document.getElementById('mobMorePanel').classList.remove('open');
+      document.getElementById('mobMoreOverlay').classList.remove('open');
     }
 
     // ========== MODAL HELPERS ==========
@@ -2304,7 +2437,7 @@
       const { error } = await client.from('vehicules').insert([data]);
       if (error) return alert('Erreur : ' + error.message);
       // Recharger les véhicules
-      const { data: refreshed } = await client.from('vehicules').select('id, client_id, marque, modele, immatriculation, type_vehicule, created_at').eq('client_id', _clientUser.id);
+      const { data: refreshed } = await client.from('vehicules').select('id, client_id, marque, modele, immatriculation, type_vehicule, annee, carburant, created_at').eq('client_id', _clientUser.id);
       _vehiculesList = refreshed || [];
       renderVehicules();
       closeModal('modalVehicule');
@@ -2319,11 +2452,11 @@
         return;
       }
       const data = {
-        type: document.getElementById('type-vehicule').value === 'auto' ? 'Auto' : 'Moto',
+        type_vehicule: document.getElementById('type-vehicule').value === 'auto' ? 'Automobile' : 'Moto',
         immatriculation: plaque.toUpperCase(),
         marque,
         modele,
-        annee: document.getElementById('vehi-anne').value,
+        annee: parseInt(document.getElementById('vehi-anne').value) || null,
         carburant: document.getElementById('vehi-carbu').value
       };
       saveVehicule(data);
@@ -2415,6 +2548,33 @@
     });
   </script>
 
+<!-- BOTTOM NAV MOBILE -->
+<nav class="mobile-bottom-nav" role="navigation" aria-label="Navigation mobile">
+  <button class="mob-nav-item active" data-tab="accueil" onclick="mobileNavClick('accueil')">
+    <i class="fas fa-home"></i><span>Accueil</span>
+  </button>
+  <button class="mob-nav-item" data-tab="missions" onclick="mobileNavClick('missions')">
+    <i class="fas fa-route"></i><span>Missions</span>
+  </button>
+  <button class="mob-nav-item" data-tab="vehicules" onclick="mobileNavClick('vehicules')">
+    <i class="fas fa-car"></i><span>Véhicules</span>
+  </button>
+  <button class="mob-nav-item" data-tab="factures" onclick="mobileNavClick('factures')">
+    <i class="fas fa-file-invoice"></i><span>Factures</span>
+  </button>
+  <button class="mob-nav-item" onclick="openMobMore()">
+    <i class="fas fa-ellipsis-h"></i><span>Plus</span>
+  </button>
+</nav>
+<div class="mob-more-overlay" id="mobMoreOverlay" onclick="closeMobMore()"></div>
+<div class="mob-nav-more-panel" id="mobMorePanel">
+  <button class="mob-more-item" onclick="mobileNavClick('profil')"><i class="fas fa-user"></i> Mon profil</button>
+  <button class="mob-more-item" onclick="mobileNavClick('fidelite')"><i class="fas fa-gift"></i> Fidélité & parrainage</button>
+  <button class="mob-more-item" onclick="mobileNavClick('support')"><i class="fas fa-headset"></i> Support</button>
+  <a class="mob-more-item" href="devis.html"><i class="fas fa-calculator"></i> Nouveau devis</a>
+  <a class="mob-more-item" href="index.html"><i class="fas fa-globe"></i> Site public</a>
+</div>
+<script>document.body.classList.add('has-bottom-nav');</script>
 <script src="js/fidelite.js" defer></script>
 <script>
 if ("serviceWorker" in navigator) {
@@ -2424,6 +2584,15 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
+</script>
+<script src="js/address-autocomplete.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.AddressAutocomplete) {
+      AddressAutocomplete.setupAddressWithCity('signupAdresse', 'signupAdresseSuggests', 'signupCp', 'signupVille');
+      AddressAutocomplete.setupCity('signupVille', 'signupVilleSuggests');
+    }
+  });
 </script>
 </body>
 </html>
