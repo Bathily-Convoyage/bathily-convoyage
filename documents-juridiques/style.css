@@ -173,6 +173,168 @@ p {
   background: #fafafa;
 }
 
+/* Compact one-page mode */
+.page-one {
+  font-size: 9pt;
+  line-height: 1.25;
+}
+
+.page-one .container {
+  padding: 12mm;
+}
+
+.page-one .header {
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.page-one .logo {
+  max-height: 55px;
+}
+
+.page-one .header-info h1 {
+  font-size: 14pt;
+}
+
+.page-one h2 {
+  font-size: 10pt;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding-bottom: 2px;
+}
+
+.page-one h3 {
+  font-size: 9pt;
+  margin-top: 8px;
+  margin-bottom: 3px;
+}
+
+.page-one .box {
+  padding: 6px;
+  margin: 4px 0;
+}
+
+.page-one .field {
+  padding: 3px 5px;
+  min-height: 20px;
+}
+
+.page-one .table th,
+.page-one .table td {
+  padding: 3px 4px;
+  font-size: 8pt;
+}
+
+.page-one .signature-box {
+  padding: 8px;
+  min-height: 70px;
+  margin-top: 8px;
+}
+
+.page-one .signature-box p {
+  margin-top: 20px;
+}
+
+.page-one .footer-note {
+  margin-top: 10px;
+  padding-top: 6px;
+}
+
+/* Car diagram layout */
+.car-diagram-container {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 10px;
+  align-items: start;
+  margin: 8px 0;
+}
+
+.car-diagram {
+  border: 1px solid #0A4D68;
+  border-radius: 6px;
+  padding: 8px;
+  background: #fafafa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 140px;
+}
+
+.car-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.car-zone-label {
+  font-size: 7pt;
+  fill: #0A4D68;
+  font-weight: 600;
+}
+
+.check-grid {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 2px;
+  font-size: 8pt;
+}
+
+.check-grid-header {
+  font-weight: 600;
+  background: #f0f4f7;
+  color: #0A4D68;
+  padding: 3px;
+  text-align: center;
+}
+
+.check-grid-item {
+  padding: 2px 3px;
+  border-bottom: 1px solid #eee;
+}
+
+.check-grid-col {
+  text-align: center;
+  padding: 2px;
+  border-bottom: 1px solid #eee;
+}
+
+.small-check::before {
+  font-size: 11pt;
+}
+
+.mini-section {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
+  margin: 4px 0;
+  background: #fafafa;
+}
+
+.mini-section-title {
+  font-weight: 600;
+  color: #0A4D68;
+  font-size: 8pt;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.mini-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.mini-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+
+.mini-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;

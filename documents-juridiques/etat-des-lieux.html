@@ -6,142 +6,169 @@
   <title>État des lieux - Bathily-Convoyage</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="page-one">
   <div class="container">
     <header class="header">
       <img src="../logo.png" alt="Bathily-Convoyage" class="logo">
       <div class="header-info">
-        <h1>Bathily-Convoyage</h1>
-        <p>État des lieux véhicule</p>
+        <h1>ÉTAT DES LIEUX DU VÉHICULE</h1>
+        <p>Document à compléter au départ et à l'arrivée</p>
       </div>
     </header>
 
-    <div class="alert">
-      <strong>Document papier</strong> à utiliser en cas d'indisponibilité de l'application numérique.
-    </div>
-
-    <h2>IDENTIFICATION DE LA MISSION</h2>
-    <div class="grid-3">
+    <div class="mini-grid-3">
       <div><div class="label">N° mission</div><div class="field"></div></div>
-      <div><div class="label">Date départ</div><div class="field"></div></div>
-      <div><div class="label">Date livraison</div><div class="field"></div></div>
+      <div><div class="label">Date / Heure départ</div><div class="field"></div></div>
+      <div><div class="label">Date / Heure arrivée</div><div class="field"></div></div>
     </div>
 
-    <h2>IDENTITÉS</h2>
-    <div class="grid-2">
-      <div class="box">
-        <h3>Client</h3>
-        <p>Nom : <span class="field"></span></p>
-        <p>Tél : <span class="field"></span></p>
-        <p>Signature :</p>
-      </div>
-      <div class="box">
-        <h3>Convoyeur / Transporteur</h3>
-        <p>Nom : <span class="field"></span></p>
-        <p>Permis : <span class="field"></span></p>
-        <p>Signature :</p>
-      </div>
+    <div class="mini-grid-3" style="margin-top:4px;">
+      <div><div class="label">Client</div><div class="field"></div></div>
+      <div><div class="label">Convoyeur</div><div class="field"></div></div>
+      <div><div class="label">Téléphone client</div><div class="field"></div></div>
     </div>
 
-    <h2>VÉHICULE</h2>
-    <div class="grid-3">
-      <div><div class="label">Marque</div><div class="field"></div></div>
-      <div><div class="label">Modèle</div><div class="field"></div></div>
+    <div class="mini-grid-4" style="margin-top:4px;">
+      <div><div class="label">Marque / Modèle</div><div class="field"></div></div>
       <div><div class="label">Immatriculation</div><div class="field"></div></div>
-      <div><div class="label">SIV / N° chassis</div><div class="field"></div></div>
-      <div><div class="label">Couleur</div><div class="field"></div></div>
-      <div><div class="label">Type de véhicule</div><div class="field"></div></div>
-    </div>
-
-    <h2>ÉTAT AU DÉPART</h2>
-    <div class="grid-3">
-      <div><div class="label">Kilométrage</div><div class="field"></div></div>
-      <div><div class="label">Niveau carburant</div><div class="field"></div></div>
-      <div><div class="label">État général</div><div class="field"></div></div>
-    </div>
-
-    <h3>Schéma du véhicule - Dégâts constatés avant départ</h3>
-    <div class="car-schema"></div>
-    <p style="font-size:9pt; color:#666;">Indiquer par une croix (X) ou un cercle la position des rayures, bosses, éclats, fissures ou autre dommage. Préciser la nature de chaque dégât dans le tableau ci-dessous.</p>
-
-    <table class="table">
-      <tr>
-        <th>N°</th>
-        <th>Position sur le véhicule</th>
-        <th>Description du dommage</th>
-        <th>Photo n°</th>
-      </tr>
-      <tr><td>1</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
-      <tr><td>2</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
-      <tr><td>3</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
-      <tr><td>4</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
-      <tr><td>5</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
-    </table>
-
-    <h3>Documents remis au convoyeur</h3>
-    <ul class="checkbox-list">
-      <li>Carte grise</li>
-      <li>Attestation d'assurance</li>
-      <li>Clé du véhicule</li>
-      <li>Double des clés</li>
-      <li>Code autoradio / GPS</li>
-      <li>Carnet d'entretien</li>
-      <li>Autre : <span class="field" style="display:inline-block; min-width:200px;"></span></li>
-    </ul>
-
-    <h3>Objets personnels dans le véhicule</h3>
-    <p style="font-size:9pt; color:#666;">Bathily-Convoyage décline toute responsabilité pour les objets personnels oubliés dans le véhicule.</p>
-    <div class="field" style="min-height:80px;"></div>
-
-    <h2>ÉTAT À L'ARRIVÉE</h2>
-    <div class="grid-3">
+      <div><div class="label">Kilométrage départ</div><div class="field"></div></div>
       <div><div class="label">Kilométrage arrivée</div><div class="field"></div></div>
-      <div><div class="label">Niveau carburant</div><div class="field"></div></div>
-      <div><div class="label">État général</div><div class="field"></div></div>
     </div>
 
-    <h3>Nouveaux dégâts constatés à l'arrivée</h3>
-    <div class="car-schema"></div>
-    <table class="table">
-      <tr>
-        <th>N°</th>
-        <th>Position sur le véhicule</th>
-        <th>Description du dommage</th>
-        <th>Photo n°</th>
-      </tr>
-      <tr><td>1</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
-      <tr><td>2</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
-      <tr><td>3</td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
-    </table>
-
-    <h3>Observations particulières</h3>
-    <div class="field" style="min-height:80px;"></div>
-
-    <h2>SIGNATURES</h2>
-    <div class="grid-2">
-      <div class="signature-box">
-        <span class="signature-label">Client ou mandataire (départ)</span>
-        <p>"Je certifie l'exactitude de l'état des lieux au départ"</p>
-        <p style="margin-top:50px;">Date : <span class="field" style="display:inline-block; min-width:100px;"></span> - Signature :</p>
+    <h2>Schéma du véhicule</h2>
+    <div class="car-diagram-container">
+      <div class="car-diagram">
+        <svg viewBox="0 0 320 130" width="100%" height="130">
+          <!-- Side view -->
+          <g transform="translate(10,10)">
+            <rect x="20" y="35" width="190" height="45" rx="15" fill="#e0e0e0" stroke="#0A4D68" stroke-width="2"/>
+            <rect x="55" y="20" width="80" height="30" rx="5" fill="#d0d0d0" stroke="#0A4D68" stroke-width="1.5"/>
+            <circle cx="55" cy="82" r="18" fill="none" stroke="#0A4D68" stroke-width="2"/>
+            <circle cx="175" cy="82" r="18" fill="none" stroke="#0A4D68" stroke-width="2"/>
+            <text x="40" y="95" class="car-zone-label" text-anchor="middle">1</text>
+            <text x="95" y="15" class="car-zone-label" text-anchor="middle">5</text>
+            <text x="170" y="95" class="car-zone-label" text-anchor="middle">4</text>
+            <text x="115" y="55" class="car-zone-label" text-anchor="middle">2</text>
+            <text x="215" y="55" class="car-zone-label" text-anchor="middle">3</text>
+          </g>
+          <!-- Front view -->
+          <g transform="translate(240,10)">
+            <rect x="10" y="25" width="60" height="55" rx="12" fill="#e0e0e0" stroke="#0A4D68" stroke-width="2"/>
+            <polygon points="20,25 60,25 50,10 30,10" fill="#d0d0d0" stroke="#0A4D68" stroke-width="1.5"/>
+            <rect x="15" y="45" width="20" height="12" rx="3" fill="#fff" stroke="#0A4D68" stroke-width="1.5"/>
+            <rect x="45" y="45" width="20" height="12" rx="3" fill="#fff" stroke="#0A4D68" stroke-width="1.5"/>
+            <circle cx="25" cy="82" r="14" fill="none" stroke="#0A4D68" stroke-width="2"/>
+            <circle cx="55" cy="82" r="14" fill="none" stroke="#0A4D68" stroke-width="2"/>
+            <text x="40" y="95" class="car-zone-label" text-anchor="middle">1</text>
+            <text x="20" y="20" class="car-zone-label" text-anchor="middle">G</text>
+            <text x="60" y="20" class="car-zone-label" text-anchor="middle">D</text>
+          </g>
+        </svg>
       </div>
-      <div class="signature-box">
-        <span class="signature-label">Convoyeur (départ)</span>
-        <p>"Je certifie l'exactitude de l'état des lieux au départ"</p>
-        <p style="margin-top:50px;">Date : <span class="field" style="display:inline-block; min-width:100px;"></span> - Signature :</p>
-      </div>
-      <div class="signature-box">
-        <span class="signature-label">Client ou mandataire (arrivée)</span>
-        <p>"Je certifie l'exactitude de l'état des lieux à l'arrivée"</p>
-        <p style="margin-top:50px;">Date : <span class="field" style="display:inline-block; min-width:100px;"></span> - Signature :</p>
-      </div>
-      <div class="signature-box">
-        <span class="signature-label">Convoyeur (arrivée)</span>
-        <p>"Je certifie l'exactitude de l'état des lieux à l'arrivée"</p>
-        <p style="margin-top:50px;">Date : <span class="field" style="display:inline-block; min-width:100px;"></span> - Signature :</p>
+      <div class="mini-section">
+        <div class="mini-section-title">Légende</div>
+        <p><strong>1.</strong> Avant : capot, pare-chocs, optiques</p>
+        <p><strong>2.</strong> Côté gauche : portes, ailes, rétroviseur</p>
+        <p><strong>3.</strong> Côté droit : portes, ailes, rétroviseur</p>
+        <p><strong>4.</strong> Arrière : coffre, pare-chocs, feux</p>
+        <p><strong>5.</strong> Toit / vitrage : pare-brise, lunette, vitres</p>
+        <p style="font-size:7pt;">D = Départ / A = Arrivée</p>
       </div>
     </div>
 
-    <p class="footer-note">Bathily-Convoyage - État des lieux papier - Document à conserver 5 ans</p>
+    <h2>Contrôle des éléments du véhicule</h2>
+    <div class="check-grid">
+      <div class="check-grid-header">Élément</div>
+      <div class="check-grid-header" style="grid-column:span 3;">Départ</div>
+      <div class="check-grid-header" style="grid-column:span 3;">Arrivée</div>
+      <div class="check-grid-header"></div>
+      <div class="check-grid-header">B</div><div class="check-grid-header">R</div><div class="check-grid-header">B</div>
+      <div class="check-grid-header">B</div><div class="check-grid-header">R</div><div class="check-grid-header">B</div>
+
+      <div class="check-grid-item" style="grid-column:span 7; font-weight:600; background:#f0f4f7; color:#0A4D68;">1. Partie avant</div>
+      <div class="check-grid-item">Pare-chocs avant</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Capot</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Optique gauche</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Optique droite</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Aile avant gauche</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Aile avant droite</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+
+      <div class="check-grid-item" style="grid-column:span 7; font-weight:600; background:#f0f4f7; color:#0A4D68;">2. Côté gauche</div>
+      <div class="check-grid-item">Rétroviseur gauche</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Porte avant gauche</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Porte arrière gauche</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Aile arrière gauche</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Jante / pneu avant gauche</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Jante / pneu arrière gauche</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+
+      <div class="check-grid-item" style="grid-column:span 7; font-weight:600; background:#f0f4f7; color:#0A4D68;">3. Côté droit</div>
+      <div class="check-grid-item">Rétroviseur droit</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Porte avant droite</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Porte arrière droite</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Aile arrière droite</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Jante / pneu avant droit</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Jante / pneu arrière droit</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+
+      <div class="check-grid-item" style="grid-column:span 7; font-weight:600; background:#f0f4f7; color:#0A4D68;">4. Partie arrière</div>
+      <div class="check-grid-item">Pare-chocs arrière</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Coffre / hayon</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Feu arrière gauche</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Feu arrière droit</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+
+      <div class="check-grid-item" style="grid-column:span 7; font-weight:600; background:#f0f4f7; color:#0A4D68;">5. Toit / vitrage</div>
+      <div class="check-grid-item">Pare-brise</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Lunette arrière</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Toit</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Vitre avant gauche</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Vitre avant droite</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Vitre arrière gauche</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Vitre arrière droite</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+
+      <div class="check-grid-item" style="grid-column:span 7; font-weight:600; background:#f0f4f7; color:#0A4D68;">6. Intérieur</div>
+      <div class="check-grid-item">Siège conducteur</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Siège passager</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Banquette arrière</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Tableau de bord</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+      <div class="check-grid-item">Coffre / tapis</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div><div class="check-grid-col">☐</div>
+    </div>
+
+    <div class="mini-grid-2" style="margin-top:6px;">
+      <div class="mini-section">
+        <div class="mini-section-title">Documents / Clés / Accessoires remis</div>
+        <div class="mini-grid-2">
+          <div>☐ Carte grise</div>
+          <div>☐ Attestation d'assurance</div>
+          <div>☐ Clé(s) n° : <span class="field" style="display:inline-block; min-width:50px;"></span></div>
+          <div>☐ Double(s) n° : <span class="field" style="display:inline-block; min-width:50px;"></span></div>
+          <div>☐ Carnet d'entretien</div>
+          <div>☐ Code autoradio</div>
+          <div>☐ Cric</div>
+          <div>☐ Triangle</div>
+          <div>☐ Roue de secours</div>
+          <div>☐ Antenne</div>
+        </div>
+      </div>
+      <div class="mini-section">
+        <div class="mini-section-title">Observations et réserves</div>
+        <div class="field" style="min-height:60px; font-size:8pt;"></div>
+      </div>
+    </div>
+
+    <h2>Signatures</h2>
+    <div class="mini-grid-2">
+      <div class="signature-box" style="min-height:55px;">
+        <span class="signature-label">Départ</span>
+        <p style="margin-top:15px; font-size:8pt;">Client : <span class="field" style="display:inline-block; min-width:120px;"></span> Date : <span class="field" style="display:inline-block; min-width:70px;"></span></p>
+        <p style="margin-top:20px; font-size:8pt;">Convoyeur : <span class="field" style="display:inline-block; min-width:120px;"></span> Signature :</p>
+      </div>
+      <div class="signature-box" style="min-height:55px;">
+        <span class="signature-label">Arrivée</span>
+        <p style="margin-top:15px; font-size:8pt;">Client : <span class="field" style="display:inline-block; min-width:120px;"></span> Date : <span class="field" style="display:inline-block; min-width:70px;"></span></p>
+        <p style="margin-top:20px; font-size:8pt;">Convoyeur : <span class="field" style="display:inline-block; min-width:120px;"></span> Signature :</p>
+      </div>
+    </div>
+
+    <p class="footer-note" style="font-size:7pt;">Bathily-Convoyage - État des lieux papier - Brouillon à valider par un avocat - Document à conserver 5 ans</p>
   </div>
 </body>
 </html>

@@ -6,53 +6,45 @@
   <title>Bon de mission - Bathily-Convoyage</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="page-one">
   <div class="container">
     <header class="header">
       <img src="../logo.png" alt="Bathily-Convoyage" class="logo">
       <div class="header-info">
-        <h1>Bathily-Convoyage</h1>
-        <p>Bon de mission convoyeur</p>
+        <h1>BON DE MISSION</h1>
+        <p>Suivi de mission convoyage</p>
       </div>
     </header>
 
-    <div class="alert">
-      <strong>Document papier</strong> à utiliser en cas d'indisponibilité de l'application numérique.
-    </div>
-
-    <h2>INFORMATIONS GÉNÉRALES</h2>
-    <div class="grid-3">
+    <div class="mini-grid-3">
       <div><div class="label">N° mission</div><div class="field"></div></div>
-      <div><div class="label">Date d'émission</div><div class="field"></div></div>
-      <div><div class="label">Mode</div><div class="field">au volant / camion / plateau</div></div>
+      <div><div class="label">Date</div><div class="field"></div></div>
+      <div><div class="label">Mode</div><div class="field">volant / camion / plateau</div></div>
     </div>
 
-    <h2>CLIENT</h2>
-    <div class="grid-2">
-      <div><div class="label">Nom / Raison sociale</div><div class="field"></div></div>
-      <div><div class="label">Téléphone</div><div class="field"></div></div>
-      <div><div class="label">Adresse départ</div><div class="field"></div></div>
-      <div><div class="label">Adresse arrivée</div><div class="field"></div></div>
+    <div class="mini-grid-2" style="margin-top:4px;">
+      <div><div class="label">Client</div><div class="field"></div></div>
+      <div><div class="label">Téléphone client</div><div class="field"></div></div>
     </div>
 
-    <h2>CONVOYEUR / TRANSPORTEUR</h2>
-    <div class="grid-3">
-      <div><div class="label">Nom</div><div class="field"></div></div>
-      <div><div class="label">Téléphone</div><div class="field"></div></div>
+    <div class="mini-grid-2" style="margin-top:4px;">
+      <div><div class="label">Convoyeur</div><div class="field"></div></div>
       <div><div class="label">N° permis</div><div class="field"></div></div>
     </div>
 
-    <h2>VÉHICULE TRANSPORTÉ</h2>
-    <div class="grid-3">
-      <div><div class="label">Marque / Modèle</div><div class="field"></div></div>
+    <div class="mini-grid-2" style="margin-top:4px;">
+      <div><div class="label">Véhicule (marque / modèle)</div><div class="field"></div></div>
       <div><div class="label">Immatriculation</div><div class="field"></div></div>
-      <div><div class="label">Kilométrage départ</div><div class="field"></div></div>
-      <div><div class="label">Kilométrage arrivée</div><div class="field"></div></div>
+    </div>
+
+    <div class="mini-grid-4" style="margin-top:4px;">
+      <div><div class="label">Km départ</div><div class="field"></div></div>
+      <div><div class="label">Km arrivée</div><div class="field"></div></div>
       <div><div class="label">Carburant départ</div><div class="field"></div></div>
       <div><div class="label">Carburant arrivée</div><div class="field"></div></div>
     </div>
 
-    <h2>DÉROULEMENT DE LA MISSION</h2>
+    <h2>Déroulement</h2>
     <table class="table">
       <tr>
         <th>Étape</th>
@@ -61,79 +53,52 @@
         <th>Km</th>
         <th>Observations</th>
       </tr>
-      <tr>
-        <td>Départ</td>
-        <td class="field"></td>
-        <td class="field"></td>
-        <td class="field"></td>
-        <td class="field"></td>
-      </tr>
-      <tr>
-        <td>Arrêt 1</td>
-        <td class="field"></td>
-        <td class="field"></td>
-        <td class="field"></td>
-        <td class="field"></td>
-      </tr>
-      <tr>
-        <td>Arrêt 2</td>
-        <td class="field"></td>
-        <td class="field"></td>
-        <td class="field"></td>
-        <td class="field"></td>
-      </tr>
-      <tr>
-        <td>Arrivée</td>
-        <td class="field"></td>
-        <td class="field"></td>
-        <td class="field"></td>
-        <td class="field"></td>
-      </tr>
+      <tr><td>Prise en charge</td><td class="field"></td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+      <tr><td>Arrêt 1</td><td class="field"></td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+      <tr><td>Arrêt 2</td><td class="field"></td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+      <tr><td>Livraison</td><td class="field"></td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
     </table>
 
-    <h2>INCIDENTS ET OBSERVATIONS</h2>
-    <div class="field" style="min-height:100px;"></div>
-
-    <h2>PEAGES / FRAIS</h2>
+    <h2>Frais de mission</h2>
     <table class="table">
       <tr>
-        <th>Date</th>
         <th>Nature</th>
         <th>Montant TTC</th>
-        <th>Justificatif n°</th>
+        <th>Justificatif</th>
       </tr>
-      <tr><td class="field"></td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
-      <tr><td class="field"></td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
-      <tr><td class="field"></td><td class="field"></td><td class="field"></td><td class="field"></td></tr>
+      <tr><td class="field">Péage</td><td class="field"></td><td class="field"></td></tr>
+      <tr><td class="field">Carburant</td><td class="field"></td><td class="field"></td></tr>
+      <tr><td class="field">Autre</td><td class="field"></td><td class="field"></td></tr>
     </table>
 
-    <h2>CHECKLIST DE CONTRÔLE</h2>
-    <ul class="checkbox-list">
-      <li>État des lieux départ signé</li>
-      <li>État des lieux arrivée signé</li>
-      <li>Clés véhicule récupérées</li>
-      <li>Clés véhicule restituées</li>
-      <li>Carte grise en possession du convoyeur si nécessaire</li>
-      <li>Photos avant / après prises</li>
-      <li>Client informé de l'arrivée</li>
-      <li>Paiement reçu / solde à payer</li>
-    </ul>
+    <h2>Incidents</h2>
+    <div class="field" style="min-height:50px;"></div>
 
-    <h2>SIGNATURES</h2>
-    <div class="grid-2">
-      <div class="signature-box">
+    <h2>Checklist</h2>
+    <div class="mini-grid-2">
+      <div>☐ État des lieux départ signé</div>
+      <div>☐ État des lieux arrivée signé</div>
+      <div>☐ Clés remises par le client</div>
+      <div>☐ Clés restituées au client</div>
+      <div>☐ Photos avant / après</div>
+      <div>☐ Client informé de l'arrivée</div>
+      <div>☐ Paiement reçu / solde noté</div>
+      <div>☐ Documents véhicule remis</div>
+    </div>
+
+    <h2>Signatures</h2>
+    <div class="mini-grid-2">
+      <div class="signature-box" style="min-height:55px;">
         <span class="signature-label">Convoyeur</span>
-        <p>"Je certifie avoir exécuté la mission selon les consignes"</p>
-        <p style="margin-top:50px;">Date : <span class="field" style="display:inline-block; min-width:100px;"></span> - Signature :</p>
+        <p style="margin-top:20px; font-size:8pt;">Date : <span class="field" style="display:inline-block; min-width:80px;"></span> Signature :</p>
       </div>
-      <div class="signature-box">
-        <span class="signature-label">Responsable Bathily-Convoyage</span>
-        <p>Validation de la mission</p>
-        <p style="margin-top:50px;">Date : <span class="field" style="display:inline-block; min-width:100px;"></span> - Signature :</p>
+      <div class="signature-box" style="min-height:55px;">
+        <span class="signature-label">Responsable</span>
+        <p style="margin-top:20px; font-size:8pt;">Date : <span class="field" style="display:inline-block; min-width:80px;"></span> Signature :</p>
       </div>
     </div>
 
-    <p class="footer-note">Bathily-Convoyage - Bon de mission - Document à conserver 5 ans</p>
+    <p class="footer-note" style="font-size:7pt;">Bathily-Convoyage - Bon de mission - Document à conserver 5 ans</p>
   </div>
 </body>
 </html>
