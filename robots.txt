@@ -1,0 +1,59 @@
+# ============================================================
+#  ROBOTS.TXT - Bathily Convoyage
+#  Instructions pour les moteurs de recherche
+# ============================================================
+
+User-agent: *
+Allow: /
+
+# ============================================================
+#  PAGES À EXCLURE DE L'INDEXATION
+# ============================================================
+Disallow: /dashboard-admin.html
+Disallow: /dashboard-client.html
+Disallow: /dashboard-convoyeur.html
+Disallow: /bon-de-mission.html
+Disallow: /etat-des-lieux.html
+Disallow: /gps-emitter.html
+Disallow: /reset-password.html
+Disallow: /tracking.html
+
+# ============================================================
+#  DOSSIERS À EXCLURE
+# ============================================================
+Disallow: /assets/
+Disallow: /images/
+Disallow: /fonts/
+Disallow: /data/
+
+# ============================================================
+#  PARAMÈTRES D'URL À IGNORER
+# ============================================================
+Disallow: /*?*
+Disallow: /*.pdf$
+Disallow: /*.zip$
+
+# ============================================================
+#  DÉLAI D'EXPLORATION (réduire la charge serveur)
+# ============================================================
+Crawl-delay: 1
+
+# ============================================================
+#  DIRECTIVES SPÉCIFIQUES POUR GOOGLE
+# ============================================================
+User-agent: Googlebot
+Allow: /
+Disallow: /dashboard-admin.html
+Disallow: /dashboard-client.html
+Disallow: /dashboard-convoyeur.html
+Disallow: /bon-de-mission.html
+Disallow: /etat-des-lieux.html
+Disallow: /gps-emitter.html
+Disallow: /reset-password.html
+Disallow: /tracking.html
+Crawl-delay: 0.5
+
+# ============================================================
+#  SITEMAP
+# ============================================================
+Sitemap: https://www.bathily-convoyage.fr/sitemap.xml
