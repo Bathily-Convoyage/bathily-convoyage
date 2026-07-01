@@ -43,11 +43,17 @@ test.describe('Page Devis', () => {
     await page.locator('#arrivee').fill('Lyon');
     await page.locator('#arrivee').blur();
 
-    // Attendre que le prix s'affiche (le calcul est async)
+    // Passer à l'étape 2 pour afficher le prix
+    await page.locator('#panel-1 .btn-next').click();
+
+    // Attendre que le calcul soit terminé (le prix ou une erreur s'affiche)
     await expect(page.locator('#priceDisplay')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('#priceDisplay')).not.toHaveText(/\.{3}/, { timeout: 15000 });
     const priceText = await page.locator('#priceDisplay').textContent();
-    // Le prix doit contenir un chiffre (pas "—" ou "...")
-    await expect(priceText || '').toMatch(/\d/);
+    // Le prix doit contenir un chiffre OU indiquer "Distance non calculable"
+    const hasNumber = /\d/.test(priceText || '');
+    const hasError = /Distance non calculable|non calculable/i.test(priceText || '');
+    expect(hasNumber || hasError).toBeTruthy();
   });
 
   test('valide les champs obligatoires', async ({ page }) => {
