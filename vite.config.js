@@ -7,6 +7,13 @@ const __dirname = dirname(__filename);
 
 export default defineConfig({
   publicDir: 'public',
+  server: {
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+    },
+  },
   build: {
     copyPublicDir: true,
     rollupOptions: {

@@ -12,8 +12,9 @@ test.describe('Page d\'accueil', () => {
 
   test('affiche les packs de service', async ({ page }) => {
     await page.goto('/');
-    const packsSection = page.locator('[id*="idx_pack_"]');
-    await expect(packsSection.first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Formule Starter').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Pack Sérénité').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Pack Excellence').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('redirige vers le devis au clic CTA', async ({ page }) => {
@@ -38,7 +39,9 @@ test.describe('Page Devis', () => {
 
     // Saisir le départ et l'arrivée
     await page.locator('#depart').fill('Paris');
+    await page.locator('#depart').blur();
     await page.locator('#arrivee').fill('Lyon');
+    await page.locator('#arrivee').blur();
 
     // Attendre que le prix s'affiche (le calcul est async)
     await expect(page.locator('#priceDisplay')).toBeVisible({ timeout: 15000 });
@@ -73,7 +76,7 @@ test.describe('Page Devis', () => {
 test.describe('Page Contact', () => {
   test('charge le formulaire de contact', async ({ page }) => {
     await page.goto('/contact.html');
-    await expect(page.locator('form, #contactForm')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#contactForm')).toBeVisible({ timeout: 10000 });
   });
 
   test('lien politique de confidentialité a rel="noopener"', async ({ page }) => {
@@ -129,7 +132,7 @@ test.describe('Pages SEO', () => {
 test.describe('Page Formation', () => {
   test('charge la page formation', async ({ page }) => {
     await page.goto('/formation-convoyeur.html');
-    await expect(page).toHaveTitle(/Formation/i);
+    await expect(page).toHaveTitle(/Devenir convoyeur/i);
   });
 
   test('affiche les modules de formation', async ({ page }) => {

@@ -1483,6 +1483,8 @@
     document.getElementById('optUrgence').addEventListener('change', calculatePrice);
     document.getElementById('optGardiennage').addEventListener('change', calculatePrice);
     document.getElementById('promoCodeInput').addEventListener('input', calculatePrice);
+    document.getElementById('depart').addEventListener('blur', calculatePrice);
+    document.getElementById('arrivee').addEventListener('blur', calculatePrice);
 
     // ========== SOUMISSION DU DEVIS ==========
     async function submitDevis(event) {
