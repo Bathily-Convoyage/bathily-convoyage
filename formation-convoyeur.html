@@ -1207,11 +1207,11 @@ async function uploadDocumentsToStorage(sb, email) {
     if (!file) continue;
 
     const ext = file.name.split('.').pop().toLowerCase();
-    const path = `${folder}/${docType}.${ext}`;
+    const path = `${folder}/${docType}_${Date.now()}.${ext}`;
 
     const { data, error } = await sb.storage
       .from('convoyeur-documents')
-      .upload(path, file, { upsert: true });
+      .upload(path, file);
 
     if (error) {
       console.warn(`Erreur upload ${docType}:`, error.message);

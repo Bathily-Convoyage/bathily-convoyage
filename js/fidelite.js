@@ -143,15 +143,10 @@
       var _auth = await sb.auth.getSession();
       if (!_auth.data || !_auth.data.session) return false;
 
-      var _parr = await sb.from('parrainages').select('*').eq('code_parrain', code).eq('statut', 'en_attente').maybeSingle();
-      if (!_parr.data) return false;
+      var { data, error } = await sb.rpc('apply_parrainage_code', { code_input: code });
+      if (error) throw error;
 
-      await sb.from('parrainages').update({
-        filleul_id: _auth.data.session.user.id,
-        filleul_email: _auth.data.session.user.email
-      }).eq('id', _parr.data.id);
-
-      return true;
+      return data === true;
     } catch (err) {
       console.error('Erreur applyCodeFilleul:', err);
       return false;

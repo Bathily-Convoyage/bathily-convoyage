@@ -41,7 +41,7 @@ export async function onRequest(context) {
     const sb = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: subscribers, error: subErr } = await sb
-      .from('newsletter_subscribers').select('email, nom').eq('statut', 'actif').limit(1000);
+      .from('newsletter_subscribers').select('email, nom, unsubscribe_token').eq('statut', 'actif').limit(1000);
 
     if (subErr) throw subErr;
     if (!subscribers || subscribers.length === 0) {
@@ -54,27 +54,25 @@ export async function onRequest(context) {
 
     if (campErr) console.warn('Erreur enregistrement campagne:', campErr.message);
 
-    const html = `<div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;background:#FDFBF7;padding:32px;">
-      <div style="text-align:center;margin-bottom:24px"><span style="font-size:1.5rem;font-weight:800;color:#0A4D68">Bathily-Convoyage</span></div>
-      ${contenu}
-      <div style="margin-top:32px;padding-top:24px;border-top:1px solid #eee;text-align:center">
-        <p style="font-size:.75rem;color:#999">Vous recevez cet email car vous êtes inscrit à la newsletter Bathily-Convoyage.<br>
-        <a href="https://www.bathily-convoyage.fr/unsubscribe.html" style="color:#999">Se désinscrire</a></p>
-      </div></div>`;
-
     let sent = 0;
-    const batchSize = 50;
-    for (let i = 0; i < subscribers.length; i += batchSize) {
-      const batch = subscribers.slice(i, i + batchSize);
-      const to = batch.map(s => s.email);
+    for (const subscriber of subscribers) {
+      const token = subscriber.unsubscribe_token || '';
+      const html = `<div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;background:#FDFBF7;padding:32px;">
+        <div style="text-align:center;margin-bottom:24px"><span style="font-size:1.5rem;font-weight:800;color:#0A4D68">Bathily-Convoyage</span></div>
+        ${contenu}
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid #eee;text-align:center">
+          <p style="font-size:.75rem;color:#999">Vous recevez cet email car vous êtes inscrit à la newsletter Bathily-Convoyage.<br>
+          <a href="https://www.bathily-convoyage.fr/unsubscribe.html?token=${encodeURIComponent(token)}" style="color:#999">Se désinscrire</a></p>
+        </div></div>`;
+
       try {
         await fetch('https://api.resend.com/emails', {
           method: 'POST', headers: { 'Authorization': 'Bearer ' + resendApiKey, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: 'Bathily-Convoyage <newsletter@bathily-convoyage.fr>', bcc: to, subject: sujet, html })
+          body: JSON.stringify({ from: 'Bathily-Convoyage <newsletter@bathily-convoyage.fr>', to: [subscriber.email], subject: sujet, html })
         });
-        sent += batch.length;
+        sent += 1;
       } catch (e) {
-        console.error('Erreur batch email:', e.message);
+        console.error('Erreur envoi email:', e.message);
       }
     }
 

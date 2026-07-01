@@ -2303,7 +2303,8 @@
       
       const { data } = await client.from('reseau_posts').select('likes_count').eq('id', postId).single();
       if(data) {
-        await client.from('reseau_posts').update({ likes_count: (data.likes_count||0) + 1 }).eq('id', postId);
+        const { error: rpcErr } = await client.rpc('like_reseau_post', { post_id: postId });
+        if(rpcErr) console.warn('Erreur like RPC:', rpcErr.message);
       }
     }
 

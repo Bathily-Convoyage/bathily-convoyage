@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Désinscription newsletter | Bathily-Convoyage</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/newsletter.js"></script>
+  <style>
+    :root {
+      --bordeaux: #6B2D3B;
+      --bordeaux-light: #F5E9EC;
+      --gray-dark: #2D2A24;
+      --gray-mid: #6B625A;
+      --border-light: #E8E2D9;
+      --success: #4A7C6B;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FDFBF7;
+      color: var(--gray-dark);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 10px 40px rgba(45, 42, 36, 0.08);
+      max-width: 480px;
+      width: 100%;
+      padding: 48px 40px;
+      text-align: center;
+    }
+    .logo {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--bordeaux);
+      margin-bottom: 24px;
+      letter-spacing: -0.02em;
+    }
+    h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--gray-dark);
+    }
+    p {
+      font-size: 0.95rem;
+      color: var(--gray-mid);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .status {
+      display: none;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .status.success { background: rgba(74, 124, 107, 0.12); color: var(--success); display: block; }
+    .status.error { background: rgba(192, 57, 43, 0.1); color: #c0392b; display: block; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--bordeaux);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: transform 0.2s, opacity 0.2s;
+      text-decoration: none;
+    }
+    .btn:hover { transform: translateY(-2px); opacity: 0.95; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .footer {
+      margin-top: 32px;
+      font-size: 0.8rem;
+      color: var(--gray-mid);
+    }
+    .footer a { color: var(--bordeaux); text-decoration: none; font-weight: 600; }
+    .spinner { display: none; }
+    .btn.loading .spinner { display: inline-block; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Bathily-Convoyage</div>
+    <h1>Gestion de votre inscription</h1>
+    <div id="status" class="status"></div>
+    <p id="message">Cliquez ci-dessous pour confirmer votre désinscription de la newsletter.</p>
+    <button id="unsubBtn" class="btn" onclick="confirmUnsubscribe()">
+      <span class="spinner">⟳</span>
+      <span>Se désinscrire</span>
+    </button>
+    <div class="footer">
+      <a href="index.html">Retour au site</a>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const statusEl = document.getElementById('status');
+    const messageEl = document.getElementById('message');
+    const btn = document.getElementById('unsubBtn');
+
+    if (!token) {
+      statusEl.className = 'status error';
+      statusEl.textContent = 'Lien de désinscription invalide.';
+      messageEl.textContent = 'Le token de désinscription est manquant. Veuillez utiliser le lien présent dans l\'email reçu.';
+      btn.disabled = true;
+    }
+
+    async function confirmUnsubscribe() {
+      if (!token || !window.BathilyNewsletter) return;
+
+      btn.disabled = true;
+      btn.classList.add('loading');
+
+      const res = await window.BathilyNewsletter.unsubscribeByToken(token);
+
+      btn.classList.remove('loading');
+
+      if (res.success) {
+        statusEl.className = 'status success';
+        statusEl.textContent = 'Désinscription confirmée.';
+        messageEl.textContent = 'Vous ne recevrez plus d\'emails de notre newsletter. Vous pouvez vous réinscrire à tout moment depuis le site.';
+        btn.style.display = 'none';
+      } else {
+        statusEl.className = 'status error';
+        statusEl.textContent = 'Erreur lors de la désinscription.';
+        messageEl.textContent = res.error || 'Le token est invalide ou a déjà été utilisé.';
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -36,14 +36,13 @@
     }
   }
 
-  async function unsubscribe(email) {
+  async function unsubscribeByToken(token) {
     var sb = getSB();
-    if (!sb) return { success: false };
+    if (!sb || !token) return { success: false, error: 'Token manquant' };
 
     try {
-      await sb.from('newsletter_subscribers')
-        .update({ statut: 'desinscrit', updated_at: new Date().toISOString() })
-        .eq('email', email);
+      var { error } = await sb.rpc('unsubscribe_newsletter_by_token', { token_input: token });
+      if (error) throw error;
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };
@@ -86,6 +85,6 @@
 
   window.BathilyNewsletter = {
     subscribe: subscribe,
-    unsubscribe: unsubscribe
+    unsubscribeByToken: unsubscribeByToken
   };
 })();
