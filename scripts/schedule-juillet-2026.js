@@ -75,10 +75,19 @@ async function scheduleJuly2026Posts() {
     const scheduledAt = scheduledDate.toISOString();
     console.log(`📤 Planification: ${post.date} à ${PUBLISH_HOUR}h${String(PUBLISH_MINUTE).padStart(2, '0')} - "${post.text.substring(0, 50)}..."`);
 
-    // Préparer les assets
+    // Préparer les assets (supporte image, vidéo, carrousel)
     const assets = [];
     if (post.media) {
-      assets.push({ image: { url: post.media } });
+      const mediaList = Array.isArray(post.media) ? post.media : [post.media];
+      for (const item of mediaList) {
+        if (typeof item === 'string') {
+          const isVideo = /\.(mp4|mov|webm|mkv|avi)$/i.test(item);
+          assets.push(isVideo ? { video: { url: item } } : { image: { url: item } });
+        } else if (item && item.url) {
+          const isVideo = item.type === 'video' || /\.(mp4|mov|webm|mkv|avi)$/i.test(item.url);
+          assets.push(isVideo ? { video: { url: item.url } } : { image: { url: item.url } });
+        }
+      }
     }
 
     // Metadata Instagram (post classique)

@@ -33,10 +33,19 @@ async function publishTodayPost() {
 
   console.log(`🚀 Envoi du post vers Buffer (GraphQL) : "${todayPost.text.substring(0, 50)}..."`);
 
-  // Préparer les variables GraphQL
+  // Préparer les variables GraphQL (supporte image, vidéo, carrousel)
   const assets = [];
   if (todayPost.media) {
-    assets.push({ image: { url: todayPost.media } });
+    const mediaList = Array.isArray(todayPost.media) ? todayPost.media : [todayPost.media];
+    for (const item of mediaList) {
+      if (typeof item === 'string') {
+        const isVideo = /\.(mp4|mov|webm|mkv|avi)$/i.test(item);
+        assets.push(isVideo ? { video: { url: item } } : { image: { url: item } });
+      } else if (item && item.url) {
+        const isVideo = item.type === 'video' || /\.(mp4|mov|webm|mkv|avi)$/i.test(item.url);
+        assets.push(isVideo ? { video: { url: item.url } } : { image: { url: item.url } });
+      }
+    }
   }
 
   // Pour chaque profil, nous faisons une requête d'insertion
