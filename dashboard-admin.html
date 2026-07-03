@@ -1309,6 +1309,12 @@
       margin-top: 8px;
       display: none;
     }
+    .auth-success {
+      color: #088395;
+      font-size: 0.75rem;
+      margin-top: 8px;
+      display: none;
+    }
     .filter-bar {
       display: flex;
       gap: 10px;
@@ -1518,8 +1524,9 @@
       <input type="email" id="adminEmailInput" class="auth-input" placeholder="Email admin" autocomplete="email">
       <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Mot de passe" autocomplete="current-password">
       <div style="text-align:right; margin-top:-8px; margin-bottom:12px;">
-        <button type="button" id="linkAdminForgotPassword" style="background:none; border:none; font-size:0.7rem; font-weight:600; color:#0A4D68; cursor:pointer; text-decoration:underline;">Mot de passe oublié ?</button>
+        <button type="button" id="linkAdminForgotPassword" onclick="handleAdminForgotPassword()" style="background:none; border:none; font-size:0.7rem; font-weight:600; color:#0A4D68; cursor:pointer; text-decoration:underline;">Mot de passe oublié ?</button>
       </div>
+      <div class="auth-success" id="authSuccess"></div>
       <div class="auth-error" id="authError">Identifiants incorrects ou compte non admin.</div>
       <button type="submit" class="auth-btn" id="loginBtn"><i class="fas fa-unlock-alt"></i> Se connecter</button>
     </form>
@@ -4965,24 +4972,55 @@ Cadeau premium personnalisé</textarea>
     });
 
     // Mot de passe oublié admin
-    document.getElementById('linkAdminForgotPassword')?.addEventListener('click', async function() {
+    async function handleAdminForgotPassword() {
       const email = document.getElementById('adminEmailInput').value.trim().toLowerCase();
+      const successDiv = document.getElementById('authSuccess');
+      const errorDiv = document.getElementById('authError');
+      successDiv.style.display = 'none';
+      errorDiv.style.display = 'none';
+      console.log('[Admin Reset] email saisi:', email);
       if (!email) {
+        errorDiv.textContent = 'Veuillez saisir votre email admin.';
+        errorDiv.style.display = 'block';
         Swal.fire('Email requis', 'Veuillez saisir votre email admin.', 'warning');
         return;
       }
       const sb = getSupabase();
-      if (!sb) return;
-      const redirectTo = window.location.origin + '/reset-password.html';
-      Swal.fire({ title: 'Envoi en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
-      Swal.close();
-      if (error) {
-        Swal.fire('Erreur', error.message, 'error');
-      } else {
-        Swal.fire('Email envoyé', 'Cliquez sur le lien reçu pour définir un nouveau mot de passe.', 'success');
+      console.log('[Admin Reset] supabase client:', sb ? 'OK' : 'NULL');
+      if (!sb) {
+        errorDiv.textContent = 'Supabase non initialisé. Vérifiez supabase-config.js.';
+        errorDiv.style.display = 'block';
+        Swal.fire('Erreur config', 'Supabase non initialisé. Vérifiez supabase-config.js.', 'error');
+        return;
       }
-    });
+      const redirectTo = window.location.origin + '/reset-password.html';
+      console.log('[Admin Reset] redirectTo:', redirectTo);
+      Swal.fire({ title: 'Envoi en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      try {
+        const { data, error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+        console.log('[Admin Reset] réponse data:', data, 'error:', error);
+        Swal.close();
+        if (error) {
+          errorDiv.innerHTML = error.message + '<br>URL : ' + redirectTo + '<br>Ajoutez cette URL dans Supabase → Authentication → URL Configuration → Redirect URLs.';
+          errorDiv.style.display = 'block';
+          Swal.fire('Erreur', error.message + '<br><br>URL envoyée : ' + redirectTo + '<br>Ajoutez cette URL dans Supabase → Authentication → URL Configuration → Redirect URLs.', 'error');
+        } else {
+          successDiv.innerHTML = '✅ Email envoyé. Cliquez sur le lien reçu (valide 1 heure) pour définir un nouveau mot de passe.<br>URL : ' + redirectTo;
+          successDiv.style.display = 'block';
+          Swal.fire('Email envoyé', 'Cliquez sur le lien reçu pour définir un nouveau mot de passe.<br>URL utilisée : ' + redirectTo, 'success');
+        }
+      } catch (err) {
+        console.error('[Admin Reset] exception:', err);
+        Swal.close();
+        errorDiv.textContent = err.message || 'Erreur inconnue';
+        errorDiv.style.display = 'block';
+        Swal.fire('Erreur inattendue', err.message || 'Erreur inconnue', 'error');
+      }
+    }
+    document.getElementById('linkAdminForgotPassword')?.addEventListener('click', handleAdminForgotPassword);
+    // Exposition globale pour onclick et debug console
+    window.handleAdminForgotPassword = handleAdminForgotPassword;
+    window.debugAdminResetPassword = handleAdminForgotPassword;
 
     // Logout
     document.getElementById('logoutBtn')?.addEventListener('click', signOut);
