@@ -29,11 +29,11 @@ Retrouvez ici toutes les légendes (captions) prêtes à copier-coller accompagn
 **Fichiers** : `carousel2_slide1.jpg` à `carousel2_slide4.jpg`
 
 ### 📝 Légende :
-> 🚅 Besoin de déplacer votre véhicule entre Paris et Lyon ? 
+> 🚅 Besoin de déplacer votre véhicule entre Paris et Lyon ?
 > 
-> Profitez de notre offre spéciale de convoyage sur ce trajet populaire pour seulement **299€ HT tout inclus** !
+> Notre formule intègre l'ensemble de la logistique du transport :
 > 
-> Ce qui est compris dans le prix :
+> Ce qui est compris :
 > 👨‍✈️ Un chauffeur certifié SIV dédié.
 > ⛽ Tous les frais de carburant et de péages d'autoroute.
 > 🛡️ La couverture double RC Pro tous risques (Bathily-Convoyage + convoyeur).
@@ -73,7 +73,7 @@ Retrouvez ici toutes les légendes (captions) prêtes à copier-coller accompagn
 *Ces couvertures sont destinées à être appliquées sur vos publications vidéo Reels de 15 secondes.*
 
 ### 📝 Légende pour Reel #1 (Hook Prix Paris-Lyon) :
-> Est-ce que vous saviez qu'il était possible de faire convoyer votre voiture de Paris à Lyon pour seulement 299€ HT, sans lever le petit doigt et entièrement assuré ? Découvrez comment fonctionne le convoyage par la route ! 🚗💨
+> Besoin de faire convoyer votre voiture de Paris à Lyon sans lever le petit doigt et entièrement assuré ? Découvrez comment fonctionne le convoyage par la route ! 🚗💨
 > 👉 Lien en bio : **bathily-convoyage.fr**
 
 ### 📝 Légende pour Reel #2 (UGC Témoignages) :

@@ -589,16 +589,12 @@ const VISUALS = [
       <div class="main">
         <span class="route-badge">PARCOURS POPULAIRE</span>
         <h1 class="route-title">Paris ➔ Lyon</h1>
-        <div class="price-bubble">
-          <span class="price-val">299€</span>
-          <span class="price-unit">HT tout inclus</span>
-        </div>
-        <p class="route-desc">Votre véhicule convoyé de porte-à-porte par un chauffeur professionnel certifié.</p>
         <div class="features-pill-group">
           <div class="pill">🚗 Auto</div>
           <div class="pill">🏍 Moto</div>
           <div class="pill">📍 GPS temps réel</div>
         </div>
+        <p class="route-desc">Votre véhicule convoyé de porte-à-porte par un chauffeur professionnel certifié.</p>
       </div>
       <div class="footer">
         <div class="footer-text">Défilez pour voir le détail ➔</div>
@@ -675,7 +671,7 @@ const VISUALS = [
         <div class="header-badge">📦 Formule Route</div>
       </div>
       <div class="main">
-        <h2 class="slide-title">Ce qui est inclus pour 299€ HT</h2>
+        <h2 class="slide-title">Ce qui est inclus</h2>
         <p class="slide-desc">Pas de frais cachés, notre formule intègre l'ensemble de la logistique du transport.</p>
         
         <div class="inclusions-list">
@@ -786,7 +782,7 @@ const VISUALS = [
             </tr>
             <tr>
               <td><strong>Tarif</strong></td>
-              <td class="highlight-val">299€ HT (Tout inclus)</td>
+              <td class="highlight-val">Tarif sur mesure</td>
               <td>450€ - 650€ HT</td>
             </tr>
           </tbody>
@@ -856,7 +852,7 @@ const VISUALS = [
       </div>
       <div class="main">
         <span class="route-badge">OFFRE PARIS ➔ LYON</span>
-        <h2 class="outro-title">Votre voiture livrée à Lyon pour 299€ HT</h2>
+        <h2 class="outro-title">Votre voiture livrée à Lyon</h2>
         <p class="outro-desc">Estimez n'importe quel autre trajet en France en quelques clics.</p>
         
         <div class="domain-highlight">bathily-convoyage.fr</div>
@@ -1017,7 +1013,7 @@ const VISUALS = [
         <div class="step-card">
           <div class="mock-input">📍 Départ : Paris 75008</div>
           <div class="mock-input">📍 Arrivée : Lyon 69002</div>
-          <div class="price-estimate">Tarif : 299€ HT</div>
+          <div class="price-estimate">Tarif : sur devis</div>
         </div>
       </div>
       <div class="footer">
@@ -1358,7 +1354,7 @@ const VISUALS = [
       </div>
       <div class="main vertical-center">
         <span class="reel-badge">OFFRE TARIFAIRE</span>
-        <h1 class="reel-title">Paris ➔ Lyon pour 299€ HT</h1>
+        <h1 class="reel-title">Paris ➔ Lyon</h1>
         <p class="reel-subtitle">Découvrez les coulisses du convoyage professionnel et économisez sur vos trajets.</p>
         <div class="play-btn-circle">▶</div>
       </div>
@@ -2008,9 +2004,9 @@ Retrouvez ici toutes les légendes (captions) prêtes à copier-coller accompagn
 ### 📝 Légende :
 > 🚅 Besoin de déplacer votre véhicule entre Paris et Lyon ? 
 > 
-> Profitez de notre offre spéciale de convoyage sur ce trajet populaire pour seulement **299€ HT tout inclus** !
+> Notre formule intègre l'ensemble de la logistique du transport :
 > 
-> Ce qui est compris dans le prix :
+> Ce qui est compris :
 > 👨‍✈️ Un chauffeur professionnel dédié.
 > ⛽ Tous les frais de carburant et de péages d'autoroute.
 > 🛡️ La couverture double RC Pro tous risques (Bathily-Convoyage + convoyeur).
@@ -2050,7 +2046,7 @@ Retrouvez ici toutes les légendes (captions) prêtes à copier-coller accompagn
 *Ces couvertures sont destinées à être appliquées sur vos publications vidéo Reels de 15 secondes.*
 
 ### 📝 Légende pour Reel #1 (Hook Prix Paris-Lyon) :
-> Est-ce que vous saviez qu'il était possible de faire convoyer votre voiture de Paris à Lyon pour seulement 299€ HT, sans lever le petit doigt et entièrement assuré ? Découvrez comment fonctionne le convoyage par la route ! 🚗💨
+> Besoin de faire convoyer votre voiture de Paris à Lyon sans lever le petit doigt et entièrement assuré ? Découvrez comment fonctionne le convoyage par la route ! 🚗💨
 > 👉 Lien en bio : **bathily-convoyage.fr**
 
 ### 📝 Légende pour Reel #2 (UGC Témoignages) :
