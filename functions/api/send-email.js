@@ -19,7 +19,7 @@ export async function onRequest(context) {
     const { trigger, id, notes, payment_url, temp_password, prenom, email: directEmail, nom: directNom, convoyeur_nom, convoyeur_email, client_email, depart, arrivee, date_mission, reference } = parsedBody;
 
     const PUBLIC_TRIGGERS = ['devis_created', 'candidature_submitted'];
-    const ADMIN_TRIGGERS = ['devis_confirmed', 'convoyeur_approved', 'payment_success', 'edl_completed', 'candidature_status_changed', 'mission_assigned', 'support_reply', 'pro_approved', 'pro_rejected', 'reset_password'];
+    const ADMIN_TRIGGERS = ['devis_confirmed', 'convoyeur_approved', 'payment_success', 'edl_completed', 'candidature_status_changed', 'mission_assigned', 'support_reply', 'pro_approved', 'pro_rejected'];
 
     if (ADMIN_TRIGGERS.includes(trigger)) {
       const internalSecret = request.headers.get('x-internal-secret') || '';
@@ -41,6 +41,10 @@ export async function onRequest(context) {
 
     if (!trigger || (!id && trigger !== 'convoyeur_approved' && trigger !== 'mission_assigned')) {
       return jsonResponse({ error: 'Paramètres trigger et id requis.' }, 400, getCorsHeaders(request));
+    }
+
+    if (trigger === 'mission_assigned' && !client_email && !convoyeur_email && !directEmail) {
+      return jsonResponse({ error: 'Au moins un email destinataire est requis.' }, 400, getCorsHeaders(request));
     }
 
     if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -158,10 +162,10 @@ export async function onRequest(context) {
       if (candidat.statut === 'approved') {
         const welcomeHtml = wrapEmailLayout("Bienvenue dans l'équipe Bathily Convoyage !",
           `<p>Bonjour ${candidat.prenom},</p><p>Nous avons le plaisir de vous annoncer que votre candidature de convoyeur a été <strong>approuvée</strong> par notre équipe !</p>
-           <p>Votre profil est désormais actif. Vous allez recevoir un <strong>email d'invitation</strong> séparé pour définir votre mot de passe et activer votre compte.</p>
-           <div class="highlight-box"><strong>Étapes pour vous connecter :</strong><br>1. Ouvrez l'email d'invitation reçu de Supabase<br>2. Cliquez sur le lien pour définir votre mot de passe<br>3. Connectez-vous sur votre Espace Convoyeur</div>
+           <p>Votre profil est désormais actif. Vous recevrez prochainement vos accès pour vous connecter à l'Espace Convoyeur.</p>
+           <div class="highlight-box"><strong>Étapes pour vous connecter :</strong><br>1. Attendez l'email avec vos identifiants<br>2. Cliquez sur le lien pour définir votre mot de passe<br>3. Connectez-vous sur votre Espace Convoyeur</div>
            <p style="text-align:center"><a href="https://bathily-convoyage.fr/dashboard-convoyeur.html" class="btn">Accéder à mon Espace Convoyeur</a></p>`);
-        await sendEmail({ to: candidat.email, subject: "Votre compte convoyeur Bathily a été activé !", html: welcomeHtml });
+        await sendEmail({ to: candidat.email, subject: "Votre candidature convoyeur a été approuvée", html: welcomeHtml });
       } else if (candidat.statut === 'rejected') {
         const rejectionHtml = wrapEmailLayout("Mise à jour concernant votre candidature",
           `<p>Bonjour ${candidat.prenom},</p><p>Nous vous remercions pour l'intérêt que vous portez à Bathily Convoyage.</p>
@@ -247,16 +251,6 @@ export async function onRequest(context) {
          <p style="text-align:center"><a href="${paymentUrl}" class="btn">Payer maintenant</a></p>`);
       await sendEmail({ to: devis.client_email, subject: `Bathily Convoyage - Votre devis ${devis.reference} est prêt`, html: clientHtml });
       resultData = { success: true, message: 'Email lien paiement envoyé.' };
-    }
-    else if (trigger === 'reset_password') {
-      const email = id;
-      const resetLink = `https://bathily-convoyage.fr/reset-password.html`;
-      const resetHtml = wrapEmailLayout("Réinitialisation de votre mot de passe",
-        `<p>Bonjour,</p><p>Vous avez demandé à réinitialiser votre mot de passe.</p>
-         <p style="text-align:center"><a href="${resetLink}" class="btn">Réinitialiser mon mot de passe</a></p>
-         <p style="font-size:12px;color:#6B625A;text-align:center">Ce lien est valable 1 heure.</p>`);
-      await sendEmail({ to: email, subject: "Bathily Convoyage - Réinitialisation de votre mot de passe", html: resetHtml });
-      resultData = { success: true, message: 'Email de réinitialisation envoyé.' };
     }
     else if (trigger === 'pro_approved') {
       const proEmail = directEmail || id;

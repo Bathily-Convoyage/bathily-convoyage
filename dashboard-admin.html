@@ -4347,7 +4347,11 @@ Cadeau premium personnalisé</textarea>
       }).catch(err => console.warn('Erreur envoi email approbation:', err));
     }
 
-    Swal.fire('Approuvé !', `${nomComplet} a été ajouté aux convoyeurs. Un email avec ses identifiants lui a été envoyé.`, 'success');
+    if (approved) {
+      Swal.fire('Approuvé !', `${nomComplet} a été ajouté aux convoyeurs. Un email avec ses identifiants lui a été envoyé.`, 'success');
+    } else {
+      Swal.fire('Approuvé (mode fallback)', `${nomComplet} a été ajouté aux convoyeurs, mais son compte de connexion n'a pas pu être créé automatiquement. Vérifiez la configuration des fonctions Edge.`, 'warning');
+    }
     loadFormationCandidatures();
     loadConvoyeurs();
   };
