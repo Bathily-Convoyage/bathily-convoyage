@@ -1,16 +1,18 @@
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 
 async function scheduleJuly2026Posts() {
-  const token = 'pu4Xem4CjrtuPt0jeQTlGuV7TAyRYwZoA7PqHwf40mf';
-  const profileIds = {
-    instagram: '6a2bd39638b5579345898778',
-    tiktok: '6a419f085ab6d2f10681d3ac',
-    linkedin: '6a36abc838b5579345b7f883'
-  };
+  const token = process.env.BUFFER_ACCESS_TOKEN;
+  const instagramChannelId = process.env.BUFFER_INSTAGRAM_CHANNEL_ID;
 
   if (!token) {
-    console.error("❌ La clé API Buffer est requise.");
+    console.error("❌ La variable d'environnement BUFFER_ACCESS_TOKEN est requise.");
+    process.exit(1);
+  }
+
+  if (!instagramChannelId) {
+    console.error("❌ La variable d'environnement BUFFER_INSTAGRAM_CHANNEL_ID est requise.");
     process.exit(1);
   }
 
@@ -106,9 +108,10 @@ async function scheduleJuly2026Posts() {
     const variables = {
       input: {
         text: post.text,
-        channelId: profileIds.instagram,
-        schedulingType: 'fixed',
-        scheduledAt: scheduledAt,
+        channelId: instagramChannelId,
+        schedulingType: 'automatic',
+        mode: 'customScheduled',
+        dueAt: scheduledAt,
         metadata: metadata,
         assets: assets.length > 0 ? assets : undefined
       }
