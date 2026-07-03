@@ -1517,6 +1517,9 @@
       <div class="auth-sub">Accès administrateur sécurisé</div>
       <input type="email" id="adminEmailInput" class="auth-input" placeholder="Email admin" autocomplete="email">
       <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Mot de passe" autocomplete="current-password">
+      <div style="text-align:right; margin-top:-8px; margin-bottom:12px;">
+        <button type="button" id="linkAdminForgotPassword" style="background:none; border:none; font-size:0.7rem; font-weight:600; color:#0A4D68; cursor:pointer; text-decoration:underline;">Mot de passe oublié ?</button>
+      </div>
       <div class="auth-error" id="authError">Identifiants incorrects ou compte non admin.</div>
       <button type="submit" class="auth-btn" id="loginBtn"><i class="fas fa-unlock-alt"></i> Se connecter</button>
     </form>
@@ -4958,6 +4961,26 @@ Cadeau premium personnalisé</textarea>
         document.querySelector('.topbar').style.display = 'flex';
         document.querySelector('.dash-layout').style.display = 'flex';
         loadAllData();
+      }
+    });
+
+    // Mot de passe oublié admin
+    document.getElementById('linkAdminForgotPassword')?.addEventListener('click', async function() {
+      const email = document.getElementById('adminEmailInput').value.trim().toLowerCase();
+      if (!email) {
+        Swal.fire('Email requis', 'Veuillez saisir votre email admin.', 'warning');
+        return;
+      }
+      const sb = getSupabase();
+      if (!sb) return;
+      const redirectTo = window.location.origin + '/reset-password.html';
+      Swal.fire({ title: 'Envoi en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+      Swal.close();
+      if (error) {
+        Swal.fire('Erreur', error.message, 'error');
+      } else {
+        Swal.fire('Email envoyé', 'Cliquez sur le lien reçu pour définir un nouveau mot de passe.', 'success');
       }
     });
 
