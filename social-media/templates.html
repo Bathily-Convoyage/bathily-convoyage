@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Templates Social Media - Bathily-Convoyage</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bordeaux: #7A2E1A;
+      --bordeaux-dark: #5c2112;
+      --bleu: #0A4D68;
+      --or: #F5A623;
+      --beige: #F8F5F0;
+      --blanc: #FFFFFF;
+      --noir: #1a1a1a;
+      --gris: #6b7280;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f0f0;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    .template {
+      position: relative;
+      overflow: hidden;
+      background: var(--blanc);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      margin: 0 auto;
+    }
+
+    /* Instagram Carousel */
+    .template-carousel {
+      width: 1080px;
+      height: 1350px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 80px;
+    }
+
+    .carousel-brand {
+      position: absolute;
+      top: 40px;
+      right: 40px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--blanc);
+      z-index: 10;
+    }
+
+    .carousel-brand img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .carousel-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--bordeaux) 0%, var(--bleu) 100%);
+      z-index: 1;
+    }
+
+    .carousel-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350"><circle cx="900" cy="200" r="400" fill="rgba(255,255,255,0.05)"/><circle cx="100" cy="1100" r="300" fill="rgba(255,255,255,0.05)"/></svg>');
+      background-size: cover;
+    }
+
+    .carousel-content {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .carousel-slide-num {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--or);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .carousel-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 90px;
+      font-weight: 900;
+      line-height: 1.05;
+      color: var(--blanc);
+      margin-bottom: 40px;
+    }
+
+    .carousel-subtitle {
+      font-size: 42px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      line-height: 1.3;
+      max-width: 85%;
+    }
+
+    .carousel-footer {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 40px;
+      border-top: 2px solid rgba(255,255,255,0.2);
+    }
+
+    .carousel-cta {
+      background: var(--or);
+      color: var(--noir);
+      padding: 24px 48px;
+      border-radius: 50px;
+      font-size: 28px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .carousel-url {
+      font-size: 26px;
+      color: rgba(255,255,255,0.8);
+      font-weight: 600;
+    }
+
+    .carousel-icons {
+      display: flex;
+      gap: 30px;
+      margin-top: 50px;
+    }
+
+    .carousel-icon {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: var(--blanc);
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    .carousel-icon svg {
+      width: 48px;
+      height: 48px;
+      color: var(--or);
+    }
+
+    .carousel-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 50px;
+    }
+
+    .carousel-badge {
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.3);
+      color: var(--blanc);
+      padding: 18px 30px;
+      border-radius: 16px;
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    .carousel-highlight {
+      color: var(--or);
+    }
+
+    /* Reels / TikTok */
+    .template-reel {
+      width: 1080px;
+      height: 1920px;
+      background: linear-gradient(180deg, var(--bordeaux) 0%, var(--bleu) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px;
+      text-align: center;
+    }
+
+    .reel-badge {
+      display: inline-block;
+      background: var(--or);
+      color: var(--noir);
+      padding: 16px 40px;
+      border-radius: 50px;
+      font-size: 32px;
+      font-weight: 800;
+      margin: 0 auto 50px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .reel-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 110px;
+      font-weight: 900;
+      color: var(--blanc);
+      line-height: 1.05;
+      margin-bottom: 40px;
+    }
+
+    .reel-subtitle {
+      font-size: 48px;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 80px;
+      line-height: 1.3;
+    }
+
+    .reel-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-bottom: 80px;
+    }
+
+    .reel-step {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      background: rgba(255,255,255,0.12);
+      padding: 28px 40px;
+      border-radius: 20px;
+      font-size: 36px;
+      color: var(--blanc);
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .reel-step-num {
+      background: var(--or);
+      color: var(--noir);
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .reel-cta {
+      background: var(--or);
+      color: var(--noir);
+      padding: 32px 60px;
+      border-radius: 50px;
+      font-size: 40px;
+      font-weight: 800;
+      margin: 0 auto;
+      text-decoration: none;
+    }
+
+    .reel-footer {
+      margin-top: 60px;
+      font-size: 32px;
+      color: rgba(255,255,255,0.7);
+      font-weight: 600;
+    }
+
+    /* LinkedIn */
+    .template-linkedin {
+      width: 1200px;
+      height: 627px;
+      background: var(--blanc);
+      display: flex;
+      border: 1px solid #e5e7eb;
+    }
+
+    .linkedin-left {
+      width: 55%;
+      padding: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .linkedin-tag {
+      display: inline-block;
+      background: var(--bordeaux);
+      color: var(--blanc);
+      padding: 10px 24px;
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      width: fit-content;
+    }
+
+    .linkedin-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--noir);
+      line-height: 1.15;
+      margin-bottom: 24px;
+    }
+
+    .linkedin-subtitle {
+      font-size: 24px;
+      color: var(--gris);
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+
+    .linkedin-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--or);
+      color: var(--noir);
+      padding: 18px 36px;
+      border-radius: 50px;
+      font-size: 22px;
+      font-weight: 700;
+      text-decoration: none;
+      width: fit-content;
+    }
+
+    .linkedin-right {
+      width: 45%;
+      background: linear-gradient(135deg, var(--bordeaux) 0%, var(--bleu) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: var(--blanc);
+      text-align: center;
+    }
+
+    .linkedin-stat {
+      margin-bottom: 40px;
+    }
+
+    .linkedin-stat-num {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 72px;
+      font-weight: 900;
+      color: var(--or);
+      line-height: 1;
+    }
+
+    .linkedin-stat-label {
+      font-size: 22px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .linkedin-logo {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      font-size: 20px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* Utility */
+    .text-or {
+      color: var(--or);
+    }
+
+    .text-white {
+      color: var(--blanc);
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CARROUSEL 1 : Slide 1 - Accroche -->
+  <div class="template template-carousel" data-name="carousel-accroche-1" data-width="1080" data-height="1350">
+    <div class="carousel-brand">
+      <span>Bathily-Convoyage</span>
+    </div>
+    <div class="carousel-bg"></div>
+    <div class="carousel-content">
+      <div class="carousel-slide-num">01 / 05</div>
+      <h1 class="carousel-title">Vous devez déplacer votre véhicule ?</h1>
+      <p class="carousel-subtitle">Voiture, moto ou utilitaire : nous le transportons en toute sécurité partout en France.</p>
+    </div>
+    <div class="carousel-footer">
+      <span class="carousel-cta">Devis gratuit</span>
+      <span class="carousel-url">www.bathily-convoyage.fr</span>
+    </div>
+  </div>
+
+  <!-- CARROUSEL 2 : Slide 2 - Problème -->
+  <div class="template template-carousel" data-name="carousel-probleme-2" data-width="1080" data-height="1350">
+    <div class="carousel-brand">
+      <span>Bathily-Convoyage</span>
+    </div>
+    <div class="carousel-bg"></div>
+    <div class="carousel-content">
+      <div class="carousel-slide-num">02 / 05</div>
+      <h1 class="carousel-title">Le train coûte cher. La route use votre voiture.</h1>
+      <p class="carousel-subtitle">Et conduire des heures pour récupérer un véhicule, c'est du temps perdu.</p>
+    </div>
+    <div class="carousel-footer">
+      <span class="carousel-cta">On s'occupe de tout</span>
+      <span class="carousel-url">www.bathily-convoyage.fr</span>
+    </div>
+  </div>
+
+  <!-- CARROUSEL 3 : Slide 3 - Solution -->
+  <div class="template template-carousel" data-name="carousel-solution-3" data-width="1080" data-height="1350">
+    <div class="carousel-brand">
+      <span>Bathily-Convoyage</span>
+    </div>
+    <div class="carousel-bg"></div>
+    <div class="carousel-content">
+      <div class="carousel-slide-num">03 / 05</div>
+      <h1 class="carousel-title">Notre solution : un convoyeur professionnel</h1>
+      <div class="carousel-icons">
+        <div class="carousel-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <span>Assurance tous risques</span>
+        </div>
+        <div class="carousel-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM7 9c0-2.76 2.24-5 5-5s5 2.24 5 5-2.24 5-5 5-5-2.24-5-5z"/></svg>
+          <span>Suivi GPS temps réel</span>
+        </div>
+        <div class="carousel-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          <span>Chauffeur certifié</span>
+        </div>
+      </div>
+    </div>
+    <div class="carousel-footer">
+      <span class="carousel-cta">En savoir plus</span>
+      <span class="carousel-url">www.bathily-convoyage.fr</span>
+    </div>
+  </div>
+
+  <!-- CARROUSEL 4 : Slide 4 - Preuve sociale -->
+  <div class="template template-carousel" data-name="carousel-preuve-4" data-width="1080" data-height="1350">
+    <div class="carousel-brand">
+      <span>Bathily-Convoyage</span>
+    </div>
+    <div class="carousel-bg"></div>
+    <div class="carousel-content">
+      <div class="carousel-slide-num">04 / 05</div>
+      <h1 class="carousel-title">+1 200 clients nous font confiance</h1>
+      <div class="carousel-badges">
+        <span class="carousel-badge">⭐⭐⭐⭐⭐ 4.8/5</span>
+        <span class="carousel-badge">+50 convoyeurs</span>
+        <span class="carousel-badge">Toute la France</span>
+      </div>
+    </div>
+    <div class="carousel-footer">
+      <span class="carousel-cta">Rejoignez-les</span>
+      <span class="carousel-url">www.bathily-convoyage.fr</span>
+    </div>
+  </div>
+
+  <!-- CARROUSEL 5 : Slide 5 - CTA -->
+  <div class="template template-carousel" data-name="carousel-cta-5" data-width="1080" data-height="1350">
+    <div class="carousel-brand">
+      <span>Bathily-Convoyage</span>
+    </div>
+    <div class="carousel-bg"></div>
+    <div class="carousel-content">
+      <div class="carousel-slide-num">05 / 05</div>
+      <h1 class="carousel-title">Obtenez votre devis en <span class="carousel-highlight">2 minutes</span></h1>
+      <p class="carousel-subtitle">Devis gratuit, sans engagement. Prix transparent et assurance incluse.</p>
+    </div>
+    <div class="carousel-footer">
+      <span class="carousel-cta">👉 Je demande mon devis</span>
+      <span class="carousel-url">www.bathily-convoyage.fr/devis.html</span>
+    </div>
+  </div>
+
+  <!-- CARROUSEL 6 : Slide 1 - Packs -->
+  <div class="template template-carousel" data-name="carousel-packs-1" data-width="1080" data-height="1350">
+    <div class="carousel-brand">
+      <span>Bathily-Convoyage</span>
+    </div>
+    <div class="carousel-bg"></div>
+    <div class="carousel-content">
+      <div class="carousel-slide-num">01 / 04</div>
+      <h1 class="carousel-title">Quel pack choisir ?</h1>
+      <p class="carousel-subtitle">3 formules adaptées à tous vos besoins de convoyage.</p>
+    </div>
+    <div class="carousel-footer">
+      <span class="carousel-cta">Découvrir</span>
+      <span class="carousel-url">www.bathily-convoyage.fr</span>
+    </div>
+  </div>
+
+  <!-- CARROUSEL 7 : Slide 2 - Starter -->
+  <div class="template template-carousel" data-name="carousel-starter-2" data-width="1080" data-height="1350">
+    <div class="carousel-brand">
+      <span>Bathily-Convoyage</span>
+    </div>
+    <div class="carousel-bg"></div>
+    <div class="carousel-content">
+      <div class="carousel-slide-num">02 / 04</div>
+      <h1 class="carousel-title">Pack <span class="carousel-highlight">Starter</span></h1>
+      <div class="carousel-badges">
+        <span class="carousel-badge">Convoyeur certifié</span>
+        <span class="carousel-badge">Suivi GPS</span>
+        <span class="carousel-badge">État des lieux 20 photos</span>
+      </div>
+    </div>
+    <div class="carousel-footer">
+      <span class="carousel-cta">Inclus</span>
+      <span class="carousel-url">www.bathily-convoyage.fr</span>
+    </div>
+  </div>
+
+  <!-- CARROUSEL 8 : Slide 3 - Sérénité -->
+  <div class="template template-carousel" data-name="carousel-serenite-3" data-width="1080" data-height="1350">
+    <div class="carousel-brand">
+      <span>Bathily-Convoyage</span>
+    </div>
+    <div class="carousel-bg"></div>
+    <div class="carousel-content">
+      <div class="carousel-slide-num">03 / 04</div>
+      <h1 class="carousel-title">Pack <span class="carousel-highlight">Sérénité</span></h1>
+      <div class="carousel-badges">
+        <span class="carousel-badge">Nettoyage int./ext.</span>
+        <span class="carousel-badge">RDV planifié</span>
+        <span class="carousel-badge">Support VIP</span>
+      </div>
+    </div>
+    <div class="carousel-footer">
+      <span class="carousel-cta">+69€</span>
+      <span class="carousel-url">www.bathily-convoyage.fr</span>
+    </div>
+  </div>
+
+  <!-- CARROUSEL 9 : Slide 4 - Excellence -->
+  <div class="template template-carousel" data-name="carousel-excellence-4" data-width="1080" data-height="1350">
+    <div class="carousel-brand">
+      <span>Bathily-Convoyage</span>
+    </div>
+    <div class="carousel-bg"></div>
+    <div class="carousel-content">
+      <div class="carousel-slide-num">04 / 04</div>
+      <h1 class="carousel-title">Pack <span class="carousel-highlight">Excellence</span></h1>
+      <div class="carousel-badges">
+        <span class="carousel-badge">Plein carburant</span>
+        <span class="carousel-badge">Photos 4K</span>
+        <span class="carousel-badge">Livraison prioritaire</span>
+      </div>
+    </div>
+    <div class="carousel-footer">
+      <span class="carousel-cta">+159€</span>
+      <span class="carousel-url">www.bathily-convoyage.fr</span>
+    </div>
+  </div>
+
+  <!-- REEL 1 : Process -->
+  <div class="template template-reel" data-name="reel-process" data-width="1080" data-height="1920">
+    <div class="reel-badge">En 3 étapes</div>
+    <h1 class="reel-title">Votre véhicule transporté sans stress</h1>
+    <p class="reel-subtitle">Devis en 2 min, prise en charge sous 72h, livraison garantie.</p>
+    <div class="reel-steps">
+      <div class="reel-step">
+        <div class="reel-step-num">1</div>
+        <span>Devis gratuit en ligne</span>
+      </div>
+      <div class="reel-step">
+        <div class="reel-step-num">2</div>
+        <span>Convoyeur pro vérifié</span>
+      </div>
+      <div class="reel-step">
+        <div class="reel-step-num">3</div>
+        <span>Livraison avec suivi GPS</span>
+      </div>
+    </div>
+    <div class="reel-cta">Demander un devis</div>
+    <div class="reel-footer">www.bathily-convoyage.fr</div>
+  </div>
+
+  <!-- LINKEDIN 1 : Pro -->
+  <div class="template template-linkedin" data-name="linkedin-pro" data-width="1200" data-height="627">
+    <div class="linkedin-left">
+      <div class="linkedin-tag">B2B</div>
+      <h1 class="linkedin-title">Solutions de convoyage pour concessions et flottes</h1>
+      <p class="linkedin-subtitle">Bathily-Convoyage accompagne les professionnels avec des chauffeurs certifiés, un suivi GPS et une assurance tous risques.</p>
+      <div class="linkedin-cta">Demander une démo →</div>
+    </div>
+    <div class="linkedin-right">
+      <div class="linkedin-stat">
+        <div class="linkedin-stat-num">+50</div>
+        <div class="linkedin-stat-label">convoyeurs certifiés</div>
+      </div>
+      <div class="linkedin-stat">
+        <div class="linkedin-stat-num">1200+</div>
+        <div class="linkedin-stat-label">clients satisfaits</div>
+      </div>
+      <div class="linkedin-logo">Bathily-Convoyage</div>
+    </div>
+  </div>
+
+  <!-- LINKEDIN 2 : Chiffres -->
+  <div class="template template-linkedin" data-name="linkedin-chiffres" data-width="1200" data-height="627">
+    <div class="linkedin-left">
+      <div class="linkedin-tag">Transport</div>
+      <h1 class="linkedin-title">Pourquoi externaliser le convoyage de vos véhicules ?</h1>
+      <p class="linkedin-subtitle">Réduisez l'usure, gagnez du temps et sécurisez vos livraisons partout en France.</p>
+      <div class="linkedin-cta">En savoir plus →</div>
+    </div>
+    <div class="linkedin-right">
+      <div class="linkedin-stat">
+        <div class="linkedin-stat-num">72h</div>
+        <div class="linkedin-stat-label">prise en charge garantie</div>
+      </div>
+      <div class="linkedin-stat">
+        <div class="linkedin-stat-num">100%</div>
+        <div class="linkedin-stat-label">assurance tous risques</div>
+      </div>
+      <div class="linkedin-logo">Bathily-Convoyage</div>
+    </div>
+  </div>
+
+</body>
+</html>
