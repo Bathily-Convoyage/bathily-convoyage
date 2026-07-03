@@ -40,7 +40,7 @@ export async function onRequest(context) {
     const sb = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
     const { data: candidat, error: candError } = await sb.from('convoyeur_candidatures')
-      .select('id, email, prenom, nom, telephone, ville, zone, type_permis, statut')
+      .select('id, email, prenom, nom, telephone, ville, zone, type_permis, statut, selfie, video_presentation')
       .eq('id', candidat_id).eq('statut', 'pending').single();
 
     if (candError || !candidat) {
@@ -63,7 +63,8 @@ export async function onRequest(context) {
     const { error: insertError } = await sb.from('convoyeurs').insert([{
       auth_user_id: authUserId, prenom: candidat.prenom, nom: candidat.nom, email: candidat.email,
       telephone: candidat.telephone, ville: candidat.ville, zone: candidat.zone || candidat.ville,
-      niveau: 'Standard', disponible: true, type_permis: candidat.type_permis || null
+      niveau: 'Standard', disponible: true, type_permis: candidat.type_permis || null,
+      selfie: candidat.selfie, video_presentation: candidat.video_presentation
     }]);
 
     if (insertError) {

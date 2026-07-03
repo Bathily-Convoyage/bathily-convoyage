@@ -2369,6 +2369,19 @@ Cadeau premium personnalisé</textarea>
         <div class="f-grp"><label>Niveau</label><select id="convEditNiveau"><option value="Standard">Standard</option><option value="Senior">Senior</option></select></div>
       </div>
       <div class="f-grp"><label>Notes internes (visibles uniquement par l'admin)</label><textarea id="convEditNotes" rows="2" placeholder="Remarques particulières, convoyeur VIP, etc..."></textarea></div>
+      <div id="convoyeurMediaSection" style="display:none; border-top:1px solid var(--border-light); margin:15px 0; padding-top:10px;">
+        <strong style="font-size:0.7rem; color:var(--bordeaux); text-transform:uppercase;">Présentation</strong>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px; margin-top:10px;">
+          <div id="convoyeurSelfieBox" style="display:none; border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige);">
+            <div style="padding:6px 8px; font-size:0.72rem; font-weight:600; color:var(--bordeaux);"><i class="fas fa-camera"></i> Selfie</div>
+            <img id="convoyeurSelfieImg" src="" style="width:100%; height:120px; object-fit:cover; cursor:pointer;" alt="Selfie">
+          </div>
+          <div id="convoyeurVideoBox" style="display:none; border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige);">
+            <div style="padding:6px 8px; font-size:0.72rem; font-weight:600; color:var(--bordeaux);"><i class="fas fa-video"></i> Vidéo</div>
+            <video id="convoyeurVideoPlayer" src="" controls style="width:100%; height:120px;" preload="metadata"></video>
+          </div>
+        </div>
+      </div>
       <div class="modal-btns" style="display:flex; align-items:center; gap:10px;">
         <button class="btn-red" id="saveConvoyeurEditBtn"><i class="fas fa-save"></i> Enregistrer</button>
         <button class="btn-outline" onclick="closeModal('modalConvoyeurEdit')">Annuler</button>
@@ -3082,7 +3095,7 @@ Cadeau premium personnalisé</textarea>
   async function loadConvoyeurs() {
     const client = getSupabase();
     if (!client) return;
-    const { data, error } = await client.from('convoyeurs').select('id, email, prenom, nom, telephone, ville, type_permis, annee_permis, disponible, niveau, grade, zone, zones, note_moyenne, taux_auto, taux_moto, adresse, code_postal, banned, notes_admin, auth_user_id, documents, created_at').order('created_at', { ascending: false });
+    const { data, error } = await client.from('convoyeurs').select('id, email, prenom, nom, telephone, ville, type_permis, annee_permis, disponible, niveau, grade, zone, zones, note_moyenne, taux_auto, taux_moto, adresse, code_postal, banned, notes_admin, auth_user_id, documents, selfie, video_presentation, created_at').order('created_at', { ascending: false });
     if (error) { console.warn('Erreur chargement convoyeurs:', error.message); return; }
     _convoyeursList = data || [];
     document.getElementById('convoyeursCount').innerHTML = `${_convoyeursList.length} convoyeur${_convoyeursList.length !== 1 ? 's' : ''} <em>enregistré${_convoyeursList.length !== 1 ? 's' : ''}</em>`;
@@ -3465,6 +3478,33 @@ Cadeau premium personnalisé</textarea>
     document.getElementById('convEditNiveau').value = c.niveau || 'Standard';
     document.getElementById('convEditNotes').value = c.notes_admin || '';
 
+    const mediaSection = document.getElementById('convoyeurMediaSection');
+    const selfieBox = document.getElementById('convoyeurSelfieBox');
+    const selfieImg = document.getElementById('convoyeurSelfieImg');
+    const videoBox = document.getElementById('convoyeurVideoBox');
+    const videoPlayer = document.getElementById('convoyeurVideoPlayer');
+
+    if (c.selfie || c.video_presentation) {
+      mediaSection.style.display = 'block';
+      if (c.selfie) {
+        selfieBox.style.display = 'block';
+        selfieImg.src = c.selfie;
+        selfieImg.onclick = () => window.open(c.selfie);
+      } else {
+        selfieBox.style.display = 'none';
+      }
+      if (c.video_presentation) {
+        videoBox.style.display = 'block';
+        videoPlayer.src = c.video_presentation;
+      } else {
+        videoBox.style.display = 'none';
+      }
+    } else {
+      mediaSection.style.display = 'none';
+      selfieBox.style.display = 'none';
+      videoBox.style.display = 'none';
+    }
+
     const delBtn = document.getElementById('deleteConvoyeurModalBtn');
     if (delBtn) {
       delBtn.style.display = 'inline-flex';
@@ -3532,7 +3572,7 @@ Cadeau premium personnalisé</textarea>
   async function loadMissions() {
     const client = getSupabase();
     if (!client) return;
-    const { data: missions, error } = await client.from('missions').select('id, reference, depart, arrivee, vehicule, mode, mode_transport, pack, status, paiement_statut, montant_ht, remuneration_convoyeur, marge, date_mission, client_id, client_email, client_nom, client_telephone, convoyeur_nom, convoyeur_id, convoyeur_telephone, immatriculation, type_vehicule, notes, stripe_session_id, created_at, updated_at').order('created_at', { ascending: false });
+    const { data: missions, error } = await client.from('missions').select('id, reference, depart, arrivee, vehicule, mode, mode_transport, pack, status, paiement_statut, montant_ht, remuneration_convoyeur, marge, date_mission, client_id, client_email, client_nom, client_telephone, convoyeur_nom, convoyeur_id, convoyeur_telephone, immatriculation, type_vehicule, notes, stripe_session_id, photo_fin_mission, fin_mission_selfie_uploaded_at, created_at, updated_at').order('created_at', { ascending: false });
     if (error) { console.error(error); return; }
     _allMissions = missions || [];
     const visibleMissions = _allMissions.filter(m => m.status !== 'archived');
@@ -4119,7 +4159,7 @@ Cadeau premium personnalisé</textarea>
   async function loadFormationCandidatures() {
     const client = getSupabase();
     if (!client) return;
-    const { data, error } = await client.from('convoyeur_candidatures').select('id, email, prenom, nom, telephone, ville, type_permis, annee_permis, statut, score_quiz, experience, banned, deleted_at, created_at, documents, date_naissance').order('created_at', { ascending: false });
+    const { data, error } = await client.from('convoyeur_candidatures').select('id, email, prenom, nom, telephone, ville, type_permis, annee_permis, statut, score_quiz, experience, banned, deleted_at, created_at, documents, selfie, video_presentation, date_naissance').order('created_at', { ascending: false });
     if (error) { console.warn('Erreur chargement candidatures formation:', error.message); return; }
     _allFormationCandidatures = data || [];
     renderFormationCandidaturesList();
@@ -4229,6 +4269,20 @@ Cadeau premium personnalisé</textarea>
         </div>`
       : '';
 
+    const mediaHtml = [];
+    if (c.selfie) {
+      mediaHtml.push(`<div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige);">
+        <div style="padding:6px 8px; font-size:0.72rem; font-weight:600; color:var(--bordeaux);"><i class="fas fa-camera"></i> Selfie</div>
+        <img src="${escapeHtml(c.selfie)}" style="width:100%; max-height:200px; object-fit:cover; cursor:pointer;" onclick="window.open('${escapeHtml(c.selfie)}')" alt="Selfie">
+      </div>`);
+    }
+    if (c.video_presentation) {
+      mediaHtml.push(`<div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige);">
+        <div style="padding:6px 8px; font-size:0.72rem; font-weight:600; color:var(--bordeaux);"><i class="fas fa-video"></i> Vidéo de présentation</div>
+        <video src="${escapeHtml(c.video_presentation)}" controls style="width:100%; max-height:200px;" preload="metadata"></video>
+      </div>`);
+    }
+
     Swal.fire({
       title: `Dossier — ${escapeHtml(nomComplet)}`,
       html: `<div style="text-align:left;font-size:0.9rem;">
@@ -4244,6 +4298,7 @@ Cadeau premium personnalisé</textarea>
         <hr style="margin:10px 0;border-color:#eee;">
         <div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-paperclip"></i> Documents</div>
         ${docsHtml}
+        ${mediaHtml.length ? `<hr style="margin:10px 0;border-color:#eee;"><div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-user-circle"></i> Présentation</div><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px;">${mediaHtml.join('')}</div>` : ''}
         ${actionButtons}
       </div>`,
       width: 650,
@@ -4336,7 +4391,9 @@ Cadeau premium personnalisé</textarea>
         type_permis: c.type_permis,
         annee_permis: c.annee_permis,
         niveau: 'junior',
-        disponible: true
+        disponible: true,
+        selfie: c.selfie,
+        video_presentation: c.video_presentation
       }]);
       if (errConv) console.warn('Erreur ajout convoyeur:', errConv.message);
 
@@ -4607,6 +4664,7 @@ Cadeau premium personnalisé</textarea>
         <b>Convoyeur :</b> ${escapeHtml(mission.convoyeur_nom || 'Non assigné')}<br>
         <b>Date mission :</b> ${formatDate(mission.date_mission || mission.created_at)}<br>
         <b>Créée le :</b> ${formatDate(mission.created_at)}
+        ${mission.photo_fin_mission ? `<hr style="margin:10px 0;border-color:#eee;"><div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-camera"></i> Photo de fin de mission</div><div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige); max-width:320px;"><img src="${escapeHtml(mission.photo_fin_mission)}" style="width:100%; max-height:220px; object-fit:cover; cursor:pointer;" onclick="window.open('${escapeHtml(mission.photo_fin_mission)}')" alt="Photo fin de mission"></div>` : ''}
         <hr style="margin:14px 0;border-color:#eee;">
         <div style="display:flex;flex-wrap:wrap;gap:6px;">${actionsHtml}</div>
       </div>`,

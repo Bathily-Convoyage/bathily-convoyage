@@ -262,6 +262,10 @@
     .upload-hint { font-size: 0.72rem; color: var(--gray-mid); }
     .upload-filename { font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 6px; word-break: break-all; }
     .upload-required { color: #c0392b; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+    .media-preview { margin-top: 10px; display: none; }
+    .media-preview.active { display: block; }
+    .media-preview img { max-width: 100%; max-height: 140px; border-radius: 10px; object-fit: cover; }
+    .media-preview video { max-width: 100%; max-height: 140px; border-radius: 10px; }
     @media (max-width: 600px) { .upload-grid { grid-template-columns: 1fr; } }
 
     /* ====== RESULTS ====== */
@@ -793,6 +797,28 @@
         <i class="fas fa-lock" style="color:var(--bordeaux); margin-right:6px;"></i>
         Vos documents sont stockés de manière sécurisée et confidentielle. Seuls les administrateurs Bathily-Convoyage y ont accès.
       </div>
+
+      <div class="card-title" style="margin-top:30px;">Votre <em>présentation</em></div>
+      <div class="card-sub">Ces éléments sont obligatoires pour finaliser votre candidature.</div>
+
+      <div class="upload-grid">
+        <div class="upload-zone" id="zone-selfie">
+          <input type="file" accept="image/jpeg,image/png" onchange="handleUploadMedia(this, 'selfie')">
+          <div class="upload-ico"><i class="fas fa-camera"></i></div>
+          <div class="upload-label">Selfie de présentation <span class="upload-required">*Obligatoire</span></div>
+          <div class="upload-hint">Photo de votre visage, max 5 Mo</div>
+          <div class="upload-filename" id="fn-selfie"></div>
+          <div class="media-preview" id="preview-selfie"></div>
+        </div>
+        <div class="upload-zone" id="zone-video">
+          <input type="file" accept="video/mp4,video/quicktime" onchange="handleUploadMedia(this, 'video_presentation')">
+          <div class="upload-ico"><i class="fas fa-video"></i></div>
+          <div class="upload-label">Vidéo de présentation <span class="upload-required">*Obligatoire</span></div>
+          <div class="upload-hint">Courte vidéo de ~20 secondes, max 30 Mo</div>
+          <div class="upload-filename" id="fn-video_presentation"></div>
+          <div class="media-preview" id="preview-video_presentation"></div>
+        </div>
+      </div>
     </div>
 
     <div class="btn-row">
@@ -1198,6 +1224,43 @@ function handleUpload(input, docType) {
   if (fnEl) fnEl.textContent = file.name;
 }
 
+function handleUploadMedia(input, mediaType) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const maxSize = mediaType === 'selfie' ? 5 * 1024 * 1024 : 30 * 1024 * 1024;
+  const label = mediaType === 'selfie' ? '5 Mo' : '30 Mo';
+
+  if (file.size > maxSize) {
+    Swal.fire({
+      title: 'Fichier trop volumineux',
+      text: `La taille maximale est de ${label}.`,
+      icon: 'warning',
+      confirmButtonColor: '#0A4D68'
+    });
+    input.value = '';
+    return;
+  }
+
+  uploadedFiles[mediaType] = file;
+  const zone = document.getElementById('zone-' + mediaType.replace('_', '-'));
+  const fnEl = document.getElementById('fn-' + mediaType);
+  const previewEl = document.getElementById('preview-' + mediaType);
+
+  if (zone) zone.classList.add('has-file');
+  if (fnEl) fnEl.textContent = file.name;
+
+  if (previewEl) {
+    const url = URL.createObjectURL(file);
+    previewEl.classList.add('active');
+    if (mediaType === 'selfie') {
+      previewEl.innerHTML = `<img src="${url}" alt="Selfie preview">`;
+    } else {
+      previewEl.innerHTML = `<video src="${url}" controls muted></video>`;
+    }
+  }
+}
+
 async function uploadDocumentsToStorage(sb, email) {
   const folder = 'candidatures/' + email.replace(/[^a-zA-Z0-9@._-]/g, '_');
   const paths = {};
@@ -1224,6 +1287,33 @@ async function uploadDocumentsToStorage(sb, email) {
   return paths;
 }
 
+async function uploadMediaToStorage(sb, email) {
+  const folder = 'candidatures/' + email.replace(/[^a-zA-Z0-9@._-]/g, '_');
+  const mediaUrls = {};
+
+  for (const mediaType of ['selfie', 'video_presentation']) {
+    const file = uploadedFiles[mediaType];
+    if (!file) continue;
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    const path = `${folder}/${mediaType}_${Date.now()}.${ext}`;
+
+    const { error } = await sb.storage
+      .from('convoyeur-media')
+      .upload(path, file);
+
+    if (error) {
+      console.warn(`Erreur upload ${mediaType}:`, error.message);
+      mediaUrls[mediaType] = null;
+    } else {
+      const { data: urlData } = sb.storage.from('convoyeur-media').getPublicUrl(path);
+      mediaUrls[mediaType] = urlData?.publicUrl || null;
+    }
+  }
+
+  return mediaUrls;
+}
+
 // ====== SUBMIT CANDIDATURE ======
 async function submitCandidature() {
   const missing = REQUIRED_DOCS.filter(d => !uploadedFiles[d]);
@@ -1237,12 +1327,23 @@ async function submitCandidature() {
     return;
   }
 
-  Swal.fire({ title: 'Envoi en cours...', text: 'Téléversement des documents et envoi de la candidature', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+  if (!uploadedFiles['selfie'] || !uploadedFiles['video_presentation']) {
+    Swal.fire({
+      title: 'Présentation incomplète',
+      text: 'Veuillez téléverser votre selfie et votre vidéo de présentation avant d\'envoyer votre candidature.',
+      icon: 'warning',
+      confirmButtonColor: '#0A4D68'
+    });
+    return;
+  }
+
+  Swal.fire({ title: 'Envoi en cours...', text: 'Téléversement des documents, du selfie et de la vidéo, puis envoi de la candidature', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
   try {
     const sb = getSB();
 
     const docPaths = await uploadDocumentsToStorage(sb, formData.email);
+    const mediaUrls = await uploadMediaToStorage(sb, formData.email);
 
     const { data: newCand, error } = await sb.from('convoyeur_candidatures').insert([{
       prenom: formData.prenom,
@@ -1261,7 +1362,9 @@ async function submitCandidature() {
       quiz_attempts: 1,
       last_attempt_at: new Date().toISOString(),
       statut: 'pending',
-      documents: JSON.stringify(docPaths)
+      documents: JSON.stringify(docPaths),
+      selfie: mediaUrls.selfie,
+      video_presentation: mediaUrls.video_presentation
     }]).select().single();
 
     if (error) {

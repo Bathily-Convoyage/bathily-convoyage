@@ -101,6 +101,22 @@
     .photo-count { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
     .photo-progress { height: 3px; background: var(--border-light); border-radius: 4px; margin-bottom: 16px; overflow: hidden; }
     .photo-progress-bar { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
+    .upload-zone {
+      border: 2px dashed var(--border-light); border-radius: 16px; padding: 24px; text-align: center;
+      transition: all 0.3s; cursor: pointer; position: relative;
+    }
+    .upload-zone:hover { border-color: var(--bordeaux); background: var(--bordeaux-light); }
+    .upload-zone.has-file { border-color: var(--success); border-style: solid; background: rgba(74,124,107,0.05); }
+    .upload-zone input[type=file] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .upload-ico { font-size: 2rem; color: var(--bordeaux); margin-bottom: 10px; }
+    .upload-zone.has-file .upload-ico { color: var(--success); }
+    .upload-label { font-family: 'Montserrat',sans-serif; font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+    .upload-hint { font-size: 0.72rem; color: var(--gray-mid); }
+    .upload-filename { font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 6px; word-break: break-all; }
+    .upload-required { color: #c0392b; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+    .media-preview { margin-top: 10px; display: none; }
+    .media-preview.active { display: block; }
+    .media-preview img { max-width: 100%; max-height: 140px; border-radius: 10px; object-fit: cover; }
     .fuel-gauge { display: flex; flex-direction: column; gap: 8px; }
     .fuel-slider { width: 100%; height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--bordeaux), var(--warning), var(--success)); appearance: none; }
     .fuel-slider::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: white; border: 2px solid var(--bordeaux); cursor: pointer; }
@@ -583,6 +599,18 @@
   <div class="edl-step" data-step="7">
     <div class="step-header"><div class="step-tag">Étape 7 / 7</div><h2 class="step-title">Récapitulatif & <em>validation</em></h2><p class="step-sub">Vérifiez et validez l'État des lieux.</p></div>
     <div class="recap-grid"><div class="recap-card"><div class="recap-card-title">Mission</div><div class="recap-line"><span>Référence</span><span id="recRef">BC-2025-0847</span></div><div class="recap-line"><span>Type EDL</span><span id="recType">Départ</span></div><div class="recap-line"><span>Convoyeur</span><span id="recConv">M. Bathily</span></div></div><div class="recap-card"><div class="recap-card-title">Véhicule</div><div class="recap-line"><span>Plaque</span><span id="recPlaque">IJ-789-KL</span></div><div class="recap-line"><span>Véhicule</span><span id="recVehicule">BMW Série 3</span></div><div class="recap-line"><span>Carburant</span><span id="recFuel">65%</span></div></div><div class="recap-card"><div class="recap-card-title">Photos & Dommages</div><div class="recap-line"><span>Photos extérieur</span><span id="recPhotoExt">0/5</span></div><div class="recap-line"><span>Photos intérieur</span><span id="recPhotoInt">0/5</span></div><div class="recap-line"><span>Dommages</span><span id="recDommages">0</span></div></div><div class="recap-card"><div class="recap-card-title">Signatures</div><div class="recap-line"><span>Convoyeur</span><span id="recSigConv">En attente</span></div><div class="recap-line"><span>Client</span><span id="recSigCli">En attente</span></div></div></div>
+    <div class="card" id="cardFinMissionSelfie" style="display:none;">
+      <div class="card-title"><i class="fas fa-camera"></i> Photo de fin de mission <span style="color:#c0392b">*Obligatoire</span></div>
+      <div class="step-sub" style="margin-bottom:12px;">Pour finaliser la mission, prenez un selfie de vous avec le véhicule. Cette photo est obligatoire.</div>
+      <div class="upload-zone" id="zone-fin-mission-selfie" style="max-width:320px;">
+        <input type="file" accept="image/jpeg,image/png" id="input-fin-mission-selfie" onchange="handleFinMissionSelfie(this)">
+        <div class="upload-ico"><i class="fas fa-camera"></i></div>
+        <div class="upload-label">Selfie de fin de mission</div>
+        <div class="upload-hint">Cliquez pour téléverser (max 5 Mo)</div>
+        <div class="upload-filename" id="fn-fin-mission-selfie"></div>
+        <div class="media-preview" id="preview-fin-mission-selfie"></div>
+      </div>
+    </div>
     <div class="card"><div class="card-title"><i class="fas fa-paper-plane"></i> Envoi automatique</div><div class="f-row"><div class="f-grp"><label>Email client</label><input type="email" id="emailCli" value="jean.dupont@email.fr"></div><div class="f-grp"><label>Email convoyeur</label><input type="email" id="emailConv" value="m.bathily@convoyeur.fr"></div></div><div class="f-grp"><label>Email Bathily</label><input type="email" value="contact@Bathily-Convoyage.fr" readonly></div></div>
     <div class="success-final" id="successFinal"><div class="sf-ico"><i class="fas fa-check-circle"></i></div><h3 class="sf-h">État des lieux <em>validé !</em></h3><div class="sf-ref-val" id="edlRef">EDL-2025-0847-DEP</div><div class="sf-actions" style="display:flex; gap:12px; justify-content:center; margin-top:20px;"><button class="btn-red" onclick="printEdl()"><i class="fas fa-download"></i> Télécharger PDF</button><a href="dashboard-convoyeur.html" class="btn-outline">Retour au dashboard</a><button class="btn-outline" onclick="newEdl()">Nouvel État des lieux</button></div></div>
     <div class="step-nav" id="finalNav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" style="background:var(--success)" onclick="validateEdl()"><i class="fas fa-check"></i> Valider & envoyer</button></div>
@@ -616,7 +644,8 @@ const STATE = {
   step:1, edlType:'depart', photoExt:0, photoInt:0, dommages:[], sigConvDone:false, sigCliDone:false, fuelValue:65,
   photosExt:[], photosInt:[], photosSup:[],
   zoneStates: {}, // { zoneName: 'bon'|'raye'|'enfonce'|'casse' }
-  zonePhotos: {}  // { zoneName: 'data:image/...' }
+  zonePhotos: {},  // { zoneName: 'data:image/...' }
+  finMissionSelfie: null // File object for end-of-mission selfie (arrival only)
 };
 
 // ========== INIT ==========
@@ -722,7 +751,13 @@ function goStep(n) {
   }
   STATE.step=n;
   window.scrollTo({top:0,behavior:'smooth'});
-  if(n===7) updRecap();
+  if(n===7) {
+    updRecap();
+    const selfieCard = document.getElementById('cardFinMissionSelfie');
+    if (selfieCard) {
+      selfieCard.style.display = STATE.edlType === 'arrivee' ? 'block' : 'none';
+    }
+  }
 }
 function nextStep(){
   if(STATE.step===3 && (STATE.photoExt<5 || STATE.photoInt<5)){
@@ -748,6 +783,35 @@ function setEdlType(type){
   const arr = document.getElementById('badgeArrivee');
   if(type==='depart'){ dep.style.background='rgba(41,128,185,0.1)'; arr.style.background='rgba(240,237,237,.04)'; }
   else{ arr.style.background='rgba(74,124,107,0.1)'; dep.style.background='rgba(240,237,237,.04)'; }
+  const selfieCard = document.getElementById('cardFinMissionSelfie');
+  if (selfieCard && STATE.step === 7) {
+    selfieCard.style.display = type === 'arrivee' ? 'block' : 'none';
+  }
+}
+
+function handleFinMissionSelfie(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('La photo ne doit pas dépasser 5 Mo', 'error');
+    input.value = '';
+    return;
+  }
+
+  STATE.finMissionSelfie = file;
+  const zone = document.getElementById('zone-fin-mission-selfie');
+  const fnEl = document.getElementById('fn-fin-mission-selfie');
+  const previewEl = document.getElementById('preview-fin-mission-selfie');
+
+  if (zone) zone.classList.add('has-file');
+  if (fnEl) fnEl.textContent = file.name;
+
+  if (previewEl) {
+    const url = URL.createObjectURL(file);
+    previewEl.classList.add('active');
+    previewEl.innerHTML = `<img src="${url}" alt="Selfie fin de mission">`;
+  }
 }
 
 // ========== GRILLES DOCUMENTS ==========
@@ -1325,11 +1389,12 @@ function updRecap(){
 async function validateEdl(){
   if(!STATE.sigConvDone || !STATE.sigCliDone){ showToast('Les deux signatures sont requises', 'error'); return; }
   if(STATE.photoExt<5 || STATE.photoInt<5){ showToast('10 photos obligatoires', 'error'); return; }
-  
+  if(STATE.edlType === 'arrivee' && !STATE.finMissionSelfie){ showToast('La photo de fin de mission est obligatoire pour valider l\'arrivée', 'error'); return; }
+
   const missionRef = document.getElementById('mRef')?.value || 'BC' + Date.now().toString().slice(-6);
   const ref = 'EDL-'+missionRef+'-'+(STATE.edlType==='depart'?'DEP':'ARR');
   document.getElementById('edlRef').textContent = ref;
-  
+
   Swal.fire({
     title: 'Validation de l\'État des lieux...',
     text: 'Sauvegarde et envoi des notifications en cours.',
@@ -1342,6 +1407,19 @@ async function validateEdl(){
     const missionId = urlParams.get('mission_id') || null;
     const client = getSupabase();
     if (!client) throw new Error("Supabase non disponible");
+
+    let finMissionSelfieUrl = null;
+    if (STATE.edlType === 'arrivee' && STATE.finMissionSelfie && missionId) {
+      const ext = STATE.finMissionSelfie.name.split('.').pop().toLowerCase();
+      const path = `missions/${missionId}/fin_mission_selfie_${Date.now()}.${ext}`;
+      const { error: uploadError } = await client.storage.from('convoyeur-media').upload(path, STATE.finMissionSelfie);
+      if (uploadError) {
+        console.warn('Erreur upload selfie fin mission:', uploadError.message);
+      } else {
+        const { data: urlData } = client.storage.from('convoyeur-media').getPublicUrl(path);
+        finMissionSelfieUrl = urlData?.publicUrl || null;
+      }
+    }
     
     const sigConvCanvas = document.getElementById('sigConv');
     const sigCliCanvas = document.getElementById('sigCli');
@@ -1410,7 +1488,9 @@ async function validateEdl(){
       remarques_techniques: document.getElementById('remTech')?.value || '',
       email_client: document.getElementById('emailCli')?.value || document.getElementById('cEmail')?.value || '',
       conforme: document.querySelectorAll('#docGrid .doc-btn.nok, #equipGrid .doc-btn.nok, #mecaGrid .doc-btn.nok').length === 0,
-      signatures: { convoyeur: sigConvBase64, client: sigCliBase64 }
+      signatures: { convoyeur: sigConvBase64, client: sigCliBase64 },
+      photo_fin_mission: finMissionSelfieUrl,
+      fin_mission_selfie_uploaded_at: finMissionSelfieUrl ? new Date().toISOString() : null
     };
 
     const { error: insertError } = await client
@@ -1419,6 +1499,14 @@ async function validateEdl(){
 
     if (insertError) {
       throw new Error(insertError.message);
+    }
+
+    // Mettre à jour la mission avec la photo de fin de mission
+    if (finMissionSelfieUrl && missionId) {
+      await client.from('missions').update({
+        photo_fin_mission: finMissionSelfieUrl,
+        fin_mission_selfie_uploaded_at: new Date().toISOString()
+      }).eq('id', missionId);
     }
 
     // Envoi email
