@@ -16,7 +16,7 @@ export async function onRequest(context) {
 
   try {
     const parsedBody = await parseBody(request);
-    const { trigger, id, notes, payment_url, temp_password, prenom, email: directEmail, nom: directNom, convoyeur_nom, client_email } = parsedBody;
+    const { trigger, id, notes, payment_url, temp_password, prenom, email: directEmail, nom: directNom, convoyeur_nom, convoyeur_email, client_email, depart, arrivee, date_mission, reference } = parsedBody;
 
     const PUBLIC_TRIGGERS = ['devis_created', 'candidature_submitted'];
     const ADMIN_TRIGGERS = ['devis_confirmed', 'convoyeur_approved', 'payment_success', 'edl_completed', 'candidature_status_changed', 'mission_assigned', 'support_reply', 'pro_approved', 'pro_rejected', 'reset_password'];
@@ -282,13 +282,32 @@ export async function onRequest(context) {
       resultData = { success: true, message: 'Email Pro refusé envoyé.' };
     }
     else if (trigger === 'mission_assigned') {
-      const notifyEmail = client_email || directEmail;
+      const missionRef = reference || id;
+      const missionDepart = depart || 'Non précisé';
+      const missionArrivee = arrivee || 'Non précisé';
+      const missionDate = date_mission ? new Date(date_mission).toLocaleDateString('fr-FR') : 'Non précisée';
       const convName = convoyeur_nom || 'un convoyeur';
-      const assignHtml = wrapEmailLayout("Un convoyeur a été assigné à votre mission",
-        `<p>Bonjour,</p><p>Votre mission a été assignée à <strong>${convName}</strong>.</p>
-         <p style="text-align:center"><a href="https://bathily-convoyage.fr/dashboard-client.html" class="btn">Suivre ma mission</a></p>`);
-      await sendEmail({ to: notifyEmail, subject: "Bathily Convoyage - Un convoyeur a été assigné à votre mission", html: assignHtml });
-      resultData = { success: true, message: 'Email mission assignée envoyé.' };
+
+      // Email au client
+      const clientEmail = client_email || directEmail;
+      if (clientEmail) {
+        const clientHtml = wrapEmailLayout("Un convoyeur a été assigné à votre mission",
+          `<p>Bonjour,</p><p>Votre mission <strong>${missionRef}</strong> a été assignée à <strong>${convName}</strong>.</p>
+           <ul class="meta-list"><li><span>Trajet</span><strong>${missionDepart} → ${missionArrivee}</strong></li><li><span>Date</span><strong>${missionDate}</strong></li></ul>
+           <p style="text-align:center"><a href="https://bathily-convoyage.fr/dashboard-client.html" class="btn">Suivre ma mission</a></p>`);
+        await sendEmail({ to: clientEmail, subject: "Bathily Convoyage - Un convoyeur a été assigné à votre mission", html: clientHtml });
+      }
+
+      // Email au convoyeur
+      if (convoyeur_email) {
+        const convoyeurHtml = wrapEmailLayout("Nouvelle mission assignée 🚗",
+          `<p>Bonjour ${convoyeur_nom || ''},</p><p>Une nouvelle mission vous a été assignée.</p>
+           <ul class="meta-list"><li><span>Référence</span><strong>${missionRef}</strong></li><li><span>Trajet</span><strong>${missionDepart} → ${missionArrivee}</strong></li><li><span>Date</span><strong>${missionDate}</strong></li></ul>
+           <p style="text-align:center"><a href="https://bathily-convoyage.fr/dashboard-convoyeur.html" class="btn">Voir ma mission</a></p>`);
+        await sendEmail({ to: convoyeur_email, subject: "Bathily Convoyage - Nouvelle mission assignée", html: convoyeurHtml });
+      }
+
+      resultData = { success: true, message: 'Emails mission assignée envoyés.' };
     }
     else if (trigger === 'support_reply') {
       const { data: ticket, error: ticketErr } = await supabase.from('support_tickets')

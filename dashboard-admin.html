@@ -4503,6 +4503,31 @@ Cadeau premium personnalisé</textarea>
     await sb.from('candidatures').update({ status: 'approved' }).eq('id', candidatureId);
     await sb.from('candidatures').update({ status: 'rejected' }).eq('mission_id', missionId).neq('id', candidatureId);
 
+    // Notifier le client et le convoyeur par email
+    try {
+      const selectedConv = _convoyeursList.find(c => `${c.prenom} ${c.nom}` === convoyeurNom);
+      const mission = _allMissions.find(m => m.id === missionId);
+      if (selectedConv && mission) {
+        const sbA5 = getSupabase();
+        const tokA5 = (await sbA5.auth.getSession()).data?.session?.access_token;
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(tokA5 ? { 'Authorization': `Bearer ${tokA5}` } : {}) },
+          body: JSON.stringify({
+            trigger: 'mission_assigned',
+            id: missionId,
+            convoyeur_nom: `${selectedConv.prenom} ${selectedConv.nom}`,
+            convoyeur_email: selectedConv.email,
+            client_email: mission.client_email,
+            depart: mission.depart,
+            arrivee: mission.arrivee,
+            date_mission: mission.date_mission,
+            reference: mission.reference
+          })
+        });
+      }
+    } catch (e) { console.warn('Notification email candidature failed:', e); }
+
     Swal.fire('Mission attribuée !', `${convoyeurNom} est maintenant le convoyeur de cette mission.`, 'success');
     loadMissions();
     loadCandidatures();
@@ -4638,8 +4663,8 @@ Cadeau premium personnalisé</textarea>
     if (error) {
       Swal.fire('Erreur', error.message, 'error');
     } else {
-      // Notifier le client par email si un convoyeur est assigné
-      if (assignedConvoyeur && mission.client_email) {
+      // Notifier le client et le convoyeur par email si un convoyeur est assigné
+      if (assignedConvoyeur) {
         try {
           const sbA3 = getSupabase();
           const tokA3 = (await sbA3.auth.getSession()).data?.session?.access_token;
@@ -4650,7 +4675,12 @@ Cadeau premium personnalisé</textarea>
               trigger: 'mission_assigned',
               id: missionId,
               convoyeur_nom: `${assignedConvoyeur.prenom} ${assignedConvoyeur.nom}`,
-              client_email: mission.client_email
+              convoyeur_email: assignedConvoyeur.email,
+              client_email: mission.client_email,
+              depart: mission.depart,
+              arrivee: mission.arrivee,
+              date_mission: mission.date_mission,
+              reference: mission.reference
             })
           });
         } catch (e) { console.warn('Notification email failed:', e); }
