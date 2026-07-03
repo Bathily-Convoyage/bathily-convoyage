@@ -4,10 +4,17 @@ import path from 'path';
 
 async function publishTodayPost() {
   const token = process.env.BUFFER_ACCESS_TOKEN;
-  const profileIds = process.env.BUFFER_PROFILE_IDS ? process.env.BUFFER_PROFILE_IDS.split(',') : [];
+  const instagramChannelId = process.env.BUFFER_INSTAGRAM_CHANNEL_ID;
+  const linkedinChannelId = process.env.BUFFER_LINKEDIN_CHANNEL_ID;
+  const tiktokChannelId = process.env.BUFFER_TIKTOK_CHANNEL_ID;
 
-  if (!token || profileIds.length === 0) {
-    console.error("❌ Les variables d'environnement BUFFER_ACCESS_TOKEN et BUFFER_PROFILE_IDS sont requises.");
+  const channels = [];
+  if (instagramChannelId) channels.push({ id: instagramChannelId.trim(), platform: 'instagram' });
+  if (linkedinChannelId) channels.push({ id: linkedinChannelId.trim(), platform: 'linkedin' });
+  if (tiktokChannelId) channels.push({ id: tiktokChannelId.trim(), platform: 'tiktok' });
+
+  if (!token || channels.length === 0) {
+    console.error("❌ Les variables d'environnement BUFFER_ACCESS_TOKEN et au moins un BUFFER_*_CHANNEL_ID sont requises.");
     process.exit(1);
   }
 
@@ -48,10 +55,18 @@ async function publishTodayPost() {
     }
   }
 
-  // Pour chaque profil, nous faisons une requête d'insertion
-  for (const channelId of profileIds) {
-    console.log(`📤 Envoi vers le canal : ${channelId}`);
-    
+  // Pour chaque canal, envoyer le post avec la bonne configuration plateforme
+  for (const { id: channelId, platform } of channels) {
+    console.log(`📤 Envoi vers le canal ${platform} : ${channelId}`);
+
+    // TikTok nécessite obligatoirement une vidéo
+    if (platform === 'tiktok' && !assets.some(a => a.video)) {
+      console.log(`⏭ TikTok ignoré : aucune vidéo disponible pour ce post`);
+      continue;
+    }
+
+    const metadata = getPlatformMetadata(platform, assets);
+
     const query = `
       mutation CreatePost($input: CreatePostInput!) {
         createPost(input: $input) {
@@ -74,12 +89,7 @@ async function publishTodayPost() {
         channelId: channelId,
         schedulingType: 'automatic',
         mode: 'shareNow',
-        metadata: {
-          instagram: {
-            type: 'post',
-            shouldShareToFeed: true
-          }
-        },
+        metadata,
         assets: assets.length > 0 ? assets : undefined
       }
     };
@@ -99,20 +109,36 @@ async function publishTodayPost() {
       if (response.ok && data.data && data.data.createPost) {
         const result = data.data.createPost;
         if (result.__typename === 'PostActionSuccess') {
-          console.log(`✅ Post publié avec succès sur le canal ${channelId} ! ID: ${result.post.id}`);
+          console.log(`✅ Post publié avec succès sur ${platform} (${channelId}) ! ID: ${result.post.id}`);
         } else {
-          console.error(`❌ Échec de la publication sur le canal ${channelId} :`, result.message);
-          process.exit(1);
+          console.error(`❌ Échec de la publication sur ${platform} (${channelId}) :`, result.message);
         }
       } else {
-        console.error(`❌ Échec de la requête API GraphQL pour le canal ${channelId} :`, data);
-        process.exit(1);
+        console.error(`❌ Échec API GraphQL pour ${platform} (${channelId}) :`, data);
       }
     } catch (err) {
-      console.error(`❌ Erreur de requête vers Buffer pour le canal ${channelId} :`, err.message);
-      process.exit(1);
+      console.error(`❌ Erreur réseau pour ${platform} (${channelId}) :`, err.message);
     }
   }
+}
+
+function getPlatformMetadata(platform, assets) {
+  if (platform === 'instagram') {
+    const hasVideo = assets.some(a => a.video);
+    return {
+      instagram: {
+        type: hasVideo ? 'reel' : 'post',
+        shouldShareToFeed: true
+      }
+    };
+  }
+  if (platform === 'linkedin') {
+    return { linkedin: {} };
+  }
+  if (platform === 'tiktok') {
+    return { tiktok: {} };
+  }
+  return undefined;
 }
 
 publishTodayPost();
