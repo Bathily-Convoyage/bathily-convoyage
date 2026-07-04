@@ -45,7 +45,7 @@
     "day": "Friday",
     "text": "� Votre véhicule transporté en 3 étapes simples. Devis gratuit, convoyeur pro, livraison garantie.\n👉 https://www.bathily-convoyage.fr/devis.html",
     "media": [
-      "https://www.bathily-convoyage.fr/images/social/generated/reel-process.png"
+      { "type": "video", "url": "https://www.bathily-convoyage.fr/videos/tiktok/bathily-convoyage-reel.mp4" }
     ]
   },
   {
