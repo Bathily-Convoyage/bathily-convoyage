@@ -23,41 +23,49 @@ async function publishTodayPost() {
   const todayName = days[new Date().getDay()];
   console.log(`📅 Jour détecté : ${todayName}`);
 
-  // Lire les posts
-  const postsPath = path.join(process.cwd(), 'data', 'social-posts.json');
-  if (!fs.existsSync(postsPath)) {
+  // Charger les posts selon la plateforme
+  const defaultPostsPath = path.join(process.cwd(), 'data', 'social-posts.json');
+  const linkedinPostsPath = path.join(process.cwd(), 'data', 'social-posts-linkedin.json');
+
+  if (!fs.existsSync(defaultPostsPath)) {
     console.error("❌ Fichier social-posts.json introuvable.");
     process.exit(1);
   }
 
-  const posts = JSON.parse(fs.readFileSync(postsPath, 'utf8'));
-  const todayPost = posts.find(p => p.day === todayName);
-
-  if (!todayPost) {
-    console.log(`ℹ️ Aucun post programmé pour aujourd'hui (${todayName}).`);
-    return;
-  }
-
-  console.log(`🚀 Envoi du post vers Buffer (GraphQL) : "${todayPost.text.substring(0, 50)}..."`);
-
-  // Préparer les variables GraphQL (supporte image, vidéo, carrousel)
-  const assets = [];
-  if (todayPost.media) {
-    const mediaList = Array.isArray(todayPost.media) ? todayPost.media : [todayPost.media];
-    for (const item of mediaList) {
-      if (typeof item === 'string') {
-        const isVideo = /\.(mp4|mov|webm|mkv|avi)$/i.test(item);
-        assets.push(isVideo ? { video: { url: item } } : { image: { url: item } });
-      } else if (item && item.url) {
-        const isVideo = item.type === 'video' || /\.(mp4|mov|webm|mkv|avi)$/i.test(item.url);
-        assets.push(isVideo ? { video: { url: item.url } } : { image: { url: item.url } });
-      }
-    }
-  }
+  const defaultPosts = JSON.parse(fs.readFileSync(defaultPostsPath, 'utf8'));
+  const linkedinPosts = fs.existsSync(linkedinPostsPath)
+    ? JSON.parse(fs.readFileSync(linkedinPostsPath, 'utf8'))
+    : defaultPosts;
 
   // Pour chaque canal, envoyer le post avec la bonne configuration plateforme
   for (const { id: channelId, platform } of channels) {
     console.log(`📤 Envoi vers le canal ${platform} : ${channelId}`);
+
+    // Sélectionner le bon fichier de posts selon la plateforme
+    const posts = platform === 'linkedin' ? linkedinPosts : defaultPosts;
+    const todayPost = posts.find(p => p.day === todayName);
+
+    if (!todayPost) {
+      console.log(`ℹ️ Aucun post programmé pour ${platform} (${todayName}).`);
+      continue;
+    }
+
+    console.log(`🚀 Envoi du post ${platform} : "${todayPost.text.substring(0, 50)}..."`);
+
+    // Préparer les variables GraphQL (supporte image, vidéo, carrousel)
+    const assets = [];
+    if (todayPost.media) {
+      const mediaList = Array.isArray(todayPost.media) ? todayPost.media : [todayPost.media];
+      for (const item of mediaList) {
+        if (typeof item === 'string') {
+          const isVideo = /\.(mp4|mov|webm|mkv|avi)$/i.test(item);
+          assets.push(isVideo ? { video: { url: item } } : { image: { url: item } });
+        } else if (item && item.url) {
+          const isVideo = item.type === 'video' || /\.(mp4|mov|webm|mkv|avi)$/i.test(item.url);
+          assets.push(isVideo ? { video: { url: item.url } } : { image: { url: item.url } });
+        }
+      }
+    }
 
     // TikTok nécessite obligatoirement une vidéo
     if (platform === 'tiktok' && !assets.some(a => a.video)) {
