@@ -520,6 +520,34 @@
           Votre compte sera validé par notre équipe sous 24h ouvrées.
         </p>
       </form>
+
+      <!-- Bloc pour client existant : demande de devenir convoyeur -->
+      <div id="existingClientBox" style="display:none;max-width:500px;margin:0 auto;background:white;border-radius:16px;padding:40px;box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+        <div style="text-align:center;margin-bottom:24px;">
+          <i class="fas fa-user-check" style="font-size:48px;color:#0A4D68;"></i>
+          <h3 style="color:#0A4D68;margin-top:16px;">Vous avez déjà un compte</h3>
+          <p style="color:#6B625A;font-size:0.9rem;margin-top:8px;" id="existingClientEmail"></p>
+        </div>
+        <p style="color:#2D2A24;font-size:0.95rem;line-height:1.6;text-align:center;margin-bottom:24px;">
+          Vous souhaitez devenir convoyeur partenaire ?<br>
+          Votre demande sera étudiée par notre équipe sous 24h.
+        </p>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label>Ville principale</label>
+          <input type="text" id="convoyeurVille" placeholder="Paris">
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label>Type de permis</label>
+          <select id="convoyeurPermis" style="width:100%;padding:12px;border:1px solid #E8E1D9;border-radius:8px;font-family:inherit;">
+            <option value="B">Permis B (voiture)</option>
+            <option value="A">Permis A (moto)</option>
+            <option value="B+A">Permis B + A (voiture + moto)</option>
+          </select>
+        </div>
+        <button type="button" class="btn-primary" id="requestConvoyeurBtn" style="width:100%;">
+          <i class="fas fa-paper-plane"></i> Demander à devenir convoyeur
+        </button>
+      </div>
     </div>
   </section>
 
@@ -529,6 +557,74 @@
   </footer>
 
   <script>
+    // ========== DETECT EXISTING SESSION ==========
+    (async function() {
+      try {
+        const { createClient } = supabase;
+        const sb = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        const { data: { session } } = await sb.auth.getSession();
+
+        if (session && session.access_token) {
+          // Client connecté - afficher le bloc convoyeur
+          document.getElementById('proSignupForm').style.display = 'none';
+          document.getElementById('existingClientBox').style.display = 'block';
+
+          // Récupérer l'email
+          const { data: { user } } = await sb.auth.getUser();
+          if (user) {
+            document.getElementById('existingClientEmail').textContent = user.email;
+          }
+
+          // Bouton demande convoyeur
+          document.getElementById('requestConvoyeurBtn').addEventListener('click', async function() {
+            const ville = document.getElementById('convoyeurVille').value.trim();
+            const typePermis = document.getElementById('convoyeurPermis').value;
+
+            Swal.fire({ title: 'Envoi de votre demande...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+            try {
+              const response = await fetch('/api/request-convoyeur-role', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({ zone: ville, type_permis: typePermis })
+              });
+              const result = await response.json();
+
+              if (result.error === 'already_convoyeur') {
+                Swal.fire('Déjà convoyeur', 'Vous êtes déjà enregistré comme convoyeur. Connectez-vous au dashboard convoyeur.', 'info');
+                return;
+              }
+
+              if (result.error === 'already_pending') {
+                Swal.fire('Demande en cours', 'Votre demande est déjà en cours de traitement. Patience !', 'info');
+                return;
+              }
+
+              if (!response.ok) {
+                Swal.fire('Erreur', result.error || 'Impossible d\'envoyer la demande.', 'error');
+                return;
+              }
+
+              Swal.fire({
+                title: 'Demande envoyée !',
+                html: 'Votre demande pour devenir convoyeur a bien été enregistrée.<br>Notre équipe vous contactera sous <strong>24h ouvrées</strong>.',
+                icon: 'success',
+                confirmButtonColor: '#0A4D68',
+                confirmButtonText: 'OK'
+              });
+            } catch (err) {
+              Swal.fire('Erreur', err.message, 'error');
+            }
+          });
+        }
+      } catch (e) {
+        // Pas de session - le formulaire classique reste visible
+      }
+    })();
+
     // ========== SIGNUP PRO ==========
     document.getElementById('proSignupForm').addEventListener('submit', async function(e) {
       e.preventDefault();
