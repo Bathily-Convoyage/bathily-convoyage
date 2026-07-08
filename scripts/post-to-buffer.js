@@ -1,6 +1,59 @@
 import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
+import puppeteer from 'puppeteer';
+import { execSync } from 'child_process';
+
+// Fonction pour générer l'image avec Puppeteer
+async function generateBrandedImage(rawImageUrl, textContent) {
+  console.log('🎨 Génération du visuel brandé en cours...');
+  
+  // Extraire la première phrase pour le titre
+  let title = textContent.split('.')[0] + '.';
+  if (title.length > 80) title = title.substring(0, 80) + '...';
+
+  const browser = await puppeteer.launch({ headless: 'new' });
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1080, height: 1080 });
+
+  const templatePath = path.join(process.cwd(), 'social-media', 'template-auto.html');
+  const templateUrl = `file://${templatePath.replace(/\\/g, '/')}`;
+
+  await page.goto(templateUrl, { waitUntil: 'networkidle0' });
+
+  // Injecter le texte et l'image
+  await page.evaluate((url, t) => {
+    setContent(url, t);
+  }, rawImageUrl, title);
+
+  // Laisser 500ms pour que l'image de fond se charge bien
+  await new Promise(r => setTimeout(r, 500));
+
+  const outputPath = path.join(process.cwd(), 'social-media', 'temp-generated.png');
+  await page.screenshot({ path: outputPath, type: 'png' });
+  await browser.close();
+
+  console.log('✅ Visuel généré localement.');
+  return outputPath;
+}
+
+// Fonction pour uploader l'image temporairement et obtenir une URL publique pour Buffer
+function uploadTempImage(filePath) {
+  console.log('☁️ Upload temporaire du visuel pour Buffer...');
+  try {
+    // Utilisation de curl pour uploader sur catbox.moe (service d'hébergement d'images gratuit et direct)
+    const cmd = `curl -s -F "reqtype=fileupload" -F "fileToUpload=@${filePath}" https://catbox.moe/user/api.php`;
+    const url = execSync(cmd).toString().trim();
+    if (url && url.startsWith('http')) {
+      console.log(`✅ Visuel uploadé : ${url}`);
+      return url;
+    }
+    throw new Error('URL invalide retournée par catbox');
+  } catch (err) {
+    console.error('❌ Erreur lors de l\'upload :', err.message);
+    return null;
+  }
+}
 
 async function publishTodayPost() {
   const token = process.env.BUFFER_ACCESS_TOKEN;
@@ -18,12 +71,10 @@ async function publishTodayPost() {
     process.exit(1);
   }
 
-  // Obtenir le jour actuel en anglais (ex: "Monday", "Tuesday")
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const todayName = days[new Date().getDay()];
   console.log(`📅 Jour détecté : ${todayName}`);
 
-  // Charger les posts selon la plateforme
   const defaultPostsPath = path.join(process.cwd(), 'data', 'social-posts.json');
   const linkedinPostsPath = path.join(process.cwd(), 'data', 'social-posts-linkedin.json');
 
@@ -37,11 +88,12 @@ async function publishTodayPost() {
     ? JSON.parse(fs.readFileSync(linkedinPostsPath, 'utf8'))
     : defaultPosts;
 
-  // Pour chaque canal, envoyer le post avec la bonne configuration plateforme
-  for (const { id: channelId, platform } of channels) {
-    console.log(`📤 Envoi vers le canal ${platform} : ${channelId}`);
+  // On génère l'image une seule fois si on l'utilise pour plusieurs plateformes
+  let generatedImageUrl = null;
 
-    // Sélectionner le bon fichier de posts selon la plateforme
+  for (const { id: channelId, platform } of channels) {
+    console.log(`\n📤 Envoi vers le canal ${platform} : ${channelId}`);
+
     const posts = platform === 'linkedin' ? linkedinPosts : defaultPosts;
     const todayPost = posts.find(p => p.day === todayName);
 
@@ -50,24 +102,31 @@ async function publishTodayPost() {
       continue;
     }
 
-    console.log(`🚀 Envoi du post ${platform} : "${todayPost.text.substring(0, 50)}..."`);
+    console.log(`🚀 Préparation du post ${platform} : "${todayPost.text.substring(0, 50)}..."`);
 
-    // Préparer les variables GraphQL (supporte image, vidéo, carrousel)
     const assets = [];
     if (todayPost.media) {
       const mediaList = Array.isArray(todayPost.media) ? todayPost.media : [todayPost.media];
+      
       for (const item of mediaList) {
-        if (typeof item === 'string') {
-          const isVideo = /\.(mp4|mov|webm|mkv|avi)$/i.test(item);
-          assets.push(isVideo ? { video: { url: item } } : { image: { url: item } });
-        } else if (item && item.url) {
-          const isVideo = item.type === 'video' || /\.(mp4|mov|webm|mkv|avi)$/i.test(item.url);
-          assets.push(isVideo ? { video: { url: item.url } } : { image: { url: item.url } });
+        let urlToUse = typeof item === 'string' ? item : item.url;
+        const isVideo = /\.(mp4|mov|webm|mkv|avi)$/i.test(urlToUse);
+        
+        if (!isVideo && !generatedImageUrl) {
+          // Générer l'image brandée
+          const localPath = await generateBrandedImage(urlToUse, todayPost.text);
+          generatedImageUrl = uploadTempImage(localPath);
         }
+
+        // Si l'image a été générée avec succès, on remplace l'URL brute par l'URL de l'image générée
+        if (!isVideo && generatedImageUrl) {
+          urlToUse = generatedImageUrl;
+        }
+
+        assets.push(isVideo ? { video: { url: urlToUse } } : { image: { url: urlToUse } });
       }
     }
 
-    // TikTok nécessite obligatoirement une vidéo
     if (platform === 'tiktok' && !assets.some(a => a.video)) {
       console.log(`⏭ TikTok ignoré : aucune vidéo disponible pour ce post`);
       continue;
@@ -122,7 +181,7 @@ async function publishTodayPost() {
           console.error(`❌ Échec de la publication sur ${platform} (${channelId}) :`, result.message);
         }
       } else {
-        console.error(`❌ Échec API GraphQL pour ${platform} (${channelId}) :`, data);
+        console.error(`❌ Échec API GraphQL pour ${platform} (${channelId}) :`, JSON.stringify(data));
       }
     } catch (err) {
       console.error(`❌ Erreur réseau pour ${platform} (${channelId}) :`, err.message);
@@ -149,4 +208,4 @@ function getPlatformMetadata(platform, assets) {
   return undefined;
 }
 
-publishTodayPost();
+publishTodayPost().catch(console.error);
