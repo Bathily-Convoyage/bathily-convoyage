@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPEml>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -1043,7 +1043,7 @@
 
   <!-- Topbar -->
   <div class="topbar">
-    <a href="index.html" class="topbar-logo"><img src="/logo.png" alt="Bathily-Convoyage" style="height:36px;" /></a>
+    <a href="index.html" class="topbar-logo"><img src="/logo.svg" alt="Bathily-Convoyage" style="height:36px;" /></a>
     <span class="topbar-center">Espace Client</span>
     <div class="topbar-right">
       <div class="topbar-notif" aria-label="Notifications" role="button" tabindex="0">
@@ -1065,7 +1065,7 @@
       <!-- Brand -->
       <div style="text-align:center;margin-bottom:24px;">
         <div style="font-family:'Montserrat',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#2D2A24;">
-          <img src="/logo.png" alt="Bathily-Convoyage" style="height:48px;margin-bottom:8px;" />
+          <img src="/logo.svg" alt="Bathily-Convoyage" style="height:48px;margin-bottom:8px;" />
         </div>
         <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#6B625A;margin-top:4px;">
           Espace Client Sécurisé
@@ -1266,7 +1266,7 @@
           <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
         </div>
         <div style="text-align:center; padding:20px 0; border-top:1px solid var(--border-light)">
-          <span style="font-size:0.7rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Total cumulé : <span style="color:var(--bordeaux)" id="factTotalHt">0€ HT</span></span>
+          <span style="font-size:0.7rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Total cumulé : <span style="color:var(--bordeaux)" id="factTotalHt">0€</span></span>
         </div>
       </div>
 
@@ -1370,7 +1370,7 @@
         <div class="f-grp"><label>Départ</label><input type="text" id="md-depart" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
         <div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
         <div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
-        <div class="f-grp"><label>Montant HT (€)</label><input type="number" id="md-price" readonly style="background:#f5f5f5;cursor:not-allowed;font-weight:bold;color:var(--bordeaux);"></div>
+        <div class="f-grp"><label>Montant (€)</label><input type="number" id="md-price" readonly style="background:#f5f5f5;cursor:not-allowed;font-weight:bold;color:var(--bordeaux);"></div>
       </div>
       <div class="modal-btns"><button class="btn-outline" onclick="closeModal('modalMissionDetails')">Fermer</button></div>
     </div>
@@ -1626,7 +1626,7 @@
           if (res.isConfirmed) {
             const { value: formValues } = await Swal.fire({
               title: 'Demande au support',
-              html: `<div style="text-align:left;">
+             ml: `<div style="text-align:left;">
                 <div class="f-grp" style="margin-bottom:10px;"><label>Votre email</label><input type="email" id="supportEmail" class="swal2-input" value="${email}" style="width:100%"></div>
                 <div class="f-grp" style="margin-bottom:10px;"><label>Votre message</label><textarea id="supportMsg" class="swal2-textarea" placeholder="Expliquez votre situation..." style="width:100%;height:80px;"></textarea></div>
               </div>`,
@@ -1938,7 +1938,7 @@
           <div class="mc-info">
             <div class="mc-ref">${escapeHtml(m.reference || '-')}</div>
             <div class="mc-route">${escapeHtml(m.depart || m.trajet?.split('→')[0]?.trim() || '-')} <em>→</em> ${escapeHtml(m.arrivee || m.trajet?.split('→')[1]?.trim() || '-')}</div>
-            <div class="mc-meta">${tagVehicule}${tagMode}${tagPay}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${escapeHtml(m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-')} - ${m.montant_ht || '-'}€ HT</span></div>
+            <div class="mc-meta">${tagVehicule}${tagMode}${tagPay}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${escapeHtml(m.pack ? m.pack.charAt(0).toUpperCase()+m.pack.slice(1) : '-')} - ${m.montant_ht || '-'}€</span></div>
           </div>
           <div class="mc-progress">
             <svg class="progress-circle" viewBox="0 0 52 52">
@@ -1969,7 +1969,7 @@
       const container = document.getElementById('clientFactList');
       if (!container) return;
       const isPro = _clientUser?.is_pro === true;
-      const priceLabel = isPro ? 'HT' : 'TTC';
+      const priceLabel = '€';
       const billing = missions.filter(m => m.montant_ht);
       if (billing.length === 0) {
         container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-file-invoice" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune facture.</div>';
@@ -1978,7 +1978,7 @@
       }
       const total = billing.reduce((s, m) => {
         const ht = parseFloat(m.montant_ht || 0);
-        return s + (isPro ? ht : ht * 1.20);
+        return s + ht;
       }, 0);
       document.getElementById('factTotalHt').textContent = Math.round(total) + '€ ' + priceLabel;
 
@@ -1996,7 +1996,7 @@
         const dep = (m.depart || '').split('(')[0].trim() || '-';
         const arr = (m.arrivee || '').split('(')[0].trim() || '-';
         const ht = parseFloat(m.montant_ht || 0);
-        const displayPrice = isPro ? ht : Math.round(ht * 1.20);
+        const displayPrice = Math.round(ht);
         return `<div class="fact-item">
           <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
           <div style="flex:1;"><div class="fact-ref">${escapeHtml(invoiceRef)}</div><div class="fact-date">${dateStr} - ${escapeHtml(dep)} → ${escapeHtml(arr)}</div></div>
@@ -2186,7 +2186,7 @@
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
       doc.text('34, rue de Padirac 34070 Montpellier', 14, 28);
-      doc.text('SIRET: 789 285 376 00032 | RCS Montpellier', 14, 34);
+      doc.text('SIRET: 789 285 376 00032 | Entreprise individuelle', 14, 34);
       const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-','') : m.id.slice(0,8).toUpperCase()}`;
       const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
       doc.setFontSize(12);
@@ -2195,29 +2195,26 @@
       doc.text(`Date : ${dateStr}`, 140, 28);
       doc.text('Facturé à :', 14, 50);
       doc.text(_clientName || _clientUser?.email || 'Client', 14, 58);
-      const priceHt = parseFloat(m.montant_ht) || 0;
-      const tva = priceHt * 0.20;
-      const priceTtc = priceHt + tva;
+      const priceTotal = parseFloat(m.montant_ht) || 0;
       doc.autoTable({
         startY: 80,
-        head: [['Description', 'Prix HT', 'TVA', 'Total TTC']],
+        head: [['Description', 'Montant']],
         body: [[
           `Mission de convoyage\nRéf: ${m.reference || 'N/A'}\nTrajet: ${(m.depart || '').split('(')[0].trim()} -> ${(m.arrivee || '').split('(')[0].trim()}`,
-          `${priceHt.toFixed(2)} EUR`, '20%', `${priceTtc.toFixed(2)} EUR`
+          `${priceTotal.toFixed(2)} EUR`
         ]],
         theme: 'grid',
         headStyles: { fillColor: [10, 77, 104], textColor: [255, 255, 255] }
       });
       const finalY = doc.lastAutoTable.finalY || 100;
       doc.setFillColor(249, 246, 240);
-      doc.rect(115, finalY + 10, 80, 35, 'F');
-      doc.text(`Total HT : ${priceHt.toFixed(2)} EUR`, 125, finalY + 18);
-      doc.text(`TVA (20%) : ${tva.toFixed(2)} EUR`, 125, finalY + 26);
-      doc.setDrawColor(10, 77, 104);
-      doc.line(125, finalY + 31, 185, finalY + 31);
+      doc.rect(115, finalY + 10, 80, 27, 'F');
       doc.setFontSize(12);
       doc.setTextColor(10, 77, 104);
-      doc.text(`Total TTC : ${priceTtc.toFixed(2)} EUR`, 125, finalY + 39);
+      doc.text(`Total : ${priceTotal.toFixed(2)} EUR`, 125, finalY + 20);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('TVA non applicable, art. 293 B du CGI', 125, finalY + 30);
       doc.save(`Facture_${invoiceRef}.pdf`);
     }
 

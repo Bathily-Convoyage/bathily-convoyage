@@ -1,4 +1,4 @@
-<html lang="fr">
+﻿<html lang="fr">
 
 <head>
   <meta charset="UTF-8">
@@ -36,7 +36,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
-  <link rel="stylesheet" href=".css/design-system.css">
+  <link rel="stylesheet" href="css/design-system.css">
   <style>
     * {
       margin: 0;
@@ -813,7 +813,7 @@
 
   <header>
     <div class="container header-inner">
-      <a href="index.html" class="logo"><img src="/logo.png" alt="Bathily-Convoyage" /></a>
+      <a href="index.html" class="logo"><img src="/logo.svg" alt="Bathily-Convoyage" /></a>
       <button class="menu-toggle" id="menuToggle" aria-label="Menu principal" style="background:none;border:none;"><i class="fas fa-bars icon-bars"></i><i class="fas fa-times icon-times"></i></button>
       <div class="nav-links">
         <a href="index.html">Accueil</a>
@@ -853,7 +853,7 @@
           <div id="quickQuoteResult" style="display:none; margin-top: 16px; padding: 12px 24px; background: var(--angers-light); border: 1px solid var(--angers); border-radius: 40px; align-items: center; justify-content: center; gap: 16px; font-weight: 600; color: var(--angers); font-size: 0.95rem; box-shadow: 0 4px 12px rgba(122,46,26,0.1); width: max-content; max-width: 100%;">
             <span>📍 Distance : <strong id="quickQuoteDist">€ km</strong></span>
             <span style="color: var(--gray-mid);">|</span>
-            <span> Tarif estimé : <strong id="quickQuotePrice">€ € HT</strong></span>
+            <span> Tarif estimé : <strong id="quickQuotePrice">€ €</strong></span>
           </div>
           <div class="hero-stats">
             <div class="stat">
@@ -908,7 +908,7 @@
           <div class="service-card card-1 reveal">
             <div class="service-icon"><i class="fas fa-road"></i></div>
             <h3>Pilotes par la route</h3>
-            <p>Un convoyeur professionnel assure la conduite de votre auto (1,20 € TTC/km) ou de votre moto (1,00 € TTC/km) vers sa destination.</p>
+            <p>Un convoyeur professionnel assure la conduite de votre auto (1,20 €/km) ou de votre moto (1,00 €/km) vers sa destination.</p>
           </div>
           <div class="service-card card-2 reveal">
             <div class="service-icon"><i class="fas fa-truck-flatbed"></i></div>
@@ -933,8 +933,8 @@
           <div class="price-card popular reveal">
             <div class="price-card-title">Convoyage par la Route</div>
             <div class="price-card-desc">Transport par pilote professionnel qualifié</div>
-            <div class="price-card-val">1,20 €<span> TTC / km (Voiture)</span></div>
-            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif Moto : 1,00 € TTC / km. Min. 150€ TTC par trajet.</p>
+            <div class="price-card-val">1,20 €<span> / km (Voiture)</span></div>
+            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif Moto : 1,00 € / km. Min. 150€ par trajet.</p>
             <ul class="price-card-features">
               <li><i class="fas fa-check"></i> Chauffeur professionnel</li>
               <li><i class="fas fa-check"></i> Suivi GPS en direct (Lien dédié)</li>
@@ -947,7 +947,7 @@
           <div class="price-card reveal">
             <div class="price-card-title">Transport sur Plateau</div>
             <div class="price-card-desc">Sécurité maximale pour véhicules de valeur ou non roulants</div>
-            <div class="price-card-val">1,40 €<span> TTC / km</span></div>
+            <div class="price-card-val">1,40 €<span> / km</span></div>
             <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif dégressif selon la distance réelle.</p>
             <ul class="price-card-features">
               <li><i class="fas fa-check"></i> Aucun kilomètre supplémentaire au compteur</li>
@@ -1162,7 +1162,7 @@
           const base = Math.round(Math.max(dist * rate, isMoto ? 120 : 150));
 
           if (distEl) distEl.textContent = dist + ' km';
-          if (priceEl) priceEl.textContent = base + ' € TTC';
+          if (priceEl) priceEl.textContent = base + ' €';
           if (btn) btn.innerHTML = "Confirmer ce tarif ?";
         } else {
           if (distEl) distEl.textContent = 'Adresse non reconnue';
@@ -1191,7 +1191,7 @@
         const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(query)}&limit=6`;
         try {
           const response = await fetch(url);
-          if (!response.ok) throw new Error(`Erreur HTTP ${response.status}`);
+          if (!response.ok) throw new Error(`ErreurTP ${response.status}`);
           const data = await response.json();
           if (data.features && data.features.length > 0) {
             box.innerHTML = '';

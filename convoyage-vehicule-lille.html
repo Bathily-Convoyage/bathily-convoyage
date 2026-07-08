@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPEml>
 <html lang="fr">
 
 <head>
@@ -37,7 +37,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
-  <link rel="stylesheet" href=".css/design-system.css">
+  <link rel="stylesheet" href="css/design-system.css">
   <style>
     * {
       margin: 0;
@@ -840,7 +840,7 @@
           <div id="quickQuoteResult" style="display:none; margin-top: 16px; padding: 12px 24px; background: var(--bordeaux-light); border: 1px solid var(--bordeaux); border-radius: 40px; align-items: center; justify-content: center; gap: 16px; font-weight: 600; color: var(--bordeaux); font-size: 0.95rem; box-shadow: 0 4px 12px rgba(122,46,26,0.1); width: max-content; max-width: 100%;">
             <span>📍 Distance : <strong id="quickQuoteDist">— km</strong></span>
             <span style="color: var(--gray-mid);">|</span>
-            <span>💰 Tarif estimé : <strong id="quickQuotePrice">— € TTC</strong></span>
+            <span>💰 Tarif estimé : <strong id="quickQuotePrice">— €</strong></span>
           </div>
           <div class="hero-stats">
             <div class="stat">
@@ -920,8 +920,8 @@
           <div class="price-card popular reveal">
             <div class="price-card-title">Convoyage par la Route</div>
             <div class="price-card-desc">Transport flexible par pilote professionnel qualifié</div>
-            <div class="price-card-val">1,20 €<span> TTC / km (Voiture)</span></div>
-            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif Moto : 1,00 € TTC / km. Min. 150€ TTC par trajet.</p>
+            <div class="price-card-val">1,20 €<span> / km (Voiture)</span></div>
+            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif Moto : 1,00 € / km. Min. 150€ par trajet.</p>
             <ul class="price-card-features">
               <li><i class="fas fa-check"></i> Chauffeur professionnel</li>
               <li><i class="fas fa-check"></i> Suivi GPS temps réel (Lien de partage client)</li>
@@ -934,7 +934,7 @@
           <div class="price-card reveal">
             <div class="price-card-title">Transport sur Plateau</div>
             <div class="price-card-desc">Sécurité maximale pour véhicules de valeur ou non roulants</div>
-            <div class="price-card-val">1,40 €<span> TTC / km</span></div>
+            <div class="price-card-val">1,40 €<span> / km</span></div>
             <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Tarif dégressif selon la distance réelle parcourue.</p>
             <ul class="price-card-features">
               <li><i class="fas fa-check"></i> Aucun kilomètre supplémentaire au compteur</li>
@@ -1002,7 +1002,7 @@
           <details class="faq-item">
             <summary>Les convoyeurs conduisent-ils le véhicule ou est-il transporté ?</summary>
             <p>Nous proposons les deux formules selon votre préférence :
-              <br>- <strong>Par la route :</strong> Un convoyeur certifié conduit votre automobile (1,20 € TTC/km) ou votre moto (1,00 € TTC/km). C'est la formule la plus économique et rapide.
+              <br>- <strong>Par la route :</strong> Un convoyeur certifié conduit votre automobile (1,20 €/km) ou votre moto (1,00 €/km). C'est la formule la plus économique et rapide.
               <br>- <strong>Sur plateau :</strong> Votre véhicule est chargé sur un plateau adapté. Zéro kilomètre ajouté et protection contre l'usure de la route.
             </p>
           </details>
@@ -1145,7 +1145,7 @@
           const base = Math.round(Math.max(dist * rate, isMoto ? 120 : 150));
 
           if (distEl) distEl.textContent = dist + ' km';
-          if (priceEl) priceEl.textContent = base + ' € TTC';
+          if (priceEl) priceEl.textContent = base + ' €';
           if (btn) btn.innerHTML = "Confirmer ce tarif →";
         } else {
           if (distEl) distEl.textContent = 'Adresse non reconnue';
@@ -1174,7 +1174,7 @@
         const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(query)}&limit=6`;
         try {
           const response = await fetch(url);
-          if (!response.ok) throw new Error(`Erreur HTTP ${response.status}`);
+          if (!response.ok) throw new Error(`ErreurTP ${response.status}`);
           const data = await response.json();
           if (data.features && data.features.length > 0) {
             box.innerHTML = '';

@@ -76,7 +76,7 @@ export async function onRequest(context) {
       return jsonResponse({ error: 'Le montant de la mission est invalide.' }, 400, getCorsHeaders(request));
     }
 
-    const amountTtcCents = Math.round(priceHt * 1.20 * 100);
+    const amountCents = Math.round(priceHt * 100);
     const baseUrl = env.URL || 'https://www.bathily-convoyage.fr';
     const successUrlFinal = `${baseUrl}/dashboard-client.html?payment_status=success&mission_id=${missionId}`;
     const cancelUrlFinal = `${baseUrl}/dashboard-client.html?payment_status=cancel&mission_id=${missionId}`;
@@ -88,7 +88,7 @@ export async function onRequest(context) {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{
-        price_data: { currency: 'eur', product_data: { name: `Bathily Convoyage - Réf: ${mission.reference}`, description }, unit_amount: amountTtcCents },
+        price_data: { currency: 'eur', product_data: { name: `Bathily Convoyage - Réf: ${mission.reference}`, description }, unit_amount: amountCents },
         quantity: 1,
       }],
       mode: 'payment',

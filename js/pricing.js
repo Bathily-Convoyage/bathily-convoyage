@@ -53,7 +53,7 @@
     var rate = BASE_RATES[vehType] || BASE_RATES.Automobile;
 
     // ── Tarif de base (route) ──
-    prix = distance * rate.perKm;
+    var prix = distance * rate.perKm;
     prix = Math.max(prix, rate.min);
 
     // ── Plateau s'AJOUTE au prix route (minimum 350€) ──
@@ -99,20 +99,19 @@
 
     return {
       prix: prix,
-      prixTTC: Math.round(prix * 1.2),
       distance: distance,
       mode: mode,
       vehType: vehType,
       baseRate: mode === 'plateau' ? COEFFS.plateau_base : rate.perKm,
       details: details,
-      min: min
+      min: rate.min
     };
   }
 
   // ── Formater pour affichage ──
   function formatResult(result) {
     var html = '<div class="quote-detail">';
-    html += '<div class="quote-price"><strong>' + result.prix + ' € HT</strong> (' + result.prixTTC + ' € TTC)</div>';
+    html += '<div class="quote-price"><strong>' + result.prix + ' €</strong></div>';
     if (result.details.length > 0) {
       html += '<div class="quote-details-list">';
       result.details.forEach(function (d) {

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPEml>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -1347,7 +1347,7 @@ async function lookupLicensePlate() {
       
       Swal.fire({
         title: 'Véhicule identifié !',
-        html: `<strong>Marque :</strong> ${escapeHtml(data.marque)}<br><strong>Modèle :</strong> ${escapeHtml(data.modele || '-')}`,
+       ml: `<strong>Marque :</strong> ${escapeHtml(data.marque)}<br><strong>Modèle :</strong> ${escapeHtml(data.modele || '-')}`,
         icon: 'success',
         confirmButtonColor: 'var(--bordeaux)'
       });
@@ -1407,6 +1407,18 @@ async function validateEdl(){
     const missionId = urlParams.get('mission_id') || null;
     const client = getSupabase();
     if (!client) throw new Error("Supabase non disponible");
+
+    // Vérifier l'authentification (RLS exige authenticated pour INSERT edls + UPDATE missions)
+    const { data: { session }, error: authErr } = await client.auth.getSession();
+    if (authErr || !session) {
+      Swal.fire({
+        title: 'Authentification requise',
+        html: 'Vous devez être connecté en tant que convoyeur pour valider un état des lieux.<br><br><a href="dashboard-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">Se connecter</a>',
+        icon: 'warning',
+        showConfirmButton: false
+      });
+      return;
+    }
 
     let finMissionSelfieUrl = null;
     if (STATE.edlType === 'arrivee' && STATE.finMissionSelfie && missionId) {

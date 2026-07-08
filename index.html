@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPEml>
 
 <html lang="fr">
 
@@ -2954,9 +2954,32 @@
   <link rel="canonical" href="https://www.Bathily-Convoyage.fr/">
 
   <script type="application/ld+json">
-
-{"@context":"https://schema.org","@type":"LocalBusiness","name":"Bathily-Convoyage","areaServed":"France","serviceType":["Convoyage automobile","Convoyage moto"]}
-
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "Bathily-Convoyage",
+  "description": "Convoyage auto et moto partout en France. Devis en 2min, suivi GPS temps réel, double RC Pro.",
+  "url": "https://www.bathily-convoyage.fr/",
+  "telephone": "+33758362249",
+  "email": "contact@bathily-convoyage.fr",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "34 rue de Padirac",
+    "addressLocality": "Montpellier",
+    "postalCode": "34070",
+    "addressCountry": "FR"
+  },
+  "areaServed": "France",
+  "priceRange": "€€",
+  "siret": "78928537600032",
+  "serviceType": ["Convoyage automobile", "Convoyage moto", "Transport sur plateau", "Convoyage véhicule électrique", "Convoyage véhicule de luxe"],
+  "openingHoursSpecification": {
+    "@type": "OpeningHoursSpecification",
+    "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+    "opens": "07:00",
+    "closes": "21:00"
+  }
+}
 </script>
 
 <script src="js/lang-switcher.js" defer="None"></script>
@@ -2983,7 +3006,7 @@
 
     <div class="container header-inner">
 
-      <a href="index.html" class="logo"><img src="/logo.png" alt="Bathily-Convoyage" /></a>
+      <a href="index.html" class="logo"><img src="/logo.svg" alt="Bathily-Convoyage" /></a>
 
       <button class="menu-toggle" id="menuToggle" aria-label="Menu principal" style="background:none;border:none;"><i class="fas fa-bars icon-bars"></i><i class="fas fa-times icon-times"></i></button>
 
@@ -3063,7 +3086,7 @@
 
             <span style="color: var(--gray-mid);">|</span>
 
-            <span>💰 Tarif estimé : <strong id="quickQuotePrice">— € TTC</strong></span>
+            <span>💰 Tarif estimé : <strong id="quickQuotePrice">— €</strong></span>
 
             <button onclick="goToDevis()" style="background:var(--bordeaux);color:white;border:none;padding:8px 20px;border-radius:30px;font-size:0.85rem;cursor:pointer;font-weight:600;white-space:nowrap;">Obtenir mon devis →</button>
 
@@ -3317,11 +3340,11 @@
 
             <div class="price-card-desc">Idéal pour les berlines, SUV et motos en toute simplicité</div>
 
-            <div class="price-card-val">1.20 €<span> TTC / km</span></div>
+            <div class="price-card-val">1.20 €<span> / km</span></div>
 
-            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Min. 150 € TTC
+            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Min. 150 €
 
-              par trajet · Moto : 1.00 € TTC/km</p>
+              par trajet · Moto : 1.00 €/km</p>
 
             <ul class="price-card-features">
 
@@ -3347,9 +3370,9 @@
 
             <div class="price-card-desc">Sécurité maximale pour véhicules de prestige ou non roulants</div>
 
-            <div class="price-card-val">1.40 €<span> TTC / km</span></div>
+            <div class="price-card-val">1.40 €<span> / km</span></div>
 
-            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Min. 350 € TTC
+            <p style="font-size: 0.85rem; color: var(--gray-mid); margin-top: -16px; margin-bottom: 24px;">Min. 350 €
 
               par trajet · Zéro km au compteur</p>
 
@@ -3393,7 +3416,7 @@
 
             <div onclick="window.location.href='devis.html?pack=serenite'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
 
-              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Sérénité — +69€ TTC</strong>
+              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Sérénité — +69€</strong>
 
               <span style="font-size: 0.8rem; color: var(--gray-mid);">Tout Starter + nettoyage int./ext., lavage avant livraison, RDV planifié, support VIP.</span>
 
@@ -3401,7 +3424,7 @@
 
             <div onclick="window.location.href='devis.html?pack=excellence'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
 
-              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Excellence — +159€ TTC</strong>
+              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Excellence — +159€</strong>
 
               <span style="font-size: 0.8rem; color: var(--gray-mid);">Tout Sérénité + plein de carburant, photos pro 4K, livraison dim./férié, priorité d'affectation.</span>
 
@@ -3863,7 +3886,7 @@
 
           if (distEl) distEl.textContent = dist + ' km';
 
-          if (priceEl) priceEl.textContent = base + ' € TTC';
+          if (priceEl) priceEl.textContent = base + ' €';
 
           if (btn) btn.innerHTML = "Confirmer ce tarif ?";
 
@@ -3927,7 +3950,7 @@
 
           const response = await fetch(url);
 
-          if (!response.ok) throw new Error(`Erreur HTTP ${response.status}`);
+          if (!response.ok) throw new Error(`ErreurTP ${response.status}`);
 
           const data = await response.json();
 
@@ -4795,9 +4818,9 @@
 
           <p>Le tarif dépend de la distance à parcourir, de la formule choisie (par la route ou sur plateau) et de la
 
-            catégorie de votre véhicule. Notre simulateur en ligne estime un coût à partir de 1,20 € TTC du kilomètre par
+            catégorie de votre véhicule. Notre simulateur en ligne estime un coût à partir de 1,20 € du kilomètre par
 
-            la route, avec un forfait minimum de 150 € TTC.</p>
+            la route, avec un forfait minimum de 150 €.</p>
 
         </details>
 

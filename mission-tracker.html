@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPEml>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -562,22 +562,16 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
   
+  <!-- Firebase Config (sécurisé via firebase-config.js) -->
+  <script src="/firebase-config.js"></script>
+  
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
     import { getDatabase, ref, onValue, off } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
     import { getAuth, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
     
-    const firebaseConfig = {
-      apiKey: "AIzaSyAbPM7pM4umkuG1k_MAUYxddHQMNP9UebM",
-      authDomain: "Bathily-Convoyage-c211b.firebaseapp.com",
-      databaseURL: "https://Bathily-Convoyage-c211b-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "Bathily-Convoyage-c211b",
-      storageBucket: "Bathily-Convoyage-c211b.firebasestorage.app",
-      messagingSenderId: "115133170172",
-      appId: "1:115133170172:web:5fcdc2b835f6df157b3279"
-    };
-    
+    const firebaseConfig = window.FIREBASE_CONFIG || {};
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
@@ -804,7 +798,7 @@
       
       const carIcon = L.divIcon({
         className: 'custom-marker',
-        html: '<div style="width:24px;height:24px;background:#0A4D68;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><i class="fas fa-car" style="color:white;font-size:10px;"></i></div>',
+       ml: '<div style="width:24px;height:24px;background:#0A4D68;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><i class="fas fa-car" style="color:white;font-size:10px;"></i></div>',
         iconSize: [30, 30],
         iconAnchor: [15, 15]
       });

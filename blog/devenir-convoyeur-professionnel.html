@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPEml>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -12,8 +12,8 @@
   <link rel="icon" type="image/png" href="/favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="css/design-system.css">
-  <link rel="stylesheet" href="css/mobile-nav.css">
+  <link rel="stylesheet" href="../css/design-system.css">
+  <link rel="stylesheet" href="../css/mobile-nav.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root { --bordeaux: #0A4D68; --bordeaux-dark: #063244; --bordeaux-light: #E6F0F4; --cream: #FDFBF7; --beige: #F9F6F0; --gray-dark: #2D2A24; --gray-mid: #6B625A; --border-light: #E8E1D9; --success: #4A7C6B; --warning: #F5A623; }
@@ -39,15 +39,15 @@
 
   <header class="site-header" id="siteHeader">
     <div class="container header-inner" style="max-width:1200px;">
-      <a href="index.html" class="logo">Bathily-Convoyage<span>.</span></a>
+      <a href="../index.html" class="logo">Bathily-Convoyage<span>.</span></a>
       <button class="menu-toggle" id="menuToggle" aria-label="Menu principal" style="background:none;border:none;"><i class="fas fa-bars icon-bars"></i><i class="fas fa-times icon-times"></i></button>
       <div class="nav-links">
-        <a href="index.html">Accueil</a>
-        <a href="formation-convoyeur.html">Devenir convoyeur</a>
-        <a href="espace-pro.html">Espace Pro</a>
+        <a href="../index.html">Accueil</a>
+        <a href="../formation-convoyeur.html">Devenir convoyeur</a>
+        <a href="../espace-pro.html">Espace Pro</a>
         <a href="../blog.html" class="active">Blog</a>
-        <a href="contact.html">Contact</a>
-        <a href="dashboard-client.html" class="btn-outline">Espace client</a>
+        <a href="../contact.html">Contact</a>
+        <a href="../dashboard-client.html" class="btn-outline">Espace client</a>
       </div>
     </div>
   </header>
@@ -105,7 +105,7 @@
     <h2>Rémunération d'un convoyeur</h2>
     <p>La rémunération d'un convoyeur dépend du nombre de missions réalisées et de la distance parcourue. Voici une estimation :</p>
     <ul>
-      <li><strong>Tarif de base</strong> : 0,40€ à 0,60€ HT/km selon le type de véhicule</li>
+      <li><strong>Tarif de base</strong> : 0,40€ à 0,60€/km selon le type de véhicule</li>
       <li><strong>Prime par mission</strong> : 10€ à 30€ selon la difficulté</li>
       <li><strong>Revenu mensuel estimé</strong> : 1 500€ à 4 000€ selon le volume</li>
       <li><strong>Avantages</strong> : péages et carburant pris en charge, assurance incluse</li>
@@ -151,7 +151,7 @@
     <p>&copy; 2025 Bathily-Convoyage — <a href="../index.html" style="color:var(--warning);text-decoration:none;">Retour au site</a> · <a href="../blog.html" style="color:var(--warning);text-decoration:none;">Blog</a></p>
   </footer>
 
-  <script src="js/mobile-nav.js" defer></script>
+  <script src="../js/mobile-nav.js" defer></script>
   <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function() {

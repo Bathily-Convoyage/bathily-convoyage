@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPEml>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -729,7 +729,7 @@
             <div class="price-display">
               <div>
                 <div class="price-label">Estimation de votre convoyage</div>
-                <div class="price-amount" id="priceDisplay">— <span>€ HT</span></div>
+                <div class="price-amount" id="priceDisplay">— <span>€</span></div>
                 <div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">
                   Sous réserve de validation définitive
                   <span id="distanceDisplay" style="font-weight:600; margin-left:8px;"></span>
@@ -799,7 +799,7 @@
             <div class="price-display">
               <div>
                 <div class="price-label">Estimation finale</div>
-                <div class="price-amount" id="priceDisplayFinal">— <span>€ HT</span></div>
+                <div class="price-amount" id="priceDisplayFinal">— <span>€</span></div>
                 <div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">
                   Tout inclus : péages, carburant, assurance Double RC Pro, service client
                 </div>
@@ -996,26 +996,26 @@
       var isUrgence = document.getElementById('optUrgence').checked;
       var isGardiennage = document.getElementById('optGardiennage').checked;
 
-      var html = '<div style="display:grid;gap:16px;">';
-      html += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">🚗 Véhicule</strong><br><span style="font-size:0.9rem;">' + escapeHtml(vehLabel) + ' — ' + type + ' — ' + condLabel;
-      if (utilSize) html += ' — ' + utilSize + ' m³';
-      html += '</span></div>';
-      html += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">📍 Trajet</strong><br><span style="font-size:0.9rem;">' + escapeHtml(depart) + ' → ' + escapeHtml(arrivee) + '</span></div>';
-      html += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">🚚 Transport</strong><br><span style="font-size:0.9rem;">' + modeLabel + ' — Pack ' + packLabel;
-      if (isUrgence) html += ' — ⚡ Urgence';
-      if (isGardiennage) html += ' — 🏠 Gardiennage';
-      html += '</span></div>';
-      html += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">👤 Client</strong><br><span style="font-size:0.9rem;">' + escapeHtml(prenom + ' ' + nom) + ' — ' + escapeHtml(email);
-      if (tel) html += ' — ' + escapeHtml(tel);
-      html += '</span></div>';
-      html += '<div style="margin-top:8px;padding:12px;background:white;border-radius:12px;font-size:0.75rem;color:var(--gray-mid);">';
-      html += '<i class="fas fa-check-circle" style="color:var(--success);"></i> Tout inclus : péages, carburant, assurance Double RC Pro, service client<br>';
-      html += '<i class="fas fa-clock" style="color:var(--bordeaux);"></i> Garantie prise en charge sous 72h<br>';
-      html += '<i class="fas fa-shield-halved" style="color:var(--bordeaux);"></i> Double RC Pro + suivi GPS temps réel';
-      html += '</div>';
-      html += '</div>';
+      varml = '<div style="display:grid;gap:16px;">';
+     ml += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">🚗 Véhicule</strong><br><span style="font-size:0.9rem;">' + escapeHtml(vehLabel) + ' — ' + type + ' — ' + condLabel;
+      if (utilSize)ml += ' — ' + utilSize + ' m³';
+     ml += '</span></div>';
+     ml += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">📍 Trajet</strong><br><span style="font-size:0.9rem;">' + escapeHtml(depart) + ' → ' + escapeHtml(arrivee) + '</span></div>';
+     ml += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">🚚 Transport</strong><br><span style="font-size:0.9rem;">' + modeLabel + ' — Pack ' + packLabel;
+      if (isUrgence)ml += ' — ⚡ Urgence';
+      if (isGardiennage)ml += ' — 🏠 Gardiennage';
+     ml += '</span></div>';
+     ml += '<div><strong style="color:var(--bordeaux);font-size:0.85rem;">👤 Client</strong><br><span style="font-size:0.9rem;">' + escapeHtml(prenom + ' ' + nom) + ' — ' + escapeHtml(email);
+      if (tel)ml += ' — ' + escapeHtml(tel);
+     ml += '</span></div>';
+     ml += '<div style="margin-top:8px;padding:12px;background:white;border-radius:12px;font-size:0.75rem;color:var(--gray-mid);">';
+     ml += '<i class="fas fa-check-circle" style="color:var(--success);"></i> Tout inclus : péages, carburant, assurance Double RC Pro, service client<br>';
+     ml += '<i class="fas fa-clock" style="color:var(--bordeaux);"></i> Garantie prise en charge sous 72h<br>';
+     ml += '<i class="fas fa-shield-halved" style="color:var(--bordeaux);"></i> Double RC Pro + suivi GPS temps réel';
+     ml += '</div>';
+     ml += '</div>';
 
-      document.getElementById('recapContent').innerHTML = html;
+      document.getElementById('recapContent').innerHTML =ml;
 
       // Copier le prix dans le display final
       var priceEl = document.getElementById('priceDisplay');
@@ -1075,7 +1075,7 @@
 
           Swal.fire({
             title: 'Véhicule identifié !',
-            html: `<strong>${data.marque} ${data.modele || ''}</strong><br>${data.energie || ''} • ${data.annee || ''}`,
+           ml: `<strong>${data.marque} ${data.modele || ''}</strong><br>${data.energie || ''} • ${data.annee || ''}`,
             icon: 'success',
             confirmButtonColor: 'var(--bordeaux)'
           });
@@ -1324,14 +1324,14 @@
       }
     }
 
-    // ========== MODE PRO (tarifs HT) ==========
+    // ========== MODE PRO (tarifs) ==========
     const _isProMode = new URLSearchParams(window.location.search).get('pro') === '1';
-    const _priceSuffix = _isProMode ? 'HT' : 'TTC';
+    const _priceSuffix = '';
     if (_isProMode) {
       document.title = 'Devis Pro - Bathily-Convoyage';
       const banner = document.createElement('div');
       banner.style.cssText = 'background:#0A4D68;color:white;text-align:center;padding:8px;font-size:0.8rem;font-weight:600;';
-      banner.innerHTML = '<i class="fas fa-briefcase"></i> Espace Pro — Tarifs HT réservés aux professionnels';
+      banner.innerHTML = '<i class="fas fa-briefcase"></i> Espace Pro — Tarifs réservés aux professionnels';
       document.body.insertBefore(banner, document.body.firstChild);
     }
 
@@ -1388,7 +1388,7 @@
         return;
       }
 
-      // Tarifs — Public TTC / Pro HT (avec nouveaux types)
+      // Tarifs — Public / Pro (avec nouveaux types)
       const baseRates = _isProMode ? {
         'Automobile': { route: 1.00, plateau: 0.67 },
         'Moto': { route: 0.77, plateau: 0.67 },
@@ -1406,7 +1406,7 @@
       const minRoute = _isProMode ? (type === 'Moto' ? 100 : 125) : (type === 'Moto' ? 120 : 150);
       if (basePrice < minRoute) basePrice = minRoute;
 
-      // Le plateau s'AJOUTE au prix du trajet (minimum 350€ / 292€ HT)
+      // Le plateau s'AJOUTE au prix du trajet (minimum 350€ / 292€)
       if (mode === 'plateau') {
         var plateauRate = baseRates[type]?.['plateau'] || 1.40;
         let plateauPrice = Math.round(dist * plateauRate);
@@ -1549,10 +1549,9 @@
         return;
       }
 
-      // En mode pro, le prix affiché est HT. En mode public, le prix affiché est TTC.
-      // On stocke toujours le HT en base pour la compta.
-      const totalHt = _isProMode ? totalDisplayed : Math.round(totalDisplayed / 1.20 * 100) / 100;
-      const totalTtc = _isProMode ? Math.round(totalDisplayed * 1.20) : totalDisplayed;
+      // TVA non applicable — franchise en base (art. 293 B CGI)
+      // Le prix affiché est le prix final, identique pour tous
+      const totalHt = totalDisplayed;
 
       const ref = 'BC-DEV-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase());
 
@@ -1588,7 +1587,7 @@
           message: message || '',
           promo_code: promoCode || null,
           is_pro: _isProMode,
-          total_ttc: totalTtc
+          remuneration_convoyeur: Math.round(totalHt * 0.60)
         },
         status: 'pending'
       };
@@ -1623,7 +1622,6 @@
             arrivee: arrivee,
             total: totalDisplayed,
             total_ht: totalHt,
-            total_ttc: totalTtc,
             is_pro: _isProMode,
             distance: _currentDistance || 0,
           })
@@ -1637,7 +1635,7 @@
 
       Swal.fire({
         title: 'Devis envoyé ! ⭐',
-        html: `Votre devis <strong>${ref}</strong> a bien été enregistré.<br><br>Distance estimée : <strong>${_currentDistance || '?'} km</strong><br>Montant estimé : <strong>${totalDisplayed} € ${_priceSuffix}</strong>${_isProMode ? '' : '<br><small>Soit ' + totalHt + ' € HT + TVA 20%</small>'}<br><br>Nous vous répondrons sous 24h ouvrées.<br><br><small>Un email de confirmation vous a été envoyé.</small>`,
+       ml: `Votre devis <strong>${ref}</strong> a bien été enregistré.<br><br>Distance estimée : <strong>${_currentDistance || '?'} km</strong><br>Montant estimé : <strong>${totalDisplayed} €</strong><br><br>Nous vous répondrons sous 24h ouvrées.<br><br><small>Un email de confirmation vous a été envoyé.</small>`,
         icon: 'success',
         confirmButtonColor: 'var(--bordeaux)',
         confirmButtonText: 'OK'

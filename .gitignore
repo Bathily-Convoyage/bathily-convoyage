@@ -37,6 +37,6 @@ fix_*.py
 # Temp files
 *.tmp
 
-# Sensitive config files (root-level only — public/ copies are build-generated)
-/supabase-config.js
-/firebase-config.js
+# Sensitive config files (exclure partout, y compris dans public/)
+supabase-config.js
+firebase-config.js

@@ -69,9 +69,14 @@ export async function onRequest(context) {
       if (clientEmail) {
         try {
           const { data: existingUsers } = await supabase.auth.admin.listUsers();
-          const alreadyExists = existingUsers?.users?.some(u => u.email === clientEmail);
+          const existingAuthUser = existingUsers?.users?.find(u => u.email === clientEmail);
+          let authUserId = null;
 
-          if (!alreadyExists) {
+          if (existingAuthUser) {
+            // Utilisateur Auth déjà existant (ex: convoyeur qui paie un devis)
+            authUserId = existingAuthUser.id;
+          } else {
+            // Nouvel utilisateur : créer le compte Auth
             tempPassword = randomHex(6).toUpperCase().slice(0, 8) + randomHex(3).slice(0, 3) + '!';
 
             const { data: newAuthUser, error: authError } = await supabase.auth.admin.createUser({
@@ -80,12 +85,30 @@ export async function onRequest(context) {
             });
 
             if (!authError) {
+              authUserId = newAuthUser.user.id;
+            }
+          }
+
+          // Créer ou mettre à jour la ligne clients (dans tous les cas)
+          if (authUserId) {
+            const { data: existingClient } = await supabase.from('clients')
+              .select('id').eq('email', clientEmail).maybeSingle();
+
+            if (existingClient) {
               await supabase.from('clients').update({
-                auth_user_id: newAuthUser.user.id,
+                auth_user_id: authUserId,
                 prenom: mission.client_nom?.split(' ')[0] || 'Client',
                 nom: mission.client_nom?.split(' ').slice(1).join(' ') || '',
-                email: clientEmail, role: 'client'
+                role: 'client'
               }).eq('email', clientEmail);
+            } else {
+              await supabase.from('clients').insert([{
+                auth_user_id: authUserId,
+                email: clientEmail,
+                prenom: mission.client_nom?.split(' ')[0] || 'Client',
+                nom: mission.client_nom?.split(' ').slice(1).join(' ') || '',
+                role: 'client'
+              }]);
             }
           }
         } catch (authErr) {

@@ -31,6 +31,12 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://www.bathily-convoyage.fr/espace-pro.html</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.bathily-convoyage.fr/convoyage-moto-voiture-france.html</loc>
     <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
@@ -278,6 +284,12 @@
   </url>
   <url>
     <loc>https://www.bathily-convoyage.fr/blog/convoyage-ou-transport-camion.html</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.bathily-convoyage.fr/blog/devenir-convoyeur-professionnel.html</loc>
     <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

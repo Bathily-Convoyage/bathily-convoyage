@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPEml>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -22,6 +22,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="/js/pricing.js"></script>
   <style>
     * {
       margin: 0;
@@ -1519,7 +1520,7 @@
   <!-- AUTH OVERLAY -->
   <div id="authOverlay">
     <form class="auth-box" onsubmit="event.preventDefault();">
-      <div class="auth-logo"><img src="/logo.png" alt="Bathily-Convoyage" style="height:48px;" /></div>
+      <div class="auth-logo"><img src="/logo.svg" alt="Bathily-Convoyage" style="height:48px;" /></div>
       <div class="auth-sub">Accès administrateur sécurisé</div>
       <input type="email" id="adminEmailInput" class="auth-input" placeholder="Email admin" autocomplete="email">
       <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Mot de passe" autocomplete="current-password">
@@ -1536,7 +1537,7 @@
   <div class="topbar">
     <div class="topbar-left">
       <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileNav()" aria-label="Menu navigation" title="Ouvrir le menu"><i class="fas fa-bars"></i></button>
-      <a href="index.html" class="topbar-logo"><img src="/logo.png" alt="Bathily-Convoyage" style="height:36px;" /></a>
+      <a href="index.html" class="topbar-logo"><img src="/logo.svg" alt="Bathily-Convoyage" style="height:36px;" /></a>
       <span class="topbar-tag">Admin</span>
     </div>
     <div class="topbar-right">
@@ -1626,7 +1627,7 @@
           <h2 class="sec-h">Chiffre d'affaires <em>2025</em></h2>
         </div>
         <div class="chart-area">
-          <div class="chart-title">CA mensuel 2025 (€ HT)</div>
+          <div class="chart-title">CA mensuel 2025 (€)</div>
           <div class="chart-bars" id="caChart"></div>
         </div>
         <div class="mini-cards">
@@ -1751,7 +1752,7 @@
         </div>
         <table class="data-table">
           <thead>
-            <tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Convoyeur</th><th>Mode</th><th>Pack</th><th>Montant HT</th><th>Rém. convoyeur</th><th>Marge</th><th>Paiement</th><th>Statut</th><th>Date</th><th>Actions</th></tr>
+            <tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Convoyeur</th><th>Mode</th><th>Pack</th><th>Montant</th><th>Rém. convoyeur</th><th>Marge</th><th>Paiement</th><th>Statut</th><th>Date</th><th>Actions</th></tr>
           </thead>
           <tbody id="missionsTableBody"></tbody>
         </table>
@@ -1761,6 +1762,7 @@
       <div class="tab-content" id="tab-devis">
         <div class="dash-header">
           <h1 class="dash-hello">Devis <em>en attente</em></h1>
+          <button class="btn-sm btn-sm-red" onclick="createDevisAdmin()" style="margin-top:10px;"><i class="fas fa-plus"></i> Créer un devis personnalisé</button>
         </div>
         <div class="alert alert-warn" id="devisAlertBanner"><i class="fas fa-clock"></i> Chargement des devis...</div>
         <table class="data-table">
@@ -1864,8 +1866,8 @@
           <div class="config-grid">
             <div class="config-item"><label>Tarif automobile (€/km)</label><div class="editable-num"><input class="num-input" type="number" value="1.00" step="0.05" id="tarifAutoKm"><span class="num-unit">€/km</span><button class="save-inline" data-config="tarifAutoKm">Enreg.</button></div></div>
             <div class="config-item"><label>Tarif moto (€/km)</label><div class="editable-num"><input class="num-input" type="number" value="0.85" step="0.05" id="tarifMotoKm"><span class="num-unit">€/km</span><button class="save-inline" data-config="tarifMotoKm">Enreg.</button></div></div>
-            <div class="config-item"><label>Minimum auto</label><div class="editable-num"><input class="num-input" type="number" value="120" step="5" id="minAuto"><span class="num-unit">€ HT</span><button class="save-inline" data-config="minAuto">Enreg.</button></div></div>
-            <div class="config-item"><label>Minimum moto</label><div class="editable-num"><input class="num-input" type="number" value="100" step="5" id="minMoto"><span class="num-unit">€ HT</span><button class="save-inline" data-config="minMoto">Enreg.</button></div></div>
+            <div class="config-item"><label>Minimum auto</label><div class="editable-num"><input class="num-input" type="number" value="120" step="5" id="minAuto"><span class="num-unit">€</span><button class="save-inline" data-config="minAuto">Enreg.</button></div></div>
+            <div class="config-item"><label>Minimum moto</label><div class="editable-num"><input class="num-input" type="number" value="100" step="5" id="minMoto"><span class="num-unit">€</span><button class="save-inline" data-config="minMoto">Enreg.</button></div></div>
             <div class="config-item"><label>Majoration SUV</label><div class="editable-num"><input class="num-input" type="number" value="15" step="1" id="majSuv"><span class="num-unit">%</span><button class="save-inline" data-config="majSuv">Enreg.</button></div></div>
             <div class="config-item"><label>Majoration Utilitaire</label><div class="editable-num"><input class="num-input" type="number" value="20" step="1" id="majUtil"><span class="num-unit">%</span><button class="save-inline" data-config="majUtil">Enreg.</button></div></div>
           </div>
@@ -1873,10 +1875,10 @@
         <div class="config-card">
           <div class="config-card-header"><span class="config-card-title"><i class="fas fa-truck"></i> Transport plateau — Forfaits</span><span class="config-card-tag">Tarif client</span></div>
           <div class="config-grid">
-            <div class="config-item"><label>0 – 100 km</label><div class="editable-num"><input class="num-input" type="number" value="350" step="10" id="p1"><span class="num-unit">€ HT</span><button class="save-inline" data-config="p1">Enreg.</button></div></div>
-            <div class="config-item"><label>100 – 300 km</label><div class="editable-num"><input class="num-input" type="number" value="550" step="10" id="p2"><span class="num-unit">€ HT</span><button class="save-inline" data-config="p2">Enreg.</button></div></div>
-            <div class="config-item"><label>300 – 500 km</label><div class="editable-num"><input class="num-input" type="number" value="750" step="10" id="p3"><span class="num-unit">€ HT</span><button class="save-inline" data-config="p3">Enreg.</button></div></div>
-            <div class="config-item"><label>500 km +</label><div class="editable-num"><input class="num-input" type="number" value="1100" step="10" id="p4"><span class="num-unit">€ HT</span><button class="save-inline" data-config="p4">Enreg.</button></div></div>
+            <div class="config-item"><label>0 – 100 km</label><div class="editable-num"><input class="num-input" type="number" value="350" step="10" id="p1"><span class="num-unit">€</span><button class="save-inline" data-config="p1">Enreg.</button></div></div>
+            <div class="config-item"><label>100 – 300 km</label><div class="editable-num"><input class="num-input" type="number" value="550" step="10" id="p2"><span class="num-unit">€</span><button class="save-inline" data-config="p2">Enreg.</button></div></div>
+            <div class="config-item"><label>300 – 500 km</label><div class="editable-num"><input class="num-input" type="number" value="750" step="10" id="p3"><span class="num-unit">€</span><button class="save-inline" data-config="p3">Enreg.</button></div></div>
+            <div class="config-item"><label>500 km +</label><div class="editable-num"><input class="num-input" type="number" value="1100" step="10" id="p4"><span class="num-unit">€</span><button class="save-inline" data-config="p4">Enreg.</button></div></div>
             <div class="config-item"><label>Majoration Custom</label><div class="editable-num"><input class="num-input" type="number" value="10" step="1" id="majCustom"><span class="num-unit">%</span><button class="save-inline" data-config="majCustom">Enreg.</button></div></div>
           </div>
         </div>
@@ -1963,7 +1965,7 @@ Suivi GPS basique</textarea>
                   <div class="pack-title" id="display_name_pack_serenite">Sérénité</div>
                   <div class="pack-subtitle">Confort & sérénité</div>
                 </div>
-                <span class="pack-price-badge paid" id="tag_pack_serenite">+49€ HT</span>
+                <span class="pack-price-badge paid" id="tag_pack_serenite">+49€</span>
               </div>
               <div class="pack-body">
                 <ul class="pack-features-list" id="display_features_pack_serenite">
@@ -1977,7 +1979,7 @@ Suivi GPS basique</textarea>
                     <input type="text" id="name_pack_serenite" value="Sérénité">
                   </div>
                   <div class="f-grp">
-                    <label>Prix HT (€)</label>
+                    <label>Prix (€)</label>
                     <input type="number" id="price_pack_serenite" value="49" step="1" style="width:100%;border:1px solid var(--border-light);border-radius:10px;padding:8px 12px;font-size:0.8rem;">
                   </div>
                   <div class="f-grp">
@@ -2001,7 +2003,7 @@ Check-list digitale par email</textarea>
                   <div class="pack-title" id="display_name_pack_excellence">Excellence</div>
                   <div class="pack-subtitle">Premium & prestige</div>
                 </div>
-                <span class="pack-price-badge premium" id="tag_pack_excellence">+129€ HT</span>
+                <span class="pack-price-badge premium" id="tag_pack_excellence">+129€</span>
               </div>
               <div class="pack-body">
                 <ul class="pack-features-list" id="display_features_pack_excellence">
@@ -2015,7 +2017,7 @@ Check-list digitale par email</textarea>
                     <input type="text" id="name_pack_excellence" value="Excellence">
                   </div>
                   <div class="f-grp">
-                    <label>Prix HT (€)</label>
+                    <label>Prix (€)</label>
                     <input type="number" id="price_pack_excellence" value="129" step="1" style="width:100%;border:1px solid var(--border-light);border-radius:10px;padding:8px 12px;font-size:0.8rem;">
                   </div>
                   <div class="f-grp">
@@ -2049,10 +2051,10 @@ Cadeau premium personnalisé</textarea>
         </div>
         <table class="data-table">
           <thead>
-            <tr><th>N° Facture</th><th>Client</th><th>Mission</th><th>Montant HT</th><th>TVA (20%)</th><th>Montant TTC</th><th>Statut</th><th>Date</th><th>Actions</th></tr>
+            <tr><th>N° Facture</th><th>Client</th><th>Mission</th><th>Montant</th><th>Statut</th><th>Date</th><th>Actions</th></tr>
           </thead>
           <tbody id="invoicesTableBody">
-            <tr><td colspan="9" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Chargement...</td></tr>
+            <tr><td colspan="7" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Chargement...</td></tr>
           </tbody>
         </table>
       </div>
@@ -2065,7 +2067,7 @@ Cadeau premium personnalisé</textarea>
         <div class="stats-row" id="analyticsKpiRow">
           <div class="stat-card"><div class="stat-ico"><i class="fas fa-route"></i></div><div class="stat-val" id="kpi-missions">—</div><div class="stat-lbl">Missions totales</div></div>
           <div class="stat-card"><div class="stat-ico"><i class="fas fa-check-circle"></i></div><div class="stat-val" id="kpi-completed">—</div><div class="stat-lbl">Missions terminées</div></div>
-          <div class="stat-card"><div class="stat-ico"><i class="fas fa-euro-sign"></i></div><div class="stat-val" id="kpi-ca">—</div><div class="stat-lbl">CA Total (€ HT)</div></div>
+          <div class="stat-card"><div class="stat-ico"><i class="fas fa-euro-sign"></i></div><div class="stat-val" id="kpi-ca">—</div><div class="stat-lbl">CA Total (€)</div></div>
           <div class="stat-card"><div class="stat-ico"><i class="fas fa-percentage"></i></div><div class="stat-val" id="kpi-marge">—</div><div class="stat-lbl">Marge brute moy.</div></div>
           <div class="stat-card"><div class="stat-ico"><i class="fas fa-truck"></i></div><div class="stat-val" id="kpi-convoyeurs">—</div><div class="stat-lbl">Convoyeurs actifs</div></div>
         </div>
@@ -2144,7 +2146,7 @@ Cadeau premium personnalisé</textarea>
         </div>
         <div style="max-width:700px;background:white;border-radius:24px;padding:28px;border:1px solid var(--border-light);">
           <div class="f-grp"><label>Sujet</label><input type="text" id="campagneSujet" placeholder="Sujet de l'email"></div>
-          <div class="f-grp"><label>Contenu (HTML)</label><textarea id="campagneContenu" rows="8" placeholder="Contenu HTML de votre campagne"></textarea></div>
+          <div class="f-grp"><label>Contenu (HTML)</label><textarea id="campagneContenu" rows="8" placeholder="ContenuML de votre campagne"></textarea></div>
           <button class="btn-red" onclick="sendCampagne()"><i class="fas fa-paper-plane"></i> Envoyer à tous les abonnés</button>
         </div>
         <div class="sec-title" style="margin-top:32px;">
@@ -2261,7 +2263,7 @@ Cadeau premium personnalisé</textarea>
         <div class="f-grp"><label>Date souhaitée</label><input type="date" id="manual-date"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Montant Client HT (€)</label><input type="number" id="manual-price" placeholder="340"></div>
+        <div class="f-grp"><label>Montant Client (€)</label><input type="number" id="manual-price" placeholder="340"></div>
         <div class="f-grp"><label>Rémunération convoyeur (€)</label><input type="number" id="manual-remuneration" placeholder="Laisser vide pour calcul auto"></div>
       </div>
       <div style="margin-bottom:15px; background:var(--bordeaux-light); padding:12px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
@@ -2415,7 +2417,7 @@ Cadeau premium personnalisé</textarea>
         <div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Montant HT (€)</label><input type="number" id="md-price"></div>
+        <div class="f-grp"><label>Montant (€)</label><input type="number" id="md-price"></div>
         <div class="f-grp"><label>Rémunération convoyeur (€)</label><input type="number" id="md-rem"></div>
       </div>
       <div class="f-row">
@@ -2845,7 +2847,7 @@ Cadeau premium personnalisé</textarea>
 
         Swal.fire({
           title: 'Véhicule identifié !',
-          html: `<strong>${data.marque} ${data.modele || ''}</strong><br>${data.energie || ''} • ${data.annee || ''}`,
+         ml: `<strong>${data.marque} ${data.modele || ''}</strong><br>${data.energie || ''} • ${data.annee || ''}`,
           icon: 'success',
           confirmButtonColor: 'var(--bordeaux)'
         });
@@ -3207,7 +3209,7 @@ Cadeau premium personnalisé</textarea>
     }
   }
 
-  // Note: Le bouton deleteConvoyeur HTML a été remplacé par adminDeleteUser.
+  // Note: Le bouton deleteConvoyeurML a été remplacé par adminDeleteUser.
   // L'ancienne fonction deleteConvoyeur reste par compatibilité au cas où.
 
   // ============================================================
@@ -3696,9 +3698,7 @@ Cadeau premium personnalisé</textarea>
       vehicule: m.vehicule || '—',
       pack: m.pack || '—',
       convoyeur: m.convoyeur_nom || '—',
-      ht: parseFloat(m.montant_ht) || 0,
-      tva: (parseFloat(m.montant_ht) || 0) * 0.20,
-      ttc: (parseFloat(m.montant_ht) || 0) * 1.20,
+      montant: parseFloat(m.montant_ht) || 0,
       status: m.paiement_statut || 'pending',
       date: formatDate(m.date_mission || m.created_at),
       dateRaw: m.date_mission || m.created_at
@@ -3711,8 +3711,6 @@ Cadeau premium personnalisé</textarea>
         <td>${escapeHtml(inv.client)}</td>
         <td>${escapeHtml(inv.mission)}</td>
         <td>${inv.ht.toFixed(2)} €</td>
-        <td>${inv.tva.toFixed(2)} €</td>
-        <td>${inv.ttc.toFixed(2)} €</td>
         <td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusText}</span></td>
         <td>${inv.date}</td>
         <td><button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation(); downloadInvoice('${inv.id}')" title="Télécharger PDF"><i class="fas fa-download"></i></button></td>
@@ -3723,16 +3721,14 @@ Cadeau premium personnalisé</textarea>
   window.viewInvoiceDetails = function(missionId) {
     const m = _allMissions.find(x => x.id === missionId);
     if (!m) return Swal.fire('Erreur', 'Facture introuvable', 'error');
-    const ht = parseFloat(m.montant_ht) || 0;
-    const tva = ht * 0.20;
-    const ttc = ht * 1.20;
+    const montant = parseFloat(m.montant_ht) || 0;
     const payStatus = m.paiement_statut || 'pending';
     const payText = payStatus === 'paid' || payStatus === 'paye' ? 'Payée' : 'En attente';
     const payClass = payStatus === 'paid' || payStatus === 'paye' ? 'sp-ok' : 'sp-err';
 
     Swal.fire({
       title: `Facture F-${escapeHtml(m.reference || '000')}`,
-      html: `<div style="text-align:left;font-size:0.9rem;">
+     ml: `<div style="text-align:left;font-size:0.9rem;">
         <div style="display:flex;gap:8px;margin-bottom:12px;"><span class="sp ${payClass}"><span class="sp-dot"></span>${payText}</span></div>
         <b>N° Facture :</b> F-${escapeHtml(m.reference || '000')}<br>
         <b>Client :</b> ${escapeHtml(m.client_nom || '—')}<br>
@@ -3745,9 +3741,8 @@ Cadeau premium personnalisé</textarea>
         <b>Convoyeur :</b> ${escapeHtml(m.convoyeur_nom || '—')}<br>
         <b>Date :</b> ${formatDate(m.date_mission || m.created_at)}<br>
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Montant HT :</b> ${ht.toFixed(2)} €<br>
-        <b>TVA (20%) :</b> ${tva.toFixed(2)} €<br>
-        <b>Montant TTC :</b> ${ttc.toFixed(2)} €<br>
+        <b>Montant :</b> ${ht.toFixed(2)} €<br>
+        <span style="font-size:0.8rem;color:#888;">TVA non applicable — franchise en base (art. 293 B CGI)</span><br>
         <hr style="margin:14px 0;border-color:#eee;">
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
           <button class="btn-sm btn-sm-ghost" onclick="Swal.close(); downloadInvoice('${m.id}')" style="margin-right:6px;"><i class="fas fa-download"></i> Télécharger PDF</button>
@@ -3764,9 +3759,7 @@ Cadeau premium personnalisé</textarea>
   window.downloadInvoice = function(missionId) {
     const m = _allMissions.find(x => x.id === missionId);
     if (!m) return Swal.fire('Erreur', 'Facture introuvable', 'error');
-    const ht = parseFloat(m.montant_ht) || 0;
-    const tva = ht * 0.20;
-    const ttc = ht * 1.20;
+    const montant = parseFloat(m.montant_ht) || 0;
     const payStatus = m.paiement_statut || 'pending';
     const payText = payStatus === 'paid' || payStatus === 'paye' ? 'PAYÉE' : 'EN ATTENTE';
     const dateStr = formatDate(m.date_mission || m.created_at);
@@ -3810,9 +3803,9 @@ Cadeau premium personnalisé</textarea>
 
       doc.autoTable({
         startY: 68,
-        head: [['Désignation', 'Détails', 'Montant HT']],
+        head: [['Désignation', 'Détails', 'Montant']],
         body: [
-          ['Convoyage ' + (m.vehicule || '-'), (m.depart || '-') + ' vers ' + (m.arrivee || '-'), ht.toFixed(2) + ' EUR'],
+          ['Convoyage ' + (m.vehicule || '-'), (m.depart || '-') + ' vers ' + (m.arrivee || '-'), montant.toFixed(2) + ' EUR'],
           ['Pack', m.pack || '-', ''],
           ['Mode', m.mode || 'route', '']
         ],
@@ -3822,15 +3815,14 @@ Cadeau premium personnalisé</textarea>
 
       const finalY = doc.lastAutoTable.finalY || 90;
       doc.setFontSize(10);
-      doc.text('Montant HT:', 130, finalY + 14);
-      doc.text(ht.toFixed(2) + ' EUR', 180, finalY + 14, { align: 'right' });
-      doc.text('TVA (20%):', 130, finalY + 20);
-      doc.text(tva.toFixed(2) + ' EUR', 180, finalY + 20, { align: 'right' });
       doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
-      doc.text('Montant TTC:', 130, finalY + 28);
-      doc.text(ttc.toFixed(2) + ' EUR', 180, finalY + 28, { align: 'right' });
+      doc.text('Montant total:', 130, finalY + 14);
+      doc.text(ht.toFixed(2) + ' EUR', 180, finalY + 14, { align: 'right' });
       doc.setFont(undefined, 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text('TVA non applicable — franchise en base (art. 293 B CGI)', 130, finalY + 20);
 
       doc.setFontSize(10);
       doc.setTextColor(10, 77, 104);
@@ -3840,7 +3832,7 @@ Cadeau premium personnalisé</textarea>
 
       doc.setFontSize(8);
       doc.setTextColor(120);
-      doc.text('Bathily-Convoyage — SIRET: XXX XXX XXX XXXXX — TVA: FRXXXXXXXXXX', 14, 285);
+      doc.text('Bathily-Convoyage — SIRET: 789 285 376 00032 — Entreprise individuelle (micro-entrepreneur)', 14, 285);
 
       doc.save(invoiceNum + '.pdf');
     } catch (err) {
@@ -3904,8 +3896,7 @@ Cadeau premium personnalisé</textarea>
       const dateStr = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
       const isPro = d.details?.is_pro === true;
       const proBadge = isPro ? ' <span class="sp sp-att" style="font-size:0.65rem;"><span class="sp-dot"></span>Pro</span>' : '';
-      const priceLabel = isPro ? 'HT' : 'TTC';
-      const displayPrice = isPro ? (d.total_ht ? parseFloat(d.total_ht).toFixed(2) + ' € HT' : '—') : (d.details?.total_ttc ? parseFloat(d.details.total_ttc).toFixed(2) + ' € TTC' : (d.total_ht ? (parseFloat(d.total_ht) * 1.20).toFixed(2) + ' € TTC' : '—'));
+      const displayPrice = d.total_ht ? parseFloat(d.total_ht).toFixed(2) + ' €' : '—';
       return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewDevisDetails('${d.id}'); }">
         <td>${escapeHtml(d.reference || '—')}</td>
         <td>${escapeHtml(d.client_prenom || '')} ${escapeHtml(d.client_nom || '')}${proBadge}</td>
@@ -3946,11 +3937,10 @@ Cadeau premium personnalisé</textarea>
     const coord = details.coordonnees || {};
     const isPro = details.is_pro === true;
     const proBadgeHtml = isPro ? ' <span class="sp sp-att" style="font-size:0.7rem;"><span class="sp-dot"></span>Pro</span>' : '';
-    const totalTtc = details.total_ttc || (devis.total_ht ? Math.round(parseFloat(devis.total_ht) * 1.20) : 0);
 
     Swal.fire({
       title: `Devis ${escapeHtml(devis.reference)}`,
-      html: `<div style="text-align:left;font-size:0.9rem;">
+     ml: `<div style="text-align:left;font-size:0.9rem;">
         <div style="margin-bottom:12px;">${statusBadge}${proBadgeHtml}</div>
         <b>Client :</b> ${escapeHtml(devis.client_prenom || '')} ${escapeHtml(devis.client_nom || '')}<br>
         <b>Email :</b> ${escapeHtml(devis.client_email || '—')}<br>
@@ -3967,9 +3957,9 @@ Cadeau premium personnalisé</textarea>
         ${details.marque ? `<b>Marque :</b> ${escapeHtml(details.marque)}<br>` : ''}
         ${details.modele ? `<b>Modèle :</b> ${escapeHtml(details.modele)}<br>` : ''}
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Montant HT :</b> ${devis.total_ht ? parseFloat(devis.total_ht).toFixed(2) + ' €' : '—'}<br>
-        ${!isPro ? `<b>Montant TTC :</b> ${totalTtc.toFixed(2)} €<br>` : ''}
-        ${details.original_total_ht && details.original_total_ht !== parseFloat(devis.total_ht) ? `<span style="color:var(--warning);font-size:0.8rem;\"><b>Prix original :</b> ${parseFloat(details.original_total_ht).toFixed(2)} € HT</span><br>${details.adjust_reason ? `<span style="font-size:0.75rem;color:#888;\">Raison : ${escapeHtml(details.adjust_reason)}</span><br>` : ''}` : ''}
+        <b>Montant :</b> ${devis.total_ht ? parseFloat(devis.total_ht).toFixed(2) + ' €' : '—'}<br>
+        <span style="font-size:0.8rem;color:#888;">TVA non applicable — franchise en base (art. 293 B CGI)</span><br>
+        ${details.original_total_ht && details.original_total_ht !== parseFloat(devis.total_ht) ? `<span style="color:var(--warning);font-size:0.8rem;\"><b>Prix original :</b> ${parseFloat(details.original_total_ht).toFixed(2)} €</span><br>${details.adjust_reason ? `<span style="font-size:0.75rem;color:#888;\">Raison : ${escapeHtml(details.adjust_reason)}</span><br>` : ''}` : ''}
         ${details.opts?.urgence ? '<b>⚠️ Urgence</b><br>' : ''}
         ${details.opts?.gardiennage ? '<b>📦 Gardiennage</b><br>' : ''}
         ${details.message ? `<hr style="margin:10px 0;border-color:#eee;"><b>Message client :</b><br>${escapeHtml(details.message)}<br>` : ''}
@@ -3992,15 +3982,13 @@ Cadeau premium personnalisé</textarea>
 
     const isPro = devis.details?.is_pro === true;
     const currentHt = parseFloat(devis.total_ht) || 0;
-    const currentTtc = parseFloat(devis.details?.total_ttc) || Math.round(currentHt * 1.20);
 
     const { value: formValues } = await Swal.fire({
       title: 'Ajuster le prix du devis',
-      html: `<div style="text-align:left;">
-        <p style="margin-bottom:12px;color:#666;font-size:0.85rem;">Modifiez le montant HT et le TTC sera calculé automatiquement (×1,20). Le prix original sera conservé dans les détails.</p>
-        <label style="display:block;margin-bottom:6px;font-weight:600;">Montant HT (€)</label>
-        <input id="swalHt" class="swal2-input" type="number" step="0.01" value="${currentHt}" style="width:100%;margin:0 0 16px 0;" oninput="if(document.getElementById('swalTtc')){document.getElementById('swalTtc').value=(parseFloat(this.value||0)*1.20).toFixed(2);}">
-        ${!isPro ? `<label style="display:block;margin-bottom:6px;font-weight:600;">Montant TTC (€) — auto-calculé, modifiable si besoin</label><input id="swalTtc" class="swal2-input" type="number" step="0.01" value="${currentTtc.toFixed(2)}" style="width:100%;margin:0 0 16px 0;">` : ''}
+     ml: `<div style="text-align:left;">
+        <p style="margin-bottom:12px;color:#666;font-size:0.85rem;">Modifiez le montant du devis. Le prix original sera conservé dans les détails.</p>
+        <label style="display:block;margin-bottom:6px;font-weight:600;">Montant (€)</label>
+        <input id="swalHt" class="swal2-input" type="number" step="0.01" value="${currentHt}" style="width:100%;margin:0 0 16px 0;">
         <label style="display:block;margin-bottom:6px;font-weight:600;">Raison de l'ajustement (optionnel)</label>
         <textarea id="swalReason" class="swal2-textarea" placeholder="Ex: remise commerciale, ajout option..." style="width:100%;margin:0;">${escapeHtml(devis.details?.adjust_reason || '')}</textarea>
       </div>`,
@@ -4010,12 +3998,9 @@ Cadeau premium personnalisé</textarea>
       focusConfirm: false,
       preConfirm: () => {
         const ht = parseFloat(document.getElementById('swalHt').value);
-        const ttcInput = document.getElementById('swalTtc');
-        const ttc = ttcInput ? parseFloat(ttcInput.value) : Math.round(ht * 1.20);
         const reason = document.getElementById('swalReason').value.trim();
-        if (!ht || ht <= 0) { Swal.showValidationMessage('Le montant HT doit être supérieur à 0'); return false; }
-        if (!isPro && (!ttc || ttc <= 0)) { Swal.showValidationMessage('Le montant TTC doit être supérieur à 0'); return false; }
-        return { ht, ttc, reason };
+        if (!ht || ht <= 0) { Swal.showValidationMessage('Le montant doit être supérieur à 0'); return false; }
+        return { ht, reason };
       }
     });
 
@@ -4025,7 +4010,7 @@ Cadeau premium personnalisé</textarea>
     const sb = getSupabase();
     if (!sb) return;
 
-    const updatedDetails = { ...(devis.details || {}), total_ttc: formValues.ttc, original_total_ht: devis.details?.original_total_ht || currentHt, adjust_reason: formValues.reason, adjusted_at: new Date().toISOString() };
+    const updatedDetails = { ...(devis.details || {}), original_total_ht: devis.details?.original_total_ht || currentHt, adjust_reason: formValues.reason, adjusted_at: new Date().toISOString() };
 
     const { error } = await sb.from('devis').update({
       total_ht: formValues.ht,
@@ -4035,6 +4020,251 @@ Cadeau premium personnalisé</textarea>
     if (error) { Swal.fire('Erreur', error.message, 'error'); return; }
 
     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Prix ajusté !', timer: 2500 });
+    loadDevis();
+  };
+
+  // ============================================================
+  // CRÉATION DE DEVIS PERSONNALISÉ PAR L'ADMIN
+  // ============================================================
+  window.createDevisAdmin = async function() {
+    const sb = getSupabase();
+    if (!sb) return Swal.fire('Erreur', 'Connexion Supabase requise.', 'error');
+
+    const { value: formValues } = await Swal.fire({
+      title: '<i class="fas fa-file-plus"></i> Créer un devis personnalisé',
+      html: `
+        <div style="text-align:left;font-size:0.85rem;max-height:520px;overflow-y:auto;padding-right:8px;">
+          <div style="font-weight:700;margin-bottom:10px;color:var(--bordeaux);font-size:0.9rem;"><i class="fas fa-user"></i> Informations client</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div><label style="font-size:0.7rem;font-weight:600;">Prénom *</label><input id="cdPrenom" class="swal2-input" style="width:100%;margin:0;" placeholder="Jean"></div>
+            <div><label style="font-size:0.7rem;font-weight:600;">Nom *</label><input id="cdNom" class="swal2-input" style="width:100%;margin:0;" placeholder="Dupont"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div><label style="font-size:0.7rem;font-weight:600;">Email *</label><input id="cdEmail" class="swal2-input" type="email" style="width:100%;margin:0;" placeholder="jean@exemple.com"></div>
+            <div><label style="font-size:0.7rem;font-weight:600;">Téléphone</label><input id="cdTel" class="swal2-input" style="width:100%;margin:0;" placeholder="06 12 34 56 78"></div>
+          </div>
+
+          <div style="font-weight:700;margin-bottom:10px;color:var(--bordeaux);font-size:0.9rem;"><i class="fas fa-route"></i> Trajet</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div><label style="font-size:0.7rem;font-weight:600;">Départ *</label><input id="cdDepart" class="swal2-input" style="width:100%;margin:0;" placeholder="Paris"></div>
+            <div><label style="font-size:0.7rem;font-weight:600;">Arrivée *</label><input id="cdArrivee" class="swal2-input" style="width:100%;margin:0;" placeholder="Marseille"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div><label style="font-size:0.7rem;font-weight:600;">Date livraison</label><input id="cdDate" class="swal2-input" type="date" style="width:100%;margin:0;"></div>
+            <div><label style="font-size:0.7rem;font-weight:600;">Heure</label><input id="cdHeure" class="swal2-input" type="time" style="width:100%;margin:0;"></div>
+          </div>
+
+          <div style="font-weight:700;margin-bottom:10px;color:var(--bordeaux);font-size:0.9rem;"><i class="fas fa-car"></i> Véhicule & options</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:0.7rem;font-weight:600;">Type véhicule *</label>
+              <select id="cdVehicule" class="swal2-input" style="width:100%;margin:0;">
+                <option value="Automobile">Automobile</option>
+                <option value="Moto">Moto</option>
+                <option value="Utilitaire">Utilitaire</option>
+                <option value="Luxe">Luxe (plateau)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.7rem;font-weight:600;">Mode *</label>
+              <select id="cdMode" class="swal2-input" style="width:100%;margin:0;">
+                <option value="route">Route (conducteur)</option>
+                <option value="plateau">Plateau (camion)</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:0.7rem;font-weight:600;">Pack</label>
+              <select id="cdPack" class="swal2-input" style="width:100%;margin:0;">
+                <option value="Starter">Starter</option>
+                <option value="Confort">Confort</option>
+                <option value="Premium">Premium</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.7rem;font-weight:600;">Distance (km)</label>
+              <input id="cdDistance" class="swal2-input" type="number" style="width:100%;margin:0;" placeholder="Ex: 775" oninput="updateAdminDevisPrice()">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:0.7rem;font-weight:600;">Immatriculation</label>
+              <input id="cdPlaque" class="swal2-input" style="width:100%;margin:0;" placeholder="AB-123-CD">
+            </div>
+            <div>
+              <label style="font-size:0.7rem;font-weight:600;">Marque / Modèle</label>
+              <input id="cdMarque" class="swal2-input" style="width:100%;margin:0;" placeholder="Renault Clio">
+            </div>
+          </div>
+
+          <div style="font-weight:700;margin-bottom:10px;color:var(--bordeaux);font-size:0.9rem;"><i class="fas fa-euro-sign"></i> Tarification</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:0.7rem;font-weight:600;">Prix calculé auto (€)</label>
+              <input id="cdPrixAuto" class="swal2-input" readonly style="width:100%;margin:0;background:#f5f5f5;color:#888;">
+            </div>
+            <div>
+              <label style="font-size:0.7rem;font-weight:600;">Prix final (€) *</label>
+              <input id="cdPrix" class="swal2-input" type="number" step="0.01" style="width:100%;margin:0;" placeholder="Ex: 850">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:0.7rem;font-weight:600;">Rém. convoyeur (€)</label>
+              <input id="cdRemConv" class="swal2-input" type="number" step="0.01" style="width:100%;margin:0;" placeholder="Ex: 500">
+            </div>
+            <div>
+              <label style="font-size:0.7rem;font-weight:600;">Pro ?</label>
+              <select id="cdPro" class="swal2-input" style="width:100%;margin:0;">
+                <option value="false">Particulier</option>
+                <option value="true">Professionnel</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:0.7rem;font-weight:600;">Notes / message</label>
+            <textarea id="cdNotes" class="swal2-textarea" style="width:100%;margin:0;" placeholder="Informations complémentaires..."></textarea>
+          </div>
+        </div>
+      `,
+      width: 680,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-check"></i> Créer le devis',
+      cancelButtonText: 'Annuler',
+      focusConfirm: false,
+      didOpen: () => {
+        // Auto-calcul du prix quand la distance change
+        const distInput = document.getElementById('cdDistance');
+        const vehSelect = document.getElementById('cdVehicule');
+        const modeSelect = document.getElementById('cdMode');
+        const prixAuto = document.getElementById('cdPrixAuto');
+        const prixFinal = document.getElementById('cdPrix');
+        const remConv = document.getElementById('cdRemConv');
+
+        function recalc() {
+          const dist = parseFloat(distInput.value) || 0;
+          const veh = vehSelect.value;
+          const mode = modeSelect.value;
+          if (dist > 0 && window.BathilyPricing) {
+            const result = window.BathilyPricing.calculate({ vehType: veh, distance: dist, mode: mode });
+            prixAuto.value = result.prix + ' €';
+            if (!prixFinal.value) {
+              prixFinal.value = result.prix;
+              remConv.value = Math.round(result.prix * 0.60);
+            }
+          }
+        }
+        distInput.addEventListener('input', recalc);
+        vehSelect.addEventListener('change', recalc);
+        modeSelect.addEventListener('change', recalc);
+      },
+      preConfirm: () => {
+        const prenom = document.getElementById('cdPrenom').value.trim();
+        const nom = document.getElementById('cdNom').value.trim();
+        const email = document.getElementById('cdEmail').value.trim().toLowerCase();
+        const tel = document.getElementById('cdTel').value.trim();
+        const depart = document.getElementById('cdDepart').value.trim();
+        const arrivee = document.getElementById('cdArrivee').value.trim();
+        const dateLiv = document.getElementById('cdDate').value;
+        const heureLiv = document.getElementById('cdHeure').value;
+        const vehicule = document.getElementById('cdVehicule').value;
+        const mode = document.getElementById('cdMode').value;
+        const pack = document.getElementById('cdPack').value;
+        const distance = parseFloat(document.getElementById('cdDistance').value) || null;
+        const plaque = document.getElementById('cdPlaque').value.trim();
+        const marque = document.getElementById('cdMarque').value.trim();
+        const prix = parseFloat(document.getElementById('cdPrix').value);
+        const remConv = parseFloat(document.getElementById('cdRemConv').value) || null;
+        const isPro = document.getElementById('cdPro').value === 'true';
+        const notes = document.getElementById('cdNotes').value.trim();
+
+        if (!prenom || !nom || !email) { Swal.showValidationMessage('Prénom, nom et email sont obligatoires'); return false; }
+        if (!depart || !arrivee) { Swal.showValidationMessage('Départ et arrivée sont obligatoires'); return false; }
+        if (!prix || prix <= 0) { Swal.showValidationMessage('Le prix doit être supérieur à 0'); return false; }
+
+        return { prenom, nom, email, tel, depart, arrivee, dateLiv, heureLiv, vehicule, mode, pack, distance, plaque, marque, prix, remConv, isPro, notes };
+      }
+    });
+
+    if (!formValues) return;
+
+    Swal.fire({ title: 'Création du devis...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+    const ref = 'BC-DEV-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase());
+
+    const devisData = {
+      reference: ref,
+      client_prenom: formValues.prenom,
+      client_nom: formValues.nom,
+      client_email: formValues.email,
+      depart: formValues.depart,
+      arrivee: formValues.arrivee,
+      date_livraison: formValues.dateLiv || null,
+      heure_livraison: formValues.heureLiv || null,
+      vehicule: formValues.vehicule,
+      mode: formValues.mode,
+      total_ht: formValues.prix,
+      details: {
+        coordonnees: { prenom: formValues.prenom, nom: formValues.nom, email: formValues.email, telephone: formValues.tel || '' },
+        dep: formValues.depart,
+        arr: formValues.arrivee,
+        date_livraison: formValues.dateLiv || null,
+        heure_livraison: formValues.heureLiv || null,
+        immatriculation: formValues.plaque || '',
+        marque: formValues.marque || '',
+        modele: '',
+        vehicule_manuel: '',
+        mode: formValues.mode,
+        pack: formValues.pack,
+        distance: formValues.distance,
+        opts: { urgence: false, gardiennage: false },
+        vehicle_condition: 'working',
+        utilitaire_size: null,
+        is_collection: formValues.vehicule === 'Luxe',
+        message: formValues.notes || '',
+        promo_code: null,
+        is_pro: formValues.isPro,
+        remuneration_convoyeur: formValues.remConv || Math.round(formValues.prix * 0.60),
+        created_by_admin: true
+      },
+      status: 'pending'
+    };
+
+    const { error } = await sb.from('devis').insert([devisData]);
+
+    if (error) {
+      Swal.fire('Erreur', 'Impossible de créer le devis : ' + error.message, 'error');
+      return;
+    }
+
+    // Envoyer un email au client
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trigger: 'devis_created',
+          id: ref,
+          email: formValues.email,
+          prenom: formValues.prenom,
+          nom: formValues.nom,
+          depart: formValues.depart,
+          arrivee: formValues.arrivee,
+          total: formValues.prix
+        })
+      });
+    } catch (emailErr) {
+      console.warn('Email non envoyé:', emailErr.message);
+    }
+
+    Swal.fire({
+      title: 'Devis créé !',
+      html: `Le devis <b>${ref}</b> a été créé pour ${escapeHtml(formValues.prenom)} ${escapeHtml(formValues.nom)}.<br>Montant : <b>${formValues.prix} €</b><br><br>Un email a été envoyé à ${escapeHtml(formValues.email)}.`,
+      icon: 'success',
+      confirmButtonText: 'OK'
+    });
+
     loadDevis();
   };
 
@@ -4285,7 +4515,7 @@ Cadeau premium personnalisé</textarea>
 
     Swal.fire({
       title: `Dossier — ${escapeHtml(nomComplet)}`,
-      html: `<div style="text-align:left;font-size:0.9rem;">
+     ml: `<div style="text-align:left;font-size:0.9rem;">
         <div style="display:flex;gap:8px;margin-bottom:12px;"><span class="sp ${c.statut === 'pending' ? 'sp-att' : c.statut === 'approved' ? 'sp-ok' : 'sp-err'}"><span class="sp-dot"></span>${statusText}</span></div>
         <b>Email :</b> ${escapeHtml(c.email || '-')}<br>
         <b>Telephone :</b> ${escapeHtml(c.telephone || '-')}<br>
@@ -4331,7 +4561,7 @@ Cadeau premium personnalisé</textarea>
       const fileName = path.split('/').pop();
       Swal.fire({
         title: fileName,
-        html: `<img src="${data.signedUrl}" style="max-width:100%; max-height:70vh; border-radius:8px;" alt="${fileName}" />`,
+       ml: `<img src="${data.signedUrl}" style="max-width:100%; max-height:70vh; border-radius:8px;" alt="${fileName}" />`,
         width: 700,
         showCloseButton: true,
         showConfirmButton: false,
@@ -4646,7 +4876,7 @@ Cadeau premium personnalisé</textarea>
 
     Swal.fire({
       title: `Mission ${escapeHtml(mission.reference)}`,
-      html: `<div style="text-align:left;font-size:0.9rem;">
+     ml: `<div style="text-align:left;font-size:0.9rem;">
         <div style="display:flex;gap:8px;margin-bottom:12px;">${statusBadge} ${payBadge}</div>
         <b>Client :</b> ${escapeHtml(mission.client_nom || '—')}<br>
         <b>Email client :</b> ${escapeHtml(mission.client_email || '—')}<br>
@@ -4657,13 +4887,28 @@ Cadeau premium personnalisé</textarea>
         <b>Mode :</b> ${escapeHtml(mission.mode || '—')}<br>
         <b>Pack :</b> ${escapeHtml(mission.pack || mission.details?.pack || '—')}<br>
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Montant HT :</b> ${mission.montant_ht || 0} €<br>
+        <b>Montant :</b> ${mission.montant_ht || 0} €<br>
         <b>Rémunération convoyeur :</b> ${mission.remuneration_convoyeur || '—'} €<br>
         <b>Marge :</b> ${mission.marge || '—'} €<br>
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Convoyeur :</b> ${escapeHtml(mission.convoyeur_nom || 'Non assigné')}<br>
         <b>Date mission :</b> ${formatDate(mission.date_mission || mission.created_at)}<br>
         <b>Créée le :</b> ${formatDate(mission.created_at)}
+        ${(() => {
+          // Indicateur de retours possibles
+          if (status !== 'planned' && status !== 'in_progress') return '';
+          const normalizeCity = (s) => (s || '').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^(le|la|les)\s+/, '');
+          const dest = normalizeCity(mission.arrivee);
+          if (!dest) return '';
+          const retours = _allMissions.filter(m => 
+            (!m.status || m.status === 'available') && !m.convoyeur_nom &&
+            normalizeCity(m.depart) === dest
+          );
+          if (retours.length === 0) return '';
+          const liste = retours.slice(0, 3).map(r => `<div style="font-size:0.75rem;padding:4px 8px;background:rgba(122,46,26,0.08);border-radius:6px;margin-top:4px;"><i class="fas fa-exchange-alt" style="color:var(--bordeaux);"></i> ${escapeHtml(r.reference)} — ${escapeHtml(r.depart)} → ${escapeHtml(r.arrivee)} (${r.remuneration_convoyeur || '-'}€)</div>`).join('');
+          const extra = retours.length > 3 ? `<div style="font-size:0.7rem;color:var(--gray-mid);margin-top:4px;">+${retours.length - 3} autre(s)</div>` : '';
+          return `<hr style="margin:10px 0;border-color:#eee;"><div style="background:rgba(122,46,26,0.06);border:1px solid rgba(122,46,26,0.15);border-radius:10px;padding:10px;"><div style="font-weight:700;color:var(--bordeaux);font-size:0.8rem;"><i class="fas fa-exchange-alt"></i> ${retours.length} retour(s) possible(s) depuis ${escapeHtml(mission.arrivee)}</div>${liste}${extra}</div>`;
+        })()}
         ${mission.photo_fin_mission ? `<hr style="margin:10px 0;border-color:#eee;"><div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-camera"></i> Photo de fin de mission</div><div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige); max-width:320px;"><img src="${escapeHtml(mission.photo_fin_mission)}" style="width:100%; max-height:220px; object-fit:cover; cursor:pointer;" onclick="window.open('${escapeHtml(mission.photo_fin_mission)}')" alt="Photo fin de mission"></div>` : ''}
         <hr style="margin:14px 0;border-color:#eee;">
         <div style="display:flex;flex-wrap:wrap;gap:6px;">${actionsHtml}</div>
@@ -4689,7 +4934,7 @@ Cadeau premium personnalisé</textarea>
 
     const { value: formValues } = await Swal.fire({
       title: `Attribuer un convoyeur — ${escapeHtml(mission.reference)}`,
-      html: `
+     ml: `
         <p style="margin-bottom:10px;font-size:0.85rem;color:#666;">Mission : ${escapeHtml(mission.depart)} → ${escapeHtml(mission.arrivee)}</p>
         <select id="swal-convoyeur-select" class="swal2-input" style="width:100%;">
           <option value="">— Retirer du marché (aucun convoyeur) —</option>
@@ -4761,7 +5006,7 @@ Cadeau premium personnalisé</textarea>
   window.editMissionTariffs = function(id) {
     Swal.fire({
       title: 'Modifier les tarifs',
-      html: `<input id="new-price" class="swal2-input" type="number" step="1" placeholder="Montant HT (€)">
+     ml: `<input id="new-price" class="swal2-input" type="number" step="1" placeholder="Montant (€)">
              <input id="new-rem" class="swal2-input" type="number" step="1" placeholder="Rémunération convoyeur (€)">`,
       showCancelButton: true,
       confirmButtonText: 'Mettre à jour',
@@ -5131,7 +5376,7 @@ Cadeau premium personnalisé</textarea>
 // ============================================================
 
 // Cette fonction calcule la distance entre deux adresses
-// et met à jour le champ "Montant Client HT" en direct
+// et met à jour le champ "Montant Client" en direct
 async function calculateAdminPrice() {
   const depart = document.getElementById('manual-depart').value.trim();
   const arrivee = document.getElementById('manual-arrivee').value.trim();
@@ -5179,7 +5424,7 @@ async function calculateAdminPrice() {
     const rateMoto = parseFloat(localStorage.getItem('tarifMotoKm')) || 0.85;
     const rate = isMoto ? rateMoto : rateAuto;
 
-    // 5. Calcul du montant HT
+    // 5. Calcul du montant
     const min = isMoto ? 100 : 120;
     let montant = Math.round(Math.max(distance * rate, min));
 
@@ -5441,7 +5686,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       renderMissionsTable(_allMissions);
     });
 
-    // Mobile menu (onclick déjà attaché dans le HTML, pas besoin de double listener)
+    // Mobile menu (onclick déjà attaché dans leML, pas besoin de double listener)
 
     // ---- Mise à jour automatique de la marge ----
     document.getElementById('manual-price')?.addEventListener('input', function() {

@@ -19,9 +19,11 @@ export async function onRequest(context) {
     const { trigger, id, notes, payment_url, temp_password, prenom, email: directEmail, nom: directNom, convoyeur_nom, convoyeur_email, client_email, depart, arrivee, date_mission, reference } = parsedBody;
 
     const PUBLIC_TRIGGERS = ['devis_created', 'candidature_submitted'];
-    const ADMIN_TRIGGERS = ['devis_confirmed', 'convoyeur_approved', 'payment_success', 'edl_completed', 'candidature_status_changed', 'mission_assigned', 'support_reply', 'pro_approved', 'pro_rejected'];
+    const AUTHENTICATED_TRIGGERS = ['edl_completed'];
+    const ADMIN_ONLY_TRIGGERS = ['devis_confirmed', 'convoyeur_approved', 'payment_success', 'candidature_status_changed', 'mission_assigned', 'support_reply', 'pro_approved', 'pro_rejected'];
+    const ALL_RESTRICTED = [...AUTHENTICATED_TRIGGERS, ...ADMIN_ONLY_TRIGGERS];
 
-    if (ADMIN_TRIGGERS.includes(trigger)) {
+    if (ALL_RESTRICTED.includes(trigger)) {
       const internalSecret = request.headers.get('x-internal-secret') || '';
       if (internalSecret && internalSecret === env.INTERNAL_SECRET) {
         // Appel interne (webhook Stripe, cron, etc.) — autorisé
@@ -35,6 +37,13 @@ export async function onRequest(context) {
         const { data: { user }, error: userErr } = await sbAuth.auth.getUser(token);
         if (userErr || !user) {
           return jsonResponse({ error: 'Token invalide.' }, 401, getCorsHeaders(request));
+        }
+        // Pour les triggers admin-only : vérifier le rôle admin
+        if (ADMIN_ONLY_TRIGGERS.includes(trigger)) {
+          const { data: profile } = await sbAuth.from('clients').select('role').eq('auth_user_id', user.id).maybeSingle();
+          if (!profile || profile.role !== 'admin') {
+            return jsonResponse({ error: 'Accès refusé : administrateur uniquement.' }, 403, getCorsHeaders(request));
+          }
         }
       }
     }
@@ -116,11 +125,10 @@ export async function onRequest(context) {
       const details = devis.details || {};
       const devisURL = `https://bathily-convoyage.fr/dashboard-client.html`;
       const isPro = details.is_pro === true;
-      const priceLabel = isPro ? 'HT' : 'TTC';
-      const displayAmount = isPro ? devis.total_ht : (details.total_ttc || Math.round(devis.total_ht * 1.20));
+      const displayAmount = devis.total_ht;
       const clientHtml = wrapEmailLayout("Votre demande de devis est bien reçue !",
         `<p>Bonjour ${devis.client_prenom || ''},</p><p>Nous vous remercions pour votre demande de devis sur notre plateforme. Un conseiller étudie votre dossier. Vous recevrez une proposition de prix définitive sous 2h.</p>
-         <div class="highlight-box"><strong>Référence du devis :</strong> ${devis.reference}<br><strong>Montant estimatif :</strong> ${displayAmount} € ${priceLabel}</div>
+         <div class="highlight-box"><strong>Référence du devis :</strong> ${devis.reference}<br><strong>Montant estimatif :</strong> ${displayAmount} €</div>
          <h3>Récapitulatif de votre demande :</h3><ul class="meta-list">
          <li><span>Véhicule :</span> <strong>${devis.vehicule}</strong></li><li><span>Départ :</span> <strong>${devis.depart}</strong></li>
          <li><span>Arrivée :</span> <strong>${devis.arrivee}</strong></li><li><span>Mode de transport :</span> <strong>${details.mode === 'plateau' ? 'Plateau' : 'Par la route'}</strong></li>
@@ -219,12 +227,11 @@ export async function onRequest(context) {
         .eq('id', id).single();
       if (error || !mission) throw new Error(`Mission introuvable: ${error?.message}`);
       const emailTo = mission.client_email || 'client@email.fr';
-      const priceHt = parseFloat(mission.montant_ht) || 0;
-      const priceTtc = priceHt * 1.20;
+      const priceAmount = parseFloat(mission.montant_ht) || 0;
       const clientHtml = wrapEmailLayout("Votre paiement a été validé ! 🎉",
         `<p>Bonjour ${mission.client_nom.split(' ')[0] || ''},</p><p>Nous vous remercions pour votre règlement. Votre paiement a bien été traité avec succès et votre mission est désormais confirmée.</p>
          ${temp_password ? `<div class="highlight-box"><strong>Vos identifiants :</strong><br>Email : ${mission.client_email}<br>Mot de passe temporaire : <strong>${temp_password}</strong></div>` : ''}
-         <div class="highlight-box"><strong>Référence Mission :</strong> ${mission.reference}<br><strong>Montant payé :</strong> ${priceTtc.toFixed(2)} € TTC</div>
+         <div class="highlight-box"><strong>Référence Mission :</strong> ${mission.reference}<br><strong>Montant payé :</strong> ${priceAmount.toFixed(2)} €</div>
          <h3>Récapitulatif :</h3><ul class="meta-list">
          <li><span>Véhicule :</span> <strong>${mission.vehicule}</strong></li><li><span>Départ :</span> <strong>${mission.depart}</strong></li>
          <li><span>Arrivée :</span> <strong>${mission.arrivee}</strong></li><li><span>Mode :</span> <strong>${mission.mode === 'plateau' ? 'Plateau' : 'Par la route'}</strong></li>
@@ -233,7 +240,7 @@ export async function onRequest(context) {
       const adminHtml = wrapEmailLayout(`Paiement reçu pour la mission ${mission.reference}`,
         `<p>Bonjour l'administrateur,</p><p>Le paiement pour la mission <strong>${mission.reference}</strong> a été validé via Stripe.</p>
          <div class="highlight-box"><strong>Référence :</strong> ${mission.reference}<br><strong>Client :</strong> ${mission.client_nom}<br>
-         <strong>Montant :</strong> ${priceTtc.toFixed(2)} € TTC (${priceHt.toFixed(2)} € HT)<br><strong>Convoyeur :</strong> ${mission.convoyeur_nom || 'Non assigné'}</div>
+         <strong>Montant :</strong> ${priceAmount.toFixed(2)} €<br><strong>Convoyeur :</strong> ${mission.convoyeur_nom || 'Non assigné'}</div>
          <p style="text-align:center"><a href="https://bathily-convoyage.fr/dashboard-admin.html" class="btn">Accéder au panel Admin</a></p>`);
       await sendEmail({ to: emailTo, subject: `Bathily Convoyage - Confirmation de paiement ${mission.reference}`, html: clientHtml });
       await sendEmail({ to: ADMIN_EMAIL, subject: `[ADMIN] Paiement reçu pour la mission ${mission.reference}`, html: adminHtml });
@@ -247,7 +254,7 @@ export async function onRequest(context) {
       if (error || !devis) throw new Error(`Devis introuvable: ${error?.message}`);
       const clientHtml = wrapEmailLayout("Votre devis a été validé — Procédez au paiement",
         `<p>Bonjour ${devis.client_prenom || 'Client'},</p><p>Bonne nouvelle ! Votre devis a été validé. Vous pouvez maintenant procéder au paiement sécurisé.</p>
-         <div class="highlight-box"><strong>Référence :</strong> ${devis.reference}<br><strong>Trajet :</strong> ${devis.depart} → ${devis.arrivee}<br><strong>Montant HT :</strong> ${devis.total_ht} €${devis.date_livraison ? `<br><strong>Date de livraison :</strong> ${new Date(devis.date_livraison).toLocaleDateString('fr-FR')}${devis.heure_livraison ? ' à ' + devis.heure_livraison : ''}` : ''}</div>
+         <div class="highlight-box"><strong>Référence :</strong> ${devis.reference}<br><strong>Trajet :</strong> ${devis.depart} → ${devis.arrivee}<br><strong>Montant :</strong> ${devis.total_ht} €${devis.date_livraison ? `<br><strong>Date de livraison :</strong> ${new Date(devis.date_livraison).toLocaleDateString('fr-FR')}${devis.heure_livraison ? ' à ' + devis.heure_livraison : ''}` : ''}</div>
          <p style="text-align:center"><a href="${paymentUrl}" class="btn">Payer maintenant</a></p>`);
       await sendEmail({ to: devis.client_email, subject: `Bathily Convoyage - Votre devis ${devis.reference} est prêt`, html: clientHtml });
       resultData = { success: true, message: 'Email lien paiement envoyé.' };
@@ -257,8 +264,8 @@ export async function onRequest(context) {
       const proName = directNom || prenom || 'Professionnel';
       const proHtml = wrapEmailLayout("Votre compte Pro est activé ! 🎉",
         `<p>Bonjour <strong>${proName}</strong>,</p><p>Votre demande de compte Pro a été <strong>validée</strong>.</p>
-         <ul class="meta-list"><li><span>Tarifs HT</span> <strong>0,90 €/km route · 1,05 €/km plateau</strong></li>
-         <li><span>Facturation</span> <strong>HT avec TVA récupérable</strong></li><li><span>Support</span> <strong>Dédié et prioritaire</strong></li></ul>
+         <ul class="meta-list"><li><span>Tarifs</span> <strong>0,90 €/km route · 1,05 €/km plateau</strong></li>
+         <li><span>Facturation</span> <strong>TVA non applicable — franchise en base (art. 293 B CGI)</strong></li><li><span>Support</span> <strong>Dédié et prioritaire</strong></li></ul>
          <div class="highlight-box"><strong>Avantages Pro :</strong><br>✓ Remise de 10%<br>✓ Factures détaillées<br>✓ Interlocuteur unique<br>✓ Devis en ligne Pro</div>
          <p style="text-align:center"><a href="https://bathily-convoyage.fr/dashboard-client.html" class="btn">Accéder à mon Espace Pro</a></p>`);
       await sendEmail({ to: proEmail, subject: "Bathily Convoyage - Votre compte Pro est activé !", html: proHtml });
@@ -270,7 +277,7 @@ export async function onRequest(context) {
       const rejectHtml = wrapEmailLayout("Mise à jour de votre demande de compte Pro",
         `<p>Bonjour <strong>${proName}</strong>,</p><p>Après examen de votre demande, nous ne sommes pas en mesure de valider votre compte Pro pour le moment.</p>
          <div class="highlight-box"><strong>Contact :</strong> contact@bathily-convoyage.fr</div>
-         <p>Vous pouvez toujours utiliser nos services au tarif public (TTC) via notre site.</p>
+         <p>Vous pouvez toujours utiliser nos services au tarif public via notre site.</p>
          <p style="text-align:center"><a href="https://bathily-convoyage.fr" class="btn">Accéder au site</a></p>`);
       await sendEmail({ to: proEmail, subject: "Bathily Convoyage - Mise à jour de votre demande Pro", html: rejectHtml });
       resultData = { success: true, message: 'Email Pro refusé envoyé.' };

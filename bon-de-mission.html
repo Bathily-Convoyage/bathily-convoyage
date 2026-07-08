@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPEml>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -409,7 +409,7 @@
       </div>
       <div class="section-body">
         <table class="tarif-table">
-          <thead><tr><th>Prestation</th><th>Détail</th><th>Montant HT</th></tr></thead>
+          <thead><tr><th>Prestation</th><th>Détail</th><th>Montant</th></tr></thead>
           <tbody id="tarifBody">
             <tr><td colspan="3" style="text-align:center;color:var(--gray-mid);">Chargement...</td></tr>
           </tbody>
@@ -809,7 +809,7 @@
       if (authError || !session) {
         Swal.fire({
           title: 'Authentification requise',
-          html: 'Vous devez être connecté en tant que convoyeur pour démarrer une mission.<br><br><a href="dashboard-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">Se connecter</a>',
+         ml: 'Vous devez être connecté en tant que convoyeur pour démarrer une mission.<br><br><a href="dashboard-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">Se connecter</a>',
           icon: 'warning',
           confirmButtonColor: 'var(--bordeaux)'
         });
@@ -827,7 +827,7 @@
       if (_paiementStatut !== 'paid' && _paiementStatut !== 'paye') {
         Swal.fire({
           title: 'Démarrage bloqué',
-          html: `Le paiement de cette mission n'a pas encore été validé.<br><br>Le démarrage est bloqué. Veuillez contacter l'administrateur.`,
+         ml: `Le paiement de cette mission n'a pas encore été validé.<br><br>Le démarrage est bloqué. Veuillez contacter l'administrateur.`,
           icon: 'warning',
           confirmButtonColor: 'var(--bordeaux)'
         });
