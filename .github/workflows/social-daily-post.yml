@@ -1,0 +1,30 @@
+name: Publication quotidienne réseaux sociaux
+
+on:
+  schedule:
+    # 08h00 UTC = 09h00 (hiver) ou 10h00 (été) heure de Paris
+    - cron: '0 8 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  post-to-buffer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Installer les dépendances
+        run: npm install --omit=dev --no-audit --no-fund
+
+      - name: Publier le post du jour sur Buffer
+        env:
+          BUFFER_ACCESS_TOKEN: ${{ secrets.BUFFER_ACCESS_TOKEN }}
+          BUFFER_INSTAGRAM_CHANNEL_ID: ${{ secrets.BUFFER_INSTAGRAM_CHANNEL_ID }}
+          BUFFER_LINKEDIN_CHANNEL_ID: ${{ secrets.BUFFER_LINKEDIN_CHANNEL_ID }}
+          BUFFER_TIKTOK_CHANNEL_ID: ${{ secrets.BUFFER_TIKTOK_CHANNEL_ID }}
+        run: node scripts/post-to-buffer.js
