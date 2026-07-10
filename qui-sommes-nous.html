@@ -96,6 +96,47 @@
       text-transform: uppercase; letter-spacing: 0.1em;
     }
 
+    /* Logo Animation Hero */
+    .hero-logo-wrap {
+      display: flex; justify-content: center; align-items: center;
+      margin-bottom: 32px; position: relative; height: 120px;
+    }
+    .hero-logo-wrap img {
+      height: 80px; width: auto;
+      filter: drop-shadow(0 0 20px rgba(245, 166, 35, 0));
+      animation: logoAppear 1.2s ease-out forwards, logoGlow 3s ease-in-out 1.2s infinite;
+    }
+    @keyframes logoAppear {
+      0% { opacity: 0; transform: translateY(30px) scale(0.8); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes logoGlow {
+      0%, 100% { filter: drop-shadow(0 0 10px rgba(245, 166, 35, 0.3)); }
+      50% { filter: drop-shadow(0 0 25px rgba(245, 166, 35, 0.6)); }
+    }
+    .hero-road {
+      position: absolute; bottom: 10px; left: 50%;
+      width: 200px; height: 2px;
+      background: linear-gradient(90deg, transparent, #F5A623, transparent);
+      transform: translateX(-50%) scaleX(0);
+      animation: roadExpand 1.5s ease-out 0.3s forwards;
+    }
+    @keyframes roadExpand {
+      0% { transform: translateX(-50%) scaleX(0); }
+      100% { transform: translateX(-50%) scaleX(1); }
+    }
+    .hero-road-dot {
+      position: absolute; top: -3px; width: 8px; height: 8px;
+      border-radius: 50%; background: #F5A623;
+      animation: roadDot 2.5s ease-in-out 1.5s infinite;
+    }
+    @keyframes roadDot {
+      0% { left: 0; opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { left: calc(100% - 8px); opacity: 0; }
+    }
+
     /* Sections */
     .section { padding: 60px 20px; }
     .section-alt { background: white; }
@@ -244,6 +285,13 @@
   <!-- Hero -->
   <section class="about-hero">
     <div class="about-hero-content">
+      <div class="hero-logo-wrap">
+        <picture>
+          <source srcset="/logo.webp" type="image/webp">
+          <img src="/logo.png" alt="Bathily-Convoyage">
+        </picture>
+        <div class="hero-road"><div class="hero-road-dot"></div></div>
+      </div>
       <div class="hero-badge">Notre histoire</div>
       <h1>Né de la route,<br><span>pensé pour la confiance.</span></h1>
       <p>Bathily-Convoyage est une entreprise spécialisée dans le convoyage automobile et moto, fondée sur l'expérience terrain de ses fondateurs.</p>
