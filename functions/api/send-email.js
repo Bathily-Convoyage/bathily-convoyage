@@ -20,7 +20,7 @@ export async function onRequest(context) {
 
     const PUBLIC_TRIGGERS = ['devis_created', 'candidature_submitted'];
     const AUTHENTICATED_TRIGGERS = ['edl_completed'];
-    const ADMIN_ONLY_TRIGGERS = ['devis_confirmed', 'convoyeur_approved', 'payment_success', 'candidature_status_changed', 'mission_assigned', 'support_reply', 'pro_approved', 'pro_rejected'];
+    const ADMIN_ONLY_TRIGGERS = ['devis_confirmed', 'convoyeur_approved', 'payment_success', 'candidature_status_changed', 'mission_assigned', 'support_reply', 'pro_approved', 'pro_rejected', 'devis_relance'];
     const ALL_RESTRICTED = [...AUTHENTICATED_TRIGGERS, ...ADMIN_ONLY_TRIGGERS];
 
     if (ALL_RESTRICTED.includes(trigger)) {
@@ -309,6 +309,20 @@ export async function onRequest(context) {
       }
 
       resultData = { success: true, message: 'Emails mission assignée envoyés.' };
+    }
+    else if (trigger === 'devis_relance') {
+      const { data: devis, error } = await supabase.from('devis')
+        .select('id, reference, client_prenom, client_nom, client_email, depart, arrivee, vehicule, mode, pack, total_ht, details, date_livraison, heure_livraison, status, created_at')
+        .eq('reference', id).single();
+      if (error || !devis) throw new Error(`Devis introuvable: ${error?.message}`);
+      const relanceHtml = wrapEmailLayout("Rappel : votre devis est en attente de validation",
+        `<p>Bonjour ${devis.client_prenom || ''},</p><p>Nous vous rappelons que votre demande de devis <strong>${devis.reference}</strong> est toujours en attente de validation de votre part.</p>
+         <div class="highlight-box"><strong>Référence :</strong> ${devis.reference}<br><strong>Trajet :</strong> ${devis.depart} → ${devis.arrivee}<br><strong>Montant estimatif :</strong> ${devis.total_ht} €</div>
+         <p>Pour finaliser votre demande, connectez-vous à votre espace client ou contactez-nous directement.</p>
+         <p style="text-align:center"><a href="https://bathily-convoyage.fr/dashboard-client.html" class="btn">Accéder à mon Espace Client</a></p>
+         <p style="font-size:12px;color:#6B625A;margin-top:16px">Si vous n'avez plus besoin de ce devis, vous pouvez l'ignorer. Il sera automatiquement archivé sous 7 jours.</p>`);
+      await sendEmail({ to: devis.client_email, subject: `Rappel - Votre devis ${devis.reference} est en attente - Bathily Convoyage`, html: relanceHtml });
+      resultData = { success: true, message: 'Email de relance envoyé.' };
     }
     else if (trigger === 'support_reply') {
       const { data: ticket, error: ticketErr } = await supabase.from('support_tickets')

@@ -1,4 +1,4 @@
-﻿<!DOCTYPEml>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -725,6 +725,25 @@
               <div class="field-err" id="promoCodeMessage" style="color:var(--success); display:none; margin-top:6px; font-weight:600;"></div>
             </div>
 
+            <!-- Tarifs de base -->
+            <div id="tarifsBaseBox" style="margin-top:20px;padding:16px;background:var(--cream,#FDFBF7);border-radius:12px;border:1px solid var(--border-light,#E8E1D9);">
+              <div style="font-weight:700;font-size:0.85rem;color:var(--bordeaux);margin-bottom:10px;"><i class="fas fa-tag"></i> Tarifs de base</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.78rem;color:var(--gray-mid);" id="tarifsBaseContent">
+                <div><strong>Route :</strong> 1,20€/km (auto) · 1,00€/km (moto)</div>
+                <div><strong>Plateau :</strong> 1,40€/km + min. 350€</div>
+                <div><strong>Min. route :</strong> 150€ (auto) · 120€ (moto)</div>
+                <div><strong>Packs :</strong> Starter 0€ · Sérénité 69€ · Excellence 159€</div>
+              </div>
+              <div style="font-size:0.7rem;color:var(--gray-mid);margin-top:8px;">Remise longue distance : -10% dès 500km · -15% dès 800km</div>
+            </div>
+
+            <!-- Compteur réactivité -->
+            <div style="margin-top:16px;text-align:center;padding:12px;background:linear-gradient(135deg,rgba(10,77,104,0.05),rgba(8,131,149,0.05));border-radius:12px;">
+              <div style="font-size:0.8rem;color:var(--bordeaux);font-weight:600;">
+                <i class="fas fa-bolt" style="color:#F5A623;"></i> Réponse sous <strong>1h32</strong> en moyenne pendant les heures ouvrées
+              </div>
+            </div>
+
             <!-- Price display -->
             <div class="price-display">
               <div>
@@ -1333,6 +1352,52 @@
       banner.style.cssText = 'background:#0A4D68;color:white;text-align:center;padding:8px;font-size:0.8rem;font-weight:600;';
       banner.innerHTML = '<i class="fas fa-briefcase"></i> Espace Pro — Tarifs réservés aux professionnels';
       document.body.insertBefore(banner, document.body.firstChild);
+      // Mettre à jour l'affichage des tarifs en mode Pro
+      var tarifsContent = document.getElementById('tarifsBaseContent');
+      if (tarifsContent) {
+        tarifsContent.innerHTML = '<div><strong>Route :</strong> 0,90€/km (auto) · 0,77€/km (moto)</div>' +
+          '<div><strong>Plateau :</strong> 1,05€/km + min. 292€</div>' +
+          '<div><strong>Min. route :</strong> 125€ (auto) · 100€ (moto)</div>' +
+          '<div><strong>Packs :</strong> Starter 0€ · Sérénité 55€ · Excellence 125€</div>';
+      }
+    }
+
+    // ========== VALIDATION CODE PROMO (Supabase + fallback) ==========
+    var _promoCache = {};
+
+    async function validatePromoCode(code) {
+      if (_promoCache[code]) return _promoCache[code];
+
+      var sb = null;
+      if (window._sbClient) sb = window._sbClient;
+      else if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase) {
+        sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        window._sbClient = sb;
+      }
+
+      if (sb) {
+        try {
+          var res = await sb.from('promo_codes').select('*').eq('code', code).eq('actif', true).limit(1);
+          if (res.data && res.data.length > 0) {
+            var p = res.data[0];
+            if (p.date_fin && new Date(p.date_fin) < new Date()) return null;
+            _promoCache[code] = p;
+            return p;
+          }
+          return null;
+        } catch (e) {
+          console.warn('Promo validation: Supabase error, fallback', e);
+        }
+      }
+
+      // Fallback HELLO10
+      if (code === 'HELLO10') {
+        var fallback = { code: 'HELLO10', remise_pourcent: 10, texte_affiche: 'Offre de lancement' };
+        _promoCache[code] = fallback;
+        return fallback;
+      }
+
+      return null;
     }
 
     // ========== CALCUL DU PRIX (avec distance réelle) ==========
@@ -1390,29 +1455,30 @@
 
       // Tarifs — Public / Pro (avec nouveaux types)
       const baseRates = _isProMode ? {
-        'Automobile': { route: 1.00, plateau: 0.67 },
-        'Moto': { route: 0.77, plateau: 0.67 },
-        'Utilitaire': { route: 1.15, plateau: 0.85 },
-        'Luxe': { route: 1.50, plateau: 1.20 }
+        'Automobile': { route: 0.90, plateau: 1.05 },
+        'Moto': { route: 0.77, plateau: 0.90 },
+        'Utilitaire': { route: 1.15, plateau: 1.20 },
+        'Luxe': { route: 1.50, plateau: 1.50 }
       } : {
-        'Automobile': { route: 1.20, plateau: 0.80 },
-        'Moto': { route: 1.00, plateau: 0.80 },
-        'Utilitaire': { route: 1.40, plateau: 1.00 },
-        'Luxe': { route: 1.80, plateau: 1.45 }
+        'Automobile': { route: 1.20, plateau: 1.40 },
+        'Moto': { route: 1.00, plateau: 1.20 },
+        'Utilitaire': { route: 1.40, plateau: 1.60 },
+        'Luxe': { route: 1.80, plateau: 2.00 }
       };
-      // Prix de base du trajet (mode route)
-      var routeRate = baseRates[type]?.['route'] || 1.20;
-      let basePrice = Math.round(dist * routeRate);
-      const minRoute = _isProMode ? (type === 'Moto' ? 100 : 125) : (type === 'Moto' ? 120 : 150);
-      if (basePrice < minRoute) basePrice = minRoute;
-
-      // Le plateau s'AJOUTE au prix du trajet (minimum 350€ / 292€)
+      // Prix de base du trajet
+      let basePrice;
       if (mode === 'plateau') {
+        // Mode plateau : tarif plateau × distance (remplace le tarif route)
         var plateauRate = baseRates[type]?.['plateau'] || 1.40;
-        let plateauPrice = Math.round(dist * plateauRate);
+        basePrice = Math.round(dist * plateauRate);
         const minPlateau = _isProMode ? 292 : 350;
-        if (plateauPrice < minPlateau) plateauPrice = minPlateau;
-        basePrice += plateauPrice;
+        if (basePrice < minPlateau) basePrice = minPlateau;
+      } else {
+        // Mode route : tarif route × distance
+        var routeRate = baseRates[type]?.['route'] || 1.20;
+        basePrice = Math.round(dist * routeRate);
+        const minRoute = _isProMode ? (type === 'Moto' ? 100 : 125) : (type === 'Moto' ? 120 : 150);
+        if (basePrice < minRoute) basePrice = minRoute;
       }
 
       // Coefficient taille utilitaire
@@ -1444,25 +1510,24 @@
       if (isUrgence) total = Math.round(total * (_isProMode ? 1.25 : 1.30));
       if (isGardiennage) total += _isProMode ? 20 : 30;
 
-      // Promo Code
+      // Promo Code — validation via Supabase (fallback HELLO10)
       const promoInput = document.getElementById('promoCodeInput') ? document.getElementById('promoCodeInput').value.trim().toUpperCase() : '';
       const promoMsg = document.getElementById('promoCodeMessage');
-      
-      const PROMO_CODES = {
-        'HELLO10': { type: 'percent', value: 10 }
-      };
 
       let discount = 0;
-      if (promoInput && PROMO_CODES[promoInput]) {
-        promoMsg.style.display = 'block';
-        promoMsg.style.color = 'var(--success)';
-        promoMsg.textContent = `Code appliqué : -${PROMO_CODES[promoInput].value}% !`;
-        discount = Math.round(total * (PROMO_CODES[promoInput].value / 100));
-        total -= discount;
-      } else if (promoInput) {
-        promoMsg.style.display = 'block';
-        promoMsg.style.color = '#DC2626';
-        promoMsg.textContent = 'Code invalide ou expiré';
+      if (promoInput) {
+        var _promoData = await validatePromoCode(promoInput);
+        if (_promoData) {
+          promoMsg.style.display = 'block';
+          promoMsg.style.color = 'var(--success)';
+          promoMsg.textContent = 'Code appliqué : -' + _promoData.remise_pourcent + '% !';
+          discount = Math.round(total * (_promoData.remise_pourcent / 100));
+          total -= discount;
+        } else {
+          promoMsg.style.display = 'block';
+          promoMsg.style.color = '#DC2626';
+          promoMsg.textContent = 'Code invalide ou expiré';
+        }
       } else if (promoMsg) {
         promoMsg.style.display = 'none';
       }
@@ -1628,30 +1693,15 @@
         });
       } catch (e) { console.warn('Email notification error:', e); }
 
-      // Succès
+      // Succès — redirection vers page de remerciement
       const confirmBtn = document.getElementById('submitBtn');
       confirmBtn.disabled = true;
       confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
 
-      Swal.fire({
-        title: 'Devis envoyé ! ⭐',
-       ml: `Votre devis <strong>${ref}</strong> a bien été enregistré.<br><br>Distance estimée : <strong>${_currentDistance || '?'} km</strong><br>Montant estimé : <strong>${totalDisplayed} €</strong><br><br>Nous vous répondrons sous 24h ouvrées.<br><br><small>Un email de confirmation vous a été envoyé.</small>`,
-        icon: 'success',
-        confirmButtonColor: 'var(--bordeaux)',
-        confirmButtonText: 'OK'
-      }).then(() => {
-        document.getElementById('devisForm').reset();
-        document.getElementById('priceDisplay').innerHTML = `— <span>€ ${_priceSuffix}</span>`;
-        document.getElementById('distanceDisplay').textContent = '';
-        document.querySelectorAll('.veh-tab').forEach(t => t.classList.remove('active'));
-        document.querySelector('.veh-tab[data-value="Automobile"]').classList.add('active');
-        document.getElementById('vehiculeType').value = 'Automobile';
-        _currentDistance = 0;
-        _currentPrice = 0;
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer la demande';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
+      var thanksUrl = 'merci-devis.html?ref=' + encodeURIComponent(ref);
+      if (totalDisplayed) thanksUrl += '&price=' + encodeURIComponent(totalDisplayed);
+      if (_currentDistance) thanksUrl += '&dist=' + encodeURIComponent(_currentDistance);
+      window.location.href = thanksUrl;
     } // <-- Missing brace
     
     // ========== AUTO-FILL DEPUIS LOCALSTORAGE OU URL ==========
@@ -1704,6 +1754,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="js/mobile-nav.js" defer></script>
+<script src="js/cookie-consent.js" defer></script>
 </body>
 </html>
 

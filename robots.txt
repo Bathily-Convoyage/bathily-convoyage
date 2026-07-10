@@ -25,7 +25,6 @@ Disallow: /assets/
 Disallow: /images/
 Disallow: /fonts/
 Disallow: /data/
-Disallow: /documents-juridiques/
 
 # ============================================================
 #  PARAMÈTRES D'URL À IGNORER

@@ -80,6 +80,28 @@
   }
 
   // ── Rendre les avis dans le container ──
+  var VISIBLE_COUNT = 3;
+
+  function buildAvisCard(a) {
+    var dateStr = new Date(a.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    var initial = (a.auteur_nom || 'A')[0].toUpperCase();
+
+    var html = '<div class="avis-card" style="background:white;border:1px solid var(--border-light);border-radius:16px;padding:20px;margin-bottom:16px;">';
+    html += '<div style="display:flex;align-items:flex-start;gap:14px;">';
+    html += '<div style="width:44px;height:44px;border-radius:50%;background:var(--bordeaux-light);color:var(--bordeaux);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;flex-shrink:0;">' + initial + '</div>';
+    html += '<div style="flex:1;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">';
+    html += '<strong style="font-size:0.9rem;color:var(--gray-dark);">' + escapeHTML(a.auteur_nom) + '</strong>';
+    html += '<span style="font-size:0.72rem;color:var(--gray-mid);">' + dateStr + '</span>';
+    html += '</div>';
+    html += '<div style="margin:4px 0 8px;">' + starsHTML(a.note) + '</div>';
+    if (a.titre) html += '<div style="font-weight:700;font-size:0.88rem;color:var(--gray-dark);margin-bottom:4px;">' + escapeHTML(a.titre) + '</div>';
+    html += '<p style="font-size:0.85rem;color:var(--gray-mid);line-height:1.5;">' + escapeHTML(a.commentaire) + '</p>';
+    if (a.ville) html += '<span style="display:inline-block;margin-top:8px;font-size:0.72rem;color:var(--bordeaux);background:var(--bordeaux-light);padding:3px 10px;border-radius:20px;">📍 ' + escapeHTML(a.ville) + '</span>';
+    html += '</div></div></div>';
+    return html;
+  }
+
   function renderAvis(container, data, limit) {
     if (limit) data = data.slice(0, limit);
 
@@ -98,30 +120,42 @@
       html += '<div style="font-size:0.8rem;color:var(--gray-mid);">Basé sur ' + data.length + ' avis</div>';
       html += '</div>';
 
-      html += '<div class="avis-list">';
-      data.forEach(function (a) {
-        var dateStr = new Date(a.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-        var initial = (a.auteur_nom || 'A')[0].toUpperCase();
-        var typeLabel = a.auteur_type === 'convoyeur' ? 'Convoyeur' : 'Client';
-        if (a.auteur_type === 'visiteur') typeLabel = 'Visiteur';
-
-        html += '<div class="avis-card" style="background:white;border:1px solid var(--border-light);border-radius:16px;padding:20px;margin-bottom:16px;">';
-        html += '<div style="display:flex;align-items:flex-start;gap:14px;">';
-        html += '<div style="width:44px;height:44px;border-radius:50%;background:var(--bordeaux-light);color:var(--bordeaux);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;flex-shrink:0;">' + initial + '</div>';
-        html += '<div style="flex:1;">';
-        html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">';
-        html += '<strong style="font-size:0.9rem;color:var(--gray-dark);">' + escapeHTML(a.auteur_nom) + '</strong>';
-        html += '<span style="font-size:0.72rem;color:var(--gray-mid);">' + dateStr + '</span>';
-        html += '</div>';
-        html += '<div style="margin:4px 0 8px;">' + starsHTML(a.note) + '</div>';
-        if (a.titre) html += '<div style="font-weight:700;font-size:0.88rem;color:var(--gray-dark);margin-bottom:4px;">' + escapeHTML(a.titre) + '</div>';
-        html += '<p style="font-size:0.85rem;color:var(--gray-mid);line-height:1.5;">' + escapeHTML(a.commentaire) + '</p>';
-        if (a.ville) html += '<span style="display:inline-block;margin-top:8px;font-size:0.72rem;color:var(--bordeaux);background:var(--bordeaux-light);padding:3px 10px;border-radius:20px;">📍 ' + escapeHTML(a.ville) + '</span>';
-        html += '</div></div></div>';
-      });
+      html += '<div class="avis-list" id="avisList">';
+      for (var i = 0; i < data.length; i++) {
+        var card = buildAvisCard(data[i]);
+        if (i >= VISIBLE_COUNT) {
+          card = card.replace('class="avis-card"', 'class="avis-card avis-hidden"');
+        }
+        html += card;
+      }
       html += '</div>';
 
+      if (data.length > VISIBLE_COUNT) {
+        html += '<div style="text-align:center;margin-top:20px;">';
+        html += '<button id="btnToggleAvis">';
+        html += 'Voir les ' + (data.length - VISIBLE_COUNT) + ' autres avis';
+        html += ' <i class="fas fa-chevron-down" id="toggleAvisIcon" style="font-size:0.75rem;transition:transform 0.3s;"></i>';
+        html += '</button>';
+        html += '</div>';
+      }
+
       container.innerHTML = html;
+
+      var btnToggle = document.getElementById('btnToggleAvis');
+      if (btnToggle) {
+        btnToggle.addEventListener('click', function () {
+          var hiddenCards = container.querySelectorAll('.avis-hidden');
+          var expanded = hiddenCards[0] && hiddenCards[0].style.display !== 'none' ? false : true;
+
+          if (expanded) {
+            hiddenCards.forEach(function (c) { c.style.display = 'none'; });
+            btnToggle.innerHTML = 'Voir les ' + hiddenCards.length + ' autres avis <i class="fas fa-chevron-down" id="toggleAvisIcon" style="font-size:0.75rem;transition:transform 0.3s;"></i>';
+          } else {
+            hiddenCards.forEach(function (c) { c.style.display = 'block'; });
+            btnToggle.innerHTML = 'Réduire les avis <i class="fas fa-chevron-up" id="toggleAvisIcon" style="font-size:0.75rem;transition:transform 0.3s;"></i>';
+          }
+        });
+      }
   }
 
   // ── Ouvrir modal dépôt d'avis ──

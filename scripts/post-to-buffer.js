@@ -5,54 +5,48 @@ import puppeteer from 'puppeteer';
 import { execSync } from 'child_process';
 
 // Fonction pour générer l'image avec Puppeteer
-async function generateBrandedImage(rawImageUrl, textContent) {
+async function generateBrandedImage(rawImageUrl, textContent, dayName) {
   console.log('🎨 Génération du visuel brandé en cours...');
   
-  // Extraire la première phrase pour le titre
   let title = textContent.split('.')[0] + '.';
   if (title.length > 80) title = title.substring(0, 80) + '...';
 
-  const browser = await puppeteer.launch({ headless: 'new' });
+  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
   await page.setViewport({ width: 1080, height: 1080 });
 
   const templatePath = path.join(process.cwd(), 'social-media', 'template-auto.html');
   const templateUrl = `file://${templatePath.replace(/\\/g, '/')}`;
 
-  await page.goto(templateUrl, { waitUntil: 'networkidle0' });
+  await page.goto(templateUrl, { waitUntil: 'networkidle2', timeout: 30000 });
 
-  // Injecter le texte et l'image
   await page.evaluate((url, t) => {
     setContent(url, t);
   }, rawImageUrl, title);
 
-  // Laisser 500ms pour que l'image de fond se charge bien
   await new Promise(r => setTimeout(r, 500));
 
-  const outputPath = path.join(process.cwd(), 'social-media', 'temp-generated.png');
+  // On sauvegarde l'image générée avec le nom du jour
+  const imageName = `post-${dayName.toLowerCase()}.png`;
+  const outputPath = path.join(process.cwd(), 'social-media', imageName);
   await page.screenshot({ path: outputPath, type: 'png' });
   await browser.close();
 
-  console.log('✅ Visuel généré localement.');
-  return outputPath;
-}
-
-// Fonction pour uploader l'image temporairement et obtenir une URL publique pour Buffer
-function uploadTempImage(filePath) {
-  console.log('☁️ Upload temporaire du visuel pour Buffer...');
+  console.log('✅ Visuel généré localement : ' + imageName);
+  
+  // On pousse l'image sur GitHub pour la rendre accessible par Buffer publiquement
   try {
-    // Utilisation de curl pour uploader sur catbox.moe (service d'hébergement d'images gratuit et direct)
-    const cmd = `curl -s -F "reqtype=fileupload" -F "fileToUpload=@${filePath}" https://catbox.moe/user/api.php`;
-    const url = execSync(cmd).toString().trim();
-    if (url && url.startsWith('http')) {
-      console.log(`✅ Visuel uploadé : ${url}`);
-      return url;
-    }
-    throw new Error('URL invalide retournée par catbox');
-  } catch (err) {
-    console.error('❌ Erreur lors de l\'upload :', err.message);
-    return null;
+    console.log('☁️ Upload du visuel sur GitHub...');
+    execSync(`git add social-media/${imageName}`);
+    execSync(`git commit -m "auto: ajout du visuel généré pour ${dayName}"`);
+    execSync('git push origin main');
+    console.log('✅ Visuel uploadé sur GitHub');
+  } catch (e) {
+    console.log('ℹ️ Le visuel est déjà à jour sur GitHub ou erreur mineure :', e.message);
   }
+
+  // URL publique raw de GitHub (Buffer la lira sans problème)
+  return `https://raw.githubusercontent.com/Bathily-Convoyage/bathily-convoyage/main/social-media/${imageName}`;
 }
 
 async function publishTodayPost() {
@@ -114,8 +108,7 @@ async function publishTodayPost() {
         
         if (!isVideo && !generatedImageUrl) {
           // Générer l'image brandée
-          const localPath = await generateBrandedImage(urlToUse, todayPost.text);
-          generatedImageUrl = uploadTempImage(localPath);
+          generatedImageUrl = await generateBrandedImage(urlToUse, todayPost.text, todayName);
         }
 
         // Si l'image a été générée avec succès, on remplace l'URL brute par l'URL de l'image générée

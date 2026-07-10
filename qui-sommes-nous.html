@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0A4D68">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <title>Qui sommes-nous | Bathily-Convoyage</title>
+  <meta name="description" content="Bathily-Convoyage, entreprise spécialisée dans le convoyage auto et moto partout en France. Née de l'expérience terrain, pensée pour la confiance et la transparence.">
+  <meta property="og:title" content="Qui sommes-nous — Bathily-Convoyage">
+  <meta property="og:description" content="Entreprise de convoyage automobile née de l'expérience terrain. Process rigoureux, suivi GPS, double RC Pro.">
+  <meta property="og:url" content="https://www.bathily-convoyage.fr/qui-sommes-nous.html">
+  <meta property="og:type" content="website">
+  <link rel="canonical" href="https://www.bathily-convoyage.fr/qui-sommes-nous.html">
+  <link rel="icon" type="image/png" href="/favicon.png?v=3">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/design-system.css">
+  <link rel="stylesheet" href="css/mobile-nav.css">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; color: #6B625A; background: #FDFBF7; line-height: 1.6; }
+
+    /* Promo bar */
+    .promo-bar {
+      background: linear-gradient(90deg, #0A4D68, #088395);
+      color: white; text-align: center; padding: 8px 16px;
+      font-size: 0.82rem; font-weight: 600;
+    }
+    .promo-bar strong { color: #F5A623; }
+
+    /* Header */
+    header {
+      background: white; border-bottom: 1px solid #E8E1D9;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-inner {
+      max-width: 1200px; margin: 0 auto; padding: 12px 20px;
+      display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    }
+    .logo img { height: 52px; width: auto; }
+    .menu-toggle { display: none; }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-links a {
+      text-decoration: none; color: #2D2A24; font-weight: 600; font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: #088395; }
+    .nav-links a.active { color: #0A4D68; border-bottom: 2px solid #F5A623; padding-bottom: 4px; }
+    .btn-outline {
+      background: transparent; border: 2px solid #0A4D68; color: #0A4D68;
+      padding: 8px 20px; border-radius: 30px; font-weight: 700;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover { background: #0A4D68; color: white; }
+
+    /* Hero */
+    .about-hero {
+      background: linear-gradient(135deg, #0A4D68 0%, #063244 100%);
+      color: white; padding: 80px 20px 60px; position: relative; overflow: hidden;
+    }
+    .about-hero::before {
+      content: ''; position: absolute; top: -50px; right: -50px;
+      width: 300px; height: 300px; border-radius: 50%;
+      background: rgba(245, 166, 35, 0.08);
+    }
+    .about-hero::after {
+      content: ''; position: absolute; bottom: -80px; left: -60px;
+      width: 250px; height: 250px; border-radius: 50%;
+      background: rgba(8, 131, 149, 0.12);
+    }
+    .about-hero-content {
+      max-width: 800px; margin: 0 auto; position: relative; z-index: 1;
+    }
+    .about-hero h1 {
+      font-family: 'Montserrat', sans-serif; font-size: 2.6rem; font-weight: 800;
+      line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px;
+    }
+    .about-hero h1 span { color: #F5A623; }
+    .about-hero p {
+      font-size: 1.1rem; color: rgba(255, 255, 255, 0.85); max-width: 600px;
+    }
+    .hero-badge {
+      display: inline-block; background: rgba(245, 166, 35, 0.15);
+      color: #F5A623; font-size: 0.8rem; font-weight: 700;
+      padding: 6px 16px; border-radius: 50px; margin-bottom: 20px;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+
+    /* Sections */
+    .section { padding: 60px 20px; }
+    .section-alt { background: white; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .section-title {
+      font-family: 'Montserrat', sans-serif; font-size: 1.8rem; font-weight: 800;
+      color: #0A4D68; margin-bottom: 24px; letter-spacing: -0.02em;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-title::before {
+      content: ''; width: 36px; height: 4px; border-radius: 999px; background: #F5A623;
+    }
+    .section-text {
+      font-size: 1.05rem; line-height: 1.8; color: #6B625A; margin-bottom: 18px;
+    }
+    .section-text strong { color: #0A4D68; }
+
+    /* Photo placeholders */
+    .photo-placeholder {
+      width: 100%; border-radius: 16px; margin: 24px 0;
+      background: linear-gradient(135deg, #E8E1D9, #FDFBF7);
+      border: 2px dashed #C5B8A8; display: flex; align-items: center;
+      justify-content: center; flex-direction: column; color: #A89B8B;
+      font-size: 0.85rem; gap: 8px; min-height: 200px;
+    }
+    .photo-placeholder i { font-size: 2rem; color: #C5B8A8; }
+    .photo-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0;
+    }
+    .photo-grid .photo-placeholder { min-height: 160px; margin: 0; }
+    @media (max-width: 600px) {
+      .photo-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Values grid */
+    .values-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px; margin-top: 32px;
+    }
+    .value-card {
+      background: white; border-radius: 16px; padding: 28px 24px;
+      border: 1px solid #E8E1D9; box-shadow: 0 8px 24px rgba(10, 77, 104, 0.06);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .value-card:hover {
+      transform: translateY(-4px); box-shadow: 0 12px 32px rgba(10, 77, 104, 0.12);
+    }
+    .value-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, #0A4D68, #088395);
+      display: flex; align-items: center; justify-content: center;
+      color: #F5A623; font-size: 1.3rem; margin-bottom: 16px;
+    }
+    .value-card h3 {
+      font-family: 'Montserrat', sans-serif; font-size: 1.1rem; font-weight: 700;
+      color: #0A4D68; margin-bottom: 8px;
+    }
+    .value-card p { font-size: 0.9rem; line-height: 1.5; color: #6B625A; }
+
+    /* Stats band */
+    .stats-band {
+      background: linear-gradient(135deg, #063244, #0A4D68);
+      padding: 50px 20px; color: white;
+    }
+    .stats-grid {
+      max-width: 900px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 24px; text-align: center;
+    }
+    .stat-item strong {
+      display: block; font-family: 'Montserrat', sans-serif;
+      font-size: 2.2rem; font-weight: 800; color: #F5A623; margin-bottom: 4px;
+    }
+    .stat-item span { font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); }
+
+    /* Quote block */
+    .quote-block {
+      max-width: 700px; margin: 40px auto; text-align: center; padding: 40px 20px;
+    }
+    .quote-block p {
+      font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 700;
+      color: #0A4D68; line-height: 1.4; letter-spacing: -0.02em;
+    }
+    .quote-block p span { color: #F5A623; }
+
+    /* CTA */
+    .cta-section {
+      background: linear-gradient(135deg, #F5A623, #e09315);
+      padding: 50px 20px; text-align: center;
+    }
+    .cta-section h2 {
+      font-family: 'Montserrat', sans-serif; font-size: 1.6rem; font-weight: 800;
+      color: #063244; margin-bottom: 12px;
+    }
+    .cta-section p { color: #063244; font-size: 1rem; margin-bottom: 24px; opacity: 0.85; }
+    .cta-btn {
+      display: inline-block; background: #063244; color: white;
+      padding: 14px 36px; border-radius: 40px; text-decoration: none;
+      font-weight: 700; font-size: 1rem; transition: all 0.25s;
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(6, 50, 68, 0.3); }
+
+    /* Footer */
+    footer {
+      background: #063244; color: rgba(255, 255, 255, 0.7); padding: 40px 20px;
+    }
+    .footer-inner { max-width: 1200px; margin: 0 auto; text-align: center; }
+    .footer-inner a { color: #F5A623; text-decoration: none; }
+    .footer-bottom {
+      margin-top: 20px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .menu-toggle {
+        display: block; background: none; border: none; font-size: 1.5rem; cursor: pointer;
+      }
+      .nav-links { display: none; }
+      .about-hero h1 { font-size: 1.8rem; }
+      .section-title { font-size: 1.4rem; }
+      .quote-block p { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="promo-bar">
+    <span>Offre de lancement : <strong>-10%</strong> sur votre premier convoyage avec le code <strong>HELLO10</strong></span>
+  </div>
+
+  <header>
+    <div class="header-inner">
+      <a href="index.html" class="logo"><img src="/logo.png" alt="Bathily-Convoyage" /></a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu principal" style="background:none;border:none;"><i class="fas fa-bars"></i></button>
+      <div class="nav-links">
+        <a href="index.html">Accueil</a>
+        <a href="qui-sommes-nous.html" class="active">Qui sommes-nous</a>
+        <a href="formation-convoyeur.html">Devenir convoyeur</a>
+        <a href="espace-pro.html">Espace Pro</a>
+        <a href="contact.html">Contact</a>
+        <a href="devis.html" class="btn-outline">Devis gratuit</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="about-hero">
+    <div class="about-hero-content">
+      <div class="hero-badge">Notre histoire</div>
+      <h1>Né de la route,<br><span>pensé pour la confiance.</span></h1>
+      <p>Bathily-Convoyage est une entreprise spécialisée dans le convoyage automobile et moto, fondée sur l'expérience terrain de ses fondateurs.</p>
+    </div>
+  </section>
+
+  <!-- Notre histoire -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Notre histoire</h2>
+      <p class="section-text">
+        Bathily-Convoyage est une entreprise spécialisée dans le convoyage automobile et moto, fondée par d'anciens convoyeurs indépendants forts de plusieurs années d'expérience terrain.
+      </p>
+      <p class="section-text">
+        Cette expertise pratique a mis en lumière les besoins non couverts du marché : absence de traçabilité en temps réel, manque de garanties assurancielles claires, et documentation insuffisante des missions. Autant de failles qui fragilisent la confiance entre le client et le prestataire.
+      </p>
+      <p class="section-text">
+        De ce constat est né un modèle opérationnel structuré. Bathily-Convoyage déploie aujourd'hui un process rigoureux à chaque mission : <strong>état des lieux photographique contradictoire</strong>, <strong>suivi GPS temps réel</strong>, <strong>double assurance RC Pro</strong>, et <strong>convoyeurs formés et identifiés</strong>.
+      </p>
+      <p class="section-text">
+        L'objectif est clair : transformer une prestation de transport en une expérience maîtrisée, transparente et sécurisée. Chaque véhicule confié bénéficie d'un niveau de service élevé, d'une documentation complète et d'un interlocuteur unique du devis à la livraison.
+      </p>
+
+      <div style="margin:24px 0;border-radius:16px;overflow:hidden;">
+        <img src="images/car_key_handover.webp" alt="Remise de clés — confiance et accompagnement Bathily-Convoyage" style="width:100%;display:block;">
+      </div>
+    </div>
+  </section>
+
+  <!-- Nos valeurs -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">Nos valeurs</h2>
+      <p class="section-text">Quatre principes guident chaque mission que nous réalisons.</p>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon"><i class="fas fa-shield-halved"></i></div>
+          <h3>Sécurité</h3>
+          <p>Double RC Pro, convoyeurs formés, état des lieux contradictoire. Aucun véhicule ne prend la route sans garanties complètes.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon"><i class="fas fa-eye"></i></div>
+          <h3>Transparence</h3>
+          <p>Suivi GPS temps réel, notifications à chaque étape, documents de mission remis au client. Tout est tracé, rien n'est laissé dans l'ombre.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon"><i class="fas fa-handshake"></i></div>
+          <h3>Confiance</h3>
+          <p>Un interlocuteur unique du devis à la livraison. Des tarifs clairs, sans surprise. Des engagements tenus.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon"><i class="fas fa-route"></i></div>
+          <h3>Expertise terrain</h3>
+          <p>Née de l'expérience de convoyeurs indépendants, notre entreprise connaît la route, ses risques et ses exigences mieux que quiconque.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-band">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <strong>100%</strong>
+        <span>Missions documentées</span>
+      </div>
+      <div class="stat-item">
+        <strong>72h</strong>
+        <span>Prise en charge garantie</span>
+      </div>
+      <div class="stat-item">
+        <strong>20</strong>
+        <span>Photos par état des lieux</span>
+      </div>
+      <div class="stat-item">
+        <strong>France</strong>
+        <span>Couverture nationale</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Notre engagement -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Notre engagement</h2>
+      <p class="section-text">
+        Confier son véhicule à un prestataire n'est jamais anodin. C'est pourquoi Bathily-Convoyage s'engage sur trois niveaux :
+      </p>
+      <p class="section-text">
+        <strong>Avant la mission</strong> — Devis gratuit sous 2h, validation du trajet et du tarif, assignation d'un convoyeur qualifié et identifié par plaque.
+      </p>
+      <p class="section-text">
+        <strong>Pendant la mission</strong> — État des lieux photo au départ, suivi GPS temps réel accessible au client, notifications de progression et alerte d'arrivée imminente.
+      </p>
+      <p class="section-text">
+        <strong>Après la mission</strong> — État des lieux contradictoire à l'arrivée, remise des documents de mission, contrôle final et retour d'information systématique.
+      </p>
+
+      <div class="photo-grid">
+        <div style="border-radius:16px;overflow:hidden;">
+          <img src="images/automotive_inspection_driveway.webp" alt="Inspection véhicule avant convoyage — état des lieux contradictoire" style="width:100%;display:block;">
+        </div>
+        <div style="border-radius:16px;overflow:hidden;">
+          <img src="images/suv_blank_plate.webp" alt="SUV prêt pour le convoyage — plaque vierge" style="width:100%;display:block;">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quote -->
+  <section class="section section-alt">
+    <div class="quote-block">
+      <p>« L'exigence du terrain,<br><span>la rigueur d'une entreprise. »</span></p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2>Prêt à confier votre véhicule ?</h2>
+    <p>Devis gratuit en 2 minutes. Prise en charge sous 72h.</p>
+    <a href="devis.html" class="cta-btn">Demander un devis</a>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-inner">
+      <p>Bathily-Convoyage — 34 rue de Padirac, 34070 Montpellier</p>
+      <p>Tél : <a href="tel:0758362249">07 58 36 22 49</a> — Email : <a href="mailto:contact@bathily-convoyage.fr">contact@bathily-convoyage.fr</a></p>
+      <p class="footer-bottom">
+        © 2025 Bathily-Convoyage — SIRET 789 285 376 00032 — Entreprise individuelle<br>
+        TVA non applicable — franchise en base (art. 293 B CGI) —
+        <a href="mentions-legales.html">Mentions légales</a> —
+        <a href="devis.html">Devis</a> —
+        <a href="contact.html">Contact</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/mobile-nav.js" defer></script>
+<script src="js/cookie-consent.js" defer></script>
+</body>
+</html>

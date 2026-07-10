@@ -1,4 +1,4 @@
-﻿<!DOCTYPEml>
+<!DOCTYPE html>
 
 <html lang="fr">
 
@@ -28,7 +28,7 @@
 
   <meta property="og:title" content="Bathily-Convoyage — Convoyage Auto & Moto France">
 
-  <meta property="og:description" content="Devis en 2min, suivi GPS, photos état des lieux. +500 émissions réalisées.">
+  <meta property="og:description" content="Devis en 2min, suivi GPS, photos état des lieux. Convoyage auto & moto partout en France.">
 
   <meta property="og:image" content="https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg">
 
@@ -39,6 +39,40 @@
   <meta name="google-site-verification" content="gTV1bbLGPHVto_oeIkc_OkmaQi8CrndIXk15ePeUzwI">
   <meta name="google-site-verification" content="4E2cPBgGHHP_QdfIyfcMkXhIE4eV8_yvzV-_GU_orRk">
   <link rel="canonical" href="https://www.bathily-convoyage.fr/">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": "https://www.bathily-convoyage.fr/#business",
+    "name": "Bathily-Convoyage",
+    "image": "https://www.bathily-convoyage.fr/logo.png",
+    "url": "https://www.bathily-convoyage.fr/",
+    "telephone": "+33758362249",
+    "email": "contact@bathily-convoyage.fr",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "34 rue de Padirac",
+      "addressLocality": "Montpellier",
+      "postalCode": "34070",
+      "addressCountry": "FR"
+    },
+    "siret": "78928537600032",
+    "description": "Convoyage auto et moto partout en France. Devis en 2min, suivi GPS temps réel, double assurance RC Pro.",
+    "priceRange": "€€",
+    "areaServed": "FR",
+    "openingHours": "Mo-Su 07:00-21:00",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "22"
+    },
+    "sameAs": [
+      "https://www.instagram.com/BATHILY_CONVOYAGE",
+      "https://www.linkedin.com/company/bathily-convoyage"
+    ]
+  }
+  </script>
 
   <link rel="icon" type="image/png" href="/favicon.png?v=3">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -145,6 +179,8 @@
 
       z-index: 9999;
 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+
     }
 
 
@@ -157,7 +193,7 @@
 
       align-items: center;
 
-      height: 72px;
+      height: 64px;
 
     }
 
@@ -185,7 +221,7 @@
 
     .logo img {
 
-      height: 42px;
+      height: 36px;
 
       width: auto;
 
@@ -264,6 +300,198 @@
       background: var(--bordeaux);
 
       color: white;
+
+    }
+
+
+
+    /* Layout header gauche */
+
+    .header-left {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 20px;
+
+    }
+
+
+
+    .header-link-conv {
+
+      text-decoration: none;
+
+      color: var(--bordeaux);
+
+      font-weight: 600;
+
+      font-size: 0.85rem;
+
+      white-space: nowrap;
+
+      border: 1px solid var(--bordeaux);
+
+      border-radius: 40px;
+
+      padding: 6px 16px;
+
+      transition: all 0.2s;
+
+    }
+
+
+
+    .header-link-conv:hover {
+
+      background: var(--bordeaux);
+
+      color: white;
+
+    }
+
+
+
+    /* Bouton Devis gratuit (jaune) */
+
+    .btn-devis {
+
+      background: #F5A623;
+
+      border: none;
+
+      padding: 10px 24px;
+
+      border-radius: 40px;
+
+      color: #0A4D68;
+
+      font-weight: 700;
+
+      font-size: 0.85rem;
+
+      text-decoration: none;
+
+      white-space: nowrap;
+
+      transition: all 0.2s ease;
+
+    }
+
+
+
+    .btn-devis:hover {
+
+      background: #e09315;
+
+      transform: translateY(-2px);
+
+      box-shadow: 0 6px 15px rgba(245, 166, 35, 0.4);
+
+      color: #0A4D68;
+
+    }
+
+
+
+    /* Menu déroulant Connexion */
+
+    .nav-dropdown {
+
+      position: relative;
+
+    }
+
+    .nav-dropdown-toggle {
+
+      cursor: pointer;
+
+      user-select: none;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 6px;
+
+    }
+
+    .nav-dropdown-toggle i {
+
+      font-size: 0.7rem;
+
+      transition: transform 0.3s;
+
+    }
+
+    .nav-dropdown.open .nav-dropdown-toggle i {
+
+      transform: rotate(180deg);
+
+    }
+
+    .nav-dropdown-menu {
+
+      display: none;
+
+      position: absolute;
+
+      top: 100%;
+
+      right: 0;
+
+      background: white;
+
+      border: 1px solid var(--border-light, #E8E1D9);
+
+      border-radius: 12px;
+
+      box-shadow: 0 12px 32px rgba(10, 77, 104, 0.12);
+
+      padding: 8px 0;
+
+      min-width: 200px;
+
+      z-index: 200;
+
+      margin-top: 8px;
+
+    }
+
+    .nav-dropdown.open .nav-dropdown-menu {
+
+      display: block;
+
+    }
+
+    .nav-dropdown-menu a {
+
+      display: block;
+
+      padding: 10px 20px;
+
+      font-size: 0.85rem;
+
+      color: var(--gray-mid);
+
+      transition: all 0.2s;
+
+    }
+
+    .nav-dropdown-menu a:hover {
+
+      background: var(--bordeaux-light, #E6F0F4);
+
+      color: var(--bordeaux);
+
+    }
+
+    .nav-dropdown-menu a i {
+
+      width: 18px;
+
+      color: var(--bordeaux);
 
     }
 
@@ -551,7 +779,7 @@
 
       background: white;
 
-      border: 3px solid var(--bordeaux);
+      border: 2px solid var(--bordeaux);
 
       border-radius: 50%;
 
@@ -569,7 +797,7 @@
 
       transition: all 0.3s;
 
-      box-shadow: 0 4px 12px rgba(10,77,104,0.1);
+      position: relative;
 
     }
 
@@ -582,6 +810,40 @@
       color: var(--warning);
 
       box-shadow: 0 8px 24px rgba(245,166,35,0.3);
+
+    }
+
+
+
+    .timeline-step-num {
+
+      position: absolute;
+
+      top: -8px;
+
+      right: -8px;
+
+      width: 24px;
+
+      height: 24px;
+
+      background: var(--bordeaux);
+
+      color: white;
+
+      border-radius: 50%;
+
+      font-size: 0.7rem;
+
+      font-weight: 800;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      font-family: 'Montserrat', sans-serif;
 
     }
 
@@ -649,9 +911,9 @@
 
       padding: 8px 16px;
 
-      background: white;
+      background: rgba(255,255,255,0.06);
 
-      border: 1px solid var(--border-light);
+      border: 1px solid rgba(255,255,255,0.1);
 
       border-radius: 12px;
 
@@ -659,7 +921,7 @@
 
       font-weight: 600;
 
-      color: var(--gray-dark);
+      color: rgba(255,255,255,0.8);
 
     }
 
@@ -725,15 +987,17 @@
 
       font-family: 'Montserrat', sans-serif;
 
-      font-size: 2.8rem;
+      font-size: 3.2rem;
 
       font-weight: 800;
 
-      line-height: 1.25;
+      line-height: 1.2;
 
       margin-bottom: 16px;
 
       color: #0A4D68;
+
+      letter-spacing: -0.03em;
 
     }
 
@@ -1001,13 +1265,19 @@
 
       .hero h1 {
 
-        font-size: 2.2rem;
+        font-size: 2.4rem;
 
       }
 
       .hero-map-container {
 
         height: 320px;
+
+      }
+
+      .quick-quote {
+
+        border-radius: 24px !important;
 
       }
 
@@ -1107,11 +1377,13 @@
 
       font-family: 'Montserrat', sans-serif;
 
-      font-size: 2.2rem;
+      font-size: 2rem;
 
       font-weight: 700;
 
       margin-bottom: 16px;
+
+      letter-spacing: -0.02em;
 
     }
 
@@ -1189,11 +1461,27 @@
 
       bottom: 0;
 
-      background: linear-gradient(145deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.75) 100%);
+      background: linear-gradient(145deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.7) 100%);
 
       z-index: 0;
 
       transition: opacity 0.3s;
+
+    }
+
+
+
+    .service-card.card-2::before {
+
+      background: linear-gradient(145deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.78) 100%);
+
+    }
+
+
+
+    .service-card.card-3::before {
+
+      background: linear-gradient(145deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.85) 100%);
 
     }
 
@@ -1221,6 +1509,14 @@
 
 
 
+    .service-card:hover {
+
+      border: 2px solid var(--warning);
+
+    }
+
+
+
     .service-card .service-icon,
 
     .why-card .why-icon {
@@ -1241,9 +1537,13 @@
 
       color: white;
 
-      font-size: 1.4rem;
+      font-size: 1.6rem;
 
       margin-bottom: 12px;
+
+      font-family: 'Montserrat', sans-serif;
+
+      font-weight: 700;
 
     }
 
@@ -1404,6 +1704,71 @@
     }
 
 
+
+    /* Avis — masquer au-delà de 3 */
+
+    .avis-hidden { display: none; }
+
+    #btnToggleAvis:hover { background: var(--bordeaux); color: white !important; }
+
+    .avis-card {
+      background: white;
+      border-radius: 24px;
+      padding: 32px;
+      border: 1px solid var(--border-light);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .avis-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(10,77,104,0.08);
+      border-color: var(--bordeaux-light);
+    }
+
+    .avis-card::before {
+      content: '\201C';
+      position: absolute;
+      top: -20px;
+      left: 16px;
+      font-size: 5rem;
+      font-family: Georgia, serif;
+      color: var(--bordeaux);
+      opacity: 0.08;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    #btnToggleAvis {
+      background: var(--bordeaux) !important;
+      border: none !important;
+      color: white !important;
+      padding: 12px 32px !important;
+      border-radius: 30px !important;
+      font-weight: 600 !important;
+      font-size: 0.85rem !important;
+      cursor: pointer;
+      transition: all 0.2s !important;
+      display: inline-flex !important;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #btnToggleAvis:hover {
+      background: var(--bordeaux-dark) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(10,77,104,0.2);
+    }
+
+    #btnToggleAvis i,
+    #toggleAvisIcon {
+      color: white !important;
+      font-size: 0.75rem !important;
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
 
     /* Testimonials carousel */
 
@@ -1585,6 +1950,8 @@
 
       background: white;
 
+      border: 1px solid rgba(10, 77, 104, 0.15);
+
       border-radius: 60px;
 
       padding: 12px;
@@ -1595,7 +1962,7 @@
 
       flex-wrap: wrap;
 
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 8px 24px rgba(10, 77, 104, 0.12);
 
       margin-top: 24px;
 
@@ -1921,13 +2288,15 @@
 
     footer {
 
-      background: var(--beige);
+      background: #063244;
 
-      border-top: 1px solid var(--border-light);
+      border-top: 1px solid rgba(255,255,255,0.08);
 
-      padding: 48px 0;
+      padding: 56px 0 32px;
 
       margin-top: 60px;
+
+      color: rgba(255,255,255,0.7);
 
     }
 
@@ -1937,9 +2306,9 @@
 
       display: grid;
 
-      grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+      grid-template-columns: 2fr 1fr 1fr 1.5fr;
 
-      gap: 48px;
+      gap: 40px;
 
     }
 
@@ -1965,13 +2334,15 @@
 
       margin-bottom: 16px;
 
+      color: #fff;
+
     }
 
 
 
     .footer-logo span {
 
-      color: var(--bordeaux);
+      color: #F5A623;
 
     }
 
@@ -1979,7 +2350,7 @@
 
     .footer-about p {
 
-      color: var(--gray-mid);
+      color: rgba(255,255,255,0.6);
 
       font-size: 0.875rem;
 
@@ -1989,9 +2360,19 @@
 
     .footer-links h4 {
 
-      font-weight: 600;
+      color: #fff;
 
-      margin-bottom: 16px;
+      font-family: 'Montserrat', sans-serif;
+
+      font-size: 0.85rem;
+
+      font-weight: 700;
+
+      margin-bottom: 12px;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.05em;
 
     }
 
@@ -2001,13 +2382,15 @@
 
       display: block;
 
-      color: var(--gray-mid);
+      color: rgba(255,255,255,0.6);
 
       text-decoration: none;
 
-      font-size: 0.875rem;
+      font-size: 0.85rem;
 
       margin-bottom: 8px;
+
+      transition: color 0.2s;
 
     }
 
@@ -2015,7 +2398,17 @@
 
     .footer-links a:hover {
 
-      color: var(--bordeaux);
+      color: #F5A623;
+
+    }
+
+
+
+    .footer-links span {
+
+      color: rgba(255,255,255,0.5);
+
+      font-size: 0.85rem;
 
     }
 
@@ -2025,13 +2418,13 @@
 
       text-align: center;
 
+      color: rgba(255,255,255,0.5);
+
       margin-top: 48px;
 
       padding-top: 24px;
 
-      border-top: 1px solid var(--border-light);
-
-      color: var(--gray-mid);
+      border-top: 1px solid rgba(255,255,255,0.1);
 
       font-size: 0.75rem;
 
@@ -2047,7 +2440,7 @@
 
       transform: translateY(30px);
 
-      transition: opacity 0.7s ease, transform 0.7s ease;
+      transition: opacity 0.7s cubic-bezier(0.2, 0, 0, 1), transform 0.7s cubic-bezier(0.2, 0, 0, 1);
 
     }
 
@@ -2058,6 +2451,46 @@
       opacity: 1;
 
       transform: translateY(0);
+
+    }
+
+
+
+    /* Stagger children */
+
+    .reveal.visible > * + * {
+
+      animation: fadeInUp 0.6s cubic-bezier(0.2, 0, 0, 1) both;
+
+    }
+
+
+
+    @keyframes fadeInUp {
+
+      from { opacity: 0; transform: translateY(20px); }
+
+      to { opacity: 1; transform: translateY(0); }
+
+    }
+
+
+
+    /* Hero fade-in */
+
+    .fade-in {
+
+      animation: heroFadeIn 0.8s cubic-bezier(0.2, 0, 0, 1) both;
+
+    }
+
+
+
+    @keyframes heroFadeIn {
+
+      from { opacity: 0; transform: translateY(20px); }
+
+      to { opacity: 1; transform: translateY(0); }
 
     }
 
@@ -2219,9 +2652,9 @@
 
       z-index: 999;
 
-      background: var(--bordeaux);
+      background: #F5A623;
 
-      color: #fff;
+      color: #0A4D68;
 
       padding: 14px 22px;
 
@@ -2233,7 +2666,7 @@
 
       transition: all 0.2s ease;
 
-      box-shadow: 0 4px 12px rgba(10, 77, 104, 0.25);
+      box-shadow: 0 4px 12px rgba(245, 166, 35, 0.35);
 
       white-space: nowrap;
 
@@ -2241,7 +2674,7 @@
 
     .floating-devis:hover {
 
-      background: var(--bordeaux-dark);
+      background: #e09315;
 
       transform: translateY(-2px);
 
@@ -2992,13 +3425,37 @@
 
 
 
-  <div class="promo-bar">
-
+  <div class="promo-bar" id="promoBar">
     <span>⭐ Offre de lancement : <strong>-10%</strong> sur votre premier convoyage avec le code :
 
       <strong>HELLO10</strong></span>
 
   </div>
+
+  <script>
+  (function() {
+    function getSB() {
+      if (window._sbClient) return window._sbClient;
+      if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY || !window.supabase) return null;
+      window._sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      return window._sbClient;
+    }
+    async function loadPromoBar() {
+      var sb = getSB();
+      if (!sb) return;
+      try {
+        var res = await sb.from('promo_codes').select('*').eq('actif', true).order('created_at', { ascending: false }).limit(1);
+        if (res.error || !res.data || res.data.length === 0) return;
+        var p = res.data[0];
+        if (p.date_fin && new Date(p.date_fin) < new Date()) return;
+        var bar = document.getElementById('promoBar');
+        if (!bar) return;
+        bar.innerHTML = '<span>⭐ ' + p.texte_affiche + ' : <strong>-' + p.remise_pourcent + '%</strong> sur votre convoyage avec le code : <strong>' + p.code + '</strong></span>';
+      } catch(e) { console.warn('Promo bar: fallback to default', e); }
+    }
+    loadPromoBar();
+  })();
+  </script>
 
 
 
@@ -3006,7 +3463,10 @@
 
     <div class="container header-inner">
 
-      <a href="index.html" class="logo"><img src="/logo.svg" alt="Bathily-Convoyage" /></a>
+      <div class="header-left">
+        <a href="index.html" class="logo"><picture><source srcset="/logo.webp" type="image/webp"><img src="/logo.png" alt="Bathily-Convoyage" /></picture></a>
+        <a href="formation-convoyeur.html" class="header-link-conv">Devenir convoyeur</a>
+      </div>
 
       <button class="menu-toggle" id="menuToggle" aria-label="Menu principal" style="background:none;border:none;"><i class="fas fa-bars icon-bars"></i><i class="fas fa-times icon-times"></i></button>
 
@@ -3014,15 +3474,20 @@
 
         <a href="index.html" class="active">Accueil</a>
 
-        <a href="formation-convoyeur.html">Devenir convoyeur</a>
-
-        <a href="espace-pro.html">Espace Pro</a>
+        <a href="qui-sommes-nous.html">Qui sommes-nous</a>
 
         <a href="contact.html">Contact</a>
 
-        <a href="dashboard-convoyeur.html">Espace convoyeur</a>
+        <div class="nav-dropdown" id="navDropdown">
+          <span class="nav-dropdown-toggle" id="navDropdownToggle">Connexion <i class="fas fa-chevron-down"></i></span>
+          <div class="nav-dropdown-menu">
+            <a href="dashboard-client.html"><i class="fas fa-user"></i> Espace client</a>
+            <a href="dashboard-convoyeur.html"><i class="fas fa-truck"></i> Espace convoyeur</a>
+            <a href="espace-pro.html"><i class="fas fa-briefcase"></i> Espace Pro</a>
+          </div>
+        </div>
 
-        <a href="dashboard-client.html" class="btn-outline">Espace client</a>
+        <a href="devis.html" class="btn-devis">Devis gratuit</a>
 
       </div>
 
@@ -3047,6 +3512,22 @@
           <h1>Convoyage Auto & Moto<br>Partout en France.</h1>
 
           <p>Votre véhicule transporté en toute sécurité par des professionnels. Devis gratuit en 2min.</p>
+
+          <div class="hero-trust" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;padding:12px 20px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:16px;backdrop-filter:blur(6px);">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="color:#F5A623;font-size:1.05rem;letter-spacing:1px;">★★★★★</span>
+              <span style="color:#fff;font-size:0.85rem;font-weight:700;">4,8/5</span>
+              <span style="color:rgba(255,255,255,0.6);font-size:0.8rem;">(22 avis)</span>
+            </div>
+            <span style="color:rgba(255,255,255,0.2);">|</span>
+            <div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.85);font-size:0.82rem;">
+              <i class="fas fa-users" style="color:#F5A623;"></i> <strong style="color:#fff;">+1 200</strong> clients satisfaits
+            </div>
+            <span style="color:rgba(255,255,255,0.2);">|</span>
+            <div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.85);font-size:0.82rem;">
+              <i class="fas fa-id-badge" style="color:#F5A623;"></i> <strong style="color:#fff;">+50</strong> convoyeurs certifiés
+            </div>
+          </div>
 
           <div class="quick-quote">
 
@@ -3089,22 +3570,6 @@
             <span>💰 Tarif estimé : <strong id="quickQuotePrice">— €</strong></span>
 
             <button onclick="goToDevis()" style="background:var(--bordeaux);color:white;border:none;padding:8px 20px;border-radius:30px;font-size:0.85rem;cursor:pointer;font-weight:600;white-space:nowrap;">Obtenir mon devis →</button>
-
-          </div>
-
-          <div class="hero-trust-line">
-
-            <span class="stars">⭐⭐⭐⭐⭐</span>
-
-            <span><strong>Service client dédié</strong> — accompagnement personnalisé</span>
-
-            <span style="margin-left:16px;">|</span>
-
-            <span><strong>+1 200</strong> clients satisfaits</span>
-
-            <span style="margin-left:16px;">|</span>
-
-            <span><strong>+50</strong> convoyeurs certifiés</span>
 
           </div>
 
@@ -3284,13 +3749,15 @@
 
         <div class="grid-6">
 
-          <a href="devis.html?mode=route" class="service-card card-1 reveal" style="text-decoration:none;display:block;cursor:pointer;">
+          <a href="devis.html?mode=route" class="service-card card-1 reveal" style="text-decoration:none;display:block;cursor:pointer;position:relative;">
+
+            <div style="position:absolute;top:16px;right:16px;background:#F5A623;color:#0A4D68;padding:4px 12px;border-radius:20px;font-size:0.7rem;font-weight:700;z-index:2;">⭐ Recommandé</div>
 
             <div class="service-icon"><i class="fas fa-car"></i></div>
 
             <h3>Convoyage par la route</h3>
 
-            <p>convoyeur certifié, suivi GPS en temps réel, livraison porte-à-porte.</p>
+            <p>Convoyeur certifié, suivi GPS en temps réel, livraison porte-à-porte.</p>
 
           </a>
 
@@ -3398,35 +3865,87 @@
 
         <!-- Packs de service -->
 
-        <div style="margin-top: 50px; text-align: center;" class="reveal">
+        <div style="margin-top: 50px;" class="reveal">
 
-          <h4 style="font-family: 'Montserrat', sans-serif; font-size: 1.2rem; margin-bottom: 16px; color: var(--gray-dark);">
+          <h4 style="font-family: 'Montserrat', sans-serif; font-size: 1.2rem; margin-bottom: 24px; color: var(--gray-dark); text-align: center;">Niveaux de service optionnels</h4>
 
-            Niveaux de service optionnels</h4>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 900px; margin: 0 auto;">
 
-          <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;">
+            <div onclick="window.location.href='devis.html?pack=starter'" style="cursor: pointer; background: white; border: 2px solid var(--border-light); border-radius: 20px; padding: 28px 24px; text-align: center; transition: all 0.3s; position: relative;" onmouseover="this.style.transform='translateY(-6px)';this.style.borderColor='var(--bordeaux-light)';this.style.boxShadow='0 12px 32px rgba(10,77,104,0.08)'" onmouseout="this.style.transform='translateY(0)';this.style.borderColor='var(--border-light)';this.style.boxShadow='none'">
 
-            <div onclick="window.location.href='devis.html?pack=starter'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+              <div style="font-size:1.6rem;margin-bottom:8px;"><i class="fas fa-rocket" style="color:var(--bordeaux);"></i></div>
 
-              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Formule Starter — Inclus</strong>
+              <strong style="font-family:'Montserrat',sans-serif;font-size:1.1rem;color:var(--gray-dark);display:block;margin-bottom:4px;">Formule Starter</strong>
 
-              <span style="font-size: 0.8rem; color: var(--gray-mid);">Convoyeur certifié, suivi GPS, état des lieux 20 photos, service client standard.</span>
+              <div style="font-family:'Montserrat',sans-serif;font-size:2rem;font-weight:800;color:var(--bordeaux);margin:12px 0;">Inclus<span style="font-size:0.9rem;font-weight:600;"></span></div>
+
+              <ul style="list-style:none;padding:0;margin:16px 0 20px;text-align:left;">
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Convoyeur certifié</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Suivi GPS temps réel</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>État des lieux 20 photos</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Service client standard</li>
+
+              </ul>
+
+              <span style="display:inline-block;padding:8px 20px;background:var(--bordeaux-light);color:var(--bordeaux);border-radius:30px;font-size:0.85rem;font-weight:600;">Choisir →</span>
 
             </div>
 
-            <div onclick="window.location.href='devis.html?pack=serenite'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div onclick="window.location.href='devis.html?pack=serenite'" style="cursor: pointer; background: white; border: 2px solid var(--bordeaux); border-radius: 20px; padding: 28px 24px; text-align: center; transition: all 0.3s; position: relative; box-shadow: 0 8px 24px rgba(10,77,104,0.1);" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 16px 40px rgba(10,77,104,0.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 24px rgba(10,77,104,0.1)'">
 
-              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Sérénité — +69€</strong>
+              <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#F5A623;color:#0A4D68;padding:4px 16px;border-radius:20px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">⭐ Plus populaire</div>
 
-              <span style="font-size: 0.8rem; color: var(--gray-mid);">Tout Starter + nettoyage int./ext., lavage avant livraison, RDV planifié, support VIP.</span>
+              <div style="font-size:1.6rem;margin-bottom:8px;"><i class="fas fa-gem" style="color:var(--bordeaux);"></i></div>
+
+              <strong style="font-family:'Montserrat',sans-serif;font-size:1.1rem;color:var(--gray-dark);display:block;margin-bottom:4px;">Pack Sérénité</strong>
+
+              <div style="font-family:'Montserrat',sans-serif;font-size:2rem;font-weight:800;color:var(--bordeaux);margin:12px 0;">+69€<span style="font-size:0.9rem;font-weight:600;"></span></div>
+
+              <ul style="list-style:none;padding:0;margin:16px 0 20px;text-align:left;">
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Tout Starter inclus</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Nettoyage int./ext.</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Lavage avant livraison</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>RDV planifié</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Support VIP</li>
+
+              </ul>
+
+              <span style="display:inline-block;padding:8px 20px;background:var(--bordeaux);color:white;border-radius:30px;font-size:0.85rem;font-weight:600;">Choisir →</span>
 
             </div>
 
-            <div onclick="window.location.href='devis.html?pack=excellence'" style="cursor: pointer; background: white; border: 1px solid var(--border-light); padding: 16px 24px; border-radius: 20px; text-align: left; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div onclick="window.location.href='devis.html?pack=excellence'" style="cursor: pointer; background: white; border: 2px solid var(--border-light); border-radius: 20px; padding: 28px 24px; text-align: center; transition: all 0.3s; position: relative;" onmouseover="this.style.transform='translateY(-6px)';this.style.borderColor='var(--bordeaux-light)';this.style.boxShadow='0 12px 32px rgba(10,77,104,0.08)'" onmouseout="this.style.transform='translateY(0)';this.style.borderColor='var(--border-light)';this.style.boxShadow='none'">
 
-              <strong style="color: var(--bordeaux); display: block; margin-bottom: 4px;">Pack Excellence — +159€</strong>
+              <div style="font-size:1.6rem;margin-bottom:8px;"><i class="fas fa-crown" style="color:#F5A623;"></i></div>
 
-              <span style="font-size: 0.8rem; color: var(--gray-mid);">Tout Sérénité + plein de carburant, photos pro 4K, livraison dim./férié, priorité d'affectation.</span>
+              <strong style="font-family:'Montserrat',sans-serif;font-size:1.1rem;color:var(--gray-dark);display:block;margin-bottom:4px;">Pack Excellence</strong>
+
+              <div style="font-family:'Montserrat',sans-serif;font-size:2rem;font-weight:800;color:var(--bordeaux);margin:12px 0;">+159€<span style="font-size:0.9rem;font-weight:600;"></span></div>
+
+              <ul style="list-style:none;padding:0;margin:16px 0 20px;text-align:left;">
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Tout Sérénité inclus</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Plein de carburant</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Photos pro 4K</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Livraison dim./férié</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Priorité d'affectation</li>
+
+              </ul>
+
+              <span style="display:inline-block;padding:8px 20px;background:var(--bordeaux-light);color:var(--bordeaux);border-radius:30px;font-size:0.85rem;font-weight:600;">Choisir →</span>
 
             </div>
 
@@ -3488,7 +4007,7 @@
 
     <!-- Processus en 5 étapes -->
 
-    <section id="howitworks" style="background: var(--beige);">
+    <section id="howitworks" style="background: #E6F0F4;">
 
       <div class="container">
 
@@ -3500,7 +4019,7 @@
 
           <div class="timeline-step reveal">
 
-            <div class="timeline-icon"><i class="fas fa-clipboard-list"></i></div>
+            <div class="timeline-icon"><i class="fas fa-clipboard-list"></i><span class="timeline-step-num">1</span></div>
 
             <h4>Demande de devis</h4>
 
@@ -3510,7 +4029,7 @@
 
           <div class="timeline-step reveal">
 
-            <div class="timeline-icon"><i class="fas fa-user-check"></i></div>
+            <div class="timeline-icon"><i class="fas fa-user-check"></i><span class="timeline-step-num">2</span></div>
 
             <h4>Assignation convoyeur</h4>
 
@@ -3520,7 +4039,7 @@
 
           <div class="timeline-step reveal">
 
-            <div class="timeline-icon"><i class="fas fa-camera"></i></div>
+            <div class="timeline-icon"><i class="fas fa-camera"></i><span class="timeline-step-num">3</span></div>
 
             <h4>Prise en charge</h4>
 
@@ -3530,7 +4049,7 @@
 
           <div class="timeline-step reveal">
 
-            <div class="timeline-icon"><i class="fas fa-satellite-dish"></i></div>
+            <div class="timeline-icon"><i class="fas fa-satellite-dish"></i><span class="timeline-step-num">4</span></div>
 
             <h4>Transport & suivi GPS</h4>
 
@@ -3540,7 +4059,7 @@
 
           <div class="timeline-step reveal">
 
-            <div class="timeline-icon"><i class="fas fa-flag-checkered"></i></div>
+            <div class="timeline-icon"><i class="fas fa-flag-checkered"></i><span class="timeline-step-num">5</span></div>
 
             <h4>Livraison & validation</h4>
 
@@ -3550,15 +4069,15 @@
 
         </div>
 
+        <div style="margin-top:40px;border-radius:20px;overflow:hidden;box-shadow:0 12px 32px rgba(10,77,104,0.12);">
+          <img src="images/black_sedan_departure.webp" alt="Départ en mission de convoyage — Bathily-Convoyage" style="width:100%;display:block;">
+        </div>
+
       </div>
 
     </section>
 
-
-
-    <!-- Avis clients & convoyeurs -->
-
-    <section id="avis">
+    <section id="avis" style="background: var(--beige);">
 
       <div class="container">
 
@@ -3642,39 +4161,32 @@
 
           <p>La solution digitale de convoyage automobile & moto avec suivi en temps réel en France.</p>
 
-        </div>
-
-        <div class="footer-links">
-
-          <h4>Navigation</h4><a href="index.html">Accueil</a><a href="#services">Services</a><a href="#tarifs">Tarifs</a><a href="#howitworks">Processus</a><a href="devis.html">Devis</a>
-
-        </div>
-
-        <div class="footer-links">
-
-          <h4>Espaces</h4><a href="dashboard-client.html">Espace client</a><a href="dashboard-convoyeur.html">Espace
-
-            convoyeur</a><a href="espace-pro.html">Espace Pro</a><a href="dashboard-admin.html">Espace admin</a>
+          <div style="margin-top:16px;">
+            <a href="tel:0758362249" style="color:rgba(255,255,255,0.8);text-decoration:none;font-size:0.9rem;font-weight:600;"><i class="fas fa-phone" style="color:#F5A623;margin-right:8px;"></i>07 58 36 22 49</a><br>
+            <a href="mailto:contact@bathily-convoyage.fr" style="color:rgba(255,255,255,0.6);text-decoration:none;font-size:0.85rem;"><i class="fas fa-envelope" style="color:#F5A623;margin-right:8px;"></i>contact@bathily-convoyage.fr</a>
+          </div>
 
         </div>
 
         <div class="footer-links">
 
-          <h4>Contact</h4><a href="mailto:contact@Bathily-Convoyage.fr">contact@Bathily-Convoyage.fr</a><span>France
-
-            entière</span>
+          <h4>Navigation</h4><a href="index.html"><i class="fas fa-home" style="width:18px;color:rgba(255,255,255,0.3);"></i> Accueil</a><a href="#services"><i class="fas fa-car" style="width:18px;color:rgba(255,255,255,0.3);"></i> Services</a><a href="#tarifs"><i class="fas fa-tag" style="width:18px;color:rgba(255,255,255,0.3);"></i> Tarifs</a><a href="#howitworks"><i class="fas fa-route" style="width:18px;color:rgba(255,255,255,0.3);"></i> Processus</a><a href="devis.html"><i class="fas fa-calculator" style="width:18px;color:rgba(255,255,255,0.3);"></i> Devis</a>
 
         </div>
 
         <div class="footer-links">
 
-          <h4>convoyage dans votre ville</h4>
+          <h4>Espaces</h4><a href="dashboard-client.html"><i class="fas fa-user" style="width:18px;color:rgba(255,255,255,0.3);"></i> Espace client</a><a href="dashboard-convoyeur.html"><i class="fas fa-truck" style="width:18px;color:rgba(255,255,255,0.3);"></i> Espace convoyeur</a><a href="espace-pro.html"><i class="fas fa-briefcase" style="width:18px;color:rgba(255,255,255,0.3);"></i> Espace Pro</a><a href="dashboard-admin.html"><i class="fas fa-shield-halved" style="width:18px;color:rgba(255,255,255,0.3);"></i> Espace admin</a><a href="qui-sommes-nous.html"><i class="fas fa-info-circle" style="width:18px;color:rgba(255,255,255,0.3);"></i> Qui sommes-nous</a>
+
+        </div>
+
+        <div class="footer-links">
+
+          <h4>Convoyage par ville</h4>
 
           <div class="footer-cities-grid">
 
             <div>
-
-              <a href="convoyage-moto-voiture-france.html">France</a>
 
               <a href="convoyage-moto-voiture-paris.html">Paris</a>
 
@@ -3682,15 +4194,19 @@
 
               <a href="convoyage-marseille.html">Marseille</a>
 
+              <a href="convoyage-bordeaux.html">Bordeaux</a>
+
             </div>
 
             <div>
 
-              <a href="convoyage-bordeaux.html">Bordeaux</a>
-
               <a href="convoyage-toulouse.html">Toulouse</a>
 
               <a href="convoyage-montpellier.html">Montpellier</a>
+
+              <a href="convoyage-moto-voiture-france.html">Toute la France</a>
+
+              <a href="convoyage-moto-voiture-france.html" style="color:#F5A623;font-weight:600;">Voir toutes les villes →</a>
 
             </div>
 
@@ -3704,12 +4220,17 @@
 
         <div class="footer-trust-badge"><i class="fab fa-stripe" style="color:#635BFF"></i> Paiement sécurisé Stripe</div>
 
-        <div class="footer-trust-badge"><i class="fas fa-shield-halved" style="color:var(--bordeaux)"></i> Double RC Pro </div>
+        <div class="footer-trust-badge"><i class="fas fa-shield-halved" style="color:#F5A623"></i> Double RC Pro</div>
 
-        <div class="footer-trust-badge"><i class="fas fa-id-card" style="color:var(--bordeaux)"></i> Identification par plaque</div>
+        <div class="footer-trust-badge"><i class="fas fa-id-card" style="color:#F5A623"></i> Identification par plaque</div>
 
-        <div class="footer-trust-badge"><i class="fas fa-lock" style="color:var(--success)"></i> Données chiffrées TLS</div>
+        <div class="footer-trust-badge"><i class="fas fa-lock" style="color:#4A7C6B"></i> Données chiffrées TLS</div>
 
+      </div>
+
+      <div class="footer-social" style="display:flex;justify-content:center;gap:16px;margin:24px 0;">
+        <a href="https://www.instagram.com/BATHILY_CONVOYAGE" target="_blank" rel="noopener" aria-label="Instagram" style="color:rgba(255,255,255,0.6);font-size:1.4rem;transition:color 0.2s;"><i class="fab fa-instagram"></i></a>
+        <a href="https://www.linkedin.com/company/bathily-convoyage" target="_blank" rel="noopener" aria-label="LinkedIn" style="color:rgba(255,255,255,0.6);font-size:1.4rem;transition:color 0.2s;"><i class="fab fa-linkedin"></i></a>
       </div>
 
       <div class="footer-bottom">© 2025 Bathily-Convoyage — Tous droits réservés — <a href="mentions-legales.html" style="color:inherit;text-decoration:underline;">Mentions Légales & CGV/CGU</a></div>
@@ -4666,6 +5187,34 @@
 
 
 
+    // ----- Menu déroulant Connexion -----
+
+    (function() {
+
+      var dd = document.getElementById('navDropdown');
+
+      var toggle = document.getElementById('navDropdownToggle');
+
+      if (!dd || !toggle) return;
+
+      toggle.addEventListener('click', function(e) {
+
+        e.stopPropagation();
+
+        dd.classList.toggle('open');
+
+      });
+
+      document.addEventListener('click', function(e) {
+
+        if (!dd.contains(e.target)) dd.classList.remove('open');
+
+      });
+
+    })();
+
+
+
     // ----- Animation au défilement (reveal) -----
 
     const revealObserver = new IntersectionObserver((entries) => {
@@ -4676,11 +5225,13 @@
 
           entry.target.classList.add('visible');
 
+          revealObserver.unobserve(entry.target);
+
         }
 
       });
 
-    }, { threshold: 0.15 });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
     document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
@@ -4800,7 +5351,7 @@
 
 
 
-  <section style="padding:80px 0; background: white; border-top: 1px solid var(--border-light);" id="faq">
+  <section style="padding:80px 0; background: #E6F0F4; border-top: 1px solid var(--border-light);" id="faq">
 
     <div class="container">
 
@@ -4929,6 +5480,8 @@ if ("serviceWorker" in navigator) {
 }
 
 </script>
+
+<script src="js/cookie-consent.js" defer></script>
 
 </body>
 

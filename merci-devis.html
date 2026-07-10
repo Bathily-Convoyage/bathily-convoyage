@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Merci pour votre devis | Bathily-Convoyage</title>
+  <meta name="description" content="Votre demande de devis a bien été enregistrée. Nous vous répondons sous 24h.">
+  <link rel="icon" type="image/png" href="/favicon.png?v=3">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/design-system.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; color: #6B625A; background: #FDFBF7; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .thanks-card {
+      max-width: 600px; width: 100%; background: white; border-radius: 24px;
+      padding: 48px 40px; text-align: center;
+      box-shadow: 0 12px 40px rgba(10, 77, 104, 0.1);
+      border: 1px solid #E8E1D9;
+    }
+    .thanks-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, #0A4D68, #088395);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px; color: #F5A623; font-size: 2rem;
+    }
+    .thanks-card h1 {
+      font-family: 'Montserrat', sans-serif; font-size: 1.8rem; font-weight: 800;
+      color: #0A4D68; margin-bottom: 12px; letter-spacing: -0.02em;
+    }
+    .thanks-card .ref {
+      display: inline-block; background: #E6F0F4; color: #0A4D68;
+      padding: 6px 18px; border-radius: 30px; font-weight: 700; font-size: 0.9rem;
+      margin: 12px 0 24px;
+    }
+    .thanks-card p { font-size: 1rem; line-height: 1.6; color: #6B625A; margin-bottom: 16px; }
+    .thanks-steps {
+      text-align: left; background: #FDFBF7; border-radius: 16px; padding: 24px;
+      margin: 24px 0; border: 1px solid #E8E1D9;
+    }
+    .thanks-steps h3 {
+      font-family: 'Montserrat', sans-serif; font-size: 0.95rem; font-weight: 700;
+      color: #0A4D68; margin-bottom: 16px;
+    }
+    .thanks-steps .step {
+      display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start;
+    }
+    .thanks-steps .step-num {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: #0A4D68; color: white; display: flex; align-items: center;
+      justify-content: center; font-size: 0.75rem; font-weight: 700;
+    }
+    .thanks-steps .step-content strong { color: #0A4D68; font-size: 0.88rem; }
+    .thanks-steps .step-content span { display: block; font-size: 0.82rem; color: #6B625A; }
+    .thanks-actions {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px;
+    }
+    .btn-primary {
+      background: #F5A623; color: #0A4D68; border: none; padding: 12px 28px;
+      border-radius: 40px; font-weight: 700; font-size: 0.9rem; text-decoration: none;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary:hover { background: #e09315; transform: translateY(-2px); }
+    .btn-secondary {
+      background: transparent; color: #0A4D68; border: 2px solid #0A4D68;
+      padding: 10px 26px; border-radius: 40px; font-weight: 600; font-size: 0.9rem;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: #0A4D68; color: white; }
+    .thanks-info {
+      margin-top: 24px; padding-top: 20px; border-top: 1px solid #E8E1D9;
+      font-size: 0.82rem; color: #6B625A;
+    }
+    .thanks-info a { color: #0A4D68; text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="thanks-card">
+    <div class="thanks-icon"><i class="fas fa-check"></i></div>
+    <h1>Devis envoyé !</h1>
+    <div class="ref" id="devisRef">Référence : —</div>
+    <p>Votre demande de devis a bien été enregistrée. Un email de confirmation vous a été envoyé.</p>
+
+    <div class="thanks-steps">
+      <h3>Prochaines étapes</h3>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>Vérification de votre demande</strong>
+          <span>Nous analysons votre trajet et vos options sous 24h ouvrées.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>Devis définitif envoyé par email</strong>
+          <span>Vous recevrez une proposition détaillée avec le prix final et le délai de prise en charge.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>Prise en charge du véhicule</strong>
+          <span>Après validation, un convoyeur est assigné. Suivi GPS en temps réel disponible dans votre espace client.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="thanks-actions">
+      <a href="dashboard-client.html" class="btn-primary"><i class="fas fa-user"></i> Suivre mon devis</a>
+      <a href="index.html" class="btn-secondary">Retour à l'accueil</a>
+    </div>
+
+    <div class="thanks-info">
+      Une question ? Contactez-nous au <a href="tel:0758362249">07 58 36 22 49</a> ou par email à <a href="mailto:contact@bathily-convoyage.fr">contact@bathily-convoyage.fr</a>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var ref = params.get('ref');
+      var price = params.get('price');
+      var dist = params.get('dist');
+      if (ref) {
+        document.getElementById('devisRef').textContent = 'Référence : ' + ref;
+      }
+      if (price && dist) {
+        var info = document.createElement('p');
+        info.style.cssText = 'font-size:0.9rem;color:#0A4D68;font-weight:600;margin-top:8px;';
+        info.innerHTML = 'Distance estimée : ' + dist + ' km · Montant estimé : ' + price + ' €';
+        document.querySelector('.ref').after(info);
+      }
+    })();
+  </script>
+</body>
+</html>

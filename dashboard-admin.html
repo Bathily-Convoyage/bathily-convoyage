@@ -1,4 +1,4 @@
-﻿<!DOCTYPEml>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -1520,7 +1520,7 @@
   <!-- AUTH OVERLAY -->
   <div id="authOverlay">
     <form class="auth-box" onsubmit="event.preventDefault();">
-      <div class="auth-logo"><img src="/logo.svg" alt="Bathily-Convoyage" style="height:48px;" /></div>
+      <div class="auth-logo"><img src="/logo.png" alt="Bathily-Convoyage" style="height:48px;" /></div>
       <div class="auth-sub">Accès administrateur sécurisé</div>
       <input type="email" id="adminEmailInput" class="auth-input" placeholder="Email admin" autocomplete="email">
       <input type="password" id="adminPasswordInput" class="auth-input" placeholder="Mot de passe" autocomplete="current-password">
@@ -1537,7 +1537,7 @@
   <div class="topbar">
     <div class="topbar-left">
       <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileNav()" aria-label="Menu navigation" title="Ouvrir le menu"><i class="fas fa-bars"></i></button>
-      <a href="index.html" class="topbar-logo"><img src="/logo.svg" alt="Bathily-Convoyage" style="height:36px;" /></a>
+      <a href="index.html" class="topbar-logo"><img src="/logo.png" alt="Bathily-Convoyage" style="height:36px;" /></a>
       <span class="topbar-tag">Admin</span>
     </div>
     <div class="topbar-right">
@@ -1559,6 +1559,7 @@
         <div class="nav-item active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</div>
         <div class="nav-item" data-tab="missions"><i class="fas fa-route"></i> Missions <span class="nav-badge" id="missionsNavBadge" style="display:none">0</span></div>
         <div class="nav-item" data-tab="devis"><i class="fas fa-calculator"></i> Devis <span class="nav-badge" id="devisNavBadge">0</span></div>
+        <div class="nav-item" data-tab="devis-expired"><i class="fas fa-clock"></i> Devis expirés <span class="nav-badge" id="expiredDevisBadge" style="display:none">0</span></div>
       </div>
       <div class="nav-section">
         <div class="nav-section-lbl">Utilisateurs</div>
@@ -1574,6 +1575,7 @@
         <div class="nav-item" data-tab="remuneration"><i class="fas fa-hand-holding-usd"></i> Remunerations</div>
         <div class="nav-item" data-tab="packs-config"><i class="fas fa-box"></i> Packs & Options</div>
         <div class="nav-item" data-tab="admins"><i class="fas fa-user-shield"></i> Administrateurs</div>
+        <div class="nav-item" data-tab="promo-codes"><i class="fas fa-tags"></i> Codes promo</div>
         <div class="nav-item" data-tab="systeme"><i class="fas fa-cog"></i> Système</div>
       </div>
       <div class="nav-section">
@@ -1770,6 +1772,23 @@
             <tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Type</th><th>Pack</th><th>Montant estimé</th><th>Reçu le</th><th>Actions</th></tr>
           </thead>
           <tbody id="devisTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- DEVIS EXPIRÉS -->
+      <div class="tab-content" id="tab-devis-expired">
+        <div class="dash-header">
+          <h1 class="dash-hello">Devis <em>expirés</em></h1>
+          <div class="dash-date">Devis sans réponse depuis +72h — relance possible</div>
+        </div>
+        <div class="alert alert-warn" id="expiredDevisBanner"><i class="fas fa-clock"></i> Chargement...</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Réf.</th><th>Client</th><th>Email</th><th>Trajet</th><th>Montant</th><th>Reçu le</th><th>Jours écoulés</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="expiredDevisTableBody">
+            <tr><td colspan="8" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Chargement...</td></tr>
+          </tbody>
         </table>
       </div>
 
@@ -2089,6 +2108,46 @@ Cadeau premium personnalisé</textarea>
             <tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Statut</th><th>Actions</th></tr>
           </thead>
           <tbody id="adminsTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- CODES PROMO -->
+      <div class="tab-content" id="tab-promo-codes">
+        <div class="dash-header">
+          <h1 class="dash-hello">Codes <em>promo</em></h1>
+          <div class="dash-date">Gérez les offres promotionnelles affichées sur le site</div>
+        </div>
+
+        <!-- Formulaire de création -->
+        <div class="config-card" style="margin-bottom:28px;">
+          <div class="config-card-header"><span class="config-card-title">Créer un code promo</span></div>
+          <div class="f-row">
+            <div class="f-grp"><label>Code *</label><input type="text" id="promoCode" placeholder="HELLO10" style="text-transform:uppercase;"></div>
+            <div class="f-grp"><label>Remise (%) *</label><input type="number" id="promoRemise" placeholder="10" min="1" max="100"></div>
+          </div>
+          <div class="f-row">
+            <div class="f-grp"><label>Texte affiché *</label><input type="text" id="promoTexte" placeholder="Offre de lancement" style="width:100%;"></div>
+          </div>
+          <div class="f-row">
+            <div class="f-grp"><label>Date de fin (optionnel)</label><input type="date" id="promoDateFin"></div>
+            <div class="f-grp"><label>Actif</label>
+              <div class="toggle-wrap"><div class="toggle on" id="promoActifToggle" onclick="this.classList.toggle('on')" role="switch" aria-checked="true"></div><span class="toggle-lbl">Code actif immédiatement</span></div>
+            </div>
+          </div>
+          <button class="btn-red" id="btnCreatePromo" style="margin-top:12px"><i class="fas fa-plus"></i> Créer le code promo</button>
+        </div>
+
+        <!-- Tableau des codes existants -->
+        <div class="sec-title">
+          <h2 class="sec-h">Codes <em>existants</em></h2>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Code</th><th>Remise</th><th>Texte</th><th>Date fin</th><th>Statut</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="promoCodesTableBody">
+            <tr><td colspan="6" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Chargement...</td></tr>
+          </tbody>
         </table>
       </div>
 
@@ -4627,9 +4686,11 @@ Cadeau premium personnalisé</textarea>
       }]);
       if (errConv) console.warn('Erreur ajout convoyeur:', errConv.message);
 
+      const sbAuthApprove = getSupabase();
+      const tokApprove = (await sbAuthApprove.auth.getSession()).data?.session?.access_token;
       fetch('/api/send-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(tokApprove ? { 'Authorization': `Bearer ${tokApprove}` } : {}) },
         body: JSON.stringify({ trigger: 'candidature_status_changed', id })
       }).catch(err => console.warn('Erreur envoi email approbation:', err));
     }
@@ -5989,6 +6050,225 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
   // Charger les stats quand on clique sur l'onglet campagnes
   document.querySelectorAll('.nav-item[data-tab="campagnes"]').forEach(el => {
     el.addEventListener('click', loadNewsletterStats);
+  });
+
+  // ============================================================
+  // CODES PROMO
+  // ============================================================
+  function getSB() {
+    if (window._sbClient) return window._sbClient;
+    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY || !window.supabase) return null;
+    window._sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    return window._sbClient;
+  }
+
+  async function loadPromoCodes() {
+    var sb = getSB();
+    var tbody = document.getElementById('promoCodesTableBody');
+    if (!tbody) return;
+
+    if (!sb) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-mid);">Supabase non configuré</td></tr>';
+      return;
+    }
+
+    try {
+      var res = await sb.from('promo_codes').select('*').order('created_at', { ascending: false });
+      if (res.error) throw res.error;
+      var data = res.data || [];
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-mid);">Aucun code promo créé</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map(function(p) {
+        var statutBadge = p.actif
+          ? '<span style="background:#E6F4EA;color:#1B7A3D;padding:3px 10px;border-radius:20px;font-size:0.65rem;font-weight:700;">Actif</span>'
+          : '<span style="background:#FDEAEA;color:#B33A3A;padding:3px 10px;border-radius:20px;font-size:0.65rem;font-weight:700;">Inactif</span>';
+        var dateFin = p.date_fin ? new Date(p.date_fin).toLocaleDateString('fr-FR') : '—';
+        var toggleBtn = p.actif
+          ? '<button class="btn-sm" onclick="togglePromoCode(' + p.id + ', false)" style="font-size:0.6rem;padding:4px 10px;">Désactiver</button>'
+          : '<button class="btn-sm btn-sm-red" onclick="togglePromoCode(' + p.id + ', true)" style="font-size:0.6rem;padding:4px 10px;">Activer</button>';
+        var deleteBtn = '<button class="btn-sm" onclick="deletePromoCode(' + p.id + ')" style="font-size:0.6rem;padding:4px 10px;color:#B33A3A;border-color:#B33A3A;"><i class="fas fa-trash"></i></button>';
+        return '<tr><td><strong>' + escapeHTML(p.code) + '</strong></td><td>-' + p.remise_pourcent + '%</td><td>' + escapeHTML(p.texte_affiche) + '</td><td>' + dateFin + '</td><td>' + statutBadge + '</td><td style="display:flex;gap:6px;">' + toggleBtn + deleteBtn + '</td></tr>';
+      }).join('');
+    } catch (err) {
+      console.error('Erreur loadPromoCodes:', err);
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#B33A3A;">Erreur de chargement</td></tr>';
+    }
+  }
+
+  async function createPromoCode() {
+    var sb = getSB();
+    if (!sb) { Swal.fire('Erreur', 'Supabase non configuré', 'error'); return; }
+
+    var code = document.getElementById('promoCode').value.trim().toUpperCase();
+    var remise = parseInt(document.getElementById('promoRemise').value);
+    var texte = document.getElementById('promoTexte').value.trim();
+    var dateFin = document.getElementById('promoDateFin').value;
+    var actif = document.getElementById('promoActifToggle').classList.contains('on');
+
+    if (!code || !remise || !texte) {
+      Swal.fire('Champs manquants', 'Code, remise et texte sont obligatoires', 'warning');
+      return;
+    }
+
+    try {
+      var row = {
+        code: code,
+        remise_pourcent: remise,
+        texte_affiche: texte,
+        actif: actif
+      };
+      if (dateFin) row.date_fin = dateFin + 'T23:59:59';
+
+      var res = await sb.from('promo_codes').insert(row);
+      if (res.error) throw res.error;
+
+      Swal.fire({ title: 'Créé !', text: 'Code promo ' + code + ' créé avec succès', icon: 'success', confirmButtonColor: '#0A4D68' });
+      document.getElementById('promoCode').value = '';
+      document.getElementById('promoRemise').value = '';
+      document.getElementById('promoTexte').value = '';
+      document.getElementById('promoDateFin').value = '';
+      loadPromoCodes();
+    } catch (err) {
+      console.error('Erreur createPromoCode:', err);
+      Swal.fire('Erreur', 'Impossible de créer le code: ' + (err.message || err), 'error');
+    }
+  }
+
+  async function togglePromoCode(id, newState) {
+    var sb = getSB();
+    if (!sb) return;
+    try {
+      var res = await sb.from('promo_codes').update({ actif: newState, updated_at: new Date().toISOString() }).eq('id', id);
+      if (res.error) throw res.error;
+      loadPromoCodes();
+    } catch (err) {
+      console.error('Erreur togglePromoCode:', err);
+      Swal.fire('Erreur', 'Impossible de modifier le statut', 'error');
+    }
+  }
+
+  async function deletePromoCode(id) {
+    var sb = getSB();
+    if (!sb) return;
+    Swal.fire({
+      title: 'Supprimer ?',
+      text: 'Ce code promo sera définitivement supprimé.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Supprimer',
+      cancelButtonText: 'Annuler',
+      confirmButtonColor: '#B33A3A'
+    }).then(function(result) {
+      if (result.isConfirmed) {
+        sb.from('promo_codes').delete().eq('id', id).then(function(res) {
+          if (res.error) { Swal.fire('Erreur', res.error.message, 'error'); return; }
+          loadPromoCodes();
+        });
+      }
+    });
+  }
+
+  // Bouton création + chargement onglet
+  document.getElementById('btnCreatePromo').addEventListener('click', createPromoCode);
+  document.querySelectorAll('.nav-item[data-tab="promo-codes"]').forEach(function(el) {
+    el.addEventListener('click', loadPromoCodes);
+  });
+
+  // ============================================================
+  // DEVIS EXPIRÉS (+72h sans réponse)
+  // ============================================================
+  async function loadExpiredDevis() {
+    var sb = getSB();
+    var tbody = document.getElementById('expiredDevisTableBody');
+    var banner = document.getElementById('expiredDevisBanner');
+    var badge = document.getElementById('expiredDevisBadge');
+    if (!tbody || !sb) return;
+
+    try {
+      var cutoff = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
+      var res = await sb.from('devis').select('*').eq('status', 'pending').lt('created_at', cutoff).order('created_at', { ascending: false });
+      if (res.error) throw res.error;
+      var data = res.data || [];
+
+      if (badge) {
+        if (data.length > 0) { badge.textContent = data.length; badge.style.display = 'inline-block'; }
+        else { badge.style.display = 'none'; }
+      }
+
+      if (banner) {
+        banner.className = data.length > 0 ? 'alert alert-warn' : 'alert alert-success';
+        banner.innerHTML = data.length > 0
+          ? '<i class="fas fa-exclamation-triangle"></i> ' + data.length + ' devis sans réponse depuis +72h'
+          : '<i class="fas fa-check"></i> Aucun devis expiré — tout est à jour !';
+      }
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray-mid);">Aucun devis expiré</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map(function(d) {
+        var daysElapsed = Math.floor((Date.now() - new Date(d.created_at).getTime()) / (1000 * 60 * 60 * 24));
+        var trajet = (d.depart || '—') + ' → ' + (d.arrivee || '—');
+        var client = (d.prenom || '') + ' ' + (d.nom || '');
+        var email = d.email || '—';
+        var montant = d.total || d.estimated_price || '—';
+        var dateStr = new Date(d.created_at).toLocaleDateString('fr-FR');
+        var relanceBtn = '<button class="btn-sm btn-sm-red" onclick="relanceDevis(\'' + (d.id || d.ref || '') + '\', \'' + encodeURIComponent(email) + '\', \'' + encodeURIComponent(client) + '\')" style="font-size:0.6rem;padding:4px 10px;"><i class="fas fa-paper-plane"></i> Relancer</button>';
+        return '<tr><td><strong>' + escapeHTML(d.ref || d.id || '—') + '</strong></td><td>' + escapeHTML(client) + '</td><td>' + escapeHTML(email) + '</td><td>' + escapeHTML(trajet) + '</td><td>' + montant + ' €</td><td>' + dateStr + '</td><td><span style="color:#B33A3A;font-weight:700;">' + daysElapsed + 'j</span></td><td>' + relanceBtn + '</td></tr>';
+      }).join('');
+    } catch (err) {
+      console.error('Erreur loadExpiredDevis:', err);
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#B33A3A;">Erreur de chargement</td></tr>';
+    }
+  }
+
+  async function relanceDevis(devisId, encodedEmail, encodedClient) {
+    var email = decodeURIComponent(encodedEmail);
+    var client = decodeURIComponent(encodedClient);
+    if (email === '—' || !email) { Swal.fire('Impossible', 'Aucun email associé à ce devis', 'warning'); return; }
+
+    Swal.fire({
+      title: 'Relancer ce client ?',
+      html: 'Un email de relance sera envoyé à <strong>' + email + '</strong>',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Envoyer la relance',
+      cancelButtonText: 'Annuler',
+      confirmButtonColor: '#0A4D68'
+    }).then(function(result) {
+      if (result.isConfirmed) {
+        const sbRelance = getSupabase();
+        sbRelance.auth.getSession().then(function(sess) {
+          const tokRelance = sess.data?.session?.access_token;
+          return fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(tokRelance ? { 'Authorization': `Bearer ${tokRelance}` } : {}) },
+            body: JSON.stringify({
+              trigger: 'devis_relance',
+              id: devisId,
+              email: email,
+              client: client
+            })
+          });
+        }).then(function(resp) {
+          if (!resp.ok) throw new Error('API returned ' + resp.status);
+          return resp.json();
+        }).then(function() {
+          Swal.fire({ title: 'Relance envoyée !', icon: 'success', confirmButtonColor: '#0A4D68' });
+        }).catch(function() {
+          Swal.fire('Erreur', 'Impossible d\'envoyer l\'email de relance', 'error');
+        });
+      }
+    });
+  }
+
+  document.querySelectorAll('.nav-item[data-tab="devis-expired"]').forEach(function(el) {
+    el.addEventListener('click', loadExpiredDevis);
   });
   </script>
 

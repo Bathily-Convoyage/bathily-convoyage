@@ -9,32 +9,51 @@
   // ============================================================
   // 1. CREATION DYNAMIQUE DES ELEMENTS DE NAV MOBILE
   // ============================================================
+  function el(tag, opts) {
+    var node = document.createElement(tag);
+    if (opts.className) node.className = opts.className;
+    if (opts.id) node.id = opts.id;
+    if (opts.href) node.setAttribute('href', opts.href);
+    if (opts.dataNav) node.setAttribute('data-nav', opts.dataNav);
+    if (opts.dataPage) node.setAttribute('data-page', opts.dataPage);
+    if (opts.ariaLabel) node.setAttribute('aria-label', opts.ariaLabel);
+    if (opts.icon) {
+      var i = document.createElement('i');
+      i.className = opts.icon;
+      node.appendChild(i);
+    }
+    if (opts.text) {
+      node.appendChild(document.createTextNode(opts.text));
+    }
+    if (opts.children) {
+      opts.children.forEach(function (c) { node.appendChild(c); });
+    }
+    return node;
+  }
+
   function createMobileNav() {
     // --- Barre nav fixe en bas ---
     var bottomNav = document.createElement('nav');
     bottomNav.className = 'mobile-bottom-nav';
     bottomNav.setAttribute('aria-label', 'Navigation principale mobile');
-    bottomNav.innerHTML = '\
-      <a href="/index.html" class="mobile-bottom-nav__item" data-nav="home">\
-        <i class="fas fa-home mobile-bottom-nav__icon"></i>\
-        <span class="mobile-bottom-nav__label">Accueil</span>\
-      </a>\
-      <a href="/devis.html" class="mobile-bottom-nav__item" data-nav="devis">\
-        <i class="fas fa-calculator mobile-bottom-nav__icon"></i>\
-        <span class="mobile-bottom-nav__label">Devis</span>\
-      </a>\
-      <a href="/dashboard-client.html" class="mobile-bottom-nav__item" data-nav="client">\
-        <i class="fas fa-user mobile-bottom-nav__icon"></i>\
-        <span class="mobile-bottom-nav__label">Espace client</span>\
-      </a>\
-      <a href="/dashboard-convoyeur.html" class="mobile-bottom-nav__item" data-nav="convoyeur">\
-        <i class="fas fa-truck mobile-bottom-nav__icon"></i>\
-        <span class="mobile-bottom-nav__label">Convoyeur</span>\
-      </a>\
-      <a href="tel:0758362249" class="mobile-bottom-nav__item" data-nav="call">\
-        <i class="fas fa-phone mobile-bottom-nav__icon"></i>\
-        <span class="mobile-bottom-nav__label">Appeler</span>\
-      </a>';
+
+    var navItems = [
+      { href: '/index.html', dataNav: 'home', icon: 'fas fa-home mobile-bottom-nav__icon', label: 'Accueil' },
+      { href: '/devis.html', dataNav: 'devis', icon: 'fas fa-calculator mobile-bottom-nav__icon', label: 'Devis' },
+      { href: '/dashboard-client.html', dataNav: 'client', icon: 'fas fa-user mobile-bottom-nav__icon', label: 'Espace client' },
+      { href: '/dashboard-convoyeur.html', dataNav: 'convoyeur', icon: 'fas fa-truck mobile-bottom-nav__icon', label: 'Convoyeur' },
+      { href: 'tel:0758362249', dataNav: 'call', icon: 'fas fa-phone mobile-bottom-nav__icon', label: 'Appeler' }
+    ];
+
+    navItems.forEach(function (item) {
+      var a = el('a', { href: item.href, dataNav: item.dataNav, className: 'mobile-bottom-nav__item' });
+      var icon = document.createElement('i');
+      icon.className = item.icon;
+      a.appendChild(icon);
+      var span = el('span', { className: 'mobile-bottom-nav__label', text: item.label });
+      a.appendChild(span);
+      bottomNav.appendChild(a);
+    });
     document.body.appendChild(bottomNav);
 
     // --- Overlay ---
@@ -48,30 +67,54 @@
     panel.className = 'mobile-menu-panel';
     panel.id = 'mobileMenuPanel';
     panel.setAttribute('aria-label', 'Menu secondaire');
-    panel.innerHTML = '\
-      <div class="mobile-menu-header">\
-        <span class="mobile-menu-header__title">Menu</span>\
-        <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Fermer le menu">\
-          <i class="fas fa-times"></i>\
-        </button>\
-      </div>\
-      <ul class="mobile-menu-links">\
-        <li><a href="/index.html" data-page="index"><i class="fas fa-home"></i> Accueil</a></li>\
-        <li><a href="/devis.html" data-page="devis"><i class="fas fa-calculator"></i> Demander un devis</a></li>\
-        <li><a href="/formation-convoyeur.html" data-page="formation"><i class="fas fa-graduation-cap"></i> Devenir convoyeur</a></li>\
-        <li><a href="/espace-pro.html" data-page="pro"><i class="fas fa-briefcase"></i> Espace Pro</a></li>\
-        <li><a href="/dashboard-client.html" data-page="client"><i class="fas fa-user"></i> Espace client</a></li>\
-        <li><a href="/dashboard-convoyeur.html" data-page="convoyeur"><i class="fas fa-truck"></i> Espace convoyeur</a></li>\
-        <li><div class="mobile-menu-divider"></div></li>\
-        <li><a href="/contact.html" data-page="contact"><i class="fas fa-envelope"></i> Contact</a></li>\
-        <li><a href="/mentions-legales.html" data-page="legal"><i class="fas fa-file-contract"></i> Mentions legales</a></li>\
-      </ul>\
-      <div class="mobile-menu-footer">\
-        <a href="tel:0758362249" class="mobile-menu-footer__phone">\
-          <i class="fas fa-phone"></i> 07 58 36 22 49\
-        </a>\
-        <a href="/devis.html" class="mobile-menu-footer__cta">Obtenir un devis gratuit</a>\
-      </div>';
+
+    // Header
+    var header = document.createElement('div');
+    header.className = 'mobile-menu-header';
+    header.appendChild(el('span', { className: 'mobile-menu-header__title', text: 'Menu' }));
+    var closeBtn = el('button', { className: 'mobile-menu-close', id: 'mobileMenuClose', ariaLabel: 'Fermer le menu', icon: 'fas fa-times' });
+    header.appendChild(closeBtn);
+    panel.appendChild(header);
+
+    // Links list
+    var ul = document.createElement('ul');
+    ul.className = 'mobile-menu-links';
+
+    var menuLinks = [
+      { href: '/index.html', dataPage: 'index', icon: 'fas fa-home', text: ' Accueil' },
+      { href: '/devis.html', dataPage: 'devis', icon: 'fas fa-calculator', text: ' Demander un devis' },
+      { href: '/formation-convoyeur.html', dataPage: 'formation', icon: 'fas fa-graduation-cap', text: ' Devenir convoyeur' },
+      { href: '/espace-pro.html', dataPage: 'pro', icon: 'fas fa-briefcase', text: ' Espace Pro' },
+      { href: '/dashboard-client.html', dataPage: 'client', icon: 'fas fa-user', text: ' Espace client' },
+      { href: '/dashboard-convoyeur.html', dataPage: 'convoyeur', icon: 'fas fa-truck', text: ' Espace convoyeur' },
+      { divider: true },
+      { href: '/contact.html', dataPage: 'contact', icon: 'fas fa-envelope', text: ' Contact' },
+      { href: '/mentions-legales.html', dataPage: 'legal', icon: 'fas fa-file-contract', text: ' Mentions legales' }
+    ];
+
+    menuLinks.forEach(function (item) {
+      var li = document.createElement('li');
+      if (item.divider) {
+        var div = document.createElement('div');
+        div.className = 'mobile-menu-divider';
+        li.appendChild(div);
+      } else {
+        var a = el('a', { href: item.href, dataPage: item.dataPage, icon: item.icon, text: item.text });
+        li.appendChild(a);
+      }
+      ul.appendChild(li);
+    });
+    panel.appendChild(ul);
+
+    // Footer
+    var footer = document.createElement('div');
+    footer.className = 'mobile-menu-footer';
+    var phoneLink = el('a', { href: 'tel:0758362249', className: 'mobile-menu-footer__phone', icon: 'fas fa-phone', text: ' 07 58 36 22 49' });
+    footer.appendChild(phoneLink);
+    var ctaLink = el('a', { href: '/devis.html', className: 'mobile-menu-footer__cta', text: 'Obtenir un devis gratuit' });
+    footer.appendChild(ctaLink);
+    panel.appendChild(footer);
+
     document.body.appendChild(panel);
   }
 

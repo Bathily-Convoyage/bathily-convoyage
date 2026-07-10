@@ -1,7 +1,7 @@
 {
   "name": "Bathily-Convoyage",
   "short_name": "Bathily",
-  "description": "Convoyage auto & moto partout en France. Devis en 60s, suivi GPS temps réel, double assurance RC Pro.",
+  "description": "Convoyage auto & moto partout en France. Devis en 2min, suivi GPS temps réel, double assurance RC Pro.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
