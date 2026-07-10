@@ -730,7 +730,7 @@
               <div style="font-weight:700;font-size:0.85rem;color:var(--bordeaux);margin-bottom:10px;"><i class="fas fa-tag"></i> Tarifs de base</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.78rem;color:var(--gray-mid);" id="tarifsBaseContent">
                 <div><strong>Route :</strong> 1,20€/km (auto) · 1,00€/km (moto)</div>
-                <div><strong>Plateau :</strong> 1,40€/km + min. 350€</div>
+                <div><strong>Plateau :</strong> 1,40€/km + forfait 350€</div>
                 <div><strong>Min. route :</strong> 150€ (auto) · 120€ (moto)</div>
                 <div><strong>Packs :</strong> Starter 0€ · Sérénité 69€ · Excellence 159€</div>
               </div>
@@ -1356,7 +1356,7 @@
       var tarifsContent = document.getElementById('tarifsBaseContent');
       if (tarifsContent) {
         tarifsContent.innerHTML = '<div><strong>Route :</strong> 0,90€/km (auto) · 0,77€/km (moto)</div>' +
-          '<div><strong>Plateau :</strong> 1,05€/km + min. 292€</div>' +
+          '<div><strong>Plateau :</strong> 1,05€/km + forfait 292€</div>' +
           '<div><strong>Min. route :</strong> 125€ (auto) · 100€ (moto)</div>' +
           '<div><strong>Packs :</strong> Starter 0€ · Sérénité 55€ · Excellence 125€</div>';
       }
@@ -1468,11 +1468,10 @@
       // Prix de base du trajet
       let basePrice;
       if (mode === 'plateau') {
-        // Mode plateau : tarif plateau × distance (remplace le tarif route)
+        // Mode plateau : forfait de base + prix au km
         var plateauRate = baseRates[type]?.['plateau'] || 1.40;
-        basePrice = Math.round(dist * plateauRate);
-        const minPlateau = _isProMode ? 292 : 350;
-        if (basePrice < minPlateau) basePrice = minPlateau;
+        const forfaitPlateau = _isProMode ? 292 : 350;
+        basePrice = forfaitPlateau + Math.round(dist * plateauRate);
       } else {
         // Mode route : tarif route × distance
         var routeRate = baseRates[type]?.['route'] || 1.20;
