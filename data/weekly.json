@@ -1,8 +1,8 @@
 {
-  "last_updated": "2026-07-06T11:22:00.325Z",
-  "period": "2026-06-29 au 2026-07-05 (MOCK)",
+  "last_updated": "2026-07-13T10:15:42.849Z",
+  "period": "2026-07-06 au 2026-07-12 (MOCK)",
   "gsc": {
-    "period": "2026-06-29 au 2026-07-05 (MOCK)",
+    "period": "2026-07-06 au 2026-07-12 (MOCK)",
     "global": {
       "clicks": 450,
       "impressions": 12000,
@@ -99,7 +99,7 @@
     ]
   },
   "stripe": {
-    "period": "2026-06-29 au 2026-07-05 (MOCK)",
+    "period": "2026-07-06 au 2026-07-12 (MOCK)",
     "total_revenue": 600,
     "total_costs": {
       "chauffeur": 347.6,
