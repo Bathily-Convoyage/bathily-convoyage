@@ -1393,29 +1393,41 @@ function updRecap(){
   document.getElementById('recSigCli').textContent = STATE.sigCliDone ? 'Signée' : 'En attente';
 }
 
+function dataURLtoBlob(dataURL){
+  const byteString = atob(dataURL.split(',')[1]);
+  const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) { ia[i] = byteString.charCodeAt(i); }
+  return new Blob([ab], { type: mimeString });
+}
+
+async function uploadFile(client, bucket, path, file){
+  const { error } = await client.storage.from(bucket).upload(path, file);
+  if (error) throw new Error('Upload échoué pour ' + path + ' : ' + error.message);
+  return path;
+}
+
 async function validateEdl(){
   if(!STATE.sigConvDone || !STATE.sigCliDone){ showToast('Les deux signatures sont requises', 'error'); return; }
   if(STATE.photoExt<5 || STATE.photoInt<5){ showToast('10 photos obligatoires', 'error'); return; }
   if(STATE.edlType === 'arrivee' && !STATE.finMissionSelfie){ showToast('La photo de fin de mission est obligatoire pour valider l\'arrivée', 'error'); return; }
 
-  const missionRef = document.getElementById('mRef')?.value || 'BC' + Date.now().toString().slice(-6);
-  const ref = 'EDL-'+missionRef+'-'+(STATE.edlType==='depart'?'DEP':'ARR');
-  document.getElementById('edlRef').textContent = ref;
+  const urlParams = new URLSearchParams(window.location.search);
+  const missionId = urlParams.get('mission_id') || null;
+  if (!missionId) { showToast('Mission non identifiée', 'error'); return; }
 
   Swal.fire({
     title: 'Validation de l\'État des lieux...',
-    text: 'Sauvegarde et envoi des notifications en cours.',
+    text: 'Upload des preuves et validation serveur en cours.',
     allowOutsideClick: false,
     didOpen: () => { Swal.showLoading(); }
   });
 
   try {
-    const urlParams = new URLSearchParams(window.location.search);
-    const missionId = urlParams.get('mission_id') || null;
     const client = getSupabase();
     if (!client) throw new Error("Supabase non disponible");
 
-    // Vérifier l'authentification (RLS exige authenticated pour INSERT edls + UPDATE missions)
     const { data: { session }, error: authErr } = await client.auth.getSession();
     if (authErr || !session) {
       Swal.fire({
@@ -1427,104 +1439,65 @@ async function validateEdl(){
       return;
     }
 
-    let finMissionSelfiePath = null;
-    if (STATE.edlType === 'arrivee' && STATE.finMissionSelfie && missionId) {
-      const ext = STATE.finMissionSelfie.name.split('.').pop().toLowerCase();
-      const path = `missions/${missionId}/fin_mission_selfie_${Date.now()}.${ext}`;
-      const { error: uploadError } = await client.storage.from('convoyeur-media').upload(path, STATE.finMissionSelfie);
-      if (uploadError) {
-        console.warn('Erreur upload selfie fin mission:', uploadError.message);
-      } else {
-        finMissionSelfiePath = path;
-      }
+    const evidence = [];
+    const ts = Date.now();
+    const edlType = STATE.edlType === 'depart' ? 'departure' : 'arrival';
+    const prefix = `missions/${missionId}/edl/${edlType}/`;
+
+    // Upload exterior photos
+    for (let i = 0; i < (STATE.extPhotos || []).length && i < 5; i++) {
+      const f = STATE.extPhotos[i];
+      const ext = (f.name || 'jpg').split('.').pop().toLowerCase() || 'jpg';
+      const path = prefix + `ext_${ts}_${i}.${ext}`;
+      await uploadFile(client, 'convoyeur-media', path, f);
+      evidence.push({ type: 'exterior_photo', bucket: 'convoyeur-media', path });
     }
-    
+
+    // Upload interior photos
+    for (let i = 0; i < (STATE.intPhotos || []).length && i < 5; i++) {
+      const f = STATE.intPhotos[i];
+      const ext = (f.name || 'jpg').split('.').pop().toLowerCase() || 'jpg';
+      const path = prefix + `int_${ts}_${i}.${ext}`;
+      await uploadFile(client, 'convoyeur-media', path, f);
+      evidence.push({ type: 'interior_photo', bucket: 'convoyeur-media', path });
+    }
+
+    // Upload convoyeur signature
     const sigConvCanvas = document.getElementById('sigConv');
-    const sigCliCanvas = document.getElementById('sigCli');
-    const sigConvBase64 = sigConvCanvas ? sigConvCanvas.toDataURL() : null;
-    const sigCliBase64 = sigCliCanvas ? sigCliCanvas.toDataURL() : null;
-
-    // Collect documents states
-    const documentStates = [];
-    document.querySelectorAll('#docGrid .doc-item').forEach(item => {
-      const label = item.querySelector('.doc-lbl')?.textContent || '';
-      const okBtn = item.querySelector('.doc-btn.ok');
-      const nokBtn = item.querySelector('.doc-btn.nok');
-      const state = okBtn ? 'OK' : (nokBtn ? 'NOK' : 'N/A');
-      documentStates.push({ label, state });
-    });
-
-    // Collect equipment states
-    const equipStates = [];
-    document.querySelectorAll('#equipGrid .doc-item').forEach(item => {
-      const label = item.querySelector('.doc-lbl')?.textContent || '';
-      const okBtn = item.querySelector('.doc-btn.ok');
-      const nokBtn = item.querySelector('.doc-btn.nok');
-      const state = okBtn ? 'OK' : (nokBtn ? 'NOK' : 'N/A');
-      equipStates.push({ label, state });
-    });
-
-    // Collect mechanical states
-    const mecaStates = [];
-    document.querySelectorAll('#mecaGrid .doc-item').forEach(item => {
-      const label = item.querySelector('.doc-lbl')?.textContent || '';
-      const okBtn = item.querySelector('.doc-btn.ok');
-      const nokBtn = item.querySelector('.doc-btn.nok');
-      const state = okBtn ? 'OK' : (nokBtn ? 'NOK' : 'N/A');
-      mecaStates.push({ label, state });
-    });
-
-    // Dommages avec photos depuis les zones
-    const dommagesWithPhoto = ZONES
-      .filter(zone => STATE.zoneStates[zone] && STATE.zoneStates[zone] !== 'bon')
-      .map(zone => {
-        const state = STATE.zoneStates[zone];
-        const typeMap = { raye: 'Rayure', enfonce: 'Enfoncement', casse: 'Cassé' };
-        return {
-          zone: zone,
-          type: typeMap[state] || state,
-          desc: state === 'raye' ? 'Rayure constatée' : (state === 'enfonce' ? 'Enfoncement constaté' : 'Cassure constatée'),
-          photo: STATE.zonePhotos[zone] || null
-        };
-      });
-
-    const edlData = {
-      mission_id: missionId,
-      reference: ref,
-      type: STATE.edlType,
-      convoyeur_nom: document.getElementById('mConvoyeur')?.value || 'M. Bathily',
-      permis: document.getElementById('mPermis')?.value || '',
-      date_heure: (() => { try { return new Date(document.getElementById('mDate')?.value || new Date()).toISOString(); } catch(e) { return new Date().toISOString(); } })(),
-      kilometrage: parseInt(document.getElementById('vKm')?.value) || 0,
-      niveau_carburant: parseInt(STATE.fuelValue) || 0,
-      photos: { ext: STATE.extPhotos || [], int: STATE.intPhotos || [], sup: STATE.supPhotos || [], ext_count: STATE.photoExt, int_count: STATE.photoInt },
-      dommages: dommagesWithPhoto,
-      documents: documentStates,
-      equipements: equipStates,
-      mecanique: mecaStates,
-      observations: document.getElementById('obsGenerales')?.value || '',
-      remarques_techniques: document.getElementById('remTech')?.value || '',
-      email_client: document.getElementById('emailCli')?.value || document.getElementById('cEmail')?.value || '',
-      conforme: document.querySelectorAll('#docGrid .doc-btn.nok, #equipGrid .doc-btn.nok, #mecaGrid .doc-btn.nok').length === 0,
-      signatures: { convoyeur: sigConvBase64, client: sigCliBase64 },
-      photo_fin_mission: finMissionSelfiePath,
-      fin_mission_selfie_uploaded_at: finMissionSelfiePath ? new Date().toISOString() : null
-    };
-
-    const { error: insertError } = await client
-      .from('edls')
-      .insert([edlData]);
-
-    if (insertError) {
-      throw new Error(insertError.message);
+    if (sigConvCanvas) {
+      const blob = dataURLtoBlob(sigConvCanvas.toDataURL());
+      const path = prefix + `sig_conv_${ts}.png`;
+      await uploadFile(client, 'convoyeur-media', path, blob);
+      evidence.push({ type: 'convoyeur_signature', bucket: 'convoyeur-media', path });
     }
 
-    // Mettre à jour la mission avec la photo de fin de mission
-    if (finMissionSelfiePath && missionId) {
-      await client.from('missions').update({
-        photo_fin_mission: finMissionSelfiePath,
-        fin_mission_selfie_uploaded_at: new Date().toISOString()
-      }).eq('id', missionId);
+    // Upload client signature
+    const sigCliCanvas = document.getElementById('sigCli');
+    if (sigCliCanvas) {
+      const blob = dataURLtoBlob(sigCliCanvas.toDataURL());
+      const path = prefix + `sig_client_${ts}.png`;
+      await uploadFile(client, 'convoyeur-media', path, blob);
+      evidence.push({ type: 'client_signature', bucket: 'convoyeur-media', path });
+    }
+
+    // Upload arrival selfie
+    if (STATE.edlType === 'arrivee' && STATE.finMissionSelfie) {
+      const ext = STATE.finMissionSelfie.name.split('.').pop().toLowerCase();
+      const path = prefix + `selfie_${ts}.${ext}`;
+      await uploadFile(client, 'convoyeur-media', path, STATE.finMissionSelfie);
+      evidence.push({ type: 'delivery_selfie', bucket: 'convoyeur-media', path });
+    }
+
+    // Validate via server-side RPC
+    const { data, error } = await client.rpc('validate_mission_edl', {
+      p_mission_id: missionId,
+      p_edl_type: STATE.edlType,
+      p_evidence: evidence,
+      p_correction_of: null
+    });
+
+    if (error) {
+      throw new Error(error.message);
     }
 
     // Envoi email
@@ -1541,7 +1514,7 @@ async function validateEdl(){
 
     Swal.fire({
       title: 'État des lieux validé !',
-      text: 'L\'État des lieux a été enregistré et envoyé par email.',
+      text: 'L\'EDL a été validé côté serveur. Référence : ' + data,
       icon: 'success',
       confirmButtonText: 'Fermer',
       confirmButtonColor: 'var(--bordeaux)'
