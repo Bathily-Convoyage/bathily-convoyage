@@ -4505,6 +4505,20 @@ Cadeau premium personnalisé</textarea>
     }).join('');
   }
 
+  async function resolveConvoyeurMediaUrl(sb, value) {
+    if (!value) return null;
+    if (typeof value !== 'string') return null;
+    if (value.startsWith('http://') || value.startsWith('https://')) return value;
+    try {
+      const { data, error } = await sb.storage.from('convoyeur-media').createSignedUrl(value, 3600);
+      if (error) { console.warn('Erreur signature convoyeur-media:', error.message); return null; }
+      return data?.signedUrl || null;
+    } catch (e) {
+      console.warn('Exception resolveConvoyeurMediaUrl:', e);
+      return null;
+    }
+  }
+
   window.viewFormationCandidatureDetails = async function(id) {
     const c = _allFormationCandidatures.find(x => x.id === id);
     if (!c) return Swal.fire('Erreur', 'Candidature introuvable', 'error');
@@ -4558,17 +4572,22 @@ Cadeau premium personnalisé</textarea>
         </div>`
       : '';
 
+    const [selfieUrl, videoUrl] = await Promise.all([
+      resolveConvoyeurMediaUrl(sb, c.selfie),
+      resolveConvoyeurMediaUrl(sb, c.video_presentation)
+    ]);
+
     const mediaHtml = [];
-    if (c.selfie) {
+    if (selfieUrl) {
       mediaHtml.push(`<div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige);">
         <div style="padding:6px 8px; font-size:0.72rem; font-weight:600; color:var(--bordeaux);"><i class="fas fa-camera"></i> Selfie</div>
-        <img src="${escapeHtml(c.selfie)}" style="width:100%; max-height:200px; object-fit:cover; cursor:pointer;" onclick="window.open('${escapeHtml(c.selfie)}')" alt="Selfie">
+        <img src="${escapeHtml(selfieUrl)}" style="width:100%; max-height:200px; object-fit:cover; cursor:pointer;" onclick="window.open('${escapeHtml(selfieUrl)}')" alt="Selfie">
       </div>`);
     }
-    if (c.video_presentation) {
+    if (videoUrl) {
       mediaHtml.push(`<div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige);">
         <div style="padding:6px 8px; font-size:0.72rem; font-weight:600; color:var(--bordeaux);"><i class="fas fa-video"></i> Vidéo de présentation</div>
-        <video src="${escapeHtml(c.video_presentation)}" controls style="width:100%; max-height:200px;" preload="metadata"></video>
+        <video src="${escapeHtml(videoUrl)}" controls style="width:100%; max-height:200px;" preload="metadata"></video>
       </div>`);
     }
 
@@ -4895,11 +4914,14 @@ Cadeau premium personnalisé</textarea>
   // ============================================================
   // PARTIE 9 : FONCTIONS DE GESTION DES MISSIONS
   // ============================================================
-  window.viewMissionDetails = function(id) {
+  window.viewMissionDetails = async function(id) {
     const mission = _allMissions.find(m => m.id === id);
     if (!mission) return Swal.fire('Erreur', 'Mission introuvable', 'error');
     const status = mission.status || 'planned';
     const payStatus = mission.paiement_statut || 'pending';
+
+    const sb = getSupabase();
+    const photoFinMissionUrl = await resolveConvoyeurMediaUrl(sb, mission.photo_fin_mission);
 
     let statusBadge = '';
     if (status === 'available') statusBadge = '<span class="sp sp-att"><span class="sp-dot"></span>Sur le marché</span>';
@@ -4970,7 +4992,7 @@ Cadeau premium personnalisé</textarea>
           const extra = retours.length > 3 ? `<div style="font-size:0.7rem;color:var(--gray-mid);margin-top:4px;">+${retours.length - 3} autre(s)</div>` : '';
           return `<hr style="margin:10px 0;border-color:#eee;"><div style="background:rgba(122,46,26,0.06);border:1px solid rgba(122,46,26,0.15);border-radius:10px;padding:10px;"><div style="font-weight:700;color:var(--bordeaux);font-size:0.8rem;"><i class="fas fa-exchange-alt"></i> ${retours.length} retour(s) possible(s) depuis ${escapeHtml(mission.arrivee)}</div>${liste}${extra}</div>`;
         })()}
-        ${mission.photo_fin_mission ? `<hr style="margin:10px 0;border-color:#eee;"><div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-camera"></i> Photo de fin de mission</div><div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige); max-width:320px;"><img src="${escapeHtml(mission.photo_fin_mission)}" style="width:100%; max-height:220px; object-fit:cover; cursor:pointer;" onclick="window.open('${escapeHtml(mission.photo_fin_mission)}')" alt="Photo fin de mission"></div>` : ''}
+        ${photoFinMissionUrl ? `<hr style="margin:10px 0;border-color:#eee;"><div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-camera"></i> Photo de fin de mission</div><div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige); max-width:320px;"><img src="${escapeHtml(photoFinMissionUrl)}" style="width:100%; max-height:220px; object-fit:cover; cursor:pointer;" onclick="window.open('${escapeHtml(photoFinMissionUrl)}')" alt="Photo fin de mission"></div>` : ''}
         <hr style="margin:14px 0;border-color:#eee;">
         <div style="display:flex;flex-wrap:wrap;gap:6px;">${actionsHtml}</div>
       </div>`,

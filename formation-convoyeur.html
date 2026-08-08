@@ -1228,6 +1228,22 @@ function handleUploadMedia(input, mediaType) {
   const file = input.files[0];
   if (!file) return;
 
+  const allowedMime = mediaType === 'selfie'
+    ? ['image/jpeg', 'image/png']
+    : ['video/mp4', 'video/quicktime'];
+  if (!allowedMime.includes(file.type)) {
+    Swal.fire({
+      title: 'Format non supporte',
+      text: mediaType === 'selfie'
+        ? 'Formats acceptes : JPG, PNG.'
+        : 'Formats acceptes : MP4, QuickTime.',
+      icon: 'warning',
+      confirmButtonColor: '#0A4D68'
+    });
+    input.value = '';
+    return;
+  }
+
   const maxSize = mediaType === 'selfie' ? 5 * 1024 * 1024 : 30 * 1024 * 1024;
   const label = mediaType === 'selfie' ? '5 Mo' : '30 Mo';
 
@@ -1261,8 +1277,8 @@ function handleUploadMedia(input, mediaType) {
   }
 }
 
-async function uploadDocumentsToStorage(sb, email) {
-  const folder = 'candidatures/' + email.replace(/[^a-zA-Z0-9@._-]/g, '_');
+async function uploadDocumentsToStorage(sb, submissionId) {
+  const folder = 'candidatures/' + submissionId;
   const paths = {};
 
   for (const docType of REQUIRED_DOCS) {
@@ -1287,9 +1303,9 @@ async function uploadDocumentsToStorage(sb, email) {
   return paths;
 }
 
-async function uploadMediaToStorage(sb, email) {
-  const folder = 'candidatures/' + email.replace(/[^a-zA-Z0-9@._-]/g, '_');
-  const mediaUrls = {};
+async function uploadMediaToStorage(sb, submissionId) {
+  const folder = 'candidatures/' + submissionId;
+  const mediaPaths = {};
 
   for (const mediaType of ['selfie', 'video_presentation']) {
     const file = uploadedFiles[mediaType];
@@ -1304,14 +1320,13 @@ async function uploadMediaToStorage(sb, email) {
 
     if (error) {
       console.warn(`Erreur upload ${mediaType}:`, error.message);
-      mediaUrls[mediaType] = null;
+      mediaPaths[mediaType] = null;
     } else {
-      const { data: urlData } = sb.storage.from('convoyeur-media').getPublicUrl(path);
-      mediaUrls[mediaType] = urlData?.publicUrl || null;
+      mediaPaths[mediaType] = path;
     }
   }
 
-  return mediaUrls;
+  return mediaPaths;
 }
 
 // ====== SUBMIT CANDIDATURE ======
@@ -1341,9 +1356,10 @@ async function submitCandidature() {
 
   try {
     const sb = getSB();
+    const storageSubmissionId = crypto.randomUUID();
 
-    const docPaths = await uploadDocumentsToStorage(sb, formData.email);
-    const mediaUrls = await uploadMediaToStorage(sb, formData.email);
+    const docPaths = await uploadDocumentsToStorage(sb, storageSubmissionId);
+    const mediaPaths = await uploadMediaToStorage(sb, storageSubmissionId);
 
     const { data: newCand, error } = await sb.from('convoyeur_candidatures').insert([{
       prenom: formData.prenom,
@@ -1363,8 +1379,8 @@ async function submitCandidature() {
       last_attempt_at: new Date().toISOString(),
       statut: 'pending',
       documents: JSON.stringify(docPaths),
-      selfie: mediaUrls.selfie,
-      video_presentation: mediaUrls.video_presentation
+      selfie: mediaPaths.selfie,
+      video_presentation: mediaPaths.video_presentation
     }]).select().single();
 
     if (error) {
