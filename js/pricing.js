@@ -49,8 +49,11 @@
     var mode = opts.mode || 'route';
     var datePriseEnCharge = opts.date ? new Date(opts.date) : new Date();
     var urgence = opts.urgence || 'standard';
+    var prix = 0;
+    var min = 0;
 
     var rate = BASE_RATES[vehType] || BASE_RATES.Automobile;
+    min = rate.min;
 
     // ── Tarif de base (route) ──
     prix = distance * rate.perKm;

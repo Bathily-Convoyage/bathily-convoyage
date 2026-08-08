@@ -1607,15 +1607,58 @@
       const utilSize = document.getElementById('utilSize').value;
       const isCollection = document.getElementById('isCollection').value === 'true';
 
-      const totalDisplayed = _currentPrice || 0;
-      if (totalDisplayed === 0) {
+      if (!_currentDistance) {
         Swal.fire('Erreur', 'Veuillez renseigner le trajet pour obtenir une estimation.', 'warning');
+        return;
+      }
+
+      const confirmBtn = document.getElementById('submitBtn');
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calcul sécurisé en cours...';
+      }
+
+      // Source de vérité tarifaire : backend
+      let quote;
+      try {
+        const quoteResponse = await fetch('/api/calculate-quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            depart,
+            arrivee,
+            type: vehicule,
+            mode,
+            pack,
+            isUrgence,
+            isGardiennage,
+            vehicleCondition,
+            utilSize,
+            isPro: _isProMode,
+            promoPercent: 0,
+            dateLivraison
+          })
+        });
+        quote = await quoteResponse.json();
+        if (!quoteResponse.ok || quote.error) {
+          throw new Error(quote.error || 'Calcul impossible');
+        }
+      } catch (qErr) {
+        console.error('Erreur calculate-quote:', qErr);
+        Swal.fire('Erreur', 'Impossible de calculer le tarif de manière sécurisée. Veuillez réessayer.', 'error');
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = 'Envoyer la demande';
+        }
         return;
       }
 
       // TVA non applicable — franchise en base (art. 293 B CGI)
       // Le prix affiché est le prix final, identique pour tous
-      const totalHt = totalDisplayed;
+      const totalHt = quote.total_ht;
+      const totalDisplayed = totalHt;
+      _currentPrice = totalDisplayed;
+      _currentDistance = quote.distance;
 
       const ref = 'BC-DEV-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase());
 
@@ -1643,7 +1686,7 @@
           vehicule_manuel: vehiculeManuel || '',
           mode: mode,
           pack: pack,
-          distance: _currentDistance || null,
+          distance: quote.distance,
           opts: { urgence: isUrgence, gardiennage: isGardiennage },
           vehicle_condition: vehicleCondition,
           utilitaire_size: utilSize || null,
@@ -1651,7 +1694,9 @@
           message: message || '',
           promo_code: promoCode || null,
           is_pro: _isProMode,
-          remuneration_convoyeur: Math.round(totalHt * 0.60)
+          remuneration_convoyeur: quote.remuneration_convoyeur,
+          calculated_by: 'functions/api/calculate-quote.js',
+          quote_details: quote.details
         },
         status: 'pending'
       };
@@ -1693,9 +1738,7 @@
       } catch (e) { console.warn('Email notification error:', e); }
 
       // Succès — redirection vers page de remerciement
-      const confirmBtn = document.getElementById('submitBtn');
-      confirmBtn.disabled = true;
-      confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+      if (confirmBtn) confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
 
       var thanksUrl = 'merci-devis.html?ref=' + encodeURIComponent(ref);
       if (totalDisplayed) thanksUrl += '&price=' + encodeURIComponent(totalDisplayed);

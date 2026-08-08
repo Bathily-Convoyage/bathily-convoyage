@@ -2322,8 +2322,8 @@ Cadeau premium personnalisé</textarea>
         <div class="f-grp"><label>Date souhaitée</label><input type="date" id="manual-date"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Montant Client (€)</label><input type="number" id="manual-price" placeholder="340"></div>
-        <div class="f-grp"><label>Rémunération convoyeur (€)</label><input type="number" id="manual-remuneration" placeholder="Laisser vide pour calcul auto"></div>
+        <div class="f-grp"><label>Montant Client (€)</label><input type="number" id="manual-price" placeholder="Calcul auto" readonly style="background:#f5f5f5;"></div>
+        <div class="f-grp"><label>Rémunération convoyeur (€)</label><input type="number" id="manual-remuneration" placeholder="Calcul auto" readonly style="background:#f5f5f5;"></div>
       </div>
       <div style="margin-bottom:15px; background:var(--bordeaux-light); padding:12px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
         <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid);">Marge brute estimée :</span>
@@ -4136,9 +4136,9 @@ Cadeau premium personnalisé</textarea>
             <div>
               <label style="font-size:0.7rem;font-weight:600;">Pack</label>
               <select id="cdPack" class="swal2-input" style="width:100%;margin:0;">
-                <option value="Starter">Starter</option>
-                <option value="Confort">Confort</option>
-                <option value="Premium">Premium</option>
+                <option value="starter">Starter</option>
+                <option value="serenite">Sérénité</option>
+                <option value="excellence">Excellence</option>
               </select>
             </div>
             <div>
@@ -4218,7 +4218,7 @@ Cadeau premium personnalisé</textarea>
         vehSelect.addEventListener('change', recalc);
         modeSelect.addEventListener('change', recalc);
       },
-      preConfirm: () => {
+      preConfirm: async () => {
         const prenom = document.getElementById('cdPrenom').value.trim();
         const nom = document.getElementById('cdNom').value.trim();
         const email = document.getElementById('cdEmail').value.trim().toLowerCase();
@@ -4230,19 +4230,46 @@ Cadeau premium personnalisé</textarea>
         const vehicule = document.getElementById('cdVehicule').value;
         const mode = document.getElementById('cdMode').value;
         const pack = document.getElementById('cdPack').value;
-        const distance = parseFloat(document.getElementById('cdDistance').value) || null;
         const plaque = document.getElementById('cdPlaque').value.trim();
         const marque = document.getElementById('cdMarque').value.trim();
-        const prix = parseFloat(document.getElementById('cdPrix').value);
-        const remConv = parseFloat(document.getElementById('cdRemConv').value) || null;
         const isPro = document.getElementById('cdPro').value === 'true';
         const notes = document.getElementById('cdNotes').value.trim();
 
         if (!prenom || !nom || !email) { Swal.showValidationMessage('Prénom, nom et email sont obligatoires'); return false; }
         if (!depart || !arrivee) { Swal.showValidationMessage('Départ et arrivée sont obligatoires'); return false; }
-        if (!prix || prix <= 0) { Swal.showValidationMessage('Le prix doit être supérieur à 0'); return false; }
 
-        return { prenom, nom, email, tel, depart, arrivee, dateLiv, heureLiv, vehicule, mode, pack, distance, plaque, marque, prix, remConv, isPro, notes };
+        let quote;
+        try {
+          const resp = await fetch('/api/calculate-quote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              depart,
+              arrivee,
+              type: vehicule,
+              mode,
+              pack: pack.toLowerCase(),
+              isUrgence: false,
+              isGardiennage: false,
+              vehicleCondition: 'working',
+              isPro
+            })
+          });
+          quote = await resp.json();
+          if (!resp.ok || quote.error) {
+            throw new Error(quote.error || 'Calcul tarifaire impossible');
+          }
+        } catch (e) {
+          console.error('Erreur calculate-quote admin:', e);
+          Swal.showValidationMessage('Erreur tarifaire : ' + (e.message || 'impossible de calculer'));
+          return false;
+        }
+
+        document.getElementById('cdPrix').value = quote.total_ht;
+        document.getElementById('cdRemConv').value = quote.remuneration_convoyeur;
+        document.getElementById('cdDistance').value = quote.distance;
+
+        return { prenom, nom, email, tel, depart, arrivee, dateLiv, heureLiv, vehicule, mode, pack, plaque, marque, isPro, notes, quote };
       }
     });
 
@@ -4251,6 +4278,10 @@ Cadeau premium personnalisé</textarea>
     Swal.fire({ title: 'Création du devis...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
     const ref = 'BC-DEV-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase());
+
+    const quote = formValues.quote || {};
+    const totalHt = quote.total_ht || 0;
+    const distance = quote.distance || formValues.distance || null;
 
     const devisData = {
       reference: ref,
@@ -4263,7 +4294,7 @@ Cadeau premium personnalisé</textarea>
       heure_livraison: formValues.heureLiv || null,
       vehicule: formValues.vehicule,
       mode: formValues.mode,
-      total_ht: formValues.prix,
+      total_ht: totalHt,
       details: {
         coordonnees: { prenom: formValues.prenom, nom: formValues.nom, email: formValues.email, telephone: formValues.tel || '' },
         dep: formValues.depart,
@@ -4276,7 +4307,7 @@ Cadeau premium personnalisé</textarea>
         vehicule_manuel: '',
         mode: formValues.mode,
         pack: formValues.pack,
-        distance: formValues.distance,
+        distance: distance,
         opts: { urgence: false, gardiennage: false },
         vehicle_condition: 'working',
         utilitaire_size: null,
@@ -4284,7 +4315,9 @@ Cadeau premium personnalisé</textarea>
         message: formValues.notes || '',
         promo_code: null,
         is_pro: formValues.isPro,
-        remuneration_convoyeur: formValues.remConv || Math.round(formValues.prix * 0.60),
+        remuneration_convoyeur: quote.remuneration_convoyeur || 0,
+        calculated_by: 'functions/api/calculate-quote.js',
+        quote_details: quote.details,
         created_by_admin: true
       },
       status: 'pending'
@@ -4310,7 +4343,7 @@ Cadeau premium personnalisé</textarea>
           nom: formValues.nom,
           depart: formValues.depart,
           arrivee: formValues.arrivee,
-          total: formValues.prix
+          total: totalHt
         })
       });
     } catch (emailErr) {
@@ -4319,7 +4352,7 @@ Cadeau premium personnalisé</textarea>
 
     Swal.fire({
       title: 'Devis créé !',
-      html: `Le devis <b>${ref}</b> a été créé pour ${escapeHtml(formValues.prenom)} ${escapeHtml(formValues.nom)}.<br>Montant : <b>${formValues.prix} €</b><br><br>Un email a été envoyé à ${escapeHtml(formValues.email)}.`,
+      html: `Le devis <b>${ref}</b> a été créé pour ${escapeHtml(formValues.prenom)} ${escapeHtml(formValues.nom)}.<br>Montant : <b>${totalHt} €</b><br><br>Un email a été envoyé à ${escapeHtml(formValues.email)}.`,
       icon: 'success',
       confirmButtonText: 'OK'
     });
@@ -5297,12 +5330,37 @@ Cadeau premium personnalisé</textarea>
       const vehiculeManuel = document.getElementById('adminVehiculeManuel').value.trim();
       const pack = document.getElementById('manual-pack').value;
       const date = document.getElementById('manual-date').value;
-      const montant = parseFloat(document.getElementById('manual-price').value) || 0;
-      const remuneration = parseFloat(document.getElementById('manual-remuneration').value) || 0;
       const convoyeur = document.getElementById('manual-convoyeur').value;
 
       if (!clientNom || !depart || !arrivee) {
         Swal.fire('Champs requis', 'Veuillez renseigner le client, le départ et l\'arrivée.', 'warning');
+        return;
+      }
+
+      // Tarif authoritative : recalcul serveur à la sauvegarde
+      const selectedOptions = Array.from(document.querySelectorAll('#manual-options input:checked')).map(cb => cb.value);
+      let quote;
+      try {
+        const quoteResp = await fetch('/api/calculate-quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            depart,
+            arrivee,
+            type: vehiculeType,
+            mode: 'route',
+            pack,
+            isUrgence: selectedOptions.includes('urgence'),
+            isGardiennage: selectedOptions.includes('gardiennage'),
+            vehicleCondition: 'working',
+            isPro: false,
+            dateLivraison: date
+          })
+        });
+        quote = await quoteResp.json();
+        if (!quoteResp.ok || quote.error) throw new Error(quote.error || 'Calcul tarifaire impossible');
+      } catch (e) {
+        Swal.fire('Erreur', 'Impossible de calculer le tarif sécurisé : ' + (e.message || 'Erreur serveur'), 'error');
         return;
       }
 
@@ -5318,9 +5376,6 @@ Cadeau premium personnalisé</textarea>
       // Déterminer le nom du véhicule
       let vehicleName = vehiculeManuel || `${marque} ${modele}`.trim() || vehiculeType;
 
-      // Récupérer les options cochées
-      const selectedOptions = Array.from(document.querySelectorAll('#manual-options input:checked')).map(cb => cb.value);
-
       // Si un convoyeur est sélectionné, le statut passe à "planned", sinon "available"
       const missionStatus = convoyeur ? 'planned' : 'available';
 
@@ -5333,15 +5388,16 @@ Cadeau premium personnalisé</textarea>
         arrivee: arrivee,
         vehicule: vehicleName,
         mode: 'route',
-        pack: pack,
-        montant_ht: montant,
-        remuneration_convoyeur: remuneration || null,
+        pack: quote.details?.pack || pack,
+        montant_ht: quote.total_ht,
+        remuneration_convoyeur: quote.remuneration_convoyeur,
         status: missionStatus,
         paiement_statut: 'pending',
         date_mission: date || new Date().toISOString().split('T')[0],
         client_id: clientId,
         convoyeur_nom: convoyeur || null,
-        marge: montant - (remuneration || 0)
+        marge: quote.marge,
+        quote_details: quote.details
       };
 
       const { error } = await sb.from('missions').insert([missionData]);
@@ -5460,78 +5516,58 @@ Cadeau premium personnalisé</textarea>
 
 // Cette fonction calcule la distance entre deux adresses
 // et met à jour le champ "Montant Client" en direct
+let _lastManualQuote = null;
+
 async function calculateAdminPrice() {
-  const depart = document.getElementById('manual-depart').value.trim();
-  const arrivee = document.getElementById('manual-arrivee').value.trim();
+  const depart = document.getElementById('manual-depart')?.value.trim();
+  const arrivee = document.getElementById('manual-arrivee')?.value.trim();
   const priceInput = document.getElementById('manual-price');
+  const remInput = document.getElementById('manual-remuneration');
 
   // Si un des deux champs est vide, on réinitialise le prix
   if (!depart || !arrivee) {
     if (priceInput) priceInput.value = '';
+    if (remInput) remInput.value = '';
+    _lastManualQuote = null;
     return;
   }
 
+  const vehType = document.getElementById('adminVehType')?.value || 'Automobile';
+  const pack = document.getElementById('manual-pack')?.value || 'starter';
+  const date = document.getElementById('manual-date')?.value;
+  const selectedOptions = Array.from(document.querySelectorAll('#manual-options input:checked')).map(cb => cb.value);
+  const isUrgence = selectedOptions.includes('urgence');
+  const isGardiennage = selectedOptions.includes('gardiennage');
+
   try {
-    // 1. Récupération des coordonnées via l'API BAN
-    const coord1 = await geocodeAdminAddress(depart);
-    const coord2 = await geocodeAdminAddress(arrivee);
-
-    if (!coord1 || !coord2) {
-      priceInput.value = '';
-      return;
+    const response = await fetch('/api/calculate-quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        depart,
+        arrivee,
+        type: vehType,
+        mode: 'route',
+        pack,
+        isUrgence,
+        isGardiennage,
+        vehicleCondition: 'working',
+        isPro: false,
+        dateLivraison: date
+      })
+    });
+    const quote = await response.json();
+    if (!response.ok || quote.error) {
+      throw new Error(quote.error || 'Calcul tarifaire impossible');
     }
-
-    // 2. Calcul de la distance via OSRM (itinéraire routier)
-    let distance = 0;
-    try {
-      const response = await fetch(
-        `https://router.project-osrm.org/route/v1/driving/${coord1.lon},${coord1.lat};${coord2.lon},${coord2.lat}?overview=false`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.routes && data.routes.length > 0) {
-          distance = Math.round(data.routes[0].distance / 1000);
-        }
-      }
-    } catch (err) {
-      // Fallback si OSRM échoue
-      distance = haversineAdmin(coord1.lat, coord1.lon, coord2.lat, coord2.lon);
-    }
-
-    // 3. Récupération du type de véhicule (Auto ou Moto)
-    const vehType = document.getElementById('adminVehType')?.value || 'Automobile';
-    const isMoto = (vehType === 'Moto');
-
-    // 4. Taux au km (récupéré depuis localStorage ou valeurs par défaut)
-    const rateAuto = parseFloat(localStorage.getItem('tarifAutoKm')) || 1.00;
-    const rateMoto = parseFloat(localStorage.getItem('tarifMotoKm')) || 0.85;
-    const rate = isMoto ? rateMoto : rateAuto;
-
-    // 5. Calcul du montant
-    const min = isMoto ? 100 : 120;
-    let montant = Math.round(Math.max(distance * rate, min));
-
-    // Ajout du prix du pack
-    const packSelect = document.getElementById('manual-pack');
-    if (packSelect) {
-      if (packSelect.value === 'serenite') {
-        const serenitePrice = parseFloat(document.getElementById('price_pack_serenite')?.value) || 49;
-        montant += serenitePrice;
-      } else if (packSelect.value === 'excellence') {
-        const excellencePrice = parseFloat(document.getElementById('price_pack_excellence')?.value) || 129;
-        montant += excellencePrice;
-      }
-    }
-
-    // 6. Mise à jour du champ + simulation de marge (optionnel)
-    if (priceInput) {
-      priceInput.value = montant;
-      // Déclencher l'événement "input" pour que la marge se mette à jour
-      priceInput.dispatchEvent(new Event('input'));
-    }
-
+    _lastManualQuote = quote;
+    if (priceInput) priceInput.value = quote.total_ht;
+    if (remInput) remInput.value = quote.remuneration_convoyeur;
   } catch (err) {
-    console.warn("Erreur calcul admin:", err);
+    console.warn('Erreur calculate-quote admin:', err);
+    _lastManualQuote = null;
+    if (priceInput) priceInput.value = '';
+    if (remInput) remInput.value = '';
   }
 }
 

@@ -23,9 +23,9 @@ export async function onRequest(context) {
 
     const supabaseUrl = env.SUPABASE_URL;
     const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-    const supabaseAnonKey = env.SUPABASE_ANON_KEY || supabaseServiceKey;
+    const supabaseAnonKey = env.SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
       throw new Error("Configuration Supabase manquante côté serveur.");
     }
 

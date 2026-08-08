@@ -18,7 +18,10 @@ export async function onRequest(context) {
     return jsonResponse({ error: 'Authentification admin requise.' }, 401, headers);
   }
   const token = authHeader.split(' ')[1];
-  const sbAuth = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY || env.SUPABASE_SERVICE_ROLE_KEY);
+  if (!env.SUPABASE_ANON_KEY) {
+    return jsonResponse({ error: 'Configuration Supabase manquante.' }, 500, headers);
+  }
+  const sbAuth = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
   const { data: { user }, error: userErr } = await sbAuth.auth.getUser(token);
   if (userErr || !user) {
     return jsonResponse({ error: 'Token invalide.' }, 401, headers);

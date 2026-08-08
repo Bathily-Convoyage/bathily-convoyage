@@ -21,11 +21,11 @@ export async function onRequest(context) {
     }
     const token = authHeader.split(' ')[1];
 
-    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY || !env.SUPABASE_ANON_KEY) {
       throw new Error('Configuration Supabase manquante.');
     }
 
-    const supabaseAnon = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY || env.SUPABASE_SERVICE_ROLE_KEY, {
+    const supabaseAnon = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
     const supabaseAdmin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {

@@ -21,13 +21,16 @@ export async function onRequest(context) {
     }
     const token = authHeader.split(' ')[1];
 
-    const sbAdmin = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY || env.SUPABASE_SERVICE_ROLE_KEY);
-    const { data: { user }, error: userError } = await sbAdmin.auth.getUser(token);
+    if (!env.SUPABASE_ANON_KEY) {
+      return jsonResponse({ error: 'Configuration anonyme Supabase manquante.' }, 500, getCorsHeaders(request));
+    }
+    const sbAuth = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+    const { data: { user }, error: userError } = await sbAuth.auth.getUser(token);
     if (userError || !user) {
       return jsonResponse({ error: 'Token invalide' }, 401, getCorsHeaders(request));
     }
 
-    const { data: profile } = await sbAdmin.from('clients').select('role').eq('auth_user_id', user.id).maybeSingle();
+    const { data: profile } = await sbAuth.from('clients').select('role').eq('auth_user_id', user.id).maybeSingle();
     if (!profile || profile.role !== 'admin') {
       return jsonResponse({ error: 'Accès réservé aux administrateurs' }, 403, getCorsHeaders(request));
     }

@@ -30,7 +30,10 @@ export async function onRequest(context) {
     }
     const token = authHeader.split(' ')[1];
 
-    const supabaseAnon = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY || env.SUPABASE_SERVICE_ROLE_KEY);
+    if (!env.SUPABASE_ANON_KEY) {
+      throw new Error("SUPABASE_ANON_KEY manquante.");
+    }
+    const supabaseAnon = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
     const { data: { user }, error: userError } = await supabaseAnon.auth.getUser(token);
 
     if (userError || !user) {
