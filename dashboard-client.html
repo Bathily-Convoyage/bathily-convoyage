@@ -1836,7 +1836,7 @@
     }
 
     // ========== INIT CLIENT DASHBOARD ==========
-    function initClientDashboard() {
+    async function initClientDashboard() {
       const missions = _clientMissions;
       const user = _clientUser;
 
@@ -1860,8 +1860,11 @@
         document.getElementById('profilPays').value = user.pays || 'France';
         document.getElementById('profilSiret').value = user.siret || '';
         if (user.documents) {
-          if (user.documents.cni && String(user.documents.cni).startsWith('https://')) document.getElementById('cniLink').innerHTML = `<a href="${escapeHtml(user.documents.cni)}" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i> Voir CNI</a>`;
-          if (user.documents.kbis && String(user.documents.kbis).startsWith('https://')) document.getElementById('kbisLink').innerHTML = `<a href="${escapeHtml(user.documents.kbis)}" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i> Voir KBIS</a>`;
+          const client = getSBCli();
+          const cniSigned = await resolveDocumentUrl(client, user.documents.cni);
+          const kbisSigned = await resolveDocumentUrl(client, user.documents.kbis);
+          if (cniSigned) document.getElementById('cniLink').innerHTML = `<a href="${escapeHtml(cniSigned)}" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i> Voir CNI</a>`;
+          if (kbisSigned) document.getElementById('kbisLink').innerHTML = `<a href="${escapeHtml(kbisSigned)}" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i> Voir KBIS</a>`;
         }
       }
 
@@ -2081,13 +2084,23 @@
       const input = document.getElementById(fileInputId);
       if (!input || !input.files || input.files.length === 0) return null;
       const file = input.files[0];
-      const ext = file.name.split('.').pop();
-      const fileName = `clients/${_clientUser.id}/${docType}_${Date.now()}.${ext}`;
+      const allowed = ['pdf','jpg','jpeg','png'];
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (!allowed.includes(ext)) { Swal.fire('Format non valide', 'PDF, JPG, PNG uniquement.', 'warning'); return null; }
+      if (file.size > 5 * 1024 * 1024) { Swal.fire('Fichier trop lourd', '5 Mo maximum.', 'warning'); return null; }
+      const fileName = `clients/${_clientUser.auth_user_id}/${docType}_${Date.now()}.${ext}`;
       const client = getSBCli();
-      const { error } = await client.storage.from('documents').upload(fileName, file, { upsert: true });
+      const { error } = await client.storage.from('documents').upload(fileName, file);
       if (error) { console.error('Upload error:', error); return null; }
-      const { data: url } = client.storage.from('documents').getPublicUrl(fileName);
-      return url.publicUrl;
+      return fileName;
+    }
+
+    async function resolveDocumentUrl(client, value) {
+      if (!value || typeof value !== 'string') return null;
+      if (!value.startsWith('clients/') && !value.startsWith('convoyeurs/')) return null;
+      const { data, error } = await client.storage.from('documents').createSignedUrl(value, 3600);
+      if (error) { console.warn('resolveDocumentUrl error:', error); return null; }
+      return data?.signedUrl || null;
     }
 
     async function updateClientProfile() {
