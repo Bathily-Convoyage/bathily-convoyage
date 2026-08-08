@@ -712,16 +712,20 @@
 
       // Status
       const statusEl = document.getElementById('missionStatus');
-      if (_missionStatus === 'in_progress') {
-        statusEl.className = 'sb-status ss-cours';
-        statusEl.innerHTML = '<span class="ss-dot"></span> En cours';
-        document.getElementById('startBtn').style.display = 'none';
-        document.getElementById('startMissionBtn').style.display = 'none';
-      } else if (_missionStatus === 'completed') {
-        statusEl.className = 'sb-status ss-cours';
-        statusEl.innerHTML = '<span class="ss-dot"></span> Terminée';
-        document.getElementById('startBtn').style.display = 'none';
-        document.getElementById('startMissionBtn').style.display = 'none';
+      const statusMap = {
+        'assigned': { cls: 'ss-planifie', label: 'Assignée' },
+        'accepted': { cls: 'ss-planifie', label: 'Confirmée' },
+        'in_progress': { cls: 'ss-cours', label: 'En cours' },
+        'delivered': { cls: 'ss-cours', label: 'Livrée' },
+        'completed': { cls: 'ss-cours', label: 'Terminée' }
+      };
+      const sm = statusMap[_missionStatus];
+      if (sm) {
+        statusEl.className = `sb-status ${sm.cls}`;
+        statusEl.innerHTML = `<span class="ss-dot"></span> ${sm.label}`;
+        const hideStart = ['in_progress', 'delivered', 'completed'].includes(_missionStatus);
+        document.getElementById('startBtn').style.display = hideStart ? 'none' : '';
+        document.getElementById('startMissionBtn').style.display = hideStart ? 'none' : '';
       }
 
       // Si paiement non payé, on bloque le démarrage (le bouton sera désactivé via la logique)
@@ -847,10 +851,13 @@
 
       if (!result.isConfirmed) return;
 
-      // Update status in Supabase
+      // Transition server-side
       if (_missionId) {
         const client = getSB();
-        const { error } = await client.from('missions').update({ status: 'in_progress' }).eq('id', _missionId);
+        const { error } = await client.rpc('transition_mission_status', {
+          p_mission_id: _missionId,
+          p_target_status: 'in_progress'
+        });
         if (error) {
           Swal.fire('Erreur', 'Impossible de démarrer la mission : ' + error.message, 'error');
           return;

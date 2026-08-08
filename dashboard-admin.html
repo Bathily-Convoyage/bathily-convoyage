@@ -3652,10 +3652,13 @@ Cadeau premium personnalisé</textarea>
     if (!tbody) return;
     if (!missions.length) { tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;">Aucune mission.</td></tr>'; return; }
     tbody.innerHTML = missions.map(m => {
-      const status = m.status || 'planned';
-      let statusClass = 'sp-att', statusText = 'Planifiée';
+      const status = m.status || 'available';
+      let statusClass = 'sp-att', statusText = 'Sur le marché';
       if (status === 'available') { statusClass = 'sp-att'; statusText = 'Sur le marché'; }
+      else if (status === 'assigned') { statusClass = 'sp-att'; statusText = 'Assignée'; }
+      else if (status === 'accepted') { statusClass = 'sp-att'; statusText = 'Acceptée'; }
       else if (status === 'in_progress') { statusClass = 'sp-cours'; statusText = 'En cours'; }
+      else if (status === 'delivered') { statusClass = 'sp-cours'; statusText = 'Livrée'; }
       else if (status === 'completed') { statusClass = 'sp-ok'; statusText = 'Terminée'; }
       else if (status === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
       else if (status === 'archived') { statusClass = 'sp-err'; statusText = 'Archivée'; }
@@ -3676,14 +3679,20 @@ Cadeau premium personnalisé</textarea>
           <button class="btn-sm btn-sm-red" onclick="deleteMission('${m.id}', '${m.reference}')" title="Supprimer"><i class="fas fa-trash"></i></button>
         </div>`;
       } else {
+        const canChangeConvoyeur = (status === 'assigned' || status === 'accepted');
+        const canMarkDelivered   = (status === 'in_progress');
+        const canMarkCompleted   = (status === 'delivered');
+        const canArchive         = (status === 'completed' || status === 'cancelled');
+        const canCancel          = ['available','assigned','accepted','in_progress'].includes(status);
         actionsHtml = `<div class="td-actions">
-          ${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="assignConvoyeurToMission('${m.id}')" title="Changer convoyeur"><i class="fas fa-user-edit"></i></button>` : ''}
-          ${status === 'planned' ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'in_progress')"><i class="fas fa-play"></i></button>` : ''}
-          ${(status === 'in_progress' || status === 'planned') ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" target="_blank" rel="noopener" class="btn-sm btn-sm-ghost" title="Suivre GPS"><i class="fas fa-map-marker-alt"></i></a>` : ''}
-          ${status !== 'completed' && status !== 'cancelled' ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}
+          ${canChangeConvoyeur ? `<button class="btn-sm btn-sm-ghost" onclick="assignConvoyeurToMission('${m.id}')" title="Changer convoyeur"><i class="fas fa-user-edit"></i></button>` : ''}
+          ${canMarkDelivered ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'delivered')" title="Marquer livrée"><i class="fas fa-clipboard-check"></i></button>` : ''}
+          ${canMarkCompleted ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}
+          ${(status === 'in_progress' || status === 'accepted') ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" target="_blank" rel="noopener" class="btn-sm btn-sm-ghost" title="Suivre GPS"><i class="fas fa-map-marker-alt"></i></a>` : ''}
           <button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button>
           <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
-          ${(status === 'completed' || status === 'cancelled') ? `<button class="btn-sm btn-sm-ghost" onclick="archiveMission('${m.id}', true)" title="Archiver"><i class="fas fa-archive"></i></button>` : ''}
+          ${canCancel ? `<button class="btn-sm btn-sm-red" onclick="updateMissionStatus('${m.id}', 'cancelled')" title="Annuler"><i class="fas fa-times"></i></button>` : ''}
+          ${canArchive ? `<button class="btn-sm btn-sm-ghost" onclick="archiveMission('${m.id}', true)" title="Archiver"><i class="fas fa-archive"></i></button>` : ''}
           <button class="btn-sm btn-sm-red" onclick="deleteMission('${m.id}', '${m.reference}')" title="Supprimer"><i class="fas fa-trash"></i></button>
         </div>`;
       }
@@ -3714,10 +3723,13 @@ Cadeau premium personnalisé</textarea>
       return;
     }
     tbody.innerHTML = recent.map(m => {
-      const status = m.status || 'planned';
-      let statusClass = 'sp-att', statusText = 'Planifiée';
+      const status = m.status || 'available';
+      let statusClass = 'sp-att', statusText = 'Sur le marché';
       if (status === 'available') { statusClass = 'sp-att'; statusText = 'Sur le marché'; }
+      else if (status === 'assigned') { statusClass = 'sp-att'; statusText = 'Assignée'; }
+      else if (status === 'accepted') { statusClass = 'sp-att'; statusText = 'Acceptée'; }
       else if (status === 'in_progress') { statusClass = 'sp-cours'; statusText = 'En cours'; }
+      else if (status === 'delivered') { statusClass = 'sp-cours'; statusText = 'Livrée'; }
       else if (status === 'completed') { statusClass = 'sp-ok'; statusText = 'Terminée'; }
       else if (status === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
       else if (status === 'archived') { statusClass = 'sp-err'; statusText = 'Archivée'; }
@@ -4889,21 +4901,21 @@ Cadeau premium personnalisé</textarea>
 
     const sb = getSupabase();
     
-    // Récupérer l'ID du convoyeur à partir de la liste chargée
-    let convoyeurId = null;
-    const selectedConv = _convoyeursList.find(c => `${c.prenom} ${c.nom}` === convoyeurNom);
-    if (selectedConv) {
-      convoyeurId = selectedConv.id;
+    // Récupérer l'ID du convoyeur depuis la candidature
+    const candidature = _allCandidatures.find(c => c.id === candidatureId);
+    const convoyeurId = candidature ? candidature.convoyeur_id : null;
+
+    if (!convoyeurId) {
+      return Swal.fire('Erreur', 'Candidature sans convoyeur identifié.', 'error');
     }
 
-    const updateData = { convoyeur_nom: convoyeurNom, status: 'planned' };
-    if (convoyeurId) updateData.convoyeur_id = convoyeurId;
-
-    const { error: errMission } = await sb.from('missions')
-      .update(updateData)
-      .eq('id', missionId);
+    const { error: errMission } = await sb.rpc('admin_assign_mission', {
+      p_mission_id: missionId,
+      p_convoyeur_id: convoyeurId
+    });
     if (errMission) return Swal.fire('Erreur', errMission.message, 'error');
 
+    // Admin met à jour le statut des candidatures (admin a toujours le droit)
     await sb.from('candidatures').update({ status: 'approved' }).eq('id', candidatureId);
     await sb.from('candidatures').update({ status: 'rejected' }).eq('mission_id', missionId).neq('id', candidatureId);
 
@@ -5070,18 +5082,24 @@ Cadeau premium personnalisé</textarea>
 
     const sb = getSupabase();
     const convoyeurId = formValues.convoyeurId;
-    
-    let updateData;
     let assignedConvoyeur = null;
+
+    let error;
     if (convoyeurId) {
       assignedConvoyeur = _convoyeursList.find(c => c.id === convoyeurId);
-      const convoyeurNom = assignedConvoyeur ? `${assignedConvoyeur.prenom} ${assignedConvoyeur.nom}` : null;
-      updateData = { convoyeur_id: convoyeurId, convoyeur_nom: convoyeurNom, status: 'planned' };
+      const rpcRes = await sb.rpc('admin_assign_mission', {
+        p_mission_id: missionId,
+        p_convoyeur_id: convoyeurId
+      });
+      error = rpcRes.error;
     } else {
-      updateData = { convoyeur_nom: null, convoyeur_id: null, status: 'available' };
+      // Retirer attribution : transition assigned -> available
+      const rpcRes = await sb.rpc('transition_mission_status', {
+        p_mission_id: missionId,
+        p_target_status: 'available'
+      });
+      error = rpcRes.error;
     }
-
-    const { error } = await sb.from('missions').update(updateData).eq('id', missionId);
     
     if (error) {
       Swal.fire('Erreur', error.message, 'error');
@@ -5190,7 +5208,10 @@ Cadeau premium personnalisé</textarea>
     });
     if (!confirm.isConfirmed) return;
     const sb = getSupabase();
-    const { error } = await sb.from('missions').update({ status: newStatus }).eq('id', missionId);
+    const { error } = await sb.rpc('transition_mission_status', {
+      p_mission_id: missionId,
+      p_target_status: newStatus
+    });
     if (error) Swal.fire('Erreur', error.message, 'error');
     else { Swal.fire('Statut mis à jour', '', 'success'); loadMissions(); }
   };
@@ -5204,14 +5225,16 @@ Cadeau premium personnalisé</textarea>
     });
     if (!confirm.isConfirmed) return;
     const sb = getSupabase();
-    let restoreStatus = 'completed';
-    if (!archive) {
-      const { data: mission } = await sb.from('missions').select('status').eq('id', missionId).single();
-      restoreStatus = (mission && mission.status === 'archived') ? 'planned' : (mission ? mission.status : 'completed');
+    if (archive) {
+      const { error } = await sb.rpc('transition_mission_status', {
+        p_mission_id: missionId,
+        p_target_status: 'archived'
+      });
+      if (error) Swal.fire('Erreur', error.message, 'error');
+      else { Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Mission archivée', timer: 3000 }); loadMissions(); }
+    } else {
+      Swal.fire('Non autorisé', 'Le désarchivage manuel est interdit.', 'error');
     }
-    const { error } = await sb.from('missions').update({ status: archive ? 'archived' : restoreStatus }).eq('id', missionId);
-    if (error) Swal.fire('Erreur', error.message, 'error');
-    else { Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: archive ? 'Mission archivée' : 'Mission désarchivée', timer: 3000 }); loadMissions(); }
   };
 
   window.markMissionPaid = async function(missionId, reference) {

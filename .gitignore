@@ -12,6 +12,9 @@ playwright-report/
 # Local Netlify folder
 .netlify
 
+# Wrangler local cache
+.wrangler/
+
 # Google service account credentials
 gsc-credentials.json
 

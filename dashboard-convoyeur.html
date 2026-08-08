@@ -1296,7 +1296,7 @@
           <h2 class="sec-h">Missions qui vous ont été <em>attribuées</em></h2>
           <div style="display:flex;gap:8px;">
             <button class="btn-sm btn-sm-ghost" onclick="filterMyMissions('all',this)">Toutes</button>
-            <button class="btn-sm btn-sm-ghost" onclick="filterMyMissions('planned',this)">Planifiées</button>
+            <button class="btn-sm btn-sm-ghost" onclick="filterMyMissions('accepted',this)">Planifiées</button>
             <button class="btn-sm btn-sm-ghost" onclick="filterMyMissions('in_progress',this)">En cours</button>
             <button class="btn-sm btn-sm-ghost" onclick="filterMyMissions('completed',this)">Terminées</button>
           </div>
@@ -1722,13 +1722,11 @@
         .order('created_at', { ascending: false });
       
       _allMissions = missions || [];
-      // Missions disponibles = status 'available' et sans convoyeur assigné
-      _availableMissions = _allMissions.filter(m => 
-        (!m.status || m.status === 'available') && !m.convoyeur_nom
-      );
-      // Mes missions = convoyeur_nom correspond au convoyeur connecté
+      // Missions disponibles = status 'available'
+      _availableMissions = _allMissions.filter(m => m.status === 'available');
+      // Mes missions = convoyeur_id correspond au convoyeur connecté
       _myMissions = _allMissions.filter(m => 
-        m.convoyeur_nom && m.convoyeur_nom.toLowerCase() === _convoyeurName.toLowerCase()
+        _convoyeurUser && m.convoyeur_id === _convoyeurUser.id
       );
 
       // Retours possibles = missions available dont le depart correspond à l'arrivee d'une de mes missions
@@ -1738,7 +1736,7 @@
         .replace(/\s+$/, '');
       
       const myDestinations = _myMissions
-        .filter(m => m.status === 'planned' || m.status === 'in_progress')
+        .filter(m => m.status === 'accepted' || m.status === 'in_progress')
         .map(m => normalizeCity(m.arrivee))
         .filter(v => v.length > 0);
 
@@ -1749,11 +1747,11 @@
 
       // Charger toutes les candidatures (RLS filtre pour le convoyeur)
       const { data: candidatures, error: candErr } = await client.from('candidatures')
-        .select('id, mission_id, convoyeur_nom, status, created_at')
+        .select('id, mission_id, convoyeur_id, convoyeur_nom, status, created_at')
         .order('created_at', { ascending: false });
       
       _allCandidatures = (candidatures || []).filter(c => 
-        c.convoyeur_nom && c.convoyeur_nom.toLowerCase() === _convoyeurName.toLowerCase()
+        _convoyeurUser && c.convoyeur_id === _convoyeurUser.id
       );
 
       if (missionsErr) console.error('Erreur chargement missions:', missionsErr);
@@ -1854,12 +1852,14 @@
 
       container.innerHTML = filtered.map(m => {
         const statusInfo = {
-          'planned': { class: 'status-planned', label: 'Planifiée', color: '#e0a343' },
+          'assigned': { class: 'status-pending', label: 'À confirmer', color: '#e0a343' },
+          'accepted': { class: 'status-planned', label: 'Confirmée', color: '#e0a343' },
           'in_progress': { class: 'status-progress', label: 'En cours', color: '#0A4D68' },
+          'delivered': { class: 'status-progress', label: 'Livrée', color: '#4a7c6b' },
           'completed': { class: 'status-completed', label: 'Terminée', color: '#4a7c6b' },
           'available': { class: 'status-available', label: 'Disponible', color: '#4a7c6b' }
         };
-        const si = statusInfo[m.status] || statusInfo['planned'];
+        const si = statusInfo[m.status] || statusInfo['accepted'];
         const tagMode = (m.mode || 'route').toLowerCase().includes('plateau') ? '<span class="mc-tag tag-plateau">Plateau</span>' : '<span class="mc-tag tag-route">Route</span>';
         const tagVehicule = (m.vehicule || 'auto').toLowerCase().includes('moto') ? '<span class="mc-tag tag-moto">Moto</span>' : '<span class="mc-tag tag-auto">Automobile</span>';
         const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
@@ -1876,6 +1876,7 @@
             <div style="margin-top:6px;"><span style="font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:20px;background:${si.color}22;color:${si.color};">${si.label}</span></div>
           </div>
           <div class="mc-actions">
+            ${m.status === 'assigned' ? `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation();respondToAssignment('${m.id}', true)"><i class="fas fa-check"></i> Accepter</button><button class="btn-sm btn-sm-red" onclick="event.stopPropagation();respondToAssignment('${m.id}', false)"><i class="fas fa-times"></i> Refuser</button>` : ''}
             <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Bon de mission</a>
             <a href="etat-des-lieux.html?mission_id=${m.id}&type=depart" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener" style="text-decoration:none;"><i class="fas fa-clipboard-list"></i> EDL</a>
             ${m.status === 'in_progress' ? `<a href="gps-emitter.html?id=${m.id}&ref=${encodeURIComponent(m.reference||'')}&route=${encodeURIComponent(dep+' → '+arr)}&vehicle=${encodeURIComponent(m.vehicule||'')}" class="btn-sm btn-sm-red" target="_blank" rel="noopener" style="text-decoration:none;"><i class="fas fa-satellite-dish"></i> GPS</a>` : ''}
@@ -1911,7 +1912,7 @@
         const rem = m.remuneration_convoyeur || '-';
 
         // Vérifier si déjà postulé
-        const dejaPostule = _allCandidatures.some(c => c.mission_id === m.id && c.convoyeur_nom === _convoyeurName);
+        const dejaPostule = _allCandidatures.some(c => c.mission_id === m.id && c.convoyeur_id === _convoyeurUser.id);
 
         return `<div class="mission-card clickable-card" onclick="showConvoMissionDetails('${m.id}')">
           <div class="mc-status ${statusClass}"></div>
@@ -1957,7 +1958,7 @@
           return myArr === retDep && (my.status === 'planned' || my.status === 'in_progress');
         });
 
-        const dejaPostule = _allCandidatures.some(c => c.mission_id === m.id && c.convoyeur_nom === _convoyeurName);
+        const dejaPostule = _allCandidatures.some(c => c.mission_id === m.id && c.convoyeur_id === _convoyeurUser.id);
 
         return `<div class="mission-card clickable-card" onclick="showConvoMissionDetails('${m.id}')" style="border-left:3px solid var(--bordeaux);">
           <div class="mc-status status-available"></div>
@@ -2032,7 +2033,7 @@
       document.getElementById('cmd-vehicule').value = m.vehicule || 'Automobile';
       document.getElementById('cmd-rem').value = m.remuneration_convoyeur || '';
 
-      const dejaPostule = _allCandidatures.some(c => c.mission_id === m.id && c.convoyeur_nom === _convoyeurName);
+      const dejaPostule = _allCandidatures.some(c => c.mission_id === m.id && c.convoyeur_id === _convoyeurUser.id);
       const btn = document.getElementById('cmdPostulerBtn');
       if (dejaPostule) {
         btn.textContent = 'Déjà postulé';
@@ -2057,7 +2058,7 @@
       if (!mission) return Swal.fire('Erreur', 'Mission introuvable.', 'error');
 
       // Vérifier si déjà postulé
-      const deja = _allCandidatures.some(c => c.mission_id === id && c.convoyeur_nom === _convoyeurName);
+      const deja = _allCandidatures.some(c => c.mission_id === id && c.convoyeur_id === _convoyeurUser.id);
       if (deja) return Swal.fire('Déjà postulé', 'Vous avez déjà postulé à cette mission.', 'info');
 
       const confirm = await Swal.fire({
@@ -2072,11 +2073,15 @@
       Swal.fire({ title: 'Envoi...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
       const client = getSBC();
 
+      if (!_convoyeurUser || !_convoyeurUser.id) return Swal.fire('Erreur', 'Votre profil convoyeur est incomplet.', 'error');
+
       const { error } = await client.from('candidatures').insert([{
         mission_id: id,
+        convoyeur_id: _convoyeurUser.id,
         convoyeur_nom: _convoyeurName,
         mission_reference: mission.reference || '',
         mission_trajet: `${mission.depart || ''} → ${mission.arrivee || ''}`,
+        mission_montant: mission.remuneration_convoyeur,
         status: 'pending'
       }]);
 
@@ -2090,6 +2095,22 @@
       closeModal('convModalMissionDetails');
       // Recharger les données
       await loadConvoyeurData(_convoyeurUser);
+    }
+
+    async function respondToAssignment(missionId, accepted) {
+      if (!_convoyeurUser) return Swal.fire('Erreur', 'Vous devez être connecté.', 'error');
+      const client = getSBC();
+      const { error } = await client.rpc('respond_mission_assignment', {
+        p_mission_id: missionId,
+        p_accepted: accepted
+      });
+      if (error) {
+        console.error('Erreur réponse mission:', error);
+        Swal.fire('Erreur', error.message || 'Action impossible.', 'error');
+      } else {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: accepted ? 'Mission acceptée !' : 'Mission refusée', timer: 3000 });
+        await loadConvoyeurData(_convoyeurUser);
+      }
     }
 
     async function retirerCandidature(candidatureId) {
