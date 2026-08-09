@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody } from '../_utils.js';
+import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody, escapeHtml } from '../_utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -19,8 +19,8 @@ export async function onRequest(context) {
     const { trigger, id, notes, payment_url, temp_password, prenom, email: directEmail, nom: directNom, convoyeur_nom, convoyeur_email, client_email, depart, arrivee, date_mission, reference } = parsedBody;
 
     const PUBLIC_TRIGGERS = ['devis_created', 'candidature_submitted'];
-    const AUTHENTICATED_TRIGGERS = ['edl_completed'];
-    const ADMIN_ONLY_TRIGGERS = ['devis_confirmed', 'convoyeur_approved', 'payment_success', 'candidature_status_changed', 'mission_assigned', 'support_reply', 'pro_approved', 'pro_rejected', 'devis_relance'];
+    const AUTHENTICATED_TRIGGERS = [];
+    const ADMIN_ONLY_TRIGGERS = ['edl_completed', 'devis_confirmed', 'convoyeur_approved', 'payment_success', 'candidature_status_changed', 'mission_assigned', 'support_reply', 'pro_approved', 'pro_rejected', 'devis_relance'];
     const ALL_RESTRICTED = [...AUTHENTICATED_TRIGGERS, ...ADMIN_ONLY_TRIGGERS];
 
     if (ALL_RESTRICTED.includes(trigger)) {
@@ -95,7 +95,7 @@ export async function onRequest(context) {
         .meta-list{margin:0;padding:0;list-style:none}.meta-list li{padding:8px 0;border-bottom:1px solid #F3F4F6;display:flex;justify-content:space-between}
         .meta-list li strong{color:#0A4D68}
       </style></head><body><div class="container"><div class="header"><h1>Bathily Convoyage.</h1></div>
-      <div class="content"><h2 style="color:#0A4D68;margin-top:0">${contentTitle}</h2>${contentBody}</div>
+      <div class="content"><h2 style="color:#0A4D68;margin-top:0">${escapeHtml(contentTitle)}</h2>${contentBody}</div>
       <div class="footer">© 2025 Bathily Convoyage — Convoyage automobile & moto en France.<br>Besoin d'aide ? <a href="mailto:${ADMIN_EMAIL}" style="color:#0A4D68">Contactez-nous</a></div>
       </div></body></html>`;
     }
@@ -196,7 +196,7 @@ export async function onRequest(context) {
       const emailTo = edl.email_client || mission.client_email || 'client@email.fr';
       let damagesHtml = '<p>Aucun dommage signalé.</p>';
       if (edl.dommages && edl.dommages.length > 0) {
-        damagesHtml = '<ul>' + edl.dommages.map(d => `<li><strong>${d.zone}</strong> (${d.type}) : ${d.desc}</li>`).join('') + '</ul>';
+        damagesHtml = '<ul>' + edl.dommages.map(d => `<li><strong>${escapeHtml(d.zone)}</strong> (${escapeHtml(d.type)}) : ${escapeHtml(d.desc)}</li>`).join('') + '</ul>';
       }
       let signaturesHtml = '';
       if (edl.signatures) {

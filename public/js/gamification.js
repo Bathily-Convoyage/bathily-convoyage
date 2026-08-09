@@ -72,12 +72,12 @@
       html += '<div class="gamif-level-card">';
       html += '<div class="gamif-level-icon" style="color:' + levelInfo.current.color + ';"><i class="fas ' + levelInfo.current.icon + '"></i></div>';
       html += '<div class="gamif-level-info">';
-      html += '<div class="gamif-level-name">' + levelInfo.current.name + '</div>';
+      html += '<div class="gamif-level-name">' + escapeHTML(levelInfo.current.name) + '</div>';
       html += '<div class="gamif-level-points">' + points + ' points</div>';
       if (levelInfo.next) {
         var progress = Math.min(100, Math.round((points - levelInfo.current.min) / (levelInfo.next.min - levelInfo.current.min) * 100));
         html += '<div class="gamif-progress-bar"><div class="gamif-progress-fill" style="width:' + progress + '%;"></div></div>';
-        html += '<div class="gamif-progress-text">' + (levelInfo.next.min - points) + ' pts jusqu\'à ' + levelInfo.next.name + '</div>';
+        html += '<div class="gamif-progress-text">' + (levelInfo.next.min - points) + ' pts jusqu\'à ' + escapeHTML(levelInfo.next.name) + '</div>';
       } else {
         html += '<div class="gamif-progress-text">Niveau maximum atteint ! 🏆</div>';
       }
@@ -92,9 +92,9 @@
         var earned = myBadges.find(function(mb) { return mb.badge_id === b.id; });
         var cls = earned ? 'gamif-badge earned' : 'gamif-badge locked';
         var opacity = earned ? '1' : '0.4';
-        html += '<div class="' + cls + '" title="' + b.description + '">';
-        html += '<div class="gamif-badge-icon" style="color:' + b.couleur + ';opacity:' + opacity + ';"><i class="fas ' + b.icon + '"></i></div>';
-        html += '<div class="gamif-badge-name">' + b.nom + '</div>';
+        html += '<div class="' + cls + '" title="' + escapeHTML(b.description) + '">';
+        html += '<div class="gamif-badge-icon" style="color:' + escapeHTML(b.couleur) + ';opacity:' + opacity + ';"><i class="fas ' + escapeHTML(b.icon) + '"></i></div>';
+        html += '<div class="gamif-badge-name">' + escapeHTML(b.nom) + '</div>';
         if (!earned) html += '<div class="gamif-badge-locked"><i class="fas fa-lock"></i></div>';
         html += '</div>';
       });
@@ -182,6 +182,13 @@
     var binary = '';
     for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     return btoa(binary);
+  }
+
+  function escapeHTML(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
   }
 
   document.addEventListener('DOMContentLoaded', function () {

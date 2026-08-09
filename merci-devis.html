@@ -131,7 +131,7 @@
       if (price && dist) {
         var info = document.createElement('p');
         info.style.cssText = 'font-size:0.9rem;color:#0A4D68;font-weight:600;margin-top:8px;';
-        info.innerHTML = 'Distance estimée : ' + dist + ' km · Montant estimé : ' + price + ' €';
+        info.textContent = 'Distance estimée : ' + dist + ' km · Montant estimé : ' + price + ' €';
         document.querySelector('.ref').after(info);
       }
     })();

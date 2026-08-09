@@ -70,8 +70,9 @@ export async function onRequest(context) {
     }
 
     const statut = mission.status;
-    if (statut === 'cancelled' || statut === 'completed' || statut === 'archived') {
-      return jsonResponse({ error: 'Cette mission ne peut pas être payée.' }, 400, getCorsHeaders(request));
+    const PAYABLE_STATUSES = ['available', 'assigned', 'accepted'];
+    if (!PAYABLE_STATUSES.includes(statut)) {
+      return jsonResponse({ error: 'Cette mission ne peut pas être payée (statut non autorisé).' }, 400, getCorsHeaders(request));
     }
 
     const priceHt = parseFloat(mission.montant_ht);

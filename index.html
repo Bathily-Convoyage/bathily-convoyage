@@ -3440,6 +3440,7 @@
       window._sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
       return window._sbClient;
     }
+    function escapeHtml(str) { if (str == null) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
     async function loadPromoBar() {
       var sb = getSB();
       if (!sb) return;
@@ -3450,7 +3451,7 @@
         if (p.date_fin && new Date(p.date_fin) < new Date()) return;
         var bar = document.getElementById('promoBar');
         if (!bar) return;
-        bar.innerHTML = '<span>⭐ ' + p.texte_affiche + ' : <strong>-' + p.remise_pourcent + '%</strong> sur votre convoyage avec le code : <strong>' + p.code + '</strong></span>';
+        bar.innerHTML = '<span>⭐ ' + escapeHtml(p.texte_affiche) + ' : <strong>-' + escapeHtml(p.remise_pourcent) + '%</strong> sur votre convoyage avec le code : <strong>' + escapeHtml(p.code) + '</strong></span>';
       } catch(e) { console.warn('Promo bar: fallback to default', e); }
     }
     loadPromoBar();

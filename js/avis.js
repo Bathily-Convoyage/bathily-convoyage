@@ -84,7 +84,7 @@
 
   function buildAvisCard(a) {
     var dateStr = new Date(a.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-    var initial = (a.auteur_nom || 'A')[0].toUpperCase();
+    var initial = escapeHTML((a.auteur_nom || 'A')[0].toUpperCase());
 
     var html = '<div class="avis-card" style="background:white;border:1px solid var(--border-light);border-radius:16px;padding:20px;margin-bottom:16px;">';
     html += '<div style="display:flex;align-items:flex-start;gap:14px;">';

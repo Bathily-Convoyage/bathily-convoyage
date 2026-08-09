@@ -86,11 +86,11 @@
       html += '<h4 style="font-family:Montserrat,sans-serif;font-size:1rem;margin-bottom:12px;color:var(--bordeaux);"><i class="fas fa-gift" style="margin-right:8px;"></i>Programme de parrainage</h4>';
       html += '<p style="font-size:0.85rem;color:var(--gray-mid);margin-bottom:16px;">Partagez votre code avec un ami. Vous recevez chacun <strong>10€ de réduction</strong> dès sa première mission.</p>';
       html += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">';
-      html += '<input type="text" id="codeParrainage" value="' + codeParrainage + '" readonly style="flex:1;min-width:200px;padding:10px 16px;border:2px dashed var(--bordeaux);border-radius:12px;font-weight:700;color:var(--bordeaux);background:var(--bordeaux-light);text-align:center;font-size:1.1rem;letter-spacing:2px;">';
+      html += '<input type="text" id="codeParrainage" value="' + escapeHTML(codeParrainage) + '" readonly style="flex:1;min-width:200px;padding:10px 16px;border:2px dashed var(--bordeaux);border-radius:12px;font-weight:700;color:var(--bordeaux);background:var(--bordeaux-light);text-align:center;font-size:1.1rem;letter-spacing:2px;">';
       html += '<button onclick="BathilyFidelite.copyCode()" style="background:var(--bordeaux);color:white;border:none;padding:10px 20px;border-radius:12px;cursor:pointer;font-weight:600;font-size:0.85rem;"><i class="fas fa-copy"></i> Copier</button>';
       html += '</div>';
       html += '<div style="margin-top:12px;">';
-      html += '<a href="mailto:?subject=Rejoins%20Bathily-Convoyage&body=Bonjour,%0A%0AJe%20te%20recommande%20Bathily-Convoyage%20pour%20le%20convoyage%20de%20ton%20véhicule.%0A%0AUtilise%20mon%20code%20' + codeParrainage + '%20pour%20obtenir%2010%E2%82%AC%20de%20r%C3%A9duction%20sur%20ta%20premi%C3%A8re%20mission%20!%0A%0Ahttps://www.bathily-convoyage.fr%0A" style="display:inline-block;margin-top:8px;color:var(--bordeaux);font-size:0.85rem;text-decoration:none;font-weight:600;"><i class="fas fa-envelope" style="margin-right:6px;"></i>Envoyer à un ami</a>';
+      html += '<a href="mailto:?subject=Rejoins%20Bathily-Convoyage&body=Bonjour,%0A%0AJe%20te%20recommande%20Bathily-Convoyage%20pour%20le%20convoyage%20de%20ton%20véhicule.%0A%0AUtilise%20mon%20code%20' + encodeURIComponent(codeParrainage) + '%20pour%20obtenir%2010%E2%82%AC%20de%20r%C3%A9duction%20sur%20ta%20premi%C3%A8re%20mission%20!%0A%0Ahttps://www.bathily-convoyage.fr%0A" style="display:inline-block;margin-top:8px;color:var(--bordeaux);font-size:0.85rem;text-decoration:none;font-weight:600;"><i class="fas fa-envelope" style="margin-right:6px;"></i>Envoyer à un ami</a>';
       html += '</div>';
       html += '</div>';
 

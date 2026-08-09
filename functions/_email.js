@@ -1,3 +1,5 @@
+import { escapeHtml } from './_utils.js';
+
 export async function sendEmail({ to, subject, html }, env) {
   const resendApiKey = env.RESEND_API_KEY;
   const FROM_EMAIL = env.EMAIL_FROM || 'onboarding@resend.dev';
@@ -39,7 +41,7 @@ export function wrapEmailLayout(contentTitle, contentBody, env = {}) {
     .btn{display:inline-block;background-color:#0A4D68;color:#fff!important;text-decoration:none;padding:12px 28px;border-radius:40px;font-weight:700;margin-top:20px;font-size:14px}
     .highlight-box{background-color:#E6F0F4;border-left:4px solid #0A4D68;padding:15px;border-radius:8px;margin:20px 0}
   </style></head><body><div class="container"><div class="header"><h1>Bathily Convoyage.</h1></div>
-  <div class="content"><h2 style="color:#0A4D68;margin-top:0">${contentTitle}</h2>${contentBody}</div>
-  <div class="footer">© 2025 Bathily Convoyage — Convoyage automobile & moto en France.<br>Besoin d'aide ? <a href="mailto:${ADMIN_EMAIL}" style="color:#0A4D68">Contactez-nous</a></div>
+  <div class="content"><h2 style="color:#0A4D68;margin-top:0">${escapeHtml(contentTitle)}</h2>${contentBody}</div>
+  <div class="footer">© 2025 Bathily Convoyage — Convoyage automobile & moto en France.<br>Besoin d'aide ? <a href="mailto:${escapeHtml(ADMIN_EMAIL)}" style="color:#0A4D68">Contactez-nous</a></div>
   </div></body></html>`;
 }

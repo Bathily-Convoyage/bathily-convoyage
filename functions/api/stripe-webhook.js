@@ -55,6 +55,10 @@ export async function onRequest(context) {
         return new Response(`Mission ${reference} déjà traitée.`, { status: 200 });
       }
 
+      if (['cancelled', 'completed', 'archived'].includes(mission.status)) {
+        return new Response(`Mission ${reference} non payable (statut ${mission.status}).`, { status: 400 });
+      }
+
       const updateFields = { paiement_statut: 'paid' };
 
       const { error: updateError } = await supabase.from('missions').update(updateFields).eq('id', missionId);

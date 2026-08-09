@@ -731,7 +731,11 @@ function loadDraft() {
 function showToast(msg, type='success') {
   const toast = document.createElement('div');
   toast.className = 'toast ' + (type === 'error' ? 'error' : '');
-  toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+  const icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
+  const text = document.createElement('span');
+  text.textContent = msg;
+  toast.innerHTML = `<i class="fas fa-${icon}"></i> `;
+  toast.appendChild(text);
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
 }
@@ -939,16 +943,33 @@ function buildZonesGrid() {
         <option value="casse" ${savedState === 'casse' ? 'selected' : ''}>✗ Cassé</option>
       </select>
       <div class="zone-photo-area ${savedState && savedState !== 'bon' ? 'show' : ''}" id="zone-photo-${zone.replace(/\s/g,'')}">
-        ${photoUrl ? `<img src="${photoUrl}" class="zone-photo-preview" onclick="viewPhoto('${photoUrl}')" alt="Photo de ${zone}">` : ''}
-        <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap; justify-content:center;">
+        <div class="zone-photo-preview-wrap"></div>
+        <div class="zone-photo-btns" style="display:flex; gap:4px; align-items:center; flex-wrap:wrap; justify-content:center;">
           <button class="zone-photo-btn" onclick="triggerZonePhoto('${zone}')">
-            <i class="fas fa-camera"></i> ${photoUrl ? 'Changer' : 'Ajouter'} photo
+            <i class="fas fa-camera"></i> <span class="zone-photo-btn-text">Ajouter photo</span>
           </button>
-          ${photoUrl ? `<button class="zone-remove-photo" onclick="removeZonePhoto('${zone}')"><i class="fas fa-times"></i></button>` : ''}
           <input type="file" class="zone-photo-input" id="zone-input-${zone.replace(/\s/g,'')}" accept="image/*" capture="environment" onchange="handleZonePhoto(event, '${zone}')">
         </div>
       </div>
     `;
+    const photoArea = div.querySelector('.zone-photo-area');
+    const photoWrap = photoArea.querySelector('.zone-photo-preview-wrap');
+    const btnText = photoArea.querySelector('.zone-photo-btn-text');
+    const btnContainer = photoArea.querySelector('.zone-photo-btns');
+    if (photoUrl) {
+      const img = document.createElement('img');
+      img.className = 'zone-photo-preview';
+      img.src = photoUrl;
+      img.alt = 'Photo de ' + zone;
+      img.addEventListener('click', () => viewPhoto(photoUrl));
+      photoWrap.appendChild(img);
+      btnText.textContent = 'Changer photo';
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'zone-remove-photo';
+      removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+      removeBtn.addEventListener('click', () => removeZonePhoto(zone));
+      btnContainer.appendChild(removeBtn);
+    }
     grid.appendChild(div);
   });
 }
@@ -1069,19 +1090,29 @@ function refreshDommageList() {
   STATE.dommages.forEach((d, i) => {
     const div = document.createElement('div');
     div.className = 'dommage-item';
-    let photoHtml = '';
     if (d.photo) {
-      photoHtml = `<img src="${d.photo}" class="dommage-photo" onclick="viewPhoto('${d.photo}')" alt="Photo du dommage">`;
+      const img = document.createElement('img');
+      img.src = d.photo;
+      img.className = 'dommage-photo';
+      img.alt = 'Photo du dommage';
+      img.addEventListener('click', () => viewPhoto(d.photo));
+      div.appendChild(img);
     } else {
-      photoHtml = `<i class="fas fa-exclamation-triangle dommage-item-ico"></i>`;
+      const ico = document.createElement('i');
+      ico.className = 'fas fa-exclamation-triangle dommage-item-ico';
+      div.appendChild(ico);
     }
-    div.innerHTML = `
-      ${photoHtml}
-      <div class="dommage-info">
-        <div class="dommage-zone">${d.zone} - ${d.type}</div>
-        <div class="dommage-desc">${d.desc}</div>
-      </div>
-    `;
+    const info = document.createElement('div');
+    info.className = 'dommage-info';
+    const zone = document.createElement('div');
+    zone.className = 'dommage-zone';
+    zone.textContent = `${d.zone} - ${d.type}`;
+    const desc = document.createElement('div');
+    desc.className = 'dommage-desc';
+    desc.textContent = d.desc;
+    info.appendChild(zone);
+    info.appendChild(desc);
+    div.appendChild(info);
     list.appendChild(div);
   });
 }
@@ -1589,7 +1620,13 @@ function printEdl() {
   });
 
   // Observations
-  document.getElementById('printObs').innerHTML = document.getElementById('obsGenerales')?.value || '<em>Aucune observation.</em>';
+  const obsVal = document.getElementById('obsGenerales')?.value || '';
+  const printObs = document.getElementById('printObs');
+  if (!obsVal) {
+    printObs.innerHTML = '<em>Aucune observation.</em>';
+  } else {
+    printObs.textContent = obsVal;
+  }
 
   // Imprimer
   window.print();

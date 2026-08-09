@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { getCorsHeaders, jsonResponse, handleOptions, parseBody } from '../_utils.js';
+import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody } from '../_utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -12,6 +12,9 @@ export async function onRequest(context) {
   if (request.method !== 'POST') {
     return jsonResponse({ error: 'POST requis' }, 405, headers);
   }
+
+  const rl = checkRateLimit(request, 'send-campagne', 3, 60000);
+  if (rl) return rl;
 
   const authHeader = request.headers.get('authorization') || '';
   if (!authHeader.startsWith('Bearer ')) {
@@ -29,10 +32,22 @@ export async function onRequest(context) {
 
   const supabaseUrl = env.SUPABASE_URL;
   const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-  const resendApiKey = env.RESEND_API_KEY;
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return jsonResponse({ error: 'Configuration Supabase manquante.' }, 500, headers);
+  }
+  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  });
 
-  if (!supabaseUrl || !supabaseServiceKey || !resendApiKey) {
-    return jsonResponse({ error: 'Variables manquantes' }, 500, headers);
+  const { data: profile } = await supabaseAdmin
+    .from('clients').select('role').eq('auth_user_id', user.id).maybeSingle();
+  if (!profile || profile.role !== 'admin') {
+    return jsonResponse({ error: 'Accès réservé aux administrateurs.' }, 403, headers);
+  }
+
+  const resendApiKey = env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    return jsonResponse({ error: 'RESEND_API_KEY manquante.' }, 500, headers);
   }
 
   try {
@@ -41,9 +56,7 @@ export async function onRequest(context) {
       return jsonResponse({ error: 'Sujet et contenu requis' }, 400, headers);
     }
 
-    const sb = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { data: subscribers, error: subErr } = await sb
+    const { data: subscribers, error: subErr } = await supabaseAdmin
       .from('newsletter_subscribers').select('email, nom, unsubscribe_token').eq('statut', 'actif').limit(1000);
 
     if (subErr) throw subErr;
@@ -51,7 +64,7 @@ export async function onRequest(context) {
       return jsonResponse({ sent: 0, message: 'Aucun abonné actif' }, 200, headers);
     }
 
-    const { data: campagne, error: campErr } = await sb.from('campagnes').insert({
+    const { data: campagne, error: campErr } = await supabaseAdmin.from('campagnes').insert({
       sujet, contenu, statut: 'envoyee', destinataires: subscribers.length, envoyee_le: new Date().toISOString()
     }).select().single();
 

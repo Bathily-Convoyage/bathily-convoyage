@@ -92,9 +92,9 @@
         var earned = myBadges.find(function(mb) { return mb.badge_id === b.id; });
         var cls = earned ? 'gamif-badge earned' : 'gamif-badge locked';
         var opacity = earned ? '1' : '0.4';
-        html += '<div class="' + cls + '" title="' + b.description + '">';
-        html += '<div class="gamif-badge-icon" style="color:' + b.couleur + ';opacity:' + opacity + ';"><i class="fas ' + b.icon + '"></i></div>';
-        html += '<div class="gamif-badge-name">' + b.nom + '</div>';
+        html += '<div class="' + cls + '" title="' + escapeHTML(b.description) + '">';
+        html += '<div class="gamif-badge-icon" style="color:' + escapeHTML(b.couleur) + ';opacity:' + opacity + ';"><i class="fas ' + escapeHTML(b.icon) + '"></i></div>';
+        html += '<div class="gamif-badge-name">' + escapeHTML(b.nom) + '</div>';
         if (!earned) html += '<div class="gamif-badge-locked"><i class="fas fa-lock"></i></div>';
         html += '</div>';
       });
@@ -183,6 +183,8 @@
     for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     return btoa(binary);
   }
+
+  function escapeHTML(str) { if (str == null || str == undefined) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
 
   document.addEventListener('DOMContentLoaded', function () {
     var container = document.getElementById('gamificationContainer');

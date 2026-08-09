@@ -2966,7 +2966,8 @@ Cadeau premium personnalisé</textarea>
     }
     tbody.innerHTML = data.map(c => {
       const name = `${c.prenom || ''} ${c.nom || ''}`.trim() || 'Inconnu';
-      const initials = `${c.prenom?.[0] || ''}${c.nom?.[0] || ''}`.toUpperCase();
+      const rawInitials = `${c.prenom?.[0] || ''}${c.nom?.[0] || ''}`.toUpperCase();
+      const initials = escapeHtml(rawInitials);
       const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '—';
       const rowStyle = c.banned ? 'opacity:0.6; background:#fff5f5; cursor:pointer;' : 'cursor:pointer;';
       const banLabel = c.banned ? '<span class="sp sp-err"><span class="sp-dot"></span>Banni</span>' : '<span class="sp sp-ok"><span class="sp-dot"></span>Actif</span>';
@@ -3172,7 +3173,8 @@ Cadeau premium personnalisé</textarea>
       return;
     }
     tbody.innerHTML = list.map(c => {
-      const initials = ((c.prenom || '')[0] || '') + ((c.nom || '')[0] || '');
+      const rawInitials = ((c.prenom || '')[0] || '') + ((c.nom || '')[0] || '');
+      const initials = escapeHtml(rawInitials.toUpperCase());
       const zonesStr = c.zones && Array.isArray(c.zones) ? c.zones.join(', ') : (c.zone || 'Toute la France');
       const grade = c.grade || c.niveau || 'Standard';
       const note = c.note_moyenne || '5.0';
@@ -3180,9 +3182,9 @@ Cadeau premium personnalisé</textarea>
       const rowStyle = c.banned ? 'opacity:0.6; background:#fff5f5; cursor:pointer;' : 'cursor:pointer;';
       const statLabel = c.banned ? '<span class="sp sp-err"><span class="sp-dot"></span>Banni</span>' : `<span class="sp ${isDispo ? 'sp-ok' : 'sp-err'}"><span class="sp-dot"></span>${isDispo ? 'Disponible' : 'Indisponible'}</span>`;
       return `<tr class="clickable-row" style="${rowStyle}" onclick="if(!event.target.closest('button')) { editConvoyeur('${c.id}'); }">
-        <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials.toUpperCase()}</div>${escapeHtml(c.prenom || '')} ${escapeHtml(c.nom || '')}</div></td>
+        <td><div style="display:flex;align-items:center;gap:8px"><div class="ava" style="background:var(--bordeaux-light);color:var(--bordeaux)">${initials}</div>${escapeHtml(c.prenom || '')} ${escapeHtml(c.nom || '')}</div></td>
         <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(zonesStr)}">${escapeHtml(zonesStr)}</td>
-        <td><span class="sp ${grade.toLowerCase().includes('senior') ? 'sp-cours' : 'sp-att'}"><span class="sp-dot"></span>${grade}</span></td>
+        <td><span class="sp ${grade.toLowerCase().includes('senior') ? 'sp-cours' : 'sp-att'}"><span class="sp-dot"></span>${escapeHtml(grade)}</span></td>
         <td><span style="color:var(--warning)">⭐</span> ${note}</td>
         <td>${(c.taux_auto || 0.47).toFixed(2)} €/km</td>
         <td>${(c.taux_moto || 0.40).toFixed(2)} €/km</td>
@@ -5526,11 +5528,11 @@ Cadeau premium personnalisé</textarea>
         console.log('[Admin Reset] réponse data:', data, 'error:', error);
         Swal.close();
         if (error) {
-          errorDiv.innerHTML = error.message + '<br>URL : ' + redirectTo + '<br>Ajoutez cette URL dans Supabase → Authentication → URL Configuration → Redirect URLs.';
+          errorDiv.innerHTML = escapeHtml(error.message) + '<br>URL : ' + escapeHtml(redirectTo) + '<br>Ajoutez cette URL dans Supabase → Authentication → URL Configuration → Redirect URLs.';
           errorDiv.style.display = 'block';
           Swal.fire('Erreur', error.message + '<br><br>URL envoyée : ' + redirectTo + '<br>Ajoutez cette URL dans Supabase → Authentication → URL Configuration → Redirect URLs.', 'error');
         } else {
-          successDiv.innerHTML = '✅ Email envoyé. Cliquez sur le lien reçu (valide 1 heure) pour définir un nouveau mot de passe.<br>URL : ' + redirectTo;
+          successDiv.innerHTML = '✅ Email envoyé. Cliquez sur le lien reçu (valide 1 heure) pour définir un nouveau mot de passe.<br>URL : ' + escapeHtml(redirectTo);
           successDiv.style.display = 'block';
           Swal.fire('Email envoyé', 'Cliquez sur le lien reçu pour définir un nouveau mot de passe.<br>URL utilisée : ' + redirectTo, 'success');
         }
@@ -6198,7 +6200,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
           ? '<button class="btn-sm" onclick="togglePromoCode(' + p.id + ', false)" style="font-size:0.6rem;padding:4px 10px;">Désactiver</button>'
           : '<button class="btn-sm btn-sm-red" onclick="togglePromoCode(' + p.id + ', true)" style="font-size:0.6rem;padding:4px 10px;">Activer</button>';
         var deleteBtn = '<button class="btn-sm" onclick="deletePromoCode(' + p.id + ')" style="font-size:0.6rem;padding:4px 10px;color:#B33A3A;border-color:#B33A3A;"><i class="fas fa-trash"></i></button>';
-        return '<tr><td><strong>' + escapeHTML(p.code) + '</strong></td><td>-' + p.remise_pourcent + '%</td><td>' + escapeHTML(p.texte_affiche) + '</td><td>' + dateFin + '</td><td>' + statutBadge + '</td><td style="display:flex;gap:6px;">' + toggleBtn + deleteBtn + '</td></tr>';
+        return '<tr><td><strong>' + escapeHtml(p.code) + '</strong></td><td>-' + p.remise_pourcent + '%</td><td>' + escapeHtml(p.texte_affiche) + '</td><td>' + dateFin + '</td><td>' + statutBadge + '</td><td style="display:flex;gap:6px;">' + toggleBtn + deleteBtn + '</td></tr>';
       }).join('');
     } catch (err) {
       console.error('Erreur loadPromoCodes:', err);
@@ -6326,7 +6328,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
         var montant = d.total || d.estimated_price || '—';
         var dateStr = new Date(d.created_at).toLocaleDateString('fr-FR');
         var relanceBtn = '<button class="btn-sm btn-sm-red" onclick="relanceDevis(\'' + (d.id || d.ref || '') + '\', \'' + encodeURIComponent(email) + '\', \'' + encodeURIComponent(client) + '\')" style="font-size:0.6rem;padding:4px 10px;"><i class="fas fa-paper-plane"></i> Relancer</button>';
-        return '<tr><td><strong>' + escapeHTML(d.ref || d.id || '—') + '</strong></td><td>' + escapeHTML(client) + '</td><td>' + escapeHTML(email) + '</td><td>' + escapeHTML(trajet) + '</td><td>' + montant + ' €</td><td>' + dateStr + '</td><td><span style="color:#B33A3A;font-weight:700;">' + daysElapsed + 'j</span></td><td>' + relanceBtn + '</td></tr>';
+        return '<tr><td><strong>' + escapeHtml(d.ref || d.id || '—') + '</strong></td><td>' + escapeHtml(client) + '</td><td>' + escapeHtml(email) + '</td><td>' + escapeHtml(trajet) + '</td><td>' + montant + ' €</td><td>' + dateStr + '</td><td><span style="color:#B33A3A;font-weight:700;">' + daysElapsed + 'j</span></td><td>' + relanceBtn + '</td></tr>';
       }).join('');
     } catch (err) {
       console.error('Erreur loadExpiredDevis:', err);

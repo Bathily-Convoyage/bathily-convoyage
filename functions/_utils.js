@@ -13,6 +13,7 @@ export function getCorsHeaders(request, extra = {}) {
   const corsOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': corsOrigin,
+    'Vary': 'Origin',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Content-Type': 'application/json',
@@ -38,8 +39,8 @@ export function handleOptions(request) {
 const rateLimitMap = new Map();
 
 export function checkRateLimit(request, functionName, maxRequests = 10, windowMs = 60000) {
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-             request.headers.get('cf-connecting-ip') ||
+  const ip = request.headers.get('cf-connecting-ip') ||
+             request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
              'unknown';
   const key = `${ip}:${functionName}`;
   const now = Date.now();
@@ -81,6 +82,17 @@ export function getQueryParams(request) {
     params[key] = value;
   }
   return params;
+}
+
+// Escape HTML special characters to prevent HTML/JS injection
+export function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 // Web Crypto helper: generate random hex string (replaces Node.js crypto.randomBytes(n).toString('hex'))
