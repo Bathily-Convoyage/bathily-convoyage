@@ -3630,6 +3630,34 @@ Cadeau premium personnalisé</textarea>
   };
 
   // MISSIONS
+  async function revokeTrackingToken() {
+    const tokenId = prompt('ID du token à révoquer (uuid) :');
+    if (!tokenId) return;
+    const client = getSupabase();
+    if (!client) return;
+    try {
+      const { error } = await client.rpc('revoke_tracking_token', { p_token_id: tokenId });
+      if (error) throw error;
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Token révoqué', timer: 2000 });
+    } catch (err) {
+      Swal.fire('Erreur', err.message, 'error');
+    }
+  }
+
+  async function createTrackingLink(missionId) {
+    const client = getSupabase();
+    if (!client) return;
+    try {
+      const { data: token, error } = await client.rpc('create_tracking_token', { p_mission_id: missionId });
+      if (error) throw error;
+      const link = `${window.location.origin}/tracking.html?token=${encodeURIComponent(token)}`;
+      await navigator.clipboard.writeText(link);
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Lien de suivi copié !', timer: 2000 });
+    } catch (err) {
+      Swal.fire('Erreur', err.message, 'error');
+    }
+  }
+
   async function loadMissions() {
     const client = getSupabase();
     if (!client) return;
@@ -3688,7 +3716,7 @@ Cadeau premium personnalisé</textarea>
           ${canChangeConvoyeur ? `<button class="btn-sm btn-sm-ghost" onclick="assignConvoyeurToMission('${m.id}')" title="Changer convoyeur"><i class="fas fa-user-edit"></i></button>` : ''}
           ${canMarkDelivered ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'delivered')" title="Marquer livrée"><i class="fas fa-clipboard-check"></i></button>` : ''}
           ${canMarkCompleted ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}
-          ${(status === 'in_progress' || status === 'accepted') ? `<a href="tracking.html?ref=${encodeURIComponent(m.reference || '')}" target="_blank" rel="noopener" class="btn-sm btn-sm-ghost" title="Suivre GPS"><i class="fas fa-map-marker-alt"></i></a>` : ''}
+          ${(status === 'in_progress' || status === 'accepted') ? `<button class="btn-sm btn-sm-ghost" onclick="createTrackingLink('${m.id}')" title="Générer lien de suivi"><i class="fas fa-map-marker-alt"></i></button>` : ''}
           <button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button>
           <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
           ${canCancel ? `<button class="btn-sm btn-sm-red" onclick="updateMissionStatus('${m.id}', 'cancelled')" title="Annuler"><i class="fas fa-times"></i></button>` : ''}

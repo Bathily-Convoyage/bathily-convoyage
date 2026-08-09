@@ -584,11 +584,8 @@
     let _supabaseClient = null;
     let _isAuthChecked = false;
 
-    // Firebase (pour le live GPS)
-    let firebaseApp = null;
-    let firebaseDb = null;
-    let firebaseRef = null;
-    let firebaseSet = null;
+    // Supabase GPS
+    let _gpsAuthorized = false;
 
     // ============================================================
     // PARTIE 2 : INITIALISATION
@@ -644,9 +641,6 @@
       // Initialiser la carte
       initMap();
 
-      // Initialiser Firebase
-      initFirebase();
-
       // Vérifier si une session GPS est déjà en cours (reprise)
       const saved = localStorage.getItem('bathily_gps_session');
       if (saved) {
@@ -700,28 +694,23 @@
     }
 
     // ============================================================
-    // PARTIE 4 : FIREBASE
+    // PARTIE 4 : AUTORISATION GPS (serveur)
     // ============================================================
-    function initFirebase() {
+    async function authorizeGPSSession() {
       try {
-        // Chargement dynamique de Firebase
-        Promise.all([
-          import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
-          import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js')
-        ]).then(([{ initializeApp }, { getDatabase, ref, set }]) => {
-          const firebaseConfig = window.FIREBASE_CONFIG || {};
-          firebaseApp = initializeApp(firebaseConfig);
-          firebaseDb = getDatabase(firebaseApp);
-          firebaseSet = set;
-          if (_missionRef) {
-            firebaseRef = ref(firebaseDb, `missions/${_missionRef}/gps/current`);
-          }
-          addLog('📡 Connexion Firebase établie.', 'success');
-        }).catch(err => {
-          addLog('⚠️ Firebase non disponible : ' + err.message, 'error');
-        });
+        if (!_supabaseClient) {
+          if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return false;
+          _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        }
+        const { data, error } = await _supabaseClient.rpc('authorize_gps_session', { p_mission_id: _missionId });
+        if (error) throw error;
+        _gpsAuthorized = true;
+        addLog('📡 Autorisation GPS serveur OK.', 'success');
+        return true;
       } catch (err) {
-        addLog('⚠️ Erreur Firebase : ' + err.message, 'error');
+        addLog('⛔ Autorisation GPS refusée : ' + err.message, 'error');
+        _gpsAuthorized = false;
+        return false;
       }
     }
 
@@ -734,16 +723,16 @@
         return;
       }
 
-      // Vérifier l'authentification Supabase avant d'autoriser l'envoi de positions
+      // Vérifier l'authentification Supabase et l'autorisation serveur
       if (!_isAuthChecked) {
         try {
           if (!_supabaseClient) {
-        if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-          console.error("Supabase credentials missing. Check supabase-config.js");
-          return null;
-        }
-        _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-      }
+            if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+              console.error("Supabase credentials missing. Check supabase-config.js");
+              return null;
+            }
+            _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+          }
           const { data: { session }, error: sessionError } = await _supabaseClient.auth.getSession();
           if (sessionError || !session) {
             addLog('⛔ Authentification requise pour partager la position GPS.', 'error');
@@ -755,6 +744,12 @@
           addLog('⛔ Erreur d\'authentification : ' + (authErr.message || 'Accès refusé'), 'error');
           return;
         }
+      }
+
+      const authorized = await authorizeGPSSession();
+      if (!authorized) {
+        showAlert('danger', 'Vous ne pouvez pas émettre le GPS pour cette mission (statut ou assignation incorrect).');
+        return;
       }
 
       if (!navigator.geolocation) {
@@ -837,34 +832,23 @@
       updateCount++;
       document.getElementById('statUpdates').textContent = updateCount;
 
-      // Envoyer vers Firebase
-      if (firebaseRef && firebaseSet) {
+      // Envoyer vers Supabase
+      if (_gpsAuthorized && _supabaseClient) {
         try {
-            const data = {
-              lat: lat,
-              lng: lng,
-              accuracy: Math.round(accuracy),
-              speed: speed,
-              speedKmh: speedKmh,
-              timestamp: Date.now(),
-              location: 'En transit'
-            };
-            firebaseSet(firebaseRef, data).then(() => {
-              // Pas de log pour chaque envoi pour éviter le spam
-            }).catch(err => {
-              addLog('⚠️ Erreur envoi Firebase : ' + err.message, 'error');
-            });
+          _supabaseClient.rpc('record_gps_position', {
+            p_mission_id: _missionId,
+            p_lat: lat,
+            p_lng: lng,
+            p_accuracy: accuracy,
+            p_speed: speed
+          }).then(({ error }) => {
+            if (error) {
+              addLog('⚠️ Erreur envoi GPS : ' + error.message, 'error');
+            }
+          });
         } catch (err) {
-          addLog('⚠️ Erreur envoi : ' + err.message, 'error');
+          addLog('⚠️ Erreur envoi GPS : ' + err.message, 'error');
         }
-      } else {
-        // Fallback : stocker dans localStorage
-        try {
-          const saved = JSON.parse(localStorage.getItem('bathily_gps_fallback') || '[]');
-          saved.push({ lat, lng, timestamp: Date.now() });
-          if (saved.length > 100) saved.shift();
-          localStorage.setItem('bathily_gps_fallback', JSON.stringify(saved));
-        } catch (e) {}
       }
 
       // Log toutes les 10 mises à jour
@@ -920,17 +904,8 @@
       // Supprimer la session sauvegardée
       localStorage.removeItem('bathily_gps_session');
 
-      // Mettre à jour Firebase avec un statut "arrêté"
-      if (firebaseRef) {
-        try {
-          import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(({ set }) => {
-            set(firebaseRef, {
-              status: 'stopped',
-              timestamp: Date.now()
-            }).catch(() => {});
-          });
-        } catch (e) {}
-      }
+      // Marquer l'arrêt côté client
+      _gpsAuthorized = false;
 
       addLog('⏹️ Partage GPS arrêté.', 'info');
       showAlert('info', 'Le partage GPS a été arrêté.');

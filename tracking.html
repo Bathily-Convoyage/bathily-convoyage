@@ -308,7 +308,7 @@
       <div class="topbar-ref" id="topRef">Chargement...</div>
     </div>
     <div class="topbar-right">
-      <div class="live-badge"><div class="live-dot"></div> EN DIRECT</div>
+      <div class="live-badge" id="liveBadge"><div class="live-dot" id="liveDot"></div> Connexion...</div>
       <button class="tb-btn" onclick="openModal('modalShare')"><i class="fas fa-share-alt"></i> Partager</button>
     </div>
   </div>
@@ -381,12 +381,12 @@
       </div>
 
       <div class="conv-section reveal">
-        <div class="cs-title">Convoyeur assigné</div>
+        <div class="cs-title">Exécutant assigné</div>
         <div class="conv-card">
           <div class="conv-ava" id="convAva">—<div class="conv-online"></div></div>
           <div>
-            <div class="conv-name" id="convName">—</div>
-            <div class="conv-meta" id="convMeta">—</div>
+            <div class="conv-name" id="convName">Personnel interne certifié</div>
+            <div class="conv-meta" id="convMeta">Opérateur Bathily</div>
             <div class="conv-rating" id="convRating">⭐ 5.0 / 5</div>
           </div>
         </div>
@@ -598,11 +598,24 @@
     // ============================================================
     // PARTIE 4 : CHARGEMENT DE LA MISSION DEPUIS SUPABASE
     // ============================================================
+    function withTimeout(promise, ms) {
+      const ac = new AbortController();
+      const timeout = new Promise((_, reject) => {
+        const id = setTimeout(() => {
+          ac.abort();
+          reject(new Error('Timeout tracking'));
+        }, ms);
+        // si la promesse réussit avant, on ne nettoie pas ici ; le race suffit
+      });
+      return Promise.race([promise, timeout]);
+    }
+
     async function loadMissionDetails() {
       const params = new URLSearchParams(window.location.search);
-      const refParam = params.get('ref') || params.get('id');
-      if (!refParam) {
-        document.getElementById('topRef').textContent = 'Aucune mission spécifiée';
+      const tokenParam = params.get('token');
+      if (!tokenParam) {
+        document.getElementById('topRef').textContent = 'Lien de suivi manquant';
+        document.getElementById('currentLoc').innerText = 'Accès réservé : token manquant';
         return;
       }
 
@@ -610,32 +623,34 @@
       if (!sb) return;
 
       try {
-        const { data: m, error } = await sb
-          .from('missions')
-          .select('id,reference,depart,arrivee,vehicule,immatriculation,mode,mode_transport,pack,date_mission,convoyeur_nom,status,created_at,updated_at')
-          .eq('reference', refParam)
-          .maybeSingle();
+        const { data: m, error } = await withTimeout(
+          sb.rpc('get_public_tracking', { p_token: tokenParam }),
+          8000
+        );
 
         if (error || !m) {
-          document.getElementById('topRef').textContent = `Mission ${refParam} non trouvée`;
+          document.getElementById('topRef').textContent = 'Suivi momentanément indisponible';
+          document.getElementById('currentLoc').innerText = 'Le service de suivi est inaccessible. Veuillez réessayer.';
+          document.getElementById('statusBadge').className = 'sh-status-badge status-attente';
+          document.getElementById('statusBadge').innerHTML = '<i class="fas fa-exclamation-circle"></i> Indisponible';
+          setLiveBadge('HORS LIGNE', false);
+          setNotif('Suivi momentanément indisponible', 'var(--warning)', 'fas fa-exclamation-circle');
           return;
         }
 
         _missionData = m;
         _missionRef = m.reference;
 
-        // Mise à jour de l'interface
         const cleanDep = (m.depart || '').split('(')[0].trim() || 'Départ';
         const cleanArr = (m.arrivee || '').split('(')[0].trim() || 'Arrivée';
 
         document.getElementById('topRef').textContent = `${m.reference} • ${m.vehicule || 'Véhicule'} • ${cleanDep} → ${cleanArr}`;
         document.getElementById('missionRef').textContent = `Mission • ${m.reference}`;
         document.getElementById('vehicleName').textContent = `${m.vehicule || 'Véhicule'}`;
-        document.getElementById('plateNumber').textContent = m.immatriculation || m.reference || '—';
+        document.getElementById('plateNumber').textContent = '—';
         document.getElementById('cityDepart').textContent = cleanDep;
         document.getElementById('cityArrivee').textContent = cleanArr;
 
-        // Statut
         const status = m.status || 'planned';
         const badge = document.getElementById('statusBadge');
         if (status === 'in_progress' || status === 'en_cours') {
@@ -649,66 +664,98 @@
           badge.innerHTML = '<i class="fas fa-circle" style="font-size:0.5rem"></i> En attente';
         }
 
-        // Convoyeur
-        const convNom = m.convoyeur_nom || 'Non assigné';
-        const initials = convNom.split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0, 2);
-        document.getElementById('convAva').textContent = initials || '?';
-        document.getElementById('convName').textContent = convNom;
-        document.getElementById('convMeta').textContent = m.zone_convoyeur || 'Convoyeur certifié';
+        // Exécutant (générique, sans PII)
+        document.getElementById('convAva').textContent = 'BC';
+        document.getElementById('convName').textContent = 'Personnel interne certifié';
+        document.getElementById('convMeta').textContent = 'Opérateur Bathily';
 
-        // Lien de partage
         document.getElementById('shareLink').value = window.location.href;
 
-        // Géocodage et mise à jour de la carte
         const startCoords = await geocodeAddress(m.depart);
         const endCoords = await geocodeAddress(m.arrivee);
 
         if (startCoords && endCoords) {
-          if (startMarker) {
-            startMarker.setLatLng(startCoords).setPopupContent(`${cleanDep} (départ)`);
-          } else {
-            startMarker = L.marker(startCoords).addTo(map).bindPopup(`${cleanDep} (départ)`);
-          }
-          if (endMarker) {
-            endMarker.setLatLng(endCoords).setPopupContent(`${cleanArr} (arrivée)`);
-          } else {
-            endMarker = L.marker(endCoords).addTo(map).bindPopup(`${cleanArr} (arrivée)`);
-          }
-          if (routeLine) {
-            map.removeLayer(routeLine);
-          }
+          if (startMarker) startMarker.setLatLng(startCoords).setPopupContent(`${cleanDep} (départ)`);
+          else startMarker = L.marker(startCoords).addTo(map).bindPopup(`${cleanDep} (départ)`);
+          if (endMarker) endMarker.setLatLng(endCoords).setPopupContent(`${cleanArr} (arrivée)`);
+          else endMarker = L.marker(endCoords).addTo(map).bindPopup(`${cleanArr} (arrivée)`);
+          if (routeLine) map.removeLayer(routeLine);
           routeLine = L.polyline([startCoords, endCoords], { color: '#0A4D68', weight: 4, opacity: 0.7 }).addTo(map);
           const bounds = L.latLngBounds(startCoords, endCoords);
           map.fitBounds(bounds, { padding: [50, 50] });
-
-          if (carMarker) {
-            carMarker.setLatLng(startCoords);
-          }
         }
 
-        // Mettre à jour le lien de partage
-        document.getElementById('shareLink').value = window.location.href;
-
-        // Démarrer la simulation ou le suivi en temps réel
-        const simulate = params.get('simulate') === 'true';
-        if (simulate) {
-          startSimulation();
+        if (m.position) {
+          updateUIFromPosition(m.position);
+          setLiveBadge('EN DIRECT', true);
+          setNotif('GPS actif • Dernière position connue', 'var(--success)', 'fas fa-satellite');
         } else {
-          // Essayer Firebase pour le live
-          initRealtimeTracking();
-          // Fallback : simulation lente si pas de données Firebase
-          setTimeout(() => {
-            if (document.getElementById('lastUpdate').innerText === '0') {
-              // Pas de données Firebase, démarrer la simulation
-              startSimulation();
-            }
-          }, 5000);
+          document.getElementById('currentLoc').innerText = 'Position momentanément indisponible';
+          setLiveBadge('HORS LIGNE', false);
+          setNotif('Position momentanément indisponible', 'var(--bordeaux)', 'fas fa-satellite');
         }
+
+        startTrackingPolling(tokenParam);
 
       } catch (err) {
         console.error("Erreur chargement mission:", err);
-        document.getElementById('topRef').textContent = 'Erreur de chargement';
+        document.getElementById('topRef').textContent = 'Suivi momentanément indisponible';
+        setLiveBadge('HORS LIGNE', false);
+        setNotif('Suivi momentanément indisponible', 'var(--warning)', 'fas fa-exclamation-circle');
       }
+    }
+
+    function updateUIFromPosition(data) {
+      if (!data || !data.lat || !data.lng) return;
+      const coords = [data.lat, data.lng];
+      if (carMarker) carMarker.setLatLng(coords);
+
+      if (data.speed !== null && data.speed !== undefined) {
+        const speed = Math.round(data.speed);
+        document.getElementById('speedVal').innerHTML = speed + '<em> km/h</em>';
+        document.getElementById('speedBar').innerText = speed + ' km/h';
+      }
+      if (data.accuracy) {
+        document.getElementById('currentCoords').innerText = `${data.lat.toFixed(4)}°N, ${data.lng.toFixed(4)}°E (±${Math.round(data.accuracy)}m)`;
+      } else {
+        document.getElementById('currentCoords').innerText = `${data.lat.toFixed(4)}°N, ${data.lng.toFixed(4)}°E`;
+      }
+      const recordedAt = data.recorded_at ? new Date(data.recorded_at) : new Date();
+      const ageSec = Math.floor((Date.now() - recordedAt.getTime()) / 1000);
+      document.getElementById('lastUpdate').innerText = ageSec;
+      document.getElementById('currentLoc').innerText = `Dernière position connue (${ageSec}s)`;
+    }
+
+    let _pollingInterval = null;
+    let _pollingInFlight = false;
+    function startTrackingPolling(token) {
+      if (_pollingInterval) clearInterval(_pollingInterval);
+      _pollingInFlight = false;
+      _pollingInterval = setInterval(async () => {
+        if (_pollingInFlight) return;
+        const sb = getSupabase();
+        if (!sb) return;
+        _pollingInFlight = true;
+        try {
+          const { data: m, error } = await withTimeout(
+            sb.rpc('get_public_tracking', { p_token: token }),
+            8000
+          );
+          if (error || !m) {
+            console.warn('Tracking indisponible:', error);
+            setLiveBadge('HORS LIGNE', false);
+            return;
+          }
+          if (m.position) {
+            updateUIFromPosition(m.position);
+            setLiveBadge('EN DIRECT', true);
+          }
+        } catch (err) {
+          console.warn('Tracking polling timeout:', err.message);
+        } finally {
+          _pollingInFlight = false;
+        }
+      }, 10000);
     }
 
     // ============================================================
@@ -717,112 +764,51 @@
     let simIndex = 0;
 
     function startSimulation() {
-      if (isSimulating) return;
-      isSimulating = true;
-      simIndex = 0;
-
-      // Ajouter une notification de démarrage
-      addNotif({ ico: 'fas fa-play', color: 'var(--success)', text: 'Simulation de suivi GPS démarrée', time: new Date().toLocaleTimeString().slice(0,5) });
-
-      // Fonction de mise à jour progressive
-      function stepSimulation() {
-        if (simIndex >= SIM_LOCATIONS.length) {
-          showMissionDone();
-          return;
-        }
-        const loc = SIM_LOCATIONS[simIndex];
-        updateUIFromLocation(loc);
-        if (simIndex < NOTIF_MESSAGES.length) {
-          addNotif(NOTIF_MESSAGES[simIndex]);
-        }
-        simIndex++;
-        if (simIndex < SIM_LOCATIONS.length) {
-          const delay = simIndex === 1 ? 3000 : 6000 + Math.random() * 2000;
-          simTimers.push(setTimeout(stepSimulation, delay));
-        } else {
-          setTimeout(showMissionDone, 2000);
-        }
-      }
-
-      // Premier délai
-      simTimers.push(setTimeout(stepSimulation, 1000));
+      // B3V2 : simulation Firebase supprimée
+      console.warn('Simulation désactivée');
     }
 
     function stopSimulation() {
-      isSimulating = false;
-      simTimers.forEach(t => clearTimeout(t));
-      simTimers = [];
-      console.log("Simulation arrêtée");
+      // B3V2 : simulation Firebase supprimée
     }
 
     function updateUIFromLocation(loc) {
-      const totalDist = 470;
-      const pct = Math.min(loc.pct, 100);
-      const rest = Math.max(totalDist - loc.km, 0);
-
-      document.getElementById('progressBar').style.width = pct + '%';
-      document.getElementById('pctDone').innerText = pct + '% — ' + Math.round(rest) + ' km restants';
-      document.getElementById('kmDone').innerText = Math.round(loc.km) + ' km parcourus';
-
-      document.getElementById('speedVal').innerHTML = Math.round(loc.speed) + '<em> km/h</em>';
-      document.getElementById('speedBar').innerText = Math.round(loc.speed) + ' km/h';
-      document.getElementById('distRest').innerHTML = Math.round(rest) + '<em> km</em>';
-      document.getElementById('distRestBar').innerText = Math.round(rest) + ' km';
-      document.getElementById('fuelLevel').innerHTML = Math.round(loc.fuel) + '<em>%</em>';
-      document.getElementById('fuelBar').innerText = Math.round(loc.fuel) + '%';
-      document.getElementById('lastPos').innerText = loc.loc;
-      document.getElementById('currentLoc').innerText = loc.loc;
-      document.getElementById('currentCoords').innerText = loc.coords[0].toFixed(4) + '°N, ' + loc.coords[1].toFixed(4) + '°E';
-
-      // ETA
-      const remaining = totalDist - loc.km;
-      const speed = Math.max(loc.speed, 1);
-      const etaMin = Math.round(remaining / speed * 60);
-      const eta = new Date(Date.now() + etaMin * 60000);
-      document.getElementById('etaTime').innerText = eta.getHours().toString().padStart(2,'0') + ':' + eta.getMinutes().toString().padStart(2,'0');
-      document.getElementById('etaLocation').innerText = SIM_LOCATIONS[SIM_LOCATIONS.length-1].loc;
-      const h = Math.floor(etaMin / 60), m = etaMin % 60;
-      document.getElementById('countdown').innerText = (h > 0 ? h + 'h ' : '') + m + 'min';
-
-      if (carMarker) {
-        carMarker.setLatLng(loc.coords);
-      }
-      if (routeLine) {
-        // Mettre à jour la ligne si besoin
-      }
-
-      // Centrer la carte sur le véhicule si pas déjà centré
-      if (map && pct > 5) {
-        // Ne pas forcer le centrage pour ne pas déranger l'utilisateur
-      }
-
-      lastUpdateSec = 0;
+      // B3V2 : simulation Firebase supprimée
+      void loc;
     }
 
     function showMissionDone() {
-      document.getElementById('progressBar').style.width = '100%';
-      document.getElementById('pctDone').innerText = '100% — Mission terminée';
-      document.getElementById('kmDone').innerText = '470 km parcourus';
-      document.getElementById('speedVal').innerHTML = '0<em> km/h</em>';
-      document.getElementById('speedBar').innerText = '0 km/h';
-      document.getElementById('distRest').innerHTML = '0<em> km</em>';
-      document.getElementById('distRestBar').innerText = '0 km';
-      document.getElementById('countdown').innerText = 'Livrée !';
-
-      const badge = document.getElementById('statusBadge');
-      badge.className = 'sh-status-badge status-termine';
-      badge.innerHTML = '<i class="fas fa-check-circle"></i> Mission terminée';
-
-      addNotif({ ico: 'fas fa-check-circle', color: 'var(--success)', text: 'Mission livrée avec succès !', time: new Date().toLocaleTimeString().slice(0,5) });
+      // B3V2 : simulation Firebase supprimée
     }
 
     // ============================================================
     // PARTIE 6 : NOTIFICATIONS
     // ============================================================
+    function setLiveBadge(text, online) {
+      const badge = document.getElementById('liveBadge');
+      const dot = document.getElementById('liveDot');
+      if (!badge) return;
+      badge.innerHTML = `<div class="live-dot" id="liveDot" style="background:${online ? 'var(--success)' : 'var(--warning)'}; animation:${online ? 'pulse 1.5s infinite' : 'none'}"></div> ${text}`;
+    }
+
+    function setNotif(text, color, ico) {
+      const list = document.getElementById('notifList');
+      if (!list) return;
+      list.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = 'notif-item new';
+      div.innerHTML = `
+        <i class="${ico || 'fas fa-info-circle'} notif-ico" style="color:${color || 'var(--bordeaux)'}"></i>
+        <div class="notif-text">${text}</div>
+        <div class="notif-time">${new Date().toLocaleTimeString().slice(0,5)}</div>
+      `;
+      list.prepend(div);
+      setTimeout(() => div.classList.remove('new'), 3000);
+    }
+
     function addNotif(n) {
       const list = document.getElementById('notifList');
       if (!list) return;
-      // Supprimer le message "Aucune notification"
       if (list.querySelector('.empty-notif')) {
         list.innerHTML = '';
       }
@@ -842,87 +828,8 @@
     // PARTIE 7 : FIREBASE (GPS LIVE)
     // ============================================================
     function initRealtimeTracking() {
-      if (!_missionRef) return;
-
-      // Chargement dynamique de Firebase
-      Promise.all([
-        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
-        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js')
-      ]).then(([{ initializeApp }, { getDatabase, ref, onValue }]) => {
-        const firebaseConfig = window.FIREBASE_CONFIG || {};
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const tripRef = ref(db, `missions/${_missionRef}/gps/current`);
-
-        onValue(tripRef, (snapshot) => {
-          const data = snapshot.val();
-          if (data && data.lat && data.lng) {
-            // Arrêter la simulation
-            stopSimulation();
-            isSimulating = false;
-
-            // Mettre à jour la position
-            const coords = [data.lat, data.lng];
-            if (carMarker) carMarker.setLatLng(coords);
-
-            // Mettre à jour l'interface
-            if (data.speed) {
-              const speed = Math.round(data.speed);
-              document.getElementById('speedVal').innerHTML = speed + '<em> km/h</em>';
-              document.getElementById('speedBar').innerText = speed + ' km/h';
-            }
-            if (data.fuel !== undefined) {
-              const fuel = Math.round(data.fuel);
-              document.getElementById('fuelLevel').innerHTML = fuel + '<em>%</em>';
-              document.getElementById('fuelBar').innerText = fuel + '%';
-            }
-            if (data.accuracy) {
-              document.getElementById('currentCoords').innerText =
-                `${data.lat.toFixed(4)}°N, ${data.lng.toFixed(4)}°E (±${data.accuracy}m)`;
-            } else {
-              document.getElementById('currentCoords').innerText =
-                `${data.lat.toFixed(4)}°N, ${data.lng.toFixed(4)}°E`;
-            }
-            if (data.location) {
-              document.getElementById('currentLoc').innerText = data.location;
-              document.getElementById('lastPos').innerText = data.location;
-            }
-            if (data.pct !== undefined) {
-              const pct = Math.min(data.pct, 100);
-              document.getElementById('progressBar').style.width = pct + '%';
-              document.getElementById('pctDone').innerText = pct + '% — ' + (data.km_restant || '?') + ' km restants';
-              if (data.km_parcourus !== undefined) {
-                document.getElementById('kmDone').innerText = Math.round(data.km_parcourus) + ' km parcourus';
-              }
-            }
-            if (data.eta) {
-              document.getElementById('etaTime').innerText = data.eta;
-            }
-            if (data.countdown) {
-              document.getElementById('countdown').innerText = data.countdown;
-            }
-
-            lastUpdateSec = 0;
-
-            // Ajouter une notification si c'est la première position
-            if (data.firstPosition === true) {
-              addNotif({
-                ico: 'fas fa-satellite',
-                color: 'var(--bordeaux)',
-                text: 'GPS activé • Suivi en temps réel',
-                time: new Date().toLocaleTimeString().slice(0,5)
-              });
-            }
-          }
-        });
-      }).catch(err => {
-        console.warn("Firebase non disponible, utilisation de la simulation", err);
-        // Si Firebase échoue, démarrer la simulation
-        if (!isSimulating && !document.querySelector('.notif-item')) {
-          startSimulation();
-        }
-      });
+      // B3V2 : Firebase tracking supprimé
+      console.warn('initRealtimeTracking désactivé');
     }
 
     // ============================================================
@@ -1016,15 +923,8 @@
       }, { threshold: 0.1 });
       document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-      // Ajouter une notification de bienvenue
-      setTimeout(() => {
-        addNotif({
-          ico: 'fas fa-info-circle',
-          color: 'var(--bordeaux)',
-          text: 'Suivi GPS activé • Veuillez patienter...',
-          time: new Date().toLocaleTimeString().slice(0,5)
-        });
-      }, 500);
+      // Notification d'état initial
+      setNotif('Connexion au suivi GPS...', 'var(--bordeaux)', 'fas fa-circle-notch fa-spin');
     });
   </script>
 

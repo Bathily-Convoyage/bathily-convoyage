@@ -705,7 +705,7 @@
       document.getElementById('remConvoyeur').textContent = rem > 0 ? rem.toFixed(2) + ' €' : 'à définir';
 
       // QR link
-      document.getElementById('qrLink').innerHTML = `Bathily-Convoyage.fr/tracking/${escapeHtml(m.reference || '...')}<br><span style="font-size:0.6rem">Lien valable 48h après livraison</span>`;
+      document.getElementById('qrLink').innerHTML = `Bathily-Convoyage.fr/tracking/<br><span style="font-size:0.6rem">Lien de suivi fourni par le dispatch</span>`;
 
       // Footer
       document.getElementById('footerRef').textContent = m.reference || '…';

@@ -620,83 +620,33 @@
     }
 
     // ========== INIT ==========
-    document.addEventListener('firebase-ready', initTracker);
-    
-    async function initTracker() {
-      // Initialize Supabase
-      STATE.supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-      
-      // Check authentication
-      const { data: { session }, error: authError } = await STATE.supabase.auth.getSession();
-      
-      if (authError || !session) {
-        showLoginPrompt();
-        return;
-      }
-      
-      STATE.currentUser = session.user;
-      
-      // Authenticate with Firebase using Custom Token
-      await signInToFirebase(session);
-      
-      // Parse URL params
+    // mission-tracker.html est obsolète. Le suivi public passe par tracking.html?token=...
+    document.addEventListener('firebase-ready', handleLegacyTracker);
+
+    async function handleLegacyTracker() {
       const urlParams = new URLSearchParams(window.location.search);
-      const missionRef = urlParams.get('ref') || urlParams.get('mission');
-      
-      if (!missionRef) {
-        showError('Aucune mission spécifiée', 'Ajoutez ?ref=BC-XXXX-XXX à l\'URL');
+      const token = urlParams.get('token');
+      const ref = urlParams.get('ref') || urlParams.get('mission');
+      if (token) {
+        window.location.replace(`/tracking.html?token=${encodeURIComponent(token)}`);
         return;
       }
-      
-      STATE.missionRef = missionRef;
-      document.getElementById('missionRef').textContent = missionRef;
-      document.getElementById('missionTitle').textContent = 'Suivi en cours';
-      
-      // Get mission details and verify authorization
-      const authorized = await loadMissionDetails(missionRef);
-      
-      if (!authorized) {
-        showError('Accès non autorisé', 'Vous n\'avez pas accès à cette mission.');
-        return;
-      }
-      
-      STATE.isAuthorized = true;
-      
-      // Initialize map
-      initMap();
-      
-      // Subscribe to Firebase
-      subscribeToGPS(missionRef);
+      document.getElementById('loadingOverlay').innerHTML = `
+        <div class="error-state">
+          <i class="fas fa-lock" style="color: var(--bordeaux);"></i>
+          <h3>Lien de suivi expiré</h3>
+          <p>Le suivi en temps réel nécessite un lien tokenisé fourni par le dispatch.</p>
+          <p>URL invalide : ${escapeHtml(ref || '—')}</p>
+          <a href="/" class="btn">Retour à l'accueil</a>
+        </div>
+      `;
     }
+
+    async function initTracker() {}
     
     async function signInToFirebase(session) {
-      try {
-        if (!window._auth || !window._signInWithCustomToken) {
-          console.warn('Firebase Auth non disponible');
-          return;
-        }
-        
-        // Appel à la fonction Edge pour obtenir le token Firebase
-        const response = await fetch(`${window.SUPABASE_URL}/functions/v1/generate-firebase-token`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Échec de récupération du token Firebase');
-        }
-        
-        const { token } = await response.json();
-        await window._signInWithCustomToken(window._auth, token);
-        console.log('Firebase Auth: connecté');
-        
-      } catch (err) {
-        console.error('Firebase Auth: erreur -', err.message);
-      }
+      // B3V2 : Firebase Auth supprimé
+      void session;
     }
     
     function showLoginPrompt() {
@@ -714,138 +664,18 @@
     }
     
     async function loadMissionDetails(missionRef) {
-      try {
-        // Récupérer la mission avec les infos client et convoyeur
-        const { data: mission, error } = await STATE.supabase
-          .from('missions')
-          .select('id, reference, depart, arrivee, vehicule, status, client_id, convoyeur_id, convoyeur_nom, date_mission')
-          .eq('reference', missionRef)
-          .single();
-        
-        if (error) {
-          console.log('Mission non trouvée dans Supabase');
-          return false;
-        }
-        
-        if (mission) {
-          // Vérifier l'autorisation : client ou convoyeur ou admin
-          const userId = STATE.currentUser.id;
-          
-          // Récupérer le profil client via auth_user_id (userId est l'UUID Auth)
-          const { data: clientProfile } = await STATE.supabase
-            .from('clients')
-            .select('id, role')
-            .eq('auth_user_id', userId)
-            .maybeSingle();
-          
-          // Récupérer le profil convoyeur via auth_user_id
-          const { data: convoyeurProfile } = await STATE.supabase
-            .from('convoyeurs')
-            .select('id')
-            .eq('auth_user_id', userId)
-            .maybeSingle();
-          
-          const isAdmin = clientProfile?.role === 'admin';
-          const isClient = clientProfile ? mission.client_id === clientProfile.id : false;
-          const isConvoyeur = convoyeurProfile ? mission.convoyeur_id === convoyeurProfile.id : false;
-          
-          if (!isClient && !isConvoyeur && !isAdmin) {
-            console.log('Utilisateur non autorisé pour cette mission');
-            return false;
-          }
-          
-          // Remplir les informations
-          document.getElementById('missionRoute').textContent = 
-            `${mission.depart || 'Départ'} → ${mission.arrivee || 'Arrivée'}`;
-          document.getElementById('vehicleName').textContent = mission.vehicule || 'Véhicule';
-          document.getElementById('convoyeurName').textContent = mission.convoyeur_nom || 'Non assigné';
-          
-          // Stocker les IDs pour validation
-          STATE.convoyeurId = mission.convoyeur_id;
-          STATE.clientId = mission.client_id;
-          
-          // Afficher le nom de l'utilisateur dans le header
-          const userName = STATE.currentUser.user_metadata?.prenom || 
-                          STATE.currentUser.user_metadata?.nom || 
-                          STATE.currentUser.email;
-          
-          const statusText = document.getElementById('statusText');
-          statusText.innerHTML = `<i class="fas fa-user" style="margin-right: 6px;"></i> ${escapeHtml(userName)} · ${isClient ? 'Client' : isConvoyeur ? 'Convoyeur' : 'Admin'}`;
-          
-          // Afficher le bouton de déconnexion
-          document.getElementById('logoutBtn').style.display = 'inline-flex';
-          
-          return true;
-        }
-        
-        return false;
-      } catch (err) {
-        console.error('Erreur chargement mission:', err);
-        return false;
-      }
+      // B3V2 : legacy, neutralisé
+      void missionRef;
+      return false;
     }
     
     function initMap() {
-      const defaultLat = 46.2276;
-      const defaultLng = 2.2137;
-      
-      STATE.map = L.map('map').setView([defaultLat, defaultLng], 6);
-      
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-      }).addTo(STATE.map);
-      
-      const carIcon = L.divIcon({
-        className: 'custom-marker',
-       ml: '<div style="width:24px;height:24px;background:#0A4D68;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><i class="fas fa-car" style="color:white;font-size:10px;"></i></div>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
-      });
-      
-      STATE.marker = L.marker([defaultLat, defaultLng], { icon: carIcon }).addTo(STATE.map);
-      
-      STATE.pathLine = L.polyline([], {
-        color: '#0A4D68',
-        weight: 4,
-        opacity: 0.8,
-        dashArray: '10, 10'
-      }).addTo(STATE.map);
+      // B3V2 : legacy, neutralisé
     }
     
     function subscribeToGPS(missionRef) {
-      if (!window._db || !window._ref || !window._onValue) {
-        showError('Erreur Firebase', 'Impossible de se connecter à la base de données');
-        return;
-      }
-      
-      const gpsRef = window._ref(window._db, `missions/${missionRef}/gps`);
-      
-      STATE.unsubscribe = window._onValue(gpsRef, (snapshot) => {
-        const data = snapshot.val();
-        
-        if (!data) {
-          updateStatus('offline', 'En attente de position');
-          return;
-        }
-        
-        const status = data.status || 'offline';
-        updateStatus(status === 'online' || status === 'in_transit' ? 'online' : 'offline', 
-                    status === 'online' ? 'En direct' : 'Hors ligne');
-        
-        if (data.current) {
-          updatePosition(data.current);
-        }
-        
-        if (data.history) {
-          updateHistory(data.history);
-        }
-        
-        document.getElementById('loadingOverlay').style.display = 'none';
-      }, (error) => {
-        console.error('Firebase error:', error);
-        updateStatus('offline', 'Erreur de connexion');
-      });
+      // B3V2 : legacy, neutralisé
+      void missionRef;
     }
     
     function updatePosition(pos) {
