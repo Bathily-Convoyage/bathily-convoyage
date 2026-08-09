@@ -74,6 +74,10 @@ GRANT ALL ON public.mission_events TO postgres;
 -- 2. STATUTS MISSION : nouvelle matrice
 -- =========================================================
 
+-- Supprimer l'ancienne contrainte AVANT de convertir les données legacy
+ALTER TABLE public.missions
+  DROP CONSTRAINT IF EXISTS missions_status_check;
+
 -- Migration conservatoire des 'planned' legacy
 DO $$
 BEGIN
@@ -88,10 +92,7 @@ BEGIN
   WHERE status = 'planned' AND convoyeur_id IS NULL;
 END $$;
 
--- Supprimer l'ancienne contrainte et recréer avec la nouvelle énumération
-ALTER TABLE public.missions
-  DROP CONSTRAINT IF EXISTS missions_status_check;
-
+-- Recréer la contrainte avec la nouvelle énumération APRÈS conversion
 ALTER TABLE public.missions
   ADD CONSTRAINT missions_status_check
   CHECK (status = ANY (ARRAY[
