@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0A4D68">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Espace Missions - Bathily-Convoyage</title>
+  <meta name="description" content="Espace Missions interne - opérateurs Bathily-Convoyage.">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FDFBF7;
+      color: #2D2A24;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    :root {
+      --bordeaux: #0A4D68;
+      --bordeaux-dark: #063244;
+      --bordeaux-light: #E6F0F4;
+      --cream: #FDFBF7;
+      --beige: #F9F6F0;
+      --gray-dark: #2D2A24;
+      --gray-mid: #6B625A;
+      --border-light: #E8E1D9;
+      --success: #4A7C6B;
+      --warning: #F5A623;
+      --danger: #c0392b;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--border-light);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--gray-dark);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+    .topbar-logo span { color: var(--bordeaux); }
+    .topbar-center {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gray-mid);
+    }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .user-avatar {
+      width: 34px; height: 34px;
+      background: var(--bordeaux-light);
+      border: 1px solid var(--bordeaux);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.75rem; color: var(--bordeaux);
+    }
+    .user-name {
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .topbar-logout {
+      background: none; border: none;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; color: var(--gray-mid);
+      cursor: pointer; transition: color 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+      min-height: 44px; padding: 0 12px;
+    }
+    .topbar-logout:hover { color: var(--bordeaux); }
+
+    /* LAYOUT */
+    .dash-layout { display: flex; flex: 1; }
+    .dash-nav {
+      width: 240px;
+      background: white;
+      border-right: 1px solid var(--border-light);
+      padding: 32px 0;
+      flex-shrink: 0;
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
+      overflow-y: auto;
+    }
+    .nav-section { margin-bottom: 32px; padding: 0 16px; }
+    .nav-section-lbl {
+      font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--gray-mid); margin-bottom: 12px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; border-radius: 10px;
+      font-size: 0.85rem; font-weight: 500;
+      color: var(--gray-dark); cursor: pointer;
+      transition: all 0.2s; margin-bottom: 4px;
+      min-height: 44px;
+    }
+    .nav-item:hover { background: var(--beige); color: var(--bordeaux); }
+    .nav-item.active { background: var(--bordeaux-light); color: var(--bordeaux); font-weight: 600; }
+    .nav-item i { width: 18px; text-align: center; font-size: 0.95rem; }
+    .nav-item a { text-decoration: none; color: inherit; }
+
+    .dash-main {
+      flex: 1; padding: 32px;
+      max-width: calc(100vw - 240px);
+      overflow-x: hidden;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .dash-header { margin-bottom: 24px; }
+    .dash-hello {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.8rem; font-weight: 700;
+      color: var(--gray-dark); letter-spacing: -0.02em;
+    }
+    .dash-hello em { color: var(--bordeaux); font-style: normal; }
+    .dash-date {
+      font-size: 0.8rem; color: var(--gray-mid);
+      margin-top: 4px; text-transform: capitalize;
+    }
+
+    /* STATS */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px; margin-bottom: 32px;
+    }
+    .stat-card {
+      background: white; border: 1px solid var(--border-light);
+      border-radius: 16px; padding: 20px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .stat-ico {
+      width: 40px; height: 40px;
+      background: var(--bordeaux-light); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--bordeaux); font-size: 1.1rem;
+    }
+    .stat-val {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.8rem; font-weight: 700; color: var(--gray-dark);
+    }
+    .stat-lbl {
+      font-size: 0.75rem; color: var(--gray-mid);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    /* SECTIONS */
+    .sec-title { margin: 24px 0 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .sec-h {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.2rem; font-weight: 600; color: var(--gray-dark);
+    }
+    .sec-h em { color: var(--bordeaux); font-style: normal; }
+
+    /* MISSION CARDS */
+    .missions-list { display: flex; flex-direction: column; gap: 12px; }
+    .mission-card {
+      background: white; border: 1px solid var(--border-light);
+      border-radius: 16px; padding: 16px;
+      display: flex; gap: 16px; align-items: flex-start;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .mission-card:hover { border-color: var(--bordeaux); box-shadow: 0 4px 12px rgba(10,77,104,0.08); }
+    .mc-status {
+      width: 4px; align-self: stretch; border-radius: 4px;
+      background: var(--gray-mid); min-height: 60px;
+    }
+    .mc-status.status-pending { background: #e0a343; }
+    .mc-status.status-planned { background: #e0a343; }
+    .mc-status.status-progress { background: var(--bordeaux); }
+    .mc-status.status-completed { background: var(--success); }
+    .mc-status.status-delivered { background: var(--success); }
+    .mc-info { flex: 1; min-width: 0; }
+    .mc-ref {
+      font-size: 0.7rem; font-weight: 700;
+      color: var(--gray-mid); text-transform: uppercase;
+      letter-spacing: 0.05em; margin-bottom: 4px;
+    }
+    .mc-route {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.05rem; font-weight: 600; color: var(--gray-dark);
+      margin-bottom: 8px; word-break: break-word;
+    }
+    .mc-route em { color: var(--bordeaux); font-style: normal; }
+    .mc-meta {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      font-size: 0.7rem; color: var(--gray-mid); align-items: center;
+    }
+    .mc-tag {
+      padding: 2px 8px; border-radius: 12px;
+      font-weight: 600; font-size: 0.65rem;
+    }
+    .mc-tag.tag-route { background: var(--bordeaux-light); color: var(--bordeaux); }
+    .mc-tag.tag-plateau { background: #fef3e2; color: #b8860b; }
+    .mc-tag.tag-auto { background: #e8f5e9; color: #2e7d32; }
+    .mc-tag.tag-moto { background: #fce4ec; color: #c2185b; }
+    .mc-date, .mc-pack { display: inline-flex; align-items: center; gap: 4px; }
+    .mc-status-badge {
+      display: inline-block; margin-top: 6px;
+      font-size: 0.65rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .mc-actions {
+      display: flex; flex-direction: column; gap: 6px;
+      flex-shrink: 0; min-width: 140px;
+    }
+
+    /* BUTTONS */
+    .btn-sm {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 14px; border-radius: 10px;
+      font-size: 0.75rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      text-decoration: none; border: 1px solid transparent;
+      min-height: 44px; white-space: nowrap;
+    }
+    .btn-sm-ghost { background: white; border-color: var(--border-light); color: var(--gray-dark); }
+    .btn-sm-ghost:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
+    .btn-sm-red { background: var(--bordeaux); color: white; }
+    .btn-sm-red:hover { background: var(--bordeaux-dark); }
+    .btn-sm-green { background: var(--success); color: white; }
+    .btn-sm-green:hover { background: #3d6b5b; }
+    .btn-sm-danger { background: white; border-color: var(--danger); color: var(--danger); }
+    .btn-sm-danger:hover { background: var(--danger); color: white; }
+    .btn-red {
+      background: var(--bordeaux); color: white; border: none;
+      padding: 12px 24px; border-radius: 12px;
+      font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      min-height: 44px; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-red:hover { background: var(--bordeaux-dark); }
+    .btn-outline {
+      background: white; border: 1px solid var(--border-light);
+      color: var(--gray-dark); padding: 12px 24px; border-radius: 12px;
+      font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      min-height: 44px; display: inline-flex; align-items: center; gap: 8px;
+    }
+
+    /* FILTERS */
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 8px 14px; border-radius: 10px;
+      border: 1px solid var(--border-light); background: white;
+      font-size: 0.75rem; font-weight: 600; color: var(--gray-mid);
+      cursor: pointer; transition: all 0.2s; min-height: 40px;
+    }
+    .filter-btn.active { border-color: var(--bordeaux); color: var(--bordeaux); background: var(--bordeaux-light); }
+
+    /* SUPPORT */
+    .support-card {
+      background: white; border: 1px solid var(--border-light);
+      border-radius: 16px; padding: 20px;
+      display: flex; gap: 16px; align-items: center;
+      margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .support-ico {
+      width: 48px; height: 48px; background: var(--bordeaux-light);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      color: var(--bordeaux); font-size: 1.3rem; flex-shrink: 0;
+    }
+    .support-content { flex: 1; min-width: 200px; }
+    .support-h { font-family: 'Montserrat', sans-serif; font-size: 1.1rem; font-weight: 600; }
+    .support-p { font-size: 0.8rem; color: var(--gray-mid); margin-top: 4px; }
+    .support-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* FORM */
+    .f-grp { margin-bottom: 16px; }
+    .f-grp label {
+      display: block; font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; color: var(--gray-mid);
+      margin-bottom: 6px; letter-spacing: 0.05em;
+    }
+    .f-grp input, .f-grp select, .f-grp textarea {
+      width: 100%; padding: 12px 16px;
+      border: 1.5px solid var(--border-light); border-radius: 12px;
+      font-size: 0.85rem; font-family: 'Inter', sans-serif;
+      outline: none; background: white; transition: border-color 0.2s;
+      min-height: 44px;
+    }
+    .f-grp input:focus, .f-grp select:focus, .f-grp textarea:focus { border-color: var(--bordeaux); }
+    .f-grp textarea { min-height: 100px; resize: vertical; }
+
+    /* ERROR BANNER */
+    .error-banner {
+      background: #fdecea; border: 1px solid #f5c6cb;
+      border-radius: 12px; padding: 16px 20px;
+      color: #c0392b; font-size: 0.85rem; font-weight: 600;
+      margin: 16px 0; display: flex; gap: 12px; align-items: flex-start;
+    }
+    .error-banner i { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+
+    /* LOGIN OVERLAY */
+    .login-overlay {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, rgba(10,77,104,0.94) 0%, rgba(253,251,247,0.96) 100%);
+      backdrop-filter: blur(16px); z-index: 900;
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .login-card {
+      background: rgba(255,255,255,0.95); border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 28px; padding: 36px;
+      max-width: 480px; width: 100%;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.12);
+    }
+    .login-logo { text-align: center; margin-bottom: 24px; }
+    .login-logo img { height: 48px; margin-bottom: 8px; }
+    .login-subtitle {
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--gray-mid); margin-top: 4px;
+    }
+    .login-form .f-grp input {
+      width: 100%; padding: 12px 16px;
+      border: 1.5px solid var(--border-light); border-radius: 12px;
+      font-size: 0.85rem; outline: none; background: white;
+      min-height: 44px;
+    }
+    .login-btn {
+      width: 100%; background: var(--bordeaux); color: white;
+      border: none; border-radius: 12px; padding: 14px;
+      font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .login-btn:hover { background: var(--bordeaux-dark); }
+    .login-back {
+      display: block; text-align: center; margin-top: 16px;
+      font-size: 0.75rem; color: var(--gray-mid); text-decoration: none;
+    }
+    .login-back:hover { color: var(--bordeaux); }
+
+    /* MOBILE NAV */
+    .mobile-nav {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0;
+      background: white; border-top: 1px solid var(--border-light);
+      padding: 8px; z-index: 1000;
+      justify-content: space-around;
+    }
+    .mob-nav-item {
+      background: none; border: none; display: flex;
+      flex-direction: column; align-items: center; gap: 4px;
+      padding: 8px 12px; color: var(--gray-mid);
+      font-size: 0.65rem; font-weight: 600; cursor: pointer;
+      min-height: 44px; min-width: 44px; transition: color 0.2s;
+    }
+    .mob-nav-item i { font-size: 1.1rem; }
+    .mob-nav-item.active { color: var(--bordeaux); }
+
+    /* MOBILE */
+    @media (max-width: 900px) {
+      .topbar { padding: 0 16px; }
+      .topbar-center { display: none; }
+      .dash-nav {
+        display: none; position: fixed;
+        top: 64px; left: 0; bottom: 64px; width: 280px;
+        z-index: 999; box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+      }
+      .dash-nav.open { display: block; }
+      .dash-main {
+        padding: 16px; max-width: 100vw;
+        padding-bottom: 80px;
+      }
+      .mobile-nav { display: flex; }
+      .dash-hello { font-size: 1.4rem; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .stat-card { padding: 16px; }
+      .stat-val { font-size: 1.4rem; }
+      .mission-card { flex-direction: column; gap: 12px; }
+      .mc-status { width: 100%; height: 4px; min-height: 4px; }
+      .mc-actions { flex-direction: row; flex-wrap: wrap; width: 100%; min-width: 0; }
+      .btn-sm { flex: 1; min-width: 0; }
+      .sec-title { flex-direction: column; align-items: flex-start; }
+      .filter-row { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+      .filter-btn { flex-shrink: 0; }
+    }
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .topbar-logo { font-size: 1.1rem; }
+      .user-name { display: none; }
+    }
+
+    /* ACCESSIBILITY */
+    button:focus-visible, a:focus-visible, .nav-item:focus-visible {
+      outline: 2px solid var(--bordeaux); outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo">Bathily<span>.</span>Convoyage</a>
+    <div class="topbar-center">Espace Missions</div>
+    <div class="topbar-right">
+      <div class="user-avatar" id="opAvatar">··</div>
+      <div class="user-name" id="opNomTopbar">…</div>
+      <button class="topbar-logout" type="button" onclick="operatorLogout()" title="Déconnexion">
+        <i class="fas fa-sign-out-alt"></i> <span>Déconnexion</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- LOGIN OVERLAY -->
+  <div id="operatorLoginOverlay" class="login-overlay" style="display:flex;">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="/logo.png" alt="Bathily-Convoyage" />
+        <div class="login-subtitle">Espace Missions — Accès interne</div>
+      </div>
+      <form id="operatorLoginForm" class="login-form">
+        <div class="f-grp">
+          <label>Adresse email</label>
+          <input id="opLoginEmail" type="email" required placeholder="operateur@bathily-convoyage.fr" autocomplete="username">
+        </div>
+        <div class="f-grp">
+          <label>Mot de passe</label>
+          <input id="opLoginPassword" type="password" required placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button type="submit" class="login-btn"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
+      </form>
+      <a href="index.html" class="login-back">← Retour au site public</a>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="dash-layout">
+    <nav class="dash-nav" id="operatorNav">
+      <div class="nav-section">
+        <div class="nav-section-lbl">Missions</div>
+        <div class="nav-item active" onclick="showOpTab('accueil',this)" role="button" tabindex="0">
+          <i class="fas fa-home"></i> Tableau de bord
+        </div>
+        <div class="nav-item" onclick="showOpTab('mes-missions',this)" role="button" tabindex="0">
+          <i class="fas fa-briefcase"></i> Mes missions
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-lbl">Compte</div>
+        <div class="nav-item" onclick="showOpTab('support',this)" role="button" tabindex="0">
+          <i class="fas fa-headset"></i> Support
+        </div>
+        <div class="nav-item" onclick="operatorLogout()" role="button" tabindex="0">
+          <i class="fas fa-sign-out-alt"></i> Déconnexion
+        </div>
+      </div>
+    </nav>
+
+    <main class="dash-main">
+      <!-- ACCUEIL -->
+      <div class="tab-content active" id="op-tab-accueil">
+        <div class="dash-header">
+          <h1 class="dash-hello">Bonjour, <em id="opPrenom">…</em></h1>
+          <div class="dash-date" id="opDashDate"></div>
+        </div>
+        <div id="opErrorBanner"></div>
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-ico"><i class="fas fa-calendar-day"></i></div>
+            <div class="stat-val" id="opKpiJour">-</div>
+            <div class="stat-lbl">Missions du jour</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ico"><i class="fas fa-clock"></i></div>
+            <div class="stat-val" id="opKpiEnCours">-</div>
+            <div class="stat-lbl">En cours</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ico"><i class="fas fa-hourglass-end"></i></div>
+            <div class="stat-val" id="opKpiAFinaliser">-</div>
+            <div class="stat-lbl">À finaliser</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ico"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-val" id="opKpiTotal">-</div>
+            <div class="stat-lbl">Total missions</div>
+          </div>
+        </div>
+        <div class="sec-title">
+          <h2 class="sec-h">Prochaines <em>missions</em></h2>
+          <button class="btn-sm btn-sm-ghost" onclick="showOpTab('mes-missions', document.querySelector('[onclick*=mes-missions]'))">
+            Voir tout <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+        <div class="missions-list" id="opRecentMissions">
+          <div style="text-align:center;color:var(--gray-mid);padding:20px;">
+            <i class="fas fa-spinner fa-spin"></i> Chargement…
+          </div>
+        </div>
+      </div>
+
+      <!-- MES MISSIONS -->
+      <div class="tab-content" id="op-tab-mes-missions">
+        <div class="dash-header">
+          <h1 class="dash-hello">Mes <em>missions</em></h1>
+        </div>
+        <div class="sec-title">
+          <h2 class="sec-h">Missions <em>attribuées</em></h2>
+          <div class="filter-row">
+            <button class="filter-btn active" onclick="filterOpMissions('all',this)">Toutes</button>
+            <button class="filter-btn" onclick="filterOpMissions('assigned',this)">À confirmer</button>
+            <button class="filter-btn" onclick="filterOpMissions('accepted',this)">Planifiées</button>
+            <button class="filter-btn" onclick="filterOpMissions('in_progress',this)">En cours</button>
+            <button class="filter-btn" onclick="filterOpMissions('delivered',this)">Livrées</button>
+            <button class="filter-btn" onclick="filterOpMissions('completed',this)">Terminées</button>
+          </div>
+        </div>
+        <div class="missions-list" id="opMyMissionsList">
+          <div style="text-align:center;color:var(--gray-mid);padding:20px;">
+            <i class="fas fa-spinner fa-spin"></i> Chargement…
+          </div>
+        </div>
+      </div>
+
+      <!-- SUPPORT -->
+      <div class="tab-content" id="op-tab-support">
+        <div class="dash-header">
+          <h1 class="dash-hello">Support <em>interne</em></h1>
+        </div>
+        <div class="support-card">
+          <div class="support-ico"><i class="fas fa-headset"></i></div>
+          <div class="support-content">
+            <div class="support-h">Besoin d'aide ?</div>
+            <p class="support-p">L'équipe est disponible du lundi au vendredi, 9h-18h.</p>
+          </div>
+          <div class="support-actions">
+            <a href="contact.html" class="btn-red"><i class="fas fa-envelope"></i> Email</a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MOBILE NAV -->
+  <div class="mobile-nav">
+    <button class="mob-nav-item active" data-tab="accueil" onclick="opMobileNavClick('accueil')">
+      <i class="fas fa-home"></i> Accueil
+    </button>
+    <button class="mob-nav-item" data-tab="mes-missions" onclick="opMobileNavClick('mes-missions')">
+      <i class="fas fa-briefcase"></i> Missions
+    </button>
+    <button class="mob-nav-item" data-tab="support" onclick="opMobileNavClick('support')">
+      <i class="fas fa-headset"></i> Support
+    </button>
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // =========================================================
+      // SUPABASE
+      // =========================================================
+      let _sb = null;
+      function getSBC() {
+        if (!_sb) {
+          if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+            console.error("Supabase credentials missing. Check supabase-config.js");
+            return null;
+          }
+          _sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        }
+        return _sb;
+      }
+
+      // =========================================================
+      // GLOBALES INTERNES
+      // =========================================================
+      // _operatorUser : profil exécutant (ligne convoyeurs) de l'operator
+      // _operatorName : nom affiché
+      // _myMissions   : missions assignées à cet exécutant (convoyeur_id === _operatorUser.id)
+      let _operatorUser = null;
+      let _operatorName = '';
+      let _myMissions = [];
+      let _missionFilter = 'all';
+
+      // =========================================================
+      // AUTH : LOGOUT
+      // =========================================================
+      async function operatorLogout() {
+        const sb = getSBC();
+        if (sb) {
+          try { await sb.auth.signOut(); } catch (e) { /* ignore */ }
+        }
+        sessionStorage.removeItem('operator_user');
+        sessionStorage.removeItem('operator_name');
+        _operatorUser = null;
+        _operatorName = '';
+        _myMissions = [];
+        document.getElementById('operatorLoginOverlay').style.display = 'flex';
+        const form = document.getElementById('operatorLoginForm');
+        if (form) form.reset();
+      }
+      window.operatorLogout = operatorLogout;
+
+      // =========================================================
+      // AUTH : LOGIN
+      // =========================================================
+      // Étapes :
+      //   1. signInWithPassword (Supabase Auth)
+      //   2. RPC is_operator() → doit retourner true
+      //   3. Lecture ligne convoyeurs par auth_user_id = session.user.id
+      //      (RLS convoyeurs_select_own_or_admin autorise auth_user_id = auth.uid())
+      //   4. Si pas de ligne convoyeurs → erreur "profil exécutant non configuré"
+      //   5. Chargement des missions assignées à cet exécutant
+      //
+      // Aucune lecture directe de user_roles / internal_operators.
+      // Aucune identification par email si auth_user_id est disponible.
+      async function handleOperatorLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('opLoginEmail').value.trim().toLowerCase();
+        const password = document.getElementById('opLoginPassword').value;
+        if (!email || !password) return;
+
+        const sb = getSBC();
+        if (!sb) {
+          Swal.fire('Erreur', 'Configuration Supabase manquante.', 'error');
+          return;
+        }
+
+        Swal.fire({
+          title: 'Connexion…',
+          didOpen: () => Swal.showLoading(),
+          allowOutsideClick: false,
+          showConfirmButton: false
+        });
+
+        // 1. Auth Supabase
+        const { data: authData, error: authError } = await sb.auth.signInWithPassword({ email, password });
+        if (authError) {
+          Swal.close();
+          Swal.fire({
+            title: 'Connexion impossible',
+            text: 'Email ou mot de passe incorrect. Si votre compte n\'est pas encore migré, utilisez "Mot de passe oublié" depuis la page publique.',
+            icon: 'error',
+            confirmButtonColor: 'var(--bordeaux)'
+          });
+          return;
+        }
+
+        // 2. Vérifier is_operator() via RPC
+        let isOp = false;
+        try {
+          const { data: opResult, error: opErr } = await sb.rpc('is_operator');
+          if (opErr) {
+            console.error('is_operator RPC error:', opErr);
+          }
+          isOp = opResult === true;
+        } catch (err) {
+          console.error('is_operator call failed:', err);
+        }
+
+        if (!isOp) {
+          await sb.auth.signOut();
+          Swal.close();
+          Swal.fire({
+            title: 'Accès refusé',
+            html: 'Votre compte n\'a pas le rôle <strong>operator</strong> actif.<br><br>L\'Espace Missions est réservé aux opérateurs internes Bathily-Convoyage.',
+            icon: 'warning',
+            confirmButtonColor: 'var(--bordeaux)',
+            confirmButtonText: 'Compris'
+          });
+          return;
+        }
+
+        // 3. Récupérer le profil exécutant (convoyeurs) par auth_user_id
+        const userId = authData.user.id;
+        const { data: profile, error: profileErr } = await sb.from('convoyeurs')
+          .select('id, email, prenom, nom, telephone, ville, auth_user_id, banned')
+          .eq('auth_user_id', userId)
+          .maybeSingle();
+
+        if (profileErr) {
+          console.error('convoyeurs read error:', profileErr);
+          await sb.auth.signOut();
+          Swal.close();
+          Swal.fire({
+            title: 'Erreur',
+            text: 'Impossible de récupérer votre profil exécutant. Contactez l\'administration.',
+            icon: 'error',
+            confirmButtonColor: 'var(--bordeaux)'
+          });
+          return;
+        }
+
+        if (!profile) {
+          // Pas de ligne convoyeurs → profil exécutant non configuré
+          // On ne crée rien automatiquement, on ne contourne aucune RPC.
+          await sb.auth.signOut();
+          Swal.close();
+          Swal.fire({
+            title: 'Profil exécutant interne non configuré',
+            html: 'Votre rôle <strong>operator</strong> est actif, mais aucun profil exécutant (table <code>convoyeurs</code>) n\'est lié à votre compte.<br><br>Contactez l\'administration pour configurer votre identité d\'exécution avant d\'accéder aux missions.',
+            icon: 'warning',
+            confirmButtonColor: 'var(--bordeaux)',
+            confirmButtonText: 'Compris',
+            allowOutsideClick: false
+          });
+          return;
+        }
+
+        if (profile.banned === true) {
+          await sb.auth.signOut();
+          Swal.close();
+          Swal.fire({
+            title: 'Accès restreint',
+            text: 'Votre compte exécutant a été suspendu par l\'administration.',
+            icon: 'error',
+            allowOutsideClick: false
+          });
+          return;
+        }
+
+        // 4. Succès
+        _operatorUser = profile;
+        _operatorName = `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 'Opérateur';
+        sessionStorage.setItem('operator_user', JSON.stringify(profile));
+        sessionStorage.setItem('operator_name', _operatorName);
+        document.getElementById('operatorLoginOverlay').style.display = 'none';
+        Swal.close();
+        Swal.fire({
+          toast: true, position: 'top-end',
+          icon: 'success',
+          title: `Bienvenue, ${profile.prenom || 'Opérateur'}`,
+          timer: 2000, showConfirmButton: false
+        });
+        await loadOperatorData();
+      }
+
+      // =========================================================
+      // CHARGEMENT DES MISSIONS
+      // =========================================================
+      // RLS missions_select_b3 autorise is_operator() à lire toutes les missions,
+      // MAIS l'Espace Missions est une interface personnelle d'exécution :
+      // on n'affiche QUE les missions où convoyeur_id === _operatorUser.id.
+      // Aucune requête vers candidatures, reseau_posts, reseau_comments,
+      // badges, convoyeur_badges, ou missions disponibles externes.
+      async function loadOperatorData() {
+        if (!_operatorUser || !_operatorUser.id) return;
+        const sb = getSBC();
+        if (!sb) return;
+
+        const { data: missions, error: missionsErr } = await sb.from('missions')
+          .select('id,reference,depart,arrivee,trajet,vehicule,mode,mode_transport,pack,date_mission,client_nom,client_telephone,convoyeur_nom,convoyeur_id,convoyeur_telephone,status,notes,created_at,updated_at')
+          .order('date_mission', { ascending: true });
+
+        if (missionsErr) {
+          console.error('Erreur chargement missions:', missionsErr);
+          document.getElementById('opMyMissionsList').innerHTML =
+            '<div class="error-banner"><i class="fas fa-exclamation-triangle"></i>Impossible de charger vos missions. Réessayez ultérieurement.</div>';
+          document.getElementById('opRecentMissions').innerHTML = '';
+          return;
+        }
+
+        // Filtre strict : uniquement les missions assignées à cet exécutant
+        _myMissions = (missions || []).filter(m => m.convoyeur_id === _operatorUser.id);
+        initOperatorDashboard();
+      }
+
+      // =========================================================
+      // INIT DASHBOARD
+      // =========================================================
+      function initOperatorDashboard() {
+        const firstName = _operatorName.split(' ')[0] || 'Opérateur';
+        const initials = _operatorName.split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0, 2) || 'OP';
+        document.getElementById('opNomTopbar').textContent = firstName;
+        document.getElementById('opAvatar').textContent = initials;
+        document.getElementById('opPrenom').textContent = firstName;
+        document.getElementById('opDashDate').textContent = new Date().toLocaleDateString('fr-FR', {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        // KPIs
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const missionsJour = _myMissions.filter(m => {
+          if (!m.date_mission) return false;
+          const d = new Date(m.date_mission); d.setHours(0, 0, 0, 0);
+          return d.getTime() === today.getTime();
+        }).length;
+        const enCours = _myMissions.filter(m => m.status === 'in_progress').length;
+        const aFinaliser = _myMissions.filter(m => m.status === 'delivered' || m.status === 'accepted').length;
+        const total = _myMissions.length;
+
+        document.getElementById('opKpiJour').textContent = missionsJour;
+        document.getElementById('opKpiEnCours').textContent = enCours;
+        document.getElementById('opKpiAFinaliser').textContent = aFinaliser;
+        document.getElementById('opKpiTotal').textContent = total;
+
+        // Listes
+        const prochaines = _myMissions
+          .filter(m => m.status === 'assigned' || m.status === 'accepted' || m.status === 'in_progress')
+          .slice(0, 5);
+        renderOpMissions('opRecentMissions', prochaines);
+        renderOpMissions('opMyMissionsList', _myMissions);
+      }
+
+      // =========================================================
+      // RENDER MISSIONS
+      // =========================================================
+      const STATUS_INFO = {
+        'assigned':    { class: 'status-pending',   label: 'À confirmer', color: '#e0a343' },
+        'accepted':    { class: 'status-planned',   label: 'Planifiée',   color: '#e0a343' },
+        'in_progress': { class: 'status-progress',  label: 'En cours',    color: '#0A4D68' },
+        'delivered':   { class: 'status-delivered', label: 'Livrée',      color: '#4a7c6b' },
+        'completed':   { class: 'status-completed', label: 'Terminée',    color: '#4a7c6b' },
+        'cancelled':   { class: 'status-pending',   label: 'Annulée',     color: '#c0392b' },
+        'available':   { class: 'status-pending',   label: 'Disponible',  color: '#6B625A' },
+        'archived':    { class: 'status-completed', label: 'Archivée',    color: '#6B625A' }
+      };
+
+      function escapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      function renderOpMissions(containerId, missions) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        let filtered = missions;
+        if (_missionFilter !== 'all' && containerId === 'opMyMissionsList') {
+          filtered = missions.filter(m => m.status === _missionFilter);
+        }
+
+        if (!filtered || filtered.length === 0) {
+          container.innerHTML =
+            '<div style="text-align:center;color:var(--gray-mid);padding:30px;">' +
+            '<i class="fas fa-briefcase" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>' +
+            'Aucune mission assignée pour le moment.' +
+            '</div>';
+          return;
+        }
+
+        container.innerHTML = filtered.map(m => {
+          const si = STATUS_INFO[m.status] || STATUS_INFO['accepted'];
+          const tagMode = (m.mode || 'route').toLowerCase().includes('plateau')
+            ? '<span class="mc-tag tag-plateau">Plateau</span>'
+            : '<span class="mc-tag tag-route">Route</span>';
+          const tagVehicule = (m.vehicule || 'auto').toLowerCase().includes('moto')
+            ? '<span class="mc-tag tag-moto">Moto</span>'
+            : '<span class="mc-tag tag-auto">Automobile</span>';
+          const dateStr = m.date_mission
+            ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+            : '-';
+          const dep = m.depart || (m.trajet ? m.trajet.split('→')[0] : '').trim() || '-';
+          const arr = m.arrivee || (m.trajet ? m.trajet.split('→')[1] : '').trim() || '-';
+
+          // Actions selon statut
+          let actions = '';
+          if (m.status === 'assigned') {
+            actions += `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation();respondToAssignment('${m.id}', true)"><i class="fas fa-check"></i> Accepter</button>`;
+            actions += `<button class="btn-sm btn-sm-danger" onclick="event.stopPropagation();respondToAssignment('${m.id}', false)"><i class="fas fa-times"></i> Refuser</button>`;
+          }
+          actions += `<a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-file-alt"></i> Bon de mission</a>`;
+          actions += `<a href="etat-des-lieux.html?mission_id=${m.id}&type=depart" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-clipboard-list"></i> EDL</a>`;
+          if (m.status === 'in_progress') {
+            actions += `<a href="gps-emitter.html?id=${m.id}&ref=${encodeURIComponent(m.reference || '')}&route=${encodeURIComponent(dep + ' → ' + arr)}&vehicle=${encodeURIComponent(m.vehicule || '')}" class="btn-sm btn-sm-red" target="_blank" rel="noopener"><i class="fas fa-satellite-dish"></i> GPS</a>`;
+          }
+
+          return `<div class="mission-card">
+            <div class="mc-status ${si.class}"></div>
+            <div class="mc-info">
+              <div class="mc-ref">${escapeHtml(m.reference || '-')}</div>
+              <div class="mc-route">${escapeHtml(dep)} <em>→</em> ${escapeHtml(arr)}</div>
+              <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${escapeHtml(m.pack ? m.pack.charAt(0).toUpperCase() + m.pack.slice(1) : '-')}</span></div>
+              <div style="margin-top:6px;"><span class="mc-status-badge" style="background:${si.color}22;color:${si.color};">${si.label}</span></div>
+            </div>
+            <div class="mc-actions">${actions}</div>
+          </div>`;
+        }).join('');
+      }
+
+      // =========================================================
+      // RESPOND TO ASSIGNMENT (via RPC existante)
+      // =========================================================
+      async function respondToAssignment(missionId, accepted) {
+        if (!_operatorUser) return Swal.fire('Erreur', 'Vous devez être connecté.', 'error');
+        const sb = getSBC();
+        const { error } = await sb.rpc('respond_mission_assignment', {
+          p_mission_id: missionId,
+          p_accepted: accepted
+        });
+        if (error) {
+          console.error('Erreur réponse mission:', error);
+          Swal.fire('Erreur', 'Action impossible. Vérifiez que la mission vous est bien assignée.', 'error');
+        } else {
+          Swal.fire({
+            toast: true, position: 'top-end',
+            icon: 'success',
+            title: accepted ? 'Mission acceptée' : 'Mission refusée',
+            timer: 2500, showConfirmButton: false
+          });
+          await loadOperatorData();
+        }
+      }
+      window.respondToAssignment = respondToAssignment;
+
+      // =========================================================
+      // FILTRES
+      // =========================================================
+      function filterOpMissions(status, btn) {
+        document.querySelectorAll('#op-tab-mes-missions .filter-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        _missionFilter = status;
+        renderOpMissions('opMyMissionsList', _myMissions);
+      }
+      window.filterOpMissions = filterOpMissions;
+
+      // =========================================================
+      // NAVIGATION
+      // =========================================================
+      function syncOpMobileNav(id) {
+        document.querySelectorAll('.mob-nav-item').forEach(b => b.classList.remove('active'));
+        const btn = document.querySelector(`.mob-nav-item[data-tab="${id}"]`);
+        if (btn) btn.classList.add('active');
+      }
+
+      function showOpTab(id, el) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        const target = document.getElementById('op-tab-' + id);
+        if (target) target.classList.add('active');
+        document.querySelectorAll('.dash-nav .nav-item').forEach(n => n.classList.remove('active'));
+        if (el) el.classList.add('active');
+        syncOpMobileNav(id);
+        if (id === 'mes-missions') {
+          filterOpMissions(_missionFilter, document.querySelector('#op-tab-mes-missions .filter-btn.active'));
+        }
+      }
+      window.showOpTab = showOpTab;
+
+      function opMobileNavClick(id) {
+        const fakeEl = document.querySelector(`.dash-nav .nav-item[onclick*="'${id}'"]`);
+        showOpTab(id, fakeEl);
+      }
+      window.opMobileNavClick = opMobileNavClick;
+
+      // =========================================================
+      // VÉRIFICATION SESSION AU CHARGEMENT
+      // =========================================================
+      // Contrairement à dashboard-convoyeur.html qui se fie à sessionStorage,
+      // ici on revalide systématiquement is_operator() côté serveur au
+      // chargement, pour éviter qu'une session admin/client/convoyeur
+      // externe persistée ne contourne le garde-frontière.
+      async function checkSessionOnLoad() {
+        const sb = getSBC();
+        if (!sb) {
+          document.getElementById('operatorLoginOverlay').style.display = 'flex';
+          return;
+        }
+
+        let session = null;
+        try {
+          const { data, error } = await sb.auth.getSession();
+          if (error) {
+            console.warn('getSession error:', error.message);
+          }
+          session = data && data.session;
+        } catch (err) {
+          console.warn('getSession exception:', err);
+        }
+
+        if (!session) {
+          document.getElementById('operatorLoginOverlay').style.display = 'flex';
+          return;
+        }
+
+        // Revalider is_operator() côté serveur
+        let isOp = false;
+        try {
+          const { data: opResult, error: opErr } = await sb.rpc('is_operator');
+          if (opErr) console.warn('is_operator RPC error on load:', opErr.message);
+          isOp = opResult === true;
+        } catch (err) {
+          console.warn('is_operator call failed on load:', err);
+        }
+
+        if (!isOp) {
+          // Session valide mais pas operator → ne pas déconnecter (l'utilisateur
+          // peut avoir une autre session valide pour un autre espace), mais
+          // refuser l'accès à l'Espace Missions.
+          sessionStorage.removeItem('operator_user');
+          sessionStorage.removeItem('operator_name');
+          document.getElementById('operatorLoginOverlay').style.display = 'flex';
+          Swal.fire({
+            title: 'Accès refusé',
+            html: 'Votre session n\'a pas le rôle <strong>operator</strong> actif.<br>L\'Espace Missions est réservé aux opérateurs internes.',
+            icon: 'warning',
+            confirmButtonColor: 'var(--bordeaux)'
+          });
+          return;
+        }
+
+        // Récupérer le profil exécutant par auth_user_id
+        const userId = session.user.id;
+        const { data: profile, error: profileErr } = await sb.from('convoyeurs')
+          .select('id, email, prenom, nom, telephone, ville, auth_user_id, banned')
+          .eq('auth_user_id', userId)
+          .maybeSingle();
+
+        if (profileErr || !profile) {
+          sessionStorage.removeItem('operator_user');
+          sessionStorage.removeItem('operator_name');
+          document.getElementById('operatorLoginOverlay').style.display = 'flex';
+          if (profileErr) {
+            console.warn('convoyeurs read error on load:', profileErr.message);
+          }
+          Swal.fire({
+            title: 'Profil exécutant interne non configuré',
+            html: 'Votre rôle <strong>operator</strong> est actif, mais aucun profil exécutant n\'est lié à votre compte.<br>Contactez l\'administration.',
+            icon: 'warning',
+            confirmButtonColor: 'var(--bordeaux)'
+          });
+          return;
+        }
+
+        if (profile.banned === true) {
+          sessionStorage.removeItem('operator_user');
+          sessionStorage.removeItem('operator_name');
+          document.getElementById('operatorLoginOverlay').style.display = 'flex';
+          Swal.fire({
+            title: 'Accès restreint',
+            text: 'Votre compte exécutant a été suspendu.',
+            icon: 'error'
+          });
+          return;
+        }
+
+        _operatorUser = profile;
+        _operatorName = `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 'Opérateur';
+        sessionStorage.setItem('operator_user', JSON.stringify(profile));
+        sessionStorage.setItem('operator_name', _operatorName);
+        document.getElementById('operatorLoginOverlay').style.display = 'none';
+        await loadOperatorData();
+      }
+
+      // =========================================================
+      // INIT
+      // =========================================================
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('operatorLoginForm').addEventListener('submit', handleOperatorLogin);
+        checkSessionOnLoad();
+      });
+    })();
+  </script>
+</body>
+</html>

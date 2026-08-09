@@ -1297,6 +1297,70 @@ async function initSupabaseEdl() {
     const client = getSupabase();
     if (!client) throw new Error("Supabase non disponible");
 
+    // =========================================================
+    // GARDE D'AUTHENTIFICATION AU CHARGEMENT (C-2.1)
+    // =========================================================
+    // Aucune donnée mission n'est chargée avant la résolution de
+    // la session Supabase. La sécurité réelle reste assurée par
+    // la RLS missions_select_b3 et la RPC validate_mission_edl
+    // côté backend ; cette garde est une barrière frontend + UX
+    // propre (pas de message brut Supabase affiché au visiteur).
+    //
+    // Étapes :
+    //   1. sb.auth.getSession() — si pas de session → refus propre
+    //   2. sb.rpc('is_operator') OU sb.rpc('is_convoyeur_for_mission')
+    //      — si aucun des deux → refus propre
+    //   3. Only then : lecture de la mission
+    let _authOk = false;
+    let _sessionUserId = null;
+    try {
+      const { data: { session }, error: sessErr } = await client.auth.getSession();
+      if (sessErr || !session) {
+        _authOk = false;
+      } else {
+        _sessionUserId = session.user.id;
+        let isOp = false;
+        try {
+          const { data: opRes } = await client.rpc('is_operator');
+          isOp = opRes === true;
+        } catch (e) { /* ignore */ }
+
+        let isConv = false;
+        if (!isOp) {
+          try {
+            const { data: convRes } = await client.rpc('is_convoyeur_for_mission', {
+              p_mission_id: missionId,
+              p_user_id: _sessionUserId
+            });
+            isConv = convRes === true;
+          } catch (e) { /* ignore */ }
+        }
+
+        _authOk = isOp || isConv;
+      }
+    } catch (err) {
+      console.warn('Auth check failed:', err);
+      _authOk = false;
+    }
+
+    if (!_authOk) {
+      Swal.close();
+      document.body.innerHTML = `
+        <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#FDFBF7;padding:24px;">
+          <div style="background:white;border:1px solid #E8E1D9;border-radius:20px;padding:36px;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.08);">
+            <div style="width:64px;height:64px;background:#fdecea;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#c0392b;font-size:1.6rem;"><i class="fas fa-lock"></i></div>
+            <h1 style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:700;color:#2D2A24;margin-bottom:8px;">Accès réservé</h1>
+            <p style="font-size:0.85rem;color:#6B625A;margin-bottom:20px;line-height:1.6;">Vous devez être authentifié en tant qu'opérateur interne ou convoyeur assigné à cette mission pour accéder à l'état des lieux.</p>
+            <a href="dashboard-operator.html" style="display:inline-block;background:#0A4D68;color:white;text-decoration:none;padding:12px 24px;border-radius:12px;font-size:0.85rem;font-weight:700;min-height:44px;"><i class="fas fa-sign-in-alt"></i> Espace Missions</a>
+            <a href="index.html" style="display:block;margin-top:12px;font-size:0.75rem;color:#6B625A;text-decoration:none;">← Retour au site</a>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // =========================================================
+    // CHARGEMENT DE LA MISSION (après garde d'auth)
+    // =========================================================
     const { data: mission, error } = await client
       .from('missions')
       .select('id,reference,depart,arrivee,vehicule,immatriculation,annee,carburant,puissance,type_vehicule,mode,mode_transport,pack,date_mission,client_nom,convoyeur_nom,convoyeur_id,convoyeur_telephone,remuneration_convoyeur,status,paiement_statut,notes,created_at,updated_at')
@@ -1304,7 +1368,9 @@ async function initSupabaseEdl() {
       .single();
 
     if (error || !mission) {
-      throw new Error(error?.message || "Mission introuvable");
+      Swal.close();
+      Swal.fire('Information', 'Mission introuvable ou accès non autorisé.', 'info');
+      return;
     }
 
     if (document.getElementById('mRef')) document.getElementById('mRef').value = mission.reference || '';
