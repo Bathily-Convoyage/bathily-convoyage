@@ -56,7 +56,6 @@ export async function onRequest(context) {
       }
 
       const updateFields = { paiement_statut: 'paid' };
-      if (mission.status === 'available') updateFields.status = 'planned';
 
       const { error: updateError } = await supabase.from('missions').update(updateFields).eq('id', missionId);
       if (updateError) {

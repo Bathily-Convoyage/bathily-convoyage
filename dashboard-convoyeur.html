@@ -1955,7 +1955,7 @@
         const allerMission = _myMissions.find(my => {
           const myArr = normalizeCity(my.arrivee);
           const retDep = normalizeCity(m.depart);
-          return myArr === retDep && (my.status === 'planned' || my.status === 'in_progress');
+          return myArr === retDep && (my.status === 'accepted' || my.status === 'in_progress');
         });
 
         const dejaPostule = _allCandidatures.some(c => c.mission_id === m.id && c.convoyeur_id === _convoyeurUser.id);

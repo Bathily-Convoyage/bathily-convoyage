@@ -45,7 +45,6 @@ export default defineConfig({
         convoyageMontpellier: resolve(__dirname, 'convoyage-montpellier.html'),
         espacePro: resolve(__dirname, 'espace-pro.html'),
         resetPassword: resolve(__dirname, 'reset-password.html'),
-        missionTracker: resolve(__dirname, 'mission-tracker.html'),
         charteGraphique: resolve(__dirname, 'charte-graphique-complete.html'),
       }
     }

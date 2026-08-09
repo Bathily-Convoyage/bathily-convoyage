@@ -69,8 +69,8 @@ export async function onRequest(context) {
       return jsonResponse({ error: 'Cette mission est déjà payée.' }, 409, getCorsHeaders(request));
     }
 
-    const statut = mission.status || 'planned';
-    if (statut === 'cancelled' || statut === 'completed') {
+    const statut = mission.status;
+    if (statut === 'cancelled' || statut === 'completed' || statut === 'archived') {
       return jsonResponse({ error: 'Cette mission ne peut pas être payée.' }, 400, getCorsHeaders(request));
     }
 

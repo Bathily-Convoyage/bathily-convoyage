@@ -1232,7 +1232,7 @@
           <h1 class="dash-hello">Mes <em>missions</em></h1>
         </div>
         <div class="sec-title">
-          <div class="tabs"><button class="tab-btn active" onclick="filterMissions('all',this)">toutes</button><button class="tab-btn" onclick="filterMissions('active',this)">En cours</button><button class="tab-btn" onclick="filterMissions('planned',this)">Planifiées</button><button class="tab-btn" onclick="filterMissions('completed',this)">Terminées</button></div>
+          <div class="tabs"><button class="tab-btn active" onclick="filterMissions('all',this)">toutes</button><button class="tab-btn" onclick="filterMissions('active',this)">En cours</button><button class="tab-btn" onclick="filterMissions('available',this)">Disponibles</button><button class="tab-btn" onclick="filterMissions('completed',this)">Terminées</button></div>
           <a href="devis.html" class="sec-action"><i class="fas fa-plus"></i> Nouvelle mission</a>
         </div>
         <div class="missions-list" id="missionsList">
@@ -1899,7 +1899,7 @@
         filtered = missions.filter(m => {
           const st = m.status || '';
           if (_activeFilter === 'active') return st === 'in_progress';
-          if (_activeFilter === 'planned') return st === 'planned' || st === 'available';
+          if (_activeFilter === 'available') return st === 'available';
           if (_activeFilter === 'completed') return st === 'completed';
           return true;
         });
@@ -1911,7 +1911,7 @@
       }
 
       container.innerHTML = filtered.map(m => {
-        const st = m.status || 'planned';
+        const st = m.status || 'available';
         let statusClass = 'status-planifie', statusLabel = 'Planifiée', pct = 10, strokeColor = '#F5A623';
         if (st === 'in_progress') { statusClass = 'status-en-cours';
           statusLabel = 'En transit';
@@ -1932,7 +1932,7 @@
         const payStatus = m.paiement_statut || 'pending';
         const tagPay = (payStatus === 'paid' || payStatus === 'paye') ? '<span class="mc-tag" style="background:rgba(74,124,107,0.12);color:var(--success);font-weight:700;"><i class="fas fa-check-circle"></i> Payée</span>' : '<span class="mc-tag" style="background:rgba(224,163,67,0.12);color:var(--warning);font-weight:700;"><i class="fas fa-clock"></i> En attente</span>';
 
-        const trackBtn = (st === 'in_progress' || st === 'planned') ? `<span class="btn-sm btn-sm-ghost" title="Lien de suivi fourni par le dispatch"><i class="fas fa-map-marker-alt"></i> Suivre</span>` : '';
+        const trackBtn = (st === 'in_progress') ? `<span class="btn-sm btn-sm-ghost" title="Lien de suivi fourni par le dispatch"><i class="fas fa-map-marker-alt"></i> Suivre</span>` : '';
         const canPay = payStatus !== 'paid' && payStatus !== 'paye' && st !== 'completed' && st !== 'cancelled' && st !== 'available';
         const payBtn = canPay ? `<button class="btn-sm btn-sm-red" onclick="payMission('${m.id}')" style="background:#2ecc71;color:white;border:none;"><i class="fas fa-credit-card"></i> Payer</button>` : '';
 

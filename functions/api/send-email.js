@@ -70,8 +70,7 @@ export async function onRequest(context) {
 
     async function sendEmail({ to, subject, html }) {
       if (!resendApiKey) {
-        console.log(`[SIMULATION EMAIL] A: ${to} Sujet: ${subject}`);
-        return { simulated: true };
+        throw new Error('RESEND_API_KEY manquante');
       }
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',

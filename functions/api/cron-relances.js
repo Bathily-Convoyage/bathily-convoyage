@@ -60,7 +60,7 @@ export async function onRequest(context) {
 
     const { data: missionsDemain, error: errMissions } = await sb
       .from('missions').select('id, client_email, client_nom, convoyeur_email, convoyeur_nom, depart, arrivee, date_prise_en_charge')
-      .eq('status', 'planned').gte('date_prise_en_charge', tomorrowStart).lte('date_prise_en_charge', tomorrowEnd)
+      .eq('status', 'accepted').gte('date_prise_en_charge', tomorrowStart).lte('date_prise_en_charge', tomorrowEnd)
       .is('rappel_envoye', null).limit(50);
 
     if (errMissions) results.errors.push('missions query: ' + errMissions.message);

@@ -1737,7 +1737,7 @@
           <select id="filter-status">
             <option value="">Tous les statuts</option>
             <option value="available">Sur le marché</option>
-            <option value="planned">Planifiée</option>
+            <option value="assigned">Assignée</option>
             <option value="in_progress">En cours</option>
             <option value="completed">Terminée</option>
             <option value="cancelled">Annulée</option>
@@ -2461,7 +2461,6 @@ Cadeau premium personnalisé</textarea>
         <div class="f-grp"><label>Référence</label><input type="text" id="md-ref" readonly style="background:#f5f5f5; cursor:not-allowed;"></div>
         <div class="f-grp"><label>Statut</label><select id="md-status">
           <option value="available">Sur le marché</option>
-          <option value="planned">Planifiée</option>
           <option value="in_progress">En cours</option>
           <option value="completed">Terminée</option>
           <option value="cancelled">Annulée</option>
@@ -3432,15 +3431,6 @@ Cadeau premium personnalisé</textarea>
     Swal.fire({ title: 'En cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
     const client = getSupabase();
     
-    // Si on supprime un client, d'abord dissocier ses missions (mettre client_id à null)
-    if (tableName === 'clients') {
-      await client.from('missions').update({ client_id: null }).eq('client_id', userId);
-    }
-    // Si on supprime un convoyeur, d'abord dissocier ses missions
-    if (tableName === 'convoyeurs') {
-      await client.from('missions').update({ convoyeur_nom: null, convoyeur_id: null, status: 'available' }).eq('convoyeur_id', userId);
-    }
-    
     const { error } = await client.rpc('admin_delete_user', {
       target_id: userId,
       target_table: tableName
@@ -4356,7 +4346,6 @@ Cadeau premium personnalisé</textarea>
         promo_code: null,
         is_pro: formValues.isPro,
         remuneration_convoyeur: quote.remuneration_convoyeur || 0,
-        calculated_by: 'functions/api/calculate-quote.js',
         quote_details: quote.details,
         created_by_admin: true
       },
@@ -5190,29 +5179,39 @@ Cadeau premium personnalisé</textarea>
 
   window.deleteMission = async function(missionId, reference) {
     const confirm = await Swal.fire({
-      title: `Supprimer la mission ${reference} ?`,
-      text: "Cette action est définitive. Les états des lieux et candidatures liées seront également supprimés.",
-      icon: 'error',
+      title: `Annuler / archiver la mission ${reference} ?`,
+      text: "Cette action applique la state machine (cancelled ou archived). Aucune suppression physique n'est effectuée.",
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Supprimer',
+      confirmButtonText: 'Confirmer',
       cancelButtonText: 'Annuler'
     });
     if (!confirm.isConfirmed) return;
 
-    Swal.fire({ title: 'Suppression en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    Swal.fire({ title: 'Traitement en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
     const sb = getSupabase();
 
-    // 1. Supprimer les EDLs liés
-    await sb.from('edls').delete().eq('mission_id', missionId);
-    // 2. Supprimer les candidatures liées
-    await sb.from('candidatures').delete().eq('mission_id', missionId);
-    // 3. Supprimer la mission
-    const { error } = await sb.from('missions').delete().eq('id', missionId);
+    const mission = _allMissions.find(m => m.id === missionId);
+    const status = mission ? mission.status : null;
+    let targetStatus = null;
+    if (['completed','cancelled'].includes(status)) {
+      targetStatus = 'archived';
+    } else if (['assigned','accepted','in_progress'].includes(status)) {
+      targetStatus = 'cancelled';
+    } else {
+      Swal.close();
+      return Swal.fire('Action impossible', 'Cette mission ne peut pas être annulée ou archivée depuis l\'interface.', 'error');
+    }
+
+    const { error } = await sb.rpc('transition_mission_status', {
+      p_mission_id: missionId,
+      p_target_status: targetStatus
+    });
 
     if (error) {
       Swal.fire('Erreur', error.message, 'error');
     } else {
-      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Mission supprimée', timer: 3000 });
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Mission annulée/archivée', timer: 3000 });
       loadMissions();
     }
   };
@@ -5427,8 +5426,7 @@ Cadeau premium personnalisé</textarea>
       // Déterminer le nom du véhicule
       let vehicleName = vehiculeManuel || `${marque} ${modele}`.trim() || vehiculeType;
 
-      // Si un convoyeur est sélectionné, le statut passe à "planned", sinon "available"
-      const missionStatus = convoyeur ? 'planned' : 'available';
+      const missionStatus = convoyeur ? 'assigned' : 'available';
 
       const missionData = {
         reference: ref,
@@ -5837,7 +5835,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       const modeFilter = document.getElementById('filter-mode')?.value || '';
       const searchQuery = (document.getElementById('filter-search')?.value || '').toLowerCase().trim();
       let filtered = _allMissions;
-      if (statusFilter) filtered = filtered.filter(m => (m.status || 'planned') === statusFilter);
+      if (statusFilter) filtered = filtered.filter(m => m.status === statusFilter);
       else filtered = filtered.filter(m => m.status !== 'archived');
       if (modeFilter) filtered = filtered.filter(m => (m.mode || 'route') === modeFilter);
       if (searchQuery) filtered = filtered.filter(m => {

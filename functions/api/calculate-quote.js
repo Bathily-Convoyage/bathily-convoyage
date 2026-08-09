@@ -51,7 +51,7 @@ export async function onRequest(context) {
       vehicleCondition,
       utilSize,
       isPro,
-      promoPercent: Number(promoPercent),
+      promoPercent: 0,
       dateLivraison
     });
 
