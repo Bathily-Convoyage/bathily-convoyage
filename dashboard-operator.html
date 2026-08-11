@@ -1146,6 +1146,54 @@
       window.transitionMission = transitionMission;
 
       // =========================================================
+      // C-2.2B2 — CONTACT CLIENT CIBLÉ
+      // =========================================================
+      // Appelle la RPC get_mission_contact pour récupérer uniquement
+      // le téléphone du client. Aucun préchargement, aucun stockage
+      // persistant (localStorage/sessionStorage/DOM).
+      async function contactClient(missionId) {
+        const sb = getSBC();
+        if (!sb) return Swal.fire('Erreur', 'Session expirée.', 'error');
+
+        const btn = document.getElementById('btnContactClient');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Recherche…'; }
+
+        try {
+          const { data, error } = await sb.rpc('get_mission_contact', { p_mission_id: missionId });
+
+          if (error) {
+            Swal.fire('Contact', 'Contact non disponible pour cette mission.', 'info');
+            return;
+          }
+
+          const phone = data && Array.isArray(data) ? Object.values(data[0] || {})[0] : null;
+
+          if (!phone) {
+            Swal.fire('Contact', 'Contact non disponible pour cette mission.', 'info');
+            return;
+          }
+
+          Swal.fire({
+            title: 'Contacter le client',
+            html: `<div style="font-size:1.2rem;margin:10px 0;"><a href="tel:${escapeHtml(phone)}" style="color:#1a237e;text-decoration:none;font-weight:600;"><i class="fas fa-phone"></i> ${escapeHtml(phone)}</a></div>`,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-phone"></i> Appeler',
+            cancelButtonText: 'Fermer',
+            confirmButtonColor: '#1a237e'
+          }).then(result => {
+            if (result.isConfirmed) {
+              window.location.href = 'tel:' + phone;
+            }
+          });
+        } catch (err) {
+          Swal.fire('Contact', 'Contact non disponible pour cette mission.', 'info');
+        } finally {
+          if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-phone"></i> Contacter le client'; }
+        }
+      }
+      window.contactClient = contactClient;
+
+      // =========================================================
       // C-2.2A — FICHE MISSION DÉTAILLÉE (MODALE)
       // =========================================================
       let _currentModalMissionId = null;
@@ -1297,6 +1345,10 @@
         }
         if (mission.status === 'delivered') {
           modalActionsHtml += `<button class="btn-sm btn-sm-red" onclick="transitionMission('${mission.id}','completed','Finaliser la mission')"><i class="fas fa-check-double"></i> Finaliser</button>`;
+        }
+        // Contact client — uniquement pendant les phases d'exécution actives
+        if (['assigned', 'accepted', 'in_progress'].includes(mission.status)) {
+          modalActionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="contactClient('${mission.id}')" id="btnContactClient"><i class="fas fa-phone"></i> Contacter le client</button>`;
         }
         // Outils terrain
         modalActionsHtml += `<a href="bon-de-mission.html?id=${mission.id}" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-file-alt"></i> Bon de mission</a>`;
