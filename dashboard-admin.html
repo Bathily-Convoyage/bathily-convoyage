@@ -487,6 +487,42 @@
       border: 1px solid rgba(122, 46, 26, 0.2);
       color: var(--bordeaux);
     }
+    /* C-2.2C2 — INCIDENTS */
+    .inc-indicator {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 0.55rem; font-weight: 700;
+      background: rgba(245, 166, 35, 0.15);
+      color: #e65100; border: 1px solid rgba(245, 166, 35, 0.3);
+      padding: 2px 6px; border-radius: 40px; margin-left: 4px;
+    }
+    .inc-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.55rem; font-weight: 700; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 40px;
+    }
+    .inc-badge.sev-low { background: #e8f5e9; color: #2e7d32; }
+    .inc-badge.sev-medium { background: #fff3e0; color: #e65100; }
+    .inc-badge.sev-high { background: #fce4ec; color: #c62828; }
+    .inc-badge.sev-critical { background: #c62828; color: white; }
+    .inc-badge.st-open { background: var(--bordeaux-light); color: var(--bordeaux); }
+    .inc-badge.st-reviewed { background: #e3f2fd; color: #1565c0; }
+    .inc-badge.st-resolved { background: #e8f5e9; color: var(--success); }
+    .inc-item {
+      border: 1px solid var(--border-light); border-radius: 10px;
+      padding: 12px; margin-bottom: 10px; background: white;
+    }
+    .inc-item:last-child { margin-bottom: 0; }
+    .inc-item-header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+    .inc-item-title { font-size: 0.85rem; font-weight: 600; color: var(--gray-dark); }
+    .inc-item-meta { font-size: 0.7rem; color: var(--gray-mid); margin-top: 2px; }
+    .inc-item-desc { font-size: 0.78rem; color: var(--gray-mid); margin-top: 6px; }
+    .inc-item-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .inc-empty { font-size: 0.8rem; color: var(--gray-mid); padding: 12px 0; font-style: italic; }
+    .swal-inc-form { text-align: left; font-size: 0.85rem; }
+    .swal-inc-form label { display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 4px; margin-top: 12px; }
+    .swal-inc-form label:first-child { margin-top: 0; }
+    .swal-inc-form textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border-light); border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.85rem; resize: vertical; min-height: 80px; box-sizing: border-box; }
+    .swal-preview-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 10px; margin-top: 8px; border: 1px solid var(--border-light); }
     .search-bar {
       display: flex;
       align-items: center;
@@ -2499,6 +2535,7 @@ Cadeau premium personnalisé</textarea>
   // ============================================================
   let _supabaseClient = null;
   let _allMissions = [];
+  let _missionIncidentCounts = {};
   let _allClientsData = [];
   let _convoyeursList = [];
   let _allCandidatures = [];
@@ -3656,6 +3693,19 @@ Cadeau premium personnalisé</textarea>
     const { data: missions, error } = await client.from('missions').select('id, reference, depart, arrivee, vehicule, mode, mode_transport, pack, status, paiement_statut, montant_ht, remuneration_convoyeur, marge, date_mission, client_id, client_email, client_nom, client_telephone, convoyeur_nom, convoyeur_id, convoyeur_telephone, immatriculation, type_vehicule, notes, stripe_session_id, photo_fin_mission, fin_mission_selfie_uploaded_at, created_at, updated_at').order('created_at', { ascending: false });
     if (error) { console.error(error); return; }
     _allMissions = missions || [];
+    // C-2.2C2 — Batch load open incident counts per mission (no N+1)
+    _missionIncidentCounts = {};
+    try {
+      const { data: incCounts, error: incErr } = await client.from('mission_incidents')
+        .select('mission_id,status');
+      if (!incErr && incCounts) {
+        incCounts.forEach(inc => {
+          if (inc.status === 'open') {
+            _missionIncidentCounts[inc.mission_id] = (_missionIncidentCounts[inc.mission_id] || 0) + 1;
+          }
+        });
+      }
+    } catch (e) { console.warn('Incident counts load failed:', e); }
     const visibleMissions = _allMissions.filter(m => m.status !== 'archived');
     renderMissionsTable(visibleMissions);
     renderRecentMissionsTable(visibleMissions);
@@ -3727,7 +3777,7 @@ Cadeau premium personnalisé</textarea>
         <td>${m.remuneration_convoyeur || '-'}€</td>
         <td>${m.marge || '-'}€</td>
         <td><span class="${payClass}">${payText}</span></td>
-        <td><span class="${statusClass}">${statusText}</span></td>
+        <td><span class="${statusClass}">${statusText}</span>${(_missionIncidentCounts[m.id] > 0) ? `<span class="inc-indicator" title="${escapeHtml(String(_missionIncidentCounts[m.id]))} incident(s) ouvert(s)"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(String(_missionIncidentCounts[m.id]))}</span>` : ''}</td>
         <td>${dateStr}</td>
         <td><div class="td-actions">${actionsHtml}</div></td>
       </tr>`;
@@ -5057,13 +5107,19 @@ Cadeau premium personnalisé</textarea>
           return `<hr style="margin:10px 0;border-color:#eee;"><div style="background:rgba(122,46,26,0.06);border:1px solid rgba(122,46,26,0.15);border-radius:10px;padding:10px;"><div style="font-weight:700;color:var(--bordeaux);font-size:0.8rem;"><i class="fas fa-exchange-alt"></i> ${retours.length} retour(s) possible(s) depuis ${escapeHtml(mission.arrivee)}</div>${liste}${extra}</div>`;
         })()}
         ${photoFinMissionUrl ? `<hr style="margin:10px 0;border-color:#eee;"><div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-camera"></i> Photo de fin de mission</div><div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige); max-width:320px;"><img src="${escapeHtml(photoFinMissionUrl)}" style="width:100%; max-height:220px; object-fit:cover; cursor:pointer;" onclick="window.open('${escapeHtml(photoFinMissionUrl)}')" alt="Photo fin de mission"></div>` : ''}
+        <hr style="margin:10px 0;border-color:#eee;">
+        <div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-exclamation-triangle"></i> Incidents</div>
+        <div id="adminMissionIncidents"><div class="inc-empty">Chargement…</div></div>
         <hr style="margin:14px 0;border-color:#eee;">
         <div style="display:flex;flex-wrap:wrap;gap:6px;">${actionsHtml}</div>
       </div>`,
       width: 650,
       showCloseButton: true,
       showConfirmButton: false,
-      showCancelButton: false
+      showCancelButton: false,
+      didOpen: () => {
+        loadAdminMissionIncidents(mission.id);
+      }
     });
   };
 
@@ -6379,6 +6435,171 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
   document.querySelectorAll('.nav-item[data-tab="devis-expired"]').forEach(function(el) {
     el.addEventListener('click', loadExpiredDevis);
   });
+
+  // =========================================================
+  // C-2.2C2 — INCIDENTS ADMIN
+  // =========================================================
+  const ADM_INCIDENT_TYPES = {
+    'vehicle_breakdown':  'Panne véhicule',
+    'accident':           'Accident',
+    'damage':             'Dommage',
+    'flat_tire':          'Crevaison',
+    'charging_or_fuel':   'Recharge / carburant',
+    'delay':              'Retard',
+    'documents_or_keys':  'Documents / clés',
+    'other':              'Autre'
+  };
+  const ADM_INCIDENT_SEVERITIES = {
+    'low': 'Faible', 'medium': 'Moyenne', 'high': 'Élevée', 'critical': 'Critique'
+  };
+  const ADM_INCIDENT_STATUSES = {
+    'open': 'Ouvert', 'reviewed': 'Pris en compte', 'resolved': 'Résolu'
+  };
+  let _adminCurrentMissionId = null;
+
+  function admIncTypeLabel(t) { return ADM_INCIDENT_TYPES[t] || t || '—'; }
+  function admIncSevLabel(s) { return ADM_INCIDENT_SEVERITIES[s] || s || '—'; }
+  function admIncStatusLabel(s) { return ADM_INCIDENT_STATUSES[s] || s || '—'; }
+  function admIncSevBadge(sev) {
+    return `<span class="inc-badge sev-${escapeHtml(sev)}">${escapeHtml(admIncSevLabel(sev))}</span>`;
+  }
+  function admIncStatusBadge(st) {
+    return `<span class="inc-badge st-${escapeHtml(st)}">${escapeHtml(admIncStatusLabel(st))}</span>`;
+  }
+
+  async function loadAdminMissionIncidents(missionId) {
+    const sb = getSupabase();
+    if (!sb) return;
+    _adminCurrentMissionId = missionId;
+    const el = document.getElementById('adminMissionIncidents');
+    if (!el) return;
+    try {
+      const { data: incidents, error } = await sb.from('mission_incidents')
+        .select('id,incident_type,severity,title,description,status,occurred_at,location_text,reviewed_at,reviewed_by,resolved_at,resolved_by,resolution_notes,created_at')
+        .eq('mission_id', missionId)
+        .order('created_at', { ascending: false });
+      if (error) {
+        el.innerHTML = '<div class="inc-empty">Incidents indisponibles.</div>';
+        return;
+      }
+      if (!incidents || incidents.length === 0) {
+        el.innerHTML = '<div class="inc-empty">Aucun incident signalé.</div>';
+        return;
+      }
+      el.innerHTML = incidents.map(inc => {
+        const dateStr = new Date(inc.occurred_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const reviewedStr = inc.reviewed_at ? new Date(inc.reviewed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : null;
+        const resolvedStr = inc.resolved_at ? new Date(inc.resolved_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : null;
+        let actions = '';
+        if (inc.status === 'open') {
+          actions += `<button class="btn-sm btn-sm-ghost" onclick="admReviewIncident('${inc.id}','reviewed')"><i class="fas fa-check"></i> Pris en compte</button>`;
+          actions += `<button class="btn-sm btn-sm-green" onclick="admResolveIncident('${inc.id}')"><i class="fas fa-check-double"></i> Résoudre</button>`;
+        } else if (inc.status === 'reviewed') {
+          actions += `<button class="btn-sm btn-sm-green" onclick="admResolveIncident('${inc.id}')"><i class="fas fa-check-double"></i> Résoudre</button>`;
+        }
+        actions += `<button class="btn-sm btn-sm-ghost" onclick="admShowEvidence('${inc.id}')"><i class="fas fa-images"></i> Photos</button>`;
+        let extraInfo = '';
+        if (reviewedStr) extraInfo += `<div style="font-size:0.7rem;color:var(--gray-mid);margin-top:4px;"><i class="fas fa-check"></i> Pris en compte le ${escapeHtml(reviewedStr)}</div>`;
+        if (resolvedStr) extraInfo += `<div style="font-size:0.7rem;color:var(--gray-mid);margin-top:4px;"><i class="fas fa-check-double"></i> Résolu le ${escapeHtml(resolvedStr)}</div>`;
+        if (inc.resolution_notes) extraInfo += `<div style="font-size:0.75rem;color:var(--gray-dark);margin-top:4px;padding:8px;background:var(--beige);border-radius:8px;"><b>Note :</b> ${escapeHtml(inc.resolution_notes)}</div>`;
+        return `<div class="inc-item">
+          <div class="inc-item-header">
+            ${admIncSevBadge(inc.severity)}
+            ${admIncStatusBadge(inc.status)}
+            <span class="inc-item-title">${escapeHtml(inc.title)}</span>
+          </div>
+          <div class="inc-item-meta"><i class="fas fa-tag"></i> ${escapeHtml(admIncTypeLabel(inc.incident_type))} · <i class="fas fa-clock"></i> ${escapeHtml(dateStr)}${inc.location_text ? ' · <i class="fas fa-map-marker-alt"></i> ' + escapeHtml(inc.location_text) : ''}</div>
+          <div class="inc-item-desc">${escapeHtml(inc.description || '')}</div>
+          ${extraInfo}
+          <div class="inc-item-actions">${actions}</div>
+        </div>`;
+      }).join('');
+    } catch (err) {
+      el.innerHTML = '<div class="inc-empty">Incidents indisponibles.</div>';
+    }
+  }
+  window.loadAdminMissionIncidents = loadAdminMissionIncidents;
+
+  async function admReviewIncident(incidentId, targetStatus) {
+    const sb = getSupabase();
+    if (!sb) return;
+    Swal.fire({ title: 'Traitement…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+    const { error } = await sb.rpc('review_mission_incident', {
+      p_incident_id: incidentId,
+      p_target_status: targetStatus
+    });
+    if (error) {
+      Swal.fire('Erreur', 'Impossible de traiter cet incident.', 'error');
+      return;
+    }
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Incident pris en compte', timer: 2500, showConfirmButton: false });
+    if (_adminCurrentMissionId) loadAdminMissionIncidents(_adminCurrentMissionId);
+  }
+  window.admReviewIncident = admReviewIncident;
+
+  function admResolveIncident(incidentId) {
+    Swal.fire({
+      title: 'Résoudre l'incident',
+      html: `<div class="swal-inc-form">
+        <label for="adm-res-notes">Note de résolution * <span style="font-size:0.65rem;color:var(--gray-mid);">(max 2000 caractères)</span></label>
+        <textarea id="adm-res-notes" maxlength="2000" placeholder="Décrivez la résolution..."></textarea>
+      </div>`,
+      showCancelButton: true,
+      confirmButtonText: 'Résoudre',
+      cancelButtonText: 'Annuler',
+      confirmButtonColor: 'var(--success)',
+      preConfirm: async () => {
+        const notes = document.getElementById('adm-res-notes').value.trim();
+        if (!notes) { Swal.showValidationMessage('La note de résolution est obligatoire.'); return false; }
+        const sb = getSupabase();
+        if (!sb) { Swal.showValidationMessage('Erreur de connexion.'); return false; }
+        const { error } = await sb.rpc('review_mission_incident', {
+          p_incident_id: incidentId,
+          p_target_status: 'resolved',
+          p_resolution_notes: notes
+        });
+        if (error) {
+          Swal.showValidationMessage('Impossible de résoudre cet incident.');
+          return false;
+        }
+        return true;
+      }
+    }).then(result => {
+      if (result.isConfirmed) {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Incident résolu', timer: 2500, showConfirmButton: false });
+        if (_adminCurrentMissionId) loadAdminMissionIncidents(_adminCurrentMissionId);
+      }
+    });
+  }
+  window.admResolveIncident = admResolveIncident;
+
+  async function admShowEvidence(incidentId) {
+    const sb = getSupabase();
+    if (!sb) return;
+    Swal.fire({ title: 'Chargement des photos…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+    try {
+      const { data: evidence, error } = await sb.from('mission_incident_evidence')
+        .select('id,storage_path,mime_type,created_at')
+        .eq('incident_id', incidentId)
+        .order('created_at', { ascending: true });
+      if (error) { Swal.fire('Erreur', 'Impossible de charger les photos.', 'error'); return; }
+      if (!evidence || evidence.length === 0) {
+        Swal.fire({ title: 'Photos', text: 'Aucune photo pour cet incident.', icon: 'info', confirmButtonColor: 'var(--bordeaux)' });
+        return;
+      }
+      const urls = await Promise.all(evidence.map(async (ev) => {
+        const { data, error: signErr } = await sb.storage.from('mission-incidents').createSignedUrl(ev.storage_path, 300);
+        return signErr ? null : { url: data.signedUrl };
+      }));
+      const validUrls = urls.filter(u => u !== null);
+      if (validUrls.length === 0) { Swal.fire('Erreur', 'Impossible de charger les photos.', 'error'); return; }
+      const galleryHtml = validUrls.map(u => `<img src="${u.url}" class="swal-preview-img" style="max-height:300px;margin-bottom:8px;" alt="Photo incident">`).join('');
+      Swal.fire({ title: 'Photos de l'incident', html: `<div style="text-align:center;">${galleryHtml}</div>`, width: 500, showCloseButton: true, showConfirmButton: false });
+    } catch (err) {
+      Swal.fire('Erreur', 'Impossible de charger les photos.', 'error');
+    }
+  }
+  window.admShowEvidence = admShowEvidence;
   </script>
 
 <!-- BOTTOM NAV MOBILE -->
