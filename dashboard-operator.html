@@ -412,6 +412,122 @@
     button:focus-visible, a:focus-visible, .nav-item:focus-visible {
       outline: 2px solid var(--bordeaux); outline-offset: 2px;
     }
+
+    /* =========================================================
+       C-2.2A — MISSION DETAIL MODAL
+       ========================================================= */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(10,77,104,0.4);
+      backdrop-filter: blur(4px);
+      z-index: 950;
+      display: none;
+      align-items: flex-start; justify-content: center;
+      padding: 20px; overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      max-width: 640px; width: 100%;
+      margin: 40px auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px;
+    }
+    .modal-header h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.1rem; font-weight: 700; color: var(--gray-dark);
+    }
+    .modal-close {
+      background: none; border: none;
+      font-size: 1.3rem; color: var(--gray-mid);
+      cursor: pointer; padding: 4px 8px;
+      min-height: 44px; min-width: 44px;
+      border-radius: 8px; transition: all 0.2s;
+    }
+    .modal-close:hover { background: var(--beige); color: var(--danger); }
+    .modal-body { padding: 24px; }
+    .modal-section { margin-bottom: 20px; }
+    .modal-section:last-child { margin-bottom: 0; }
+    .modal-section-title {
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--gray-mid); margin-bottom: 10px;
+    }
+    .modal-field-row {
+      display: flex; flex-wrap: wrap; gap: 12px 24px;
+    }
+    .modal-field {
+      display: flex; flex-direction: column; gap: 2px;
+      min-width: 140px; flex: 1;
+    }
+    .modal-field-label {
+      font-size: 0.65rem; font-weight: 600;
+      text-transform: uppercase; color: var(--gray-mid);
+      letter-spacing: 0.04em;
+    }
+    .modal-field-value {
+      font-size: 0.85rem; font-weight: 500; color: var(--gray-dark);
+    }
+    .modal-status-badge {
+      display: inline-block; font-size: 0.7rem; font-weight: 700;
+      padding: 4px 12px; border-radius: 20px;
+    }
+    .modal-actions {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      padding: 16px 24px; border-top: 1px solid var(--border-light);
+      background: var(--beige);
+    }
+    .modal-actions .btn-sm { flex: 1; min-width: 120px; }
+
+    /* TIMELINE */
+    .timeline { position: relative; padding-left: 20px; }
+    .timeline::before {
+      content: ''; position: absolute;
+      left: 6px; top: 4px; bottom: 4px;
+      width: 2px; background: var(--border-light);
+    }
+    .timeline-item {
+      position: relative; padding-bottom: 16px;
+    }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-dot {
+      position: absolute; left: -20px; top: 4px;
+      width: 14px; height: 14px;
+      border-radius: 50%; background: var(--bordeaux);
+      border: 2px solid white;
+    }
+    .timeline-item.muted .timeline-dot { background: var(--gray-mid); }
+    .timeline-time {
+      font-size: 0.65rem; font-weight: 600;
+      color: var(--gray-mid); text-transform: uppercase;
+    }
+    .timeline-label {
+      font-size: 0.8rem; font-weight: 500; color: var(--gray-dark);
+      margin-top: 2px;
+    }
+    .timeline-empty {
+      font-size: 0.8rem; color: var(--gray-mid);
+      padding: 12px 0; font-style: italic;
+    }
+
+    /* MOBILE MODAL */
+    @media (max-width: 900px) {
+      .modal-overlay { padding: 0; }
+      .modal-card { margin: 0; border-radius: 0; min-height: 100vh; }
+      .modal-header { padding: 16px; }
+      .modal-body { padding: 16px; }
+      .modal-actions { padding: 12px 16px; }
+      .modal-actions .btn-sm { min-width: 0; }
+      .modal-field-row { flex-direction: column; gap: 8px; }
+    }
   </style>
 </head>
 <body>
@@ -500,7 +616,7 @@
           <div class="stat-card">
             <div class="stat-ico"><i class="fas fa-check-circle"></i></div>
             <div class="stat-val" id="opKpiTotal">-</div>
-            <div class="stat-lbl">Total missions</div>
+            <div class="stat-lbl">Missions actives</div>
           </div>
         </div>
         <div class="sec-title">
@@ -530,6 +646,7 @@
             <button class="filter-btn" onclick="filterOpMissions('in_progress',this)">En cours</button>
             <button class="filter-btn" onclick="filterOpMissions('delivered',this)">Livrées</button>
             <button class="filter-btn" onclick="filterOpMissions('completed',this)">Terminées</button>
+            <button class="filter-btn" onclick="filterOpMissions('cancelled',this)">Annulées</button>
           </div>
         </div>
         <div class="missions-list" id="opMyMissionsList">
@@ -556,6 +673,24 @@
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- MISSION DETAIL MODAL (C-2.2A) -->
+  <div class="modal-overlay" id="missionDetailModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">Détails de la mission</h3>
+        <button class="modal-close" type="button" onclick="closeMissionModal()" aria-label="Fermer">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Contenu dynamique -->
+      </div>
+      <div class="modal-actions" id="modalActions">
+        <!-- Actions dynamiques -->
+      </div>
+    </div>
   </div>
 
   <!-- MOBILE NAV -->
@@ -768,7 +903,7 @@
         if (!sb) return;
 
         const { data: missions, error: missionsErr } = await sb.from('missions')
-          .select('id,reference,depart,arrivee,trajet,vehicule,mode,mode_transport,pack,date_mission,client_nom,client_telephone,convoyeur_nom,convoyeur_id,convoyeur_telephone,status,notes,created_at,updated_at')
+          .select('id,reference,depart,arrivee,trajet,vehicule,mode,mode_transport,pack,date_mission,heure_depart,immatriculation,annee,carburant,puissance,type_vehicule,photo_fin_mission,depart_ville,arrivee_ville,distance_km,remuneration_convoyeur,client_nom,convoyeur_nom,convoyeur_id,convoyeur_telephone,status,notes,created_at,updated_at')
           .order('date_mission', { ascending: true });
 
         if (missionsErr) {
@@ -797,16 +932,20 @@
           weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
 
-        // KPIs
+        // KPIs — C-2.2A : correction "À finaliser" = delivered uniquement
+        //   cancelled/archived exclus des KPIs actifs
+        const ACTIVE_STATUSES = ['assigned', 'accepted', 'in_progress', 'delivered', 'completed'];
+        const activeMissions = _myMissions.filter(m => ACTIVE_STATUSES.includes(m.status));
+
         const today = new Date(); today.setHours(0, 0, 0, 0);
-        const missionsJour = _myMissions.filter(m => {
+        const missionsJour = activeMissions.filter(m => {
           if (!m.date_mission) return false;
           const d = new Date(m.date_mission); d.setHours(0, 0, 0, 0);
           return d.getTime() === today.getTime();
         }).length;
-        const enCours = _myMissions.filter(m => m.status === 'in_progress').length;
-        const aFinaliser = _myMissions.filter(m => m.status === 'delivered' || m.status === 'accepted').length;
-        const total = _myMissions.length;
+        const enCours = activeMissions.filter(m => m.status === 'in_progress').length;
+        const aFinaliser = activeMissions.filter(m => m.status === 'delivered').length;
+        const total = activeMissions.length;
 
         document.getElementById('opKpiJour').textContent = missionsJour;
         document.getElementById('opKpiEnCours').textContent = enCours;
@@ -874,24 +1013,43 @@
           const dep = m.depart || (m.trajet ? m.trajet.split('→')[0] : '').trim() || '-';
           const arr = m.arrivee || (m.trajet ? m.trajet.split('→')[1] : '').trim() || '-';
 
-          // Actions selon statut
+          // Actions selon statut — C-2.2A : ajout Démarrer/Livrer/Finaliser/Voir détails
           let actions = '';
+          // Bouton principal selon statut
           if (m.status === 'assigned') {
             actions += `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation();respondToAssignment('${m.id}', true)"><i class="fas fa-check"></i> Accepter</button>`;
             actions += `<button class="btn-sm btn-sm-danger" onclick="event.stopPropagation();respondToAssignment('${m.id}', false)"><i class="fas fa-times"></i> Refuser</button>`;
           }
+          if (m.status === 'accepted') {
+            actions += `<button class="btn-sm btn-sm-red" onclick="event.stopPropagation();transitionMission('${m.id}','in_progress','Démarrer la mission')"><i class="fas fa-play"></i> Démarrer</button>`;
+          }
+          if (m.status === 'in_progress') {
+            actions += `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation();transitionMission('${m.id}','delivered','Livrer le véhicule')"><i class="fas fa-flag-checkered"></i> Livrer</button>`;
+          }
+          if (m.status === 'delivered') {
+            actions += `<button class="btn-sm btn-sm-red" onclick="event.stopPropagation();transitionMission('${m.id}','completed','Finaliser la mission')"><i class="fas fa-check-double"></i> Finaliser</button>`;
+          }
+          // Bouton détails (toujours présent)
+          actions += `<button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation();openMissionModal('${m.id}')"><i class="fas fa-eye"></i> Détails</button>`;
+          // Outils terrain
           actions += `<a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-file-alt"></i> Bon de mission</a>`;
           actions += `<a href="etat-des-lieux.html?mission_id=${m.id}&type=depart" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-clipboard-list"></i> EDL</a>`;
           if (m.status === 'in_progress') {
             actions += `<a href="gps-emitter.html?id=${m.id}&ref=${encodeURIComponent(m.reference || '')}&route=${encodeURIComponent(dep + ' → ' + arr)}&vehicle=${encodeURIComponent(m.vehicule || '')}" class="btn-sm btn-sm-red" target="_blank" rel="noopener"><i class="fas fa-satellite-dish"></i> GPS</a>`;
           }
 
-          return `<div class="mission-card">
+          const heureStr = m.heure_depart ? escapeHtml(m.heure_depart) : '';
+          const clientStr = m.client_nom ? escapeHtml(m.client_nom) : '';
+          const metaExtras = (heureStr || clientStr)
+            ? `<span class="mc-date"><i class="fas fa-clock"></i> ${heureStr || '-'}</span>${clientStr ? '<span class="mc-pack"><i class="fas fa-user"></i> ' + clientStr + '</span>' : ''}`
+            : '';
+
+          return `<div class="mission-card" onclick="openMissionModal('${m.id}')" style="cursor:pointer;" role="button" tabindex="0">
             <div class="mc-status ${si.class}"></div>
             <div class="mc-info">
               <div class="mc-ref">${escapeHtml(m.reference || '-')}</div>
               <div class="mc-route">${escapeHtml(dep)} <em>→</em> ${escapeHtml(arr)}</div>
-              <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${escapeHtml(m.pack ? m.pack.charAt(0).toUpperCase() + m.pack.slice(1) : '-')}</span></div>
+              <div class="mc-meta">${tagVehicule}${tagMode}<span class="mc-date"><i class="fas fa-calendar"></i> ${dateStr}</span><span class="mc-pack">${escapeHtml(m.pack ? m.pack.charAt(0).toUpperCase() + m.pack.slice(1) : '-')}</span>${metaExtras}</div>
               <div style="margin-top:6px;"><span class="mc-status-badge" style="background:${si.color}22;color:${si.color};">${si.label}</span></div>
             </div>
             <div class="mc-actions">${actions}</div>
@@ -923,6 +1081,308 @@
         }
       }
       window.respondToAssignment = respondToAssignment;
+
+      // =========================================================
+      // C-2.2A — TRANSITION DE STATUT (Démarrer / Livrer / Finaliser)
+      // =========================================================
+      // Utilise exclusivement la RPC existante transition_mission_status.
+      // Aucun .update() direct sur missions.status.
+      // Vérifie que la mission appartient bien à l'operator avant action.
+      async function transitionMission(missionId, targetStatus, actionLabel) {
+        if (!_operatorUser) return Swal.fire('Erreur', 'Vous devez être connecté.', 'error');
+
+        // Vérifier que la mission est bien dans _myMissions
+        const mission = _myMissions.find(m => m.id === missionId);
+        if (!mission) {
+          Swal.fire('Erreur', 'Mission introuvable dans vos missions assignées.', 'error');
+          return;
+        }
+        if (mission.convoyeur_id !== _operatorUser.id) {
+          Swal.fire('Erreur', 'Cette mission ne vous est pas assignée.', 'error');
+          return;
+        }
+
+        // Confirmation utilisateur
+        const confirmResult = await Swal.fire({
+          title: actionLabel,
+          text: `Mission ${mission.reference || ''} — ${mission.depart || ''} → ${mission.arrivee || ''}`,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: 'var(--bordeaux)',
+          cancelButtonColor: 'var(--gray-mid)',
+          confirmButtonText: 'Oui, continuer',
+          cancelButtonText: 'Annuler'
+        });
+        if (!confirmResult.isConfirmed) return;
+
+        const sb = getSBC();
+        const { error } = await sb.rpc('transition_mission_status', {
+          p_mission_id: missionId,
+          p_target_status: targetStatus
+        });
+
+        if (error) {
+          console.error('Erreur transition mission:', error.message || error);
+          Swal.fire({
+            title: 'Action impossible',
+            text: error.message || 'La transition a été refusée par le système. Vérifiez que toutes les conditions sont remplies (EDL, preuves, etc.).',
+            icon: 'error',
+            confirmButtonColor: 'var(--bordeaux)'
+          });
+        } else {
+          Swal.fire({
+            toast: true, position: 'top-end',
+            icon: 'success',
+            title: actionLabel + ' — OK',
+            timer: 2500, showConfirmButton: false
+          });
+          await loadOperatorData();
+          // Si la modale est ouverte pour cette mission, la rafraîchir
+          if (_currentModalMissionId === missionId) {
+            openMissionModal(missionId);
+          }
+        }
+      }
+      window.transitionMission = transitionMission;
+
+      // =========================================================
+      // C-2.2A — FICHE MISSION DÉTAILLÉE (MODALE)
+      // =========================================================
+      let _currentModalMissionId = null;
+
+      function closeMissionModal() {
+        const modal = document.getElementById('missionDetailModal');
+        if (modal) modal.classList.remove('open');
+        _currentModalMissionId = null;
+      }
+      window.closeMissionModal = closeMissionModal;
+
+      // Fermeture par clic sur l'overlay ou touche Escape
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeMissionModal();
+      });
+
+      async function openMissionModal(missionId) {
+        const mission = _myMissions.find(m => m.id === missionId);
+        if (!mission) return;
+
+        _currentModalMissionId = missionId;
+        const si = STATUS_INFO[mission.status] || STATUS_INFO['accepted'];
+        const sb = getSBC();
+
+        // Construction du corps de la modale
+        const body = document.getElementById('modalBody');
+        const dateStr = mission.date_mission
+          ? new Date(mission.date_mission).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+          : '-';
+        const heureStr = mission.heure_depart || '-';
+        const dep = mission.depart || (mission.trajet ? mission.trajet.split('→')[0] : '').trim() || '-';
+        const arr = mission.arrivee || (mission.trajet ? mission.trajet.split('→')[1] : '').trim() || '-';
+
+        body.innerHTML = `
+          <div class="modal-section">
+            <div class="modal-section-title">Mission</div>
+            <div class="modal-field-row">
+              <div class="modal-field">
+                <div class="modal-field-label">Référence</div>
+                <div class="modal-field-value">${escapeHtml(mission.reference || '-')}</div>
+              </div>
+              <div class="modal-field">
+                <div class="modal-field-label">Statut</div>
+                <div class="modal-field-value"><span class="modal-status-badge" style="background:${si.color}22;color:${si.color};">${si.label}</span></div>
+              </div>
+              <div class="modal-field">
+                <div class="modal-field-label">Date</div>
+                <div class="modal-field-value">${escapeHtml(dateStr)}</div>
+              </div>
+              <div class="modal-field">
+                <div class="modal-field-label">Heure de départ</div>
+                <div class="modal-field-value">${escapeHtml(heureStr)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-section">
+            <div class="modal-section-title">Trajet</div>
+            <div class="modal-field-row">
+              <div class="modal-field">
+                <div class="modal-field-label">Départ</div>
+                <div class="modal-field-value">${escapeHtml(dep)}</div>
+              </div>
+              <div class="modal-field">
+                <div class="modal-field-label">Arrivée</div>
+                <div class="modal-field-value">${escapeHtml(arr)}</div>
+              </div>
+              ${mission.distance_km ? `<div class="modal-field"><div class="modal-field-label">Distance</div><div class="modal-field-value">${escapeHtml(String(mission.distance_km))} km</div></div>` : ''}
+            </div>
+          </div>
+
+          <div class="modal-section">
+            <div class="modal-section-title">Véhicule</div>
+            <div class="modal-field-row">
+              <div class="modal-field">
+                <div class="modal-field-label">Marque / Modèle</div>
+                <div class="modal-field-value">${escapeHtml(mission.vehicule || '-')}</div>
+              </div>
+              <div class="modal-field">
+                <div class="modal-field-label">Immatriculation</div>
+                <div class="modal-field-value">${escapeHtml(mission.immatriculation || '-')}</div>
+              </div>
+              <div class="modal-field">
+                <div class="modal-field-label">Année</div>
+                <div class="modal-field-value">${escapeHtml(mission.annee || '-')}</div>
+              </div>
+              <div class="modal-field">
+                <div class="modal-field-label">Carburant</div>
+                <div class="modal-field-value">${escapeHtml(mission.carburant || '-')}</div>
+              </div>
+              <div class="modal-field">
+                <div class="modal-field-label">Puissance</div>
+                <div class="modal-field-value">${escapeHtml(mission.puissance || '-')}</div>
+              </div>
+              <div class="modal-field">
+                <div class="modal-field-label">Type</div>
+                <div class="modal-field-value">${escapeHtml(mission.type_vehicule || '-')}</div>
+              </div>
+            </div>
+          </div>
+
+          ${mission.notes ? `
+          <div class="modal-section">
+            <div class="modal-section-title">Consignes / Instructions</div>
+            <div class="modal-field-value" style="font-size:0.85rem;line-height:1.6;white-space:pre-wrap;">${escapeHtml(mission.notes)}</div>
+          </div>` : ''}
+
+          <div class="modal-section">
+            <div class="modal-section-title">Client</div>
+            <div class="modal-field-row">
+              <div class="modal-field">
+                <div class="modal-field-label">Nom</div>
+                <div class="modal-field-value">${escapeHtml(mission.client_nom || '-')}</div>
+              </div>
+            </div>
+          </div>
+
+          ${mission.remuneration_convoyeur != null ? `
+          <div class="modal-section">
+            <div class="modal-section-title">Rémunération</div>
+            <div class="modal-field-row">
+              <div class="modal-field">
+                <div class="modal-field-label">Votre rémunération</div>
+                <div class="modal-field-value">${escapeHtml(String(mission.remuneration_convoyeur))} €</div>
+              </div>
+            </div>
+          </div>` : ''}
+
+          <div class="modal-section">
+            <div class="modal-section-title">Historique (timeline)</div>
+            <div id="modalTimeline">
+              <div class="timeline-empty"><i class="fas fa-spinner fa-spin"></i> Chargement…</div>
+            </div>
+          </div>
+        `;
+
+        // Actions de la modale selon le statut
+        const actionsContainer = document.getElementById('modalActions');
+        let modalActionsHtml = '';
+        if (mission.status === 'assigned') {
+          modalActionsHtml += `<button class="btn-sm btn-sm-green" onclick="respondToAssignment('${mission.id}', true)"><i class="fas fa-check"></i> Accepter</button>`;
+          modalActionsHtml += `<button class="btn-sm btn-sm-danger" onclick="respondToAssignment('${mission.id}', false)"><i class="fas fa-times"></i> Refuser</button>`;
+        }
+        if (mission.status === 'accepted') {
+          modalActionsHtml += `<button class="btn-sm btn-sm-red" onclick="transitionMission('${mission.id}','in_progress','Démarrer la mission')"><i class="fas fa-play"></i> Démarrer</button>`;
+        }
+        if (mission.status === 'in_progress') {
+          modalActionsHtml += `<button class="btn-sm btn-sm-green" onclick="transitionMission('${mission.id}','delivered','Livrer le véhicule')"><i class="fas fa-flag-checkered"></i> Livrer</button>`;
+        }
+        if (mission.status === 'delivered') {
+          modalActionsHtml += `<button class="btn-sm btn-sm-red" onclick="transitionMission('${mission.id}','completed','Finaliser la mission')"><i class="fas fa-check-double"></i> Finaliser</button>`;
+        }
+        // Outils terrain
+        modalActionsHtml += `<a href="bon-de-mission.html?id=${mission.id}" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-file-alt"></i> Bon de mission</a>`;
+        modalActionsHtml += `<a href="etat-des-lieux.html?mission_id=${mission.id}&type=depart" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-clipboard-list"></i> EDL</a>`;
+        if (mission.status === 'in_progress') {
+          modalActionsHtml += `<a href="gps-emitter.html?id=${mission.id}&ref=${encodeURIComponent(mission.reference || '')}&route=${encodeURIComponent(dep + ' → ' + arr)}&vehicle=${encodeURIComponent(mission.vehicule || '')}" class="btn-sm btn-sm-red" target="_blank" rel="noopener"><i class="fas fa-satellite-dish"></i> GPS</a>`;
+        }
+        actionsContainer.innerHTML = modalActionsHtml;
+
+        // Afficher la modale
+        const modal = document.getElementById('missionDetailModal');
+        modal.classList.add('open');
+
+        // Fermeture par clic sur l'overlay (pas sur la carte)
+        modal.onclick = function(e) {
+          if (e.target === modal) closeMissionModal();
+        };
+
+        // Charger la timeline
+        loadMissionTimeline(missionId);
+      }
+      window.openMissionModal = openMissionModal;
+
+      // =========================================================
+      // C-2.2A — TIMELINE MISSION_EVENTS
+      // =========================================================
+      // RLS mission_events_convoyeur_select_b2 autorise la lecture
+      // pour les missions où convoyeur_id correspond à auth_user_id.
+      // Un operator avec ligne convoyeurs y a accès implicitement.
+      const EVENT_LABELS = {
+        'mission_assigned':       { label: 'Mission assignée',         icon: 'fa-user-plus' },
+        'assignment_accepted':    { label: 'Mission acceptée',         icon: 'fa-check' },
+        'assignment_rejected':    { label: 'Mission refusée',          icon: 'fa-times' },
+        'mission_started':        { label: 'Mission démarrée',         icon: 'fa-play' },
+        'mission_delivered':      { label: 'Véhicule livré',           icon: 'fa-flag-checkered' },
+        'mission_completed':      { label: 'Mission finalisée',        icon: 'fa-check-double' },
+        'mission_archived':       { label: 'Mission archivée',         icon: 'fa-archive' },
+        'mission_cancelled':      { label: 'Mission annulée',          icon: 'fa-ban' },
+        'mission_status_changed': { label: 'Changement de statut',     icon: 'fa-exchange-alt' },
+        'edl_departure_validated':{ label: 'EDL départ validé',         icon: 'fa-clipboard-check' },
+        'edl_arrival_validated':  { label: 'EDL arrivée validé',        icon: 'fa-clipboard-check' },
+        'edl_validated':          { label: 'EDL validé',               icon: 'fa-clipboard-check' }
+      };
+
+      async function loadMissionTimeline(missionId) {
+        const sb = getSBC();
+        if (!sb) return;
+
+        const timelineEl = document.getElementById('modalTimeline');
+        if (!timelineEl) return;
+
+        try {
+          const { data: events, error } = await sb.from('mission_events')
+            .select('event_type,from_status,to_status,actor_role,created_at')
+            .eq('mission_id', missionId)
+            .order('created_at', { ascending: true });
+
+          if (error) {
+            console.warn('Timeline load error:', error.message);
+            timelineEl.innerHTML = '<div class="timeline-empty">Historique indisponible.</div>';
+            return;
+          }
+
+          if (!events || events.length === 0) {
+            timelineEl.innerHTML = '<div class="timeline-empty">Aucun événement enregistré.</div>';
+            return;
+          }
+
+          timelineEl.innerHTML = '<div class="timeline">' + events.map(ev => {
+            const info = EVENT_LABELS[ev.event_type] || { label: 'Événement', icon: 'fa-circle' };
+            const timeStr = new Date(ev.created_at).toLocaleDateString('fr-FR', {
+              day: 'numeric', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            });
+            const isMuted = ['mission_archived', 'mission_cancelled'].includes(ev.event_type);
+            return `<div class="timeline-item${isMuted ? ' muted' : ''}">
+              <div class="timeline-dot"></div>
+              <div class="timeline-time">${escapeHtml(timeStr)}</div>
+              <div class="timeline-label"><i class="fas ${info.icon}"></i> ${escapeHtml(info.label)}</div>
+            </div>`;
+          }).join('') + '</div>';
+        } catch (err) {
+          console.warn('Timeline exception:', err);
+          timelineEl.innerHTML = '<div class="timeline-empty">Historique indisponible.</div>';
+        }
+      }
 
       // =========================================================
       // FILTRES
