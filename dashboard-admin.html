@@ -2573,6 +2573,19 @@ Cadeau premium personnalisé</textarea>
       .replace(/'/g, '&#39;');
   }
 
+  function parseOptionalAmount(value) {
+    if (value === null || value === undefined) return null;
+    if (typeof value === 'string' && value.trim() === '') return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  const _eurFormatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function formatMontant(value) {
+    if (value === null || value === undefined) return '—';
+    return _eurFormatter.format(value);
+  }
+
   function getSupabase() {
     if (!_supabaseClient) {
       if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
@@ -3885,7 +3898,7 @@ Cadeau premium personnalisé</textarea>
       vehicule: m.vehicule || '—',
       pack: m.pack || '—',
       convoyeur: m.convoyeur_nom || '—',
-      montant: parseFloat(m.montant_ht) || 0,
+      montant: parseOptionalAmount(m.montant_ht),
       status: m.paiement_statut || 'pending',
       date: formatDate(m.date_mission || m.created_at),
       dateRaw: m.date_mission || m.created_at
@@ -3897,7 +3910,7 @@ Cadeau premium personnalisé</textarea>
         <td>${escapeHtml(inv.num)}</td>
         <td>${escapeHtml(inv.client)}</td>
         <td>${escapeHtml(inv.mission)}</td>
-        <td>${inv.ht.toFixed(2)} €</td>
+        <td>${formatMontant(inv.montant)}</td>
         <td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusText}</span></td>
         <td>${inv.date}</td>
         <td><button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation(); downloadInvoice('${inv.id}')" title="Télécharger PDF"><i class="fas fa-download"></i></button></td>
@@ -3908,14 +3921,14 @@ Cadeau premium personnalisé</textarea>
   window.viewInvoiceDetails = function(missionId) {
     const m = _allMissions.find(x => x.id === missionId);
     if (!m) return Swal.fire('Erreur', 'Facture introuvable', 'error');
-    const montant = parseFloat(m.montant_ht) || 0;
+    const montant = parseOptionalAmount(m.montant_ht);
     const payStatus = m.paiement_statut || 'pending';
     const payText = payStatus === 'paid' || payStatus === 'paye' ? 'Payée' : 'En attente';
     const payClass = payStatus === 'paid' || payStatus === 'paye' ? 'sp-ok' : 'sp-err';
 
     Swal.fire({
       title: `Facture F-${escapeHtml(m.reference || '000')}`,
-     ml: `<div style="text-align:left;font-size:0.9rem;">
+      html: `<div style="text-align:left;font-size:0.9rem;">
         <div style="display:flex;gap:8px;margin-bottom:12px;"><span class="sp ${payClass}"><span class="sp-dot"></span>${payText}</span></div>
         <b>N° Facture :</b> F-${escapeHtml(m.reference || '000')}<br>
         <b>Client :</b> ${escapeHtml(m.client_nom || '—')}<br>
@@ -3928,7 +3941,7 @@ Cadeau premium personnalisé</textarea>
         <b>Convoyeur :</b> ${escapeHtml(m.convoyeur_nom || '—')}<br>
         <b>Date :</b> ${formatDate(m.date_mission || m.created_at)}<br>
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Montant :</b> ${ht.toFixed(2)} €<br>
+        <b>Montant :</b> ${formatMontant(montant)}<br>
         <span style="font-size:0.8rem;color:#888;">TVA non applicable — franchise en base (art. 293 B CGI)</span><br>
         <hr style="margin:14px 0;border-color:#eee;">
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
@@ -3946,7 +3959,8 @@ Cadeau premium personnalisé</textarea>
   window.downloadInvoice = function(missionId) {
     const m = _allMissions.find(x => x.id === missionId);
     if (!m) return Swal.fire('Erreur', 'Facture introuvable', 'error');
-    const montant = parseFloat(m.montant_ht) || 0;
+    const montant = parseOptionalAmount(m.montant_ht);
+    if (montant === null) return Swal.fire('Facture incomplète', 'Impossible de générer la facture : le montant HT n\'est pas renseigné.', 'warning');
     const payStatus = m.paiement_statut || 'pending';
     const payText = payStatus === 'paid' || payStatus === 'paye' ? 'PAYÉE' : 'EN ATTENTE';
     const dateStr = formatDate(m.date_mission || m.created_at);
@@ -4005,7 +4019,7 @@ Cadeau premium personnalisé</textarea>
       doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
       doc.text('Montant total:', 130, finalY + 14);
-      doc.text(ht.toFixed(2) + ' EUR', 180, finalY + 14, { align: 'right' });
+      doc.text(montant.toFixed(2) + ' EUR', 180, finalY + 14, { align: 'right' });
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       doc.setTextColor(120);
@@ -5601,6 +5615,7 @@ Cadeau premium personnalisé</textarea>
         document.querySelector('.topbar').style.display = 'flex';
         document.querySelector('.dash-layout').style.display = 'flex';
         loadAllData();
+        fetchAdminReseauPosts();
       }
     });
 
@@ -5665,6 +5680,7 @@ Cadeau premium personnalisé</textarea>
         document.querySelector('.topbar').style.display = 'flex';
         document.querySelector('.dash-layout').style.display = 'flex';
         loadAllData();
+        fetchAdminReseauPosts();
       }
     });
     // ============================================================
@@ -5989,9 +6005,6 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     });
 
     console.log('📂 Dashboard Admin chargé');
-
-    // Charger les posts du réseau convoyeur au démarrage
-    fetchAdminReseauPosts();
   });
 
   // ============================================================
