@@ -601,6 +601,81 @@
       border-radius: 10px; margin-top: 8px; border: 1px solid var(--border-light);
     }
 
+    /* C-2.2C4 — EXPENSES */
+    .expense-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 40px;
+    }
+    .expense-badge.st-draft { background: #f5f5f5; color: var(--gray-mid); }
+    .expense-badge.st-submitted { background: var(--bordeaux-light); color: var(--bordeaux); }
+    .expense-badge.st-approved { background: #e8f5e9; color: var(--success); }
+    .expense-badge.st-rejected { background: #fce4ec; color: #c62828; }
+    .expense-item {
+      border: 1px solid var(--border-light); border-radius: 12px;
+      padding: 12px 14px; margin-bottom: 10px; background: white;
+    }
+    .expense-item:last-child { margin-bottom: 0; }
+    .expense-item-header {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .expense-item-title {
+      font-size: 0.85rem; font-weight: 600; color: var(--gray-dark);
+    }
+    .expense-item-meta {
+      font-size: 0.7rem; color: var(--gray-mid); margin-top: 2px;
+    }
+    .expense-item-desc {
+      font-size: 0.78rem; color: var(--gray-mid); margin-top: 6px;
+      overflow: hidden; text-overflow: ellipsis;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+    .expense-item-actions {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+    }
+    .expense-empty {
+      font-size: 0.8rem; color: var(--gray-mid);
+      padding: 12px 0; font-style: italic;
+    }
+    .expense-count-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    }
+    .expense-count-num {
+      font-size: 0.7rem; font-weight: 700; color: var(--bordeaux);
+      background: var(--bordeaux-light); padding: 2px 8px; border-radius: 40px;
+    }
+    .expense-total {
+      font-size: 0.75rem; color: var(--gray-mid); margin-bottom: 10px;
+    }
+    .expense-receipt-count {
+      font-size: 0.65rem; color: var(--gray-mid);
+      background: #f5f5f5; padding: 2px 6px; border-radius: 40px;
+    }
+    .swal-expense-form {
+      text-align: left; font-size: 0.85rem;
+    }
+    .swal-expense-form label {
+      display: block; font-weight: 600; font-size: 0.75rem;
+      text-transform: uppercase; color: var(--gray-mid);
+      margin-bottom: 4px; margin-top: 12px;
+    }
+    .swal-expense-form label:first-child { margin-top: 0; }
+    .swal-expense-form select,
+    .swal-expense-form input,
+    .swal-expense-form textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border-light);
+      border-radius: 10px; font-family: 'Inter', sans-serif;
+      font-size: 0.85rem; box-sizing: border-box;
+    }
+    .swal-expense-form textarea { resize: vertical; min-height: 80px; }
+    .swal-expense-form .char-count {
+      font-size: 0.65rem; color: var(--gray-mid); text-align: right; margin-top: 2px;
+    }
+    .pdf-preview-icon {
+      font-size: 3rem; color: #c62828; text-align: center; margin: 10px 0;
+    }
+
     /* MOBILE MODAL */
     @media (max-width: 900px) {
       .modal-overlay { padding: 0; }
@@ -1413,6 +1488,13 @@
           </div>
 
           <div class="modal-section">
+            <div class="modal-section-title">Frais de mission</div>
+            <div id="modalExpenses">
+              <div class="expense-empty"><i class="fas fa-spinner fa-spin"></i> Chargement…</div>
+            </div>
+          </div>
+
+          <div class="modal-section">
             <div class="modal-section-title">Historique (timeline)</div>
             <div id="modalTimeline">
               <div class="timeline-empty"><i class="fas fa-spinner fa-spin"></i> Chargement…</div>
@@ -1465,6 +1547,8 @@
         loadMissionTimeline(missionId);
         // C-2.2C2 — Charger les incidents
         loadMissionIncidents(missionId);
+        // C-2.2C4 — Charger les frais
+        loadMissionExpenses(missionId);
       }
       window.openMissionModal = openMissionModal;
 
@@ -1488,7 +1572,10 @@
         'edl_arrival_validated':  { label: 'EDL arrivée validé',        icon: 'fa-clipboard-check' },
         'edl_validated':          { label: 'EDL validé',               icon: 'fa-clipboard-check' },
         'incident_reported':      { label: 'Incident signalé',         icon: 'fa-exclamation-triangle' },
-        'incident_resolved':      { label: 'Incident résolu',          icon: 'fa-check-circle' }
+        'incident_resolved':      { label: 'Incident résolu',          icon: 'fa-check-circle' },
+        'expense_submitted':      { label: 'Frais soumis',             icon: 'fa-file-invoice-dollar' },
+        'expense_approved':       { label: 'Frais approuvé',           icon: 'fa-check-circle' },
+        'expense_rejected':       { label: 'Frais refusé',             icon: 'fa-times-circle' }
       };
 
       async function loadMissionTimeline(missionId) {
@@ -2027,6 +2114,470 @@
         }
       }
       window.showIncidentEvidence = showIncidentEvidence;
+
+      // =========================================================
+      // C-2.2C4 — FRAIS DE MISSION / JUSTIFICATIFS
+      // =========================================================
+      const EXPENSE_TYPES = {
+        'fuel':            'Carburant',
+        'charging':        'Recharge électrique',
+        'toll':            'Péage',
+        'parking':         'Parking',
+        'return_transport':'Transport aller / retour',
+        'washing':         'Lavage',
+        'other':           'Autre'
+      };
+      const EXPENSE_STATUSES = {
+        'draft':     'Brouillon',
+        'submitted': 'En attente',
+        'approved':  'Approuvé',
+        'rejected':  'Refusé'
+      };
+      const EXPENSE_RECEIPT_REQUIRED = ['fuel', 'charging', 'toll', 'parking', 'return_transport', 'other'];
+      const ALLOWED_RECEIPT_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+      const MAX_RECEIPT_SIZE = 5 * 1024 * 1024; // 5 MiB
+      const MAX_RECEIPTS = 3;
+      let _currentExpenseMissionId = null;
+      let _currentExpenseReceiptCounts = {}; // expense_id → count
+
+      const _eurFmt = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+      function formatEUR(amount) {
+        const n = Number(amount);
+        if (isNaN(n)) return '—';
+        return _eurFmt.format(n);
+      }
+      function expenseTypeLabel(t) { return EXPENSE_TYPES[t] || t || '—'; }
+      function expenseStatusLabel(s) { return EXPENSE_STATUSES[s] || s || '—'; }
+      function expenseStatusBadge(st) {
+        return `<span class="expense-badge st-${escapeHtml(st)}">${escapeHtml(expenseStatusLabel(st))}</span>`;
+      }
+
+      async function loadMissionExpenses(missionId) {
+        const sb = getSBC();
+        if (!sb) return;
+        _currentExpenseMissionId = missionId;
+        const el = document.getElementById('modalExpenses');
+        if (!el) return;
+        try {
+          const { data: expenses, error } = await sb.from('mission_expenses')
+            .select('id,expense_type,amount,expense_date,description,status,created_at,submitted_at,reviewed_at,review_notes')
+            .eq('mission_id', missionId)
+            .order('created_at', { ascending: false });
+          if (error) {
+            el.innerHTML = '<div class="expense-empty">Frais indisponibles.</div>';
+            return;
+          }
+          // Batch load receipt counts
+          _currentExpenseReceiptCounts = {};
+          if (expenses && expenses.length > 0) {
+            const { data: receipts, error: rErr } = await sb.from('mission_expense_receipts')
+              .select('expense_id')
+              .in('expense_id', expenses.map(e => e.id));
+            if (!rErr && receipts) {
+              receipts.forEach(r => {
+                _currentExpenseReceiptCounts[r.expense_id] = (_currentExpenseReceiptCounts[r.expense_id] || 0) + 1;
+              });
+            }
+          }
+          if (!expenses || expenses.length === 0) {
+            el.innerHTML = '<div class="expense-empty">Aucun frais de mission.</div>' + _expenseAddButton(missionId);
+            return;
+          }
+          const total = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+          const draftCount = expenses.filter(e => e.status === 'draft').length;
+          el.innerHTML = `<div class="expense-count-row">
+              <span class="expense-count-num">${expenses.length}</span>
+              <span style="font-size:0.75rem;color:var(--gray-mid);">${draftCount > 0 ? draftCount + ' brouillon(s)' : 'aucun brouillon'}</span>
+            </div>
+            <div class="expense-total">Total : ${escapeHtml(formatEUR(total))}</div>` +
+            expenses.map(exp => _renderExpenseItem(exp, missionId)).join('') +
+            _expenseAddButton(missionId);
+        } catch (err) {
+          el.innerHTML = '<div class="expense-empty">Frais indisponibles.</div>';
+        }
+      }
+      window.loadMissionExpenses = loadMissionExpenses;
+
+      function _expenseAddButton(missionId) {
+        const mission = _myMissions.find(m => m.id === missionId);
+        if (!mission) return '';
+        if (!['accepted', 'in_progress', 'delivered', 'completed'].includes(mission.status)) return '';
+        return `<div style="margin-top:10px;"><button class="btn-sm btn-sm-ghost" style="padding:6px 10px;" onclick="showAddExpenseForm('${missionId}')"><i class="fas fa-plus"></i> Ajouter un frais</button></div>`;
+      }
+
+      function _renderExpenseItem(exp, missionId) {
+        const dateStr = new Date(exp.expense_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+        const receiptCount = _currentExpenseReceiptCounts[exp.id] || 0;
+        let actions = '';
+        if (exp.status === 'draft') {
+          actions += `<button class="btn-sm btn-sm-ghost" style="padding:6px 10px;" onclick="showEditExpenseForm('${exp.id}')"><i class="fas fa-edit"></i> Modifier</button>`;
+          if (receiptCount < MAX_RECEIPTS) {
+            actions += `<button class="btn-sm btn-sm-ghost" style="padding:6px 10px;" onclick="showAddReceiptForm('${exp.id}')"><i class="fas fa-paperclip"></i> Ajouter justificatif</button>`;
+          }
+          if (receiptCount > 0) {
+            actions += `<button class="btn-sm btn-sm-ghost" style="padding:6px 10px;" onclick="showExpenseReceipts('${exp.id}')"><i class="fas fa-images"></i> Justificatifs (${receiptCount})</button>`;
+          }
+          // Submit: only if receipt requirement met
+          const needsReceipt = EXPENSE_RECEIPT_REQUIRED.includes(exp.expense_type);
+          if (needsReceipt && receiptCount === 0) {
+            actions += `<button class="btn-sm btn-sm-ghost" style="padding:6px 10px;opacity:0.5;cursor:not-allowed;" disabled title="Ajoutez au moins un justificatif avant de soumettre."><i class="fas fa-paper-plane"></i> Soumettre</button>`;
+          } else {
+            actions += `<button class="btn-sm btn-sm-green" style="padding:6px 10px;" onclick="submitExpense('${exp.id}')"><i class="fas fa-paper-plane"></i> Soumettre</button>`;
+          }
+          // Delete: only if 0 receipts
+          if (receiptCount === 0) {
+            actions += `<button class="btn-sm btn-sm-danger" style="padding:6px 10px;" onclick="deleteExpenseDraft('${exp.id}')"><i class="fas fa-trash"></i> Supprimer</button>`;
+          }
+        } else if (exp.status === 'submitted') {
+          if (receiptCount > 0) {
+            actions += `<button class="btn-sm btn-sm-ghost" style="padding:6px 10px;" onclick="showExpenseReceipts('${exp.id}')"><i class="fas fa-images"></i> Justificatifs (${receiptCount})</button>`;
+          }
+        } else if (exp.status === 'approved' || exp.status === 'rejected') {
+          if (receiptCount > 0) {
+            actions += `<button class="btn-sm btn-sm-ghost" style="padding:6px 10px;" onclick="showExpenseReceipts('${exp.id}')"><i class="fas fa-images"></i> Justificatifs (${receiptCount})</button>`;
+          }
+        }
+
+        let extraInfo = '';
+        if (exp.status === 'submitted' && exp.submitted_at) {
+          const subStr = new Date(exp.submitted_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+          extraInfo += `<div style="font-size:0.7rem;color:var(--gray-mid);margin-top:4px;"><i class="fas fa-clock"></i> Soumis le ${escapeHtml(subStr)}</div>`;
+        }
+        if (exp.status === 'approved' && exp.reviewed_at) {
+          const revStr = new Date(exp.reviewed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+          extraInfo += `<div style="font-size:0.7rem;color:var(--gray-mid);margin-top:4px;"><i class="fas fa-check"></i> Approuvé le ${escapeHtml(revStr)}</div>`;
+        }
+        if (exp.status === 'rejected' && exp.reviewed_at) {
+          const revStr = new Date(exp.reviewed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+          extraInfo += `<div style="font-size:0.7rem;color:var(--gray-mid);margin-top:4px;"><i class="fas fa-times"></i> Refusé le ${escapeHtml(revStr)}</div>`;
+        }
+        if (exp.review_notes) {
+          extraInfo += `<div style="font-size:0.75rem;color:var(--gray-dark);margin-top:4px;padding:8px;background:var(--beige);border-radius:8px;"><b>Note admin :</b> ${escapeHtml(exp.review_notes)}</div>`;
+        }
+
+        return `<div class="expense-item">
+          <div class="expense-item-header">
+            ${expenseStatusBadge(exp.status)}
+            <span class="expense-item-title">${escapeHtml(expenseTypeLabel(exp.expense_type))}</span>
+            <span style="font-size:0.85rem;font-weight:700;color:var(--bordeaux);">${escapeHtml(formatEUR(exp.amount))}</span>
+            <span class="expense-receipt-count"><i class="fas fa-paperclip"></i> ${receiptCount}/${MAX_RECEIPTS}</span>
+          </div>
+          <div class="expense-item-meta"><i class="fas fa-calendar"></i> ${escapeHtml(dateStr)}</div>
+          <div class="expense-item-desc">${escapeHtml(exp.description || '')}</div>
+          ${extraInfo}
+          <div class="expense-item-actions">${actions}</div>
+        </div>`;
+      }
+
+      function showAddExpenseForm(missionId) {
+        const today = new Date().toISOString().slice(0, 10);
+        const typeOpts = Object.entries(EXPENSE_TYPES).map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+        Swal.fire({
+          title: 'Ajouter un frais',
+          html: `<div class="swal-expense-form">
+            <label for="exp-type">Type *</label>
+            <select id="exp-type"><option value="">— Choisir —</option>${typeOpts}</select>
+            <label for="exp-amount">Montant (EUR) *</label>
+            <input type="number" id="exp-amount" step="0.01" min="0.01" placeholder="0.00" inputmode="decimal">
+            <label for="exp-date">Date de dépense *</label>
+            <input type="date" id="exp-date" value="${today}">
+            <label for="exp-desc">Description * <span class="char-count" id="exp-desc-count">0/500</span></label>
+            <textarea id="exp-desc" maxlength="500" placeholder="Description du frais..."></textarea>
+          </div>`,
+          showCancelButton: true,
+          confirmButtonText: 'Créer le brouillon',
+          cancelButtonText: 'Annuler',
+          confirmButtonColor: 'var(--bordeaux)',
+          didOpen: () => {
+            const desc = document.getElementById('exp-desc');
+            const cnt = document.getElementById('exp-desc-count');
+            if (desc && cnt) desc.addEventListener('input', () => { cnt.textContent = `${desc.value.length}/500`; });
+          },
+          preConfirm: async () => {
+            const expType = document.getElementById('exp-type').value;
+            const expAmount = document.getElementById('exp-amount').value;
+            const expDate = document.getElementById('exp-date').value;
+            const expDesc = document.getElementById('exp-desc').value;
+            if (!expType) { Swal.showValidationMessage('Type obligatoire.'); return false; }
+            const amt = parseFloat(expAmount);
+            if (isNaN(amt) || amt <= 0) { Swal.showValidationMessage('Montant invalide.'); return false; }
+            if (!expDate) { Swal.showValidationMessage('Date obligatoire.'); return false; }
+            const descTrim = (expDesc || '').trim();
+            if (!descTrim) { Swal.showValidationMessage('Description obligatoire.'); return false; }
+            if (descTrim.length > 500) { Swal.showValidationMessage('Description trop longue (max 500).'); return false; }
+            const sb = getSBC();
+            if (!sb) { Swal.showValidationMessage('Erreur de connexion.'); return false; }
+            Swal.showLoading();
+            const { data, error } = await sb.rpc('create_mission_expense_draft', {
+              p_mission_id: missionId,
+              p_expense_type: expType,
+              p_amount: amt,
+              p_expense_date: expDate,
+              p_description: expDesc
+            });
+            if (error) {
+              Swal.showValidationMessage('Création du frais refusée. Vérifiez vos informations.');
+              return false;
+            }
+            return data;
+          }
+        }).then(result => {
+          if (result.isConfirmed) {
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Brouillon créé', timer: 2500, showConfirmButton: false });
+            if (_currentExpenseMissionId) loadMissionExpenses(_currentExpenseMissionId);
+          }
+        });
+      }
+      window.showAddExpenseForm = showAddExpenseForm;
+
+      function showEditExpenseForm(expenseId) {
+        const sb = getSBC();
+        if (!sb) return;
+        Swal.fire({ title: 'Chargement…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+        sb.from('mission_expenses')
+          .select('id,expense_type,amount,expense_date,description,status')
+          .eq('id', expenseId)
+          .single()
+          .then(({ data: exp, error }) => {
+            if (error || !exp || exp.status !== 'draft') {
+              Swal.fire('Erreur', 'Frais non modifiable.', 'error');
+              return;
+            }
+            const typeOpts = Object.entries(EXPENSE_TYPES).map(([v, l]) => `<option value="${v}"${v === exp.expense_type ? ' selected' : ''}>${l}</option>`).join('');
+            Swal.fire({
+              title: 'Modifier le frais',
+              html: `<div class="swal-expense-form">
+                <label for="exp-type">Type *</label>
+                <select id="exp-type">${typeOpts}</select>
+                <label for="exp-amount">Montant (EUR) *</label>
+                <input type="number" id="exp-amount" step="0.01" min="0.01" value="${escapeHtml(String(exp.amount))}" inputmode="decimal">
+                <label for="exp-date">Date de dépense *</label>
+                <input type="date" id="exp-date" value="${escapeHtml(exp.expense_date)}">
+                <label for="exp-desc">Description * <span class="char-count" id="exp-desc-count">${(exp.description||'').length}/500</span></label>
+                <textarea id="exp-desc" maxlength="500" placeholder="Description du frais...">${escapeHtml(exp.description || '')}</textarea>
+              </div>`,
+              showCancelButton: true,
+              confirmButtonText: 'Enregistrer',
+              cancelButtonText: 'Annuler',
+              confirmButtonColor: 'var(--bordeaux)',
+              didOpen: () => {
+                const desc = document.getElementById('exp-desc');
+                const cnt = document.getElementById('exp-desc-count');
+                if (desc && cnt) desc.addEventListener('input', () => { cnt.textContent = `${desc.value.length}/500`; });
+              },
+              preConfirm: async () => {
+                const expType = document.getElementById('exp-type').value;
+                const expAmount = document.getElementById('exp-amount').value;
+                const expDate = document.getElementById('exp-date').value;
+                const expDesc = document.getElementById('exp-desc').value;
+                if (!expType) { Swal.showValidationMessage('Type obligatoire.'); return false; }
+                const amt = parseFloat(expAmount);
+                if (isNaN(amt) || amt <= 0) { Swal.showValidationMessage('Montant invalide.'); return false; }
+                if (!expDate) { Swal.showValidationMessage('Date obligatoire.'); return false; }
+                const descTrim = (expDesc || '').trim();
+                if (!descTrim) { Swal.showValidationMessage('Description obligatoire.'); return false; }
+                if (descTrim.length > 500) { Swal.showValidationMessage('Description trop longue (max 500).'); return false; }
+                const sb2 = getSBC();
+                if (!sb2) { Swal.showValidationMessage('Erreur de connexion.'); return false; }
+                Swal.showLoading();
+                const { error } = await sb2.rpc('update_mission_expense_draft', {
+                  p_expense_id: expenseId,
+                  p_expense_type: expType,
+                  p_amount: amt,
+                  p_expense_date: expDate,
+                  p_description: expDesc
+                });
+                if (error) {
+                  Swal.showValidationMessage('Modification refusée.');
+                  return false;
+                }
+                return true;
+              }
+            }).then(result => {
+              if (result.isConfirmed) {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Frais modifié', timer: 2500, showConfirmButton: false });
+                if (_currentExpenseMissionId) loadMissionExpenses(_currentExpenseMissionId);
+              }
+            });
+          });
+      }
+      window.showEditExpenseForm = showEditExpenseForm;
+
+      function showAddReceiptForm(expenseId) {
+        const currentCount = _currentExpenseReceiptCounts[expenseId] || 0;
+        if (currentCount >= MAX_RECEIPTS) {
+          Swal.fire('Maximum atteint', `Vous ne pouvez ajouter que ${MAX_RECEIPTS} justificatifs par frais.`, 'info');
+          return;
+        }
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/jpeg,image/png,image/webp,application/pdf';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+        input.addEventListener('change', async () => {
+          const file = input.files[0];
+          document.body.removeChild(input);
+          if (!file) return;
+          if (!ALLOWED_RECEIPT_MIMES.includes(file.type)) {
+            Swal.fire('Format refusé', 'Seuls les formats JPEG, PNG, WebP et PDF sont acceptés.', 'error');
+            return;
+          }
+          if (file.size > MAX_RECEIPT_SIZE) {
+            Swal.fire('Fichier trop volumineux', 'La taille maximum est de 5 Mo.', 'error');
+            return;
+          }
+          const isPdf = file.type === 'application/pdf';
+          let previewHtml = '';
+          if (isPdf) {
+            previewHtml = `<div class="pdf-preview-icon"><i class="fas fa-file-pdf"></i></div>
+              <p style="font-size:0.75rem;color:var(--gray-mid);margin-top:8px;">${escapeHtml(file.name)} · ${(file.size/1024).toFixed(0)} Ko</p>`;
+          } else {
+            const reader = new FileReader();
+            const previewUrl = await new Promise(resolve => {
+              reader.onload = (e) => resolve(e.target.result);
+              reader.readAsDataURL(file);
+            });
+            previewHtml = `<img src="${previewUrl}" class="swal-preview-img" alt="Aperçu"><p style="font-size:0.75rem;color:var(--gray-mid);margin-top:8px;">${escapeHtml(file.name)} · ${(file.size/1024).toFixed(0)} Ko</p>`;
+          }
+          Swal.fire({
+            title: "Confirmer l'ajout",
+            html: `${previewHtml}<div style="margin-top:12px;padding:10px;background:#fff3e0;border-radius:8px;font-size:0.75rem;color:#e65100;"><i class="fas fa-exclamation-triangle"></i> <b>Une fois ajouté, ce justificatif ne pourra plus être supprimé.</b></div>`,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-upload"></i> Ajouter ce justificatif',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: 'var(--bordeaux)',
+            preConfirm: async () => {
+              const sb = getSBC();
+              if (!sb) { Swal.showValidationMessage('Erreur de connexion.'); return false; }
+              if (!_currentExpenseMissionId) { Swal.showValidationMessage('Session expirée.'); return false; }
+              Swal.update({ title: 'Envoi…' });
+              Swal.showLoading();
+              // Generate safe filename
+              const ext = isPdf ? 'pdf' : (file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin');
+              const safeExt = ['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(ext) ? ext : 'bin';
+              const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${safeExt}`;
+              const path = `missions/${_currentExpenseMissionId}/expenses/${expenseId}/${fileName}`;
+              const { error: upErr } = await sb.storage.from('mission-expenses').upload(path, file, { contentType: file.type, upsert: false });
+              if (upErr) {
+                Swal.showValidationMessage("L'envoi du fichier a échoué. Réessayez.");
+                return false;
+              }
+              const { error: regErr } = await sb.rpc('register_mission_expense_receipt', {
+                p_expense_id: expenseId,
+                p_storage_bucket: 'mission-expenses',
+                p_storage_path: path,
+                p_mime_type: file.type
+              });
+              if (regErr) {
+                Swal.showValidationMessage("Le fichier a été envoyé mais son enregistrement n'a pas pu être finalisé. Réessayez.");
+                return false;
+              }
+              return true;
+            }
+          }).then(result => {
+            if (result.isConfirmed) {
+              Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Justificatif ajouté', timer: 2500, showConfirmButton: false });
+              if (_currentExpenseMissionId) loadMissionExpenses(_currentExpenseMissionId);
+            }
+          });
+        });
+        input.click();
+      }
+      window.showAddReceiptForm = showAddReceiptForm;
+
+      async function showExpenseReceipts(expenseId) {
+        const sb = getSBC();
+        if (!sb) return;
+        Swal.fire({ title: 'Chargement des justificatifs…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+        try {
+          const { data: receipts, error } = await sb.from('mission_expense_receipts')
+            .select('id,storage_path,mime_type,created_at')
+            .eq('expense_id', expenseId)
+            .order('created_at', { ascending: true });
+          if (error) { Swal.fire('Erreur', 'Impossible de charger les justificatifs.', 'error'); return; }
+          if (!receipts || receipts.length === 0) {
+            Swal.fire({ title: 'Justificatifs', text: 'Aucun justificatif pour ce frais.', icon: 'info', confirmButtonColor: 'var(--bordeaux)' });
+            return;
+          }
+          const urls = await Promise.all(receipts.map(async (r) => {
+            const { data, error: signErr } = await sb.storage.from('mission-expenses').createSignedUrl(r.storage_path, 300);
+            return signErr ? null : { url: data.signedUrl, mime: r.mime_type };
+          }));
+          const validUrls = urls.filter(u => u !== null);
+          if (validUrls.length === 0) { Swal.fire('Erreur', 'Impossible de charger les justificatifs.', 'error'); return; }
+          const galleryHtml = validUrls.map(u => {
+            if (u.mime === 'application/pdf') {
+              return `<div style="margin-bottom:12px;"><a href="${u.url}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#c62828;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;"><i class="fas fa-file-pdf"></i> Ouvrir le PDF</a></div>`;
+            }
+            return `<img src="${u.url}" class="swal-preview-img" style="max-height:300px;margin-bottom:8px;" alt="Justificatif">`;
+          }).join('');
+          Swal.fire({
+            title: 'Justificatifs du frais',
+            html: `<div style="text-align:center;">${galleryHtml}</div>`,
+            width: 500,
+            showCloseButton: true,
+            showConfirmButton: false
+          });
+        } catch (err) {
+          Swal.fire('Erreur', 'Impossible de charger les justificatifs.', 'error');
+        }
+      }
+      window.showExpenseReceipts = showExpenseReceipts;
+
+      function submitExpense(expenseId) {
+        Swal.fire({
+          title: 'Soumettre le frais',
+          text: 'Après soumission, le montant et les informations du frais ne seront plus modifiables.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Soumettre',
+          cancelButtonText: 'Annuler',
+          confirmButtonColor: 'var(--bordeaux)'
+        }).then(async result => {
+          if (!result.isConfirmed) return;
+          const sb = getSBC();
+          if (!sb) return;
+          Swal.fire({ title: 'Soumission…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+          const { error } = await sb.rpc('submit_mission_expense', { p_expense_id: expenseId });
+          if (error) {
+            Swal.fire('Erreur', 'Soumission refusée. Vérifiez les justificatifs requis.', 'error');
+            return;
+          }
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Frais soumis', timer: 2500, showConfirmButton: false });
+          if (_currentExpenseMissionId) loadMissionExpenses(_currentExpenseMissionId);
+        });
+      }
+      window.submitExpense = submitExpense;
+
+      function deleteExpenseDraft(expenseId) {
+        const receiptCount = _currentExpenseReceiptCounts[expenseId] || 0;
+        if (receiptCount > 0) {
+          Swal.fire('Impossible', 'Ce brouillon a des justificatifs et ne peut pas être supprimé.', 'warning');
+          return;
+        }
+        Swal.fire({
+          title: 'Supprimer le brouillon',
+          text: 'Cette action est irréversible. Continuer ?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Supprimer',
+          cancelButtonText: 'Annuler',
+          confirmButtonColor: '#c62828'
+        }).then(async result => {
+          if (!result.isConfirmed) return;
+          const sb = getSBC();
+          if (!sb) return;
+          Swal.fire({ title: 'Suppression…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+          const { error } = await sb.rpc('delete_mission_expense_draft', { p_expense_id: expenseId });
+          if (error) {
+            Swal.fire('Erreur', 'Suppression refusée.', 'error');
+            return;
+          }
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Brouillon supprimé', timer: 2500, showConfirmButton: false });
+          if (_currentExpenseMissionId) loadMissionExpenses(_currentExpenseMissionId);
+        });
+      }
+      window.deleteExpenseDraft = deleteExpenseDraft;
     })();
   </script>
 </body>

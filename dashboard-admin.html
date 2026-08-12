@@ -2114,6 +2114,19 @@ Cadeau premium personnalisé</textarea>
         </table>
       </div>
 
+      <!-- C-2.2C4 — FRAIS À VALIDER -->
+      <div class="sec-title" style="margin-top:24px;">
+        <h2 class="sec-h">Frais à <em>valider</em></h2>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr><th>Mission</th><th>Operator</th><th>Type</th><th>Montant</th><th>Date</th><th>Justificatifs</th><th>Soumis le</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="expensesToValidateBody">
+          <tr><td colspan="8" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Chargement...</td></tr>
+        </tbody>
+      </table>
+
       <!-- ANALYTICS -->
       <div class="tab-content" id="tab-analytics">
         <div class="dash-header">
@@ -2536,6 +2549,8 @@ Cadeau premium personnalisé</textarea>
   let _supabaseClient = null;
   let _allMissions = [];
   let _missionIncidentCounts = {};
+  let _missionExpenseSubmittedCounts = {};
+  let _allExpenses = [];
   let _allClientsData = [];
   let _convoyeursList = [];
   let _allCandidatures = [];
@@ -3706,6 +3721,37 @@ Cadeau premium personnalisé</textarea>
         });
       }
     } catch (e) { console.warn('Incident counts load failed:', e); }
+    // C-2.2C4 — Batch load submitted expense counts per mission (no N+1)
+    _missionExpenseSubmittedCounts = {};
+    _allExpenses = [];
+    try {
+      const { data: expCounts, error: expErr } = await client.from('mission_expenses')
+        .select('id,mission_id,expense_type,amount,expense_date,description,status,created_at,submitted_at,reviewed_by,reviewed_at,review_notes');
+      if (!expErr && expCounts) {
+        _allExpenses = expCounts;
+        expCounts.forEach(exp => {
+          if (exp.status === 'submitted') {
+            _missionExpenseSubmittedCounts[exp.mission_id] = (_missionExpenseSubmittedCounts[exp.mission_id] || 0) + 1;
+          }
+        });
+      }
+    } catch (e) { console.warn('Expense counts load failed:', e); }
+    // Batch load receipt counts for submitted expenses (no N+1)
+    _adminExpenseReceiptCounts = {};
+    try {
+      const submittedExpIds = _allExpenses.filter(e => e.status === 'submitted').map(e => e.id);
+      if (submittedExpIds.length > 0) {
+        const { data: subReceipts, error: subRErr } = await client.from('mission_expense_receipts')
+          .select('expense_id')
+          .in('expense_id', submittedExpIds);
+        if (!subRErr && subReceipts) {
+          subReceipts.forEach(r => {
+            _adminExpenseReceiptCounts[r.expense_id] = (_adminExpenseReceiptCounts[r.expense_id] || 0) + 1;
+          });
+        }
+      }
+    } catch (e) { console.warn('Expense receipt counts load failed:', e); }
+    renderExpensesToValidate();
     const visibleMissions = _allMissions.filter(m => m.status !== 'archived');
     renderMissionsTable(visibleMissions);
     renderRecentMissionsTable(visibleMissions);
@@ -3777,7 +3823,7 @@ Cadeau premium personnalisé</textarea>
         <td>${m.remuneration_convoyeur || '-'}€</td>
         <td>${m.marge || '-'}€</td>
         <td><span class="${payClass}">${payText}</span></td>
-        <td><span class="${statusClass}">${statusText}</span>${(_missionIncidentCounts[m.id] > 0) ? `<span class="inc-indicator" title="${escapeHtml(String(_missionIncidentCounts[m.id]))} incident(s) ouvert(s)"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(String(_missionIncidentCounts[m.id]))}</span>` : ''}</td>
+        <td><span class="${statusClass}">${statusText}</span>${(_missionIncidentCounts[m.id] > 0) ? `<span class="inc-indicator" title="${escapeHtml(String(_missionIncidentCounts[m.id]))} incident(s) ouvert(s)"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(String(_missionIncidentCounts[m.id]))}</span>` : ''}${(_missionExpenseSubmittedCounts[m.id] > 0) ? `<span class="inc-indicator" style="background:rgba(76,175,80,0.12);color:#2e7d32;" title="${escapeHtml(String(_missionExpenseSubmittedCounts[m.id]))} frais à valider"><i class="fas fa-file-invoice-dollar"></i> ${escapeHtml(String(_missionExpenseSubmittedCounts[m.id]))}</span>` : ''}</td>
         <td>${dateStr}</td>
         <td><div class="td-actions">${actionsHtml}</div></td>
       </tr>`;
@@ -5110,6 +5156,9 @@ Cadeau premium personnalisé</textarea>
         <hr style="margin:10px 0;border-color:#eee;">
         <div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-exclamation-triangle"></i> Incidents</div>
         <div id="adminMissionIncidents"><div class="inc-empty">Chargement…</div></div>
+        <hr style="margin:10px 0;border-color:#eee;">
+        <div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-file-invoice-dollar"></i> Frais de mission</div>
+        <div id="adminMissionExpenses"><div class="inc-empty">Chargement…</div></div>
         <hr style="margin:14px 0;border-color:#eee;">
         <div style="display:flex;flex-wrap:wrap;gap:6px;">${actionsHtml}</div>
       </div>`,
@@ -5119,6 +5168,7 @@ Cadeau premium personnalisé</textarea>
       showCancelButton: false,
       didOpen: () => {
         loadAdminMissionIncidents(mission.id);
+        loadAdminMissionExpenses(mission.id);
       }
     });
   };
@@ -6539,7 +6589,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
 
   function admResolveIncident(incidentId) {
     Swal.fire({
-      title: 'Résoudre l'incident',
+      title: "Résoudre l'incident",
       html: `<div class="swal-inc-form">
         <label for="adm-res-notes">Note de résolution * <span style="font-size:0.65rem;color:var(--gray-mid);">(max 2000 caractères)</span></label>
         <textarea id="adm-res-notes" maxlength="2000" placeholder="Décrivez la résolution..."></textarea>
@@ -6594,12 +6644,303 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       const validUrls = urls.filter(u => u !== null);
       if (validUrls.length === 0) { Swal.fire('Erreur', 'Impossible de charger les photos.', 'error'); return; }
       const galleryHtml = validUrls.map(u => `<img src="${u.url}" class="swal-preview-img" style="max-height:300px;margin-bottom:8px;" alt="Photo incident">`).join('');
-      Swal.fire({ title: 'Photos de l'incident', html: `<div style="text-align:center;">${galleryHtml}</div>`, width: 500, showCloseButton: true, showConfirmButton: false });
+      Swal.fire({ title: "Photos de l'incident", html: `<div style="text-align:center;">${galleryHtml}</div>`, width: 500, showCloseButton: true, showConfirmButton: false });
     } catch (err) {
       Swal.fire('Erreur', 'Impossible de charger les photos.', 'error');
     }
   }
   window.admShowEvidence = admShowEvidence;
+
+  // =========================================================
+  // C-2.2C4 — FRAIS DE MISSION / JUSTIFICATIFS (ADMIN)
+  // =========================================================
+  const ADM_EXPENSE_TYPES = {
+    'fuel':             'Carburant',
+    'charging':         'Recharge électrique',
+    'toll':             'Péage',
+    'parking':          'Parking',
+    'return_transport': 'Transport aller / retour',
+    'washing':          'Lavage',
+    'other':            'Autre'
+  };
+  const ADM_EXPENSE_STATUSES = {
+    'draft':     'Brouillon',
+    'submitted': 'En attente',
+    'approved':  'Approuvé',
+    'rejected':  'Refusé'
+  };
+  const ADM_EXPENSE_RECEIPT_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+  const _admEurFmt = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+  let _adminCurrentExpenseMissionId = null;
+  let _adminExpenseReceiptCounts = {};
+
+  function admFormatEUR(amount) {
+    const n = Number(amount);
+    if (isNaN(n)) return '—';
+    return _admEurFmt.format(n);
+  }
+  function admExpTypeLabel(t) { return ADM_EXPENSE_TYPES[t] || t || '—'; }
+  function admExpStatusLabel(s) { return ADM_EXPENSE_STATUSES[s] || s || '—'; }
+  function admExpStatusBadge(st) {
+    const colors = { draft: '#f5f5f5;color:var(--gray-mid)', submitted: 'var(--bordeaux-light);color:var(--bordeaux)', approved: '#e8f5e9;color:#2e7d32', rejected: '#fce4ec;color:#c62828' };
+    return `<span style="display:inline-flex;font-size:0.55rem;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:40px;background:${colors[st] || '#f5f5f5'}">${escapeHtml(admExpStatusLabel(st))}</span>`;
+  }
+
+  function renderExpensesToValidate() {
+    const tbody = document.getElementById('expensesToValidateBody');
+    if (!tbody) return;
+    const submitted = _allExpenses.filter(e => e.status === 'submitted');
+    if (submitted.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray-mid);font-style:italic;">Aucun frais à valider.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = submitted.map(exp => {
+      const mission = _allMissions.find(m => m.id === exp.mission_id);
+      const missionRef = mission ? mission.reference : '—';
+      const operatorName = mission ? (mission.convoyeur_nom || '—') : '—';
+      const dateStr = new Date(exp.expense_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+      const subStr = exp.submitted_at ? new Date(exp.submitted_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+      const receiptCount = _adminExpenseReceiptCounts[exp.id] || 0;
+      return `<tr>
+        <td>${escapeHtml(missionRef)}</td>
+        <td>${escapeHtml(operatorName)}</td>
+        <td>${escapeHtml(admExpTypeLabel(exp.expense_type))}</td>
+        <td style="font-weight:600;">${escapeHtml(admFormatEUR(exp.amount))}</td>
+        <td>${escapeHtml(dateStr)}</td>
+        <td><i class="fas fa-paperclip"></i> ${receiptCount}</td>
+        <td>${escapeHtml(subStr)}</td>
+        <td><div class="td-actions">
+          <button class="btn-sm btn-sm-ghost" onclick="admViewExpenseReceipts('${exp.id}')" title="Voir justificatifs"><i class="fas fa-images"></i></button>
+          <button class="btn-sm btn-sm-green" onclick="admApproveExpense('${exp.id}')" title="Approuver"><i class="fas fa-check"></i></button>
+          <button class="btn-sm btn-sm-red" onclick="admRejectExpense('${exp.id}')" title="Refuser"><i class="fas fa-times"></i></button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+  window.renderExpensesToValidate = renderExpensesToValidate;
+
+  async function loadAdminMissionExpenses(missionId) {
+    const sb = getSupabase();
+    if (!sb) return;
+    _adminCurrentExpenseMissionId = missionId;
+    const el = document.getElementById('adminMissionExpenses');
+    if (!el) return;
+    try {
+      const { data: expenses, error } = await sb.from('mission_expenses')
+        .select('id,expense_type,amount,expense_date,description,status,created_at,submitted_at,reviewed_at,review_notes')
+        .eq('mission_id', missionId)
+        .order('created_at', { ascending: false });
+      if (error) {
+        el.innerHTML = '<div class="inc-empty">Frais indisponibles.</div>';
+        return;
+      }
+      // Batch load receipt counts
+      _adminExpenseReceiptCounts = {};
+      if (expenses && expenses.length > 0) {
+        const { data: receipts, error: rErr } = await sb.from('mission_expense_receipts')
+          .select('expense_id')
+          .in('expense_id', expenses.map(e => e.id));
+        if (!rErr && receipts) {
+          receipts.forEach(r => {
+            _adminExpenseReceiptCounts[r.expense_id] = (_adminExpenseReceiptCounts[r.expense_id] || 0) + 1;
+          });
+        }
+      }
+      if (!expenses || expenses.length === 0) {
+        el.innerHTML = '<div class="inc-empty">Aucun frais de mission.</div>';
+        return;
+      }
+      const total = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+      el.innerHTML = `<div style="font-size:0.75rem;color:var(--gray-mid);margin-bottom:8px;">Total : ${escapeHtml(admFormatEUR(total))}</div>` +
+        expenses.map(exp => _admRenderExpenseItem(exp)).join('');
+    } catch (err) {
+      el.innerHTML = '<div class="inc-empty">Frais indisponibles.</div>';
+    }
+  }
+  window.loadAdminMissionExpenses = loadAdminMissionExpenses;
+
+  function _admRenderExpenseItem(exp) {
+    const dateStr = new Date(exp.expense_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+    const receiptCount = _adminExpenseReceiptCounts[exp.id] || 0;
+    let actions = '';
+    if (exp.status === 'submitted') {
+      actions += `<button class="btn-sm btn-sm-ghost" onclick="admViewExpenseReceipts('${exp.id}')"><i class="fas fa-images"></i> Justificatifs (${receiptCount})</button>`;
+      actions += `<button class="btn-sm btn-sm-green" onclick="admApproveExpense('${exp.id}')"><i class="fas fa-check"></i> Approuver</button>`;
+      actions += `<button class="btn-sm btn-sm-red" onclick="admRejectExpense('${exp.id}')"><i class="fas fa-times"></i> Refuser</button>`;
+    } else if (receiptCount > 0) {
+      actions += `<button class="btn-sm btn-sm-ghost" onclick="admViewExpenseReceipts('${exp.id}')"><i class="fas fa-images"></i> Justificatifs (${receiptCount})</button>`;
+    }
+
+    let extraInfo = '';
+    if (exp.submitted_at) {
+      const subStr = new Date(exp.submitted_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      extraInfo += `<div style="font-size:0.7rem;color:var(--gray-mid);margin-top:4px;"><i class="fas fa-clock"></i> Soumis le ${escapeHtml(subStr)}</div>`;
+    }
+    if (exp.reviewed_at) {
+      const revStr = new Date(exp.reviewed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      const icon = exp.status === 'approved' ? 'fa-check' : 'fa-times';
+      const label = exp.status === 'approved' ? 'Approuvé le' : 'Refusé le';
+      extraInfo += `<div style="font-size:0.7rem;color:var(--gray-mid);margin-top:4px;"><i class="fas ${icon}"></i> ${label} ${escapeHtml(revStr)}</div>`;
+    }
+    if (exp.review_notes) {
+      extraInfo += `<div style="font-size:0.75rem;color:var(--gray-dark);margin-top:4px;padding:8px;background:var(--beige);border-radius:8px;"><b>Note admin :</b> ${escapeHtml(exp.review_notes)}</div>`;
+    }
+
+    return `<div class="inc-item">
+      <div class="inc-item-header">
+        ${admExpStatusBadge(exp.status)}
+        <span class="inc-item-title">${escapeHtml(admExpTypeLabel(exp.expense_type))}</span>
+        <span style="font-size:0.85rem;font-weight:700;color:var(--bordeaux);">${escapeHtml(admFormatEUR(exp.amount))}</span>
+        <span style="font-size:0.65rem;color:var(--gray-mid);background:#f5f5f5;padding:2px 6px;border-radius:40px;"><i class="fas fa-paperclip"></i> ${receiptCount}/3</span>
+      </div>
+      <div class="inc-item-meta"><i class="fas fa-calendar"></i> ${escapeHtml(dateStr)}</div>
+      <div class="inc-item-desc">${escapeHtml(exp.description || '')}</div>
+      ${extraInfo}
+      <div class="inc-item-actions">${actions}</div>
+    </div>`;
+  }
+
+  async function admViewExpenseReceipts(expenseId) {
+    const sb = getSupabase();
+    if (!sb) return;
+    Swal.fire({ title: 'Chargement des justificatifs…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+    try {
+      const { data: receipts, error } = await sb.from('mission_expense_receipts')
+        .select('id,storage_path,mime_type,created_at')
+        .eq('expense_id', expenseId)
+        .order('created_at', { ascending: true });
+      if (error) { Swal.fire('Erreur', 'Impossible de charger les justificatifs.', 'error'); return; }
+      if (!receipts || receipts.length === 0) {
+        Swal.fire({ title: 'Justificatifs', text: 'Aucun justificatif pour ce frais.', icon: 'info', confirmButtonColor: 'var(--bordeaux)' });
+        return;
+      }
+      const urls = await Promise.all(receipts.map(async (r) => {
+        const { data, error: signErr } = await sb.storage.from('mission-expenses').createSignedUrl(r.storage_path, 300);
+        return signErr ? null : { url: data.signedUrl, mime: r.mime_type };
+      }));
+      const validUrls = urls.filter(u => u !== null);
+      if (validUrls.length === 0) { Swal.fire('Erreur', 'Impossible de charger les justificatifs.', 'error'); return; }
+      const galleryHtml = validUrls.map(u => {
+        if (u.mime === 'application/pdf') {
+          return `<div style="margin-bottom:12px;"><a href="${u.url}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#c62828;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;"><i class="fas fa-file-pdf"></i> Ouvrir le PDF</a></div>`;
+        }
+        return `<img src="${u.url}" class="swal-preview-img" style="max-height:300px;margin-bottom:8px;" alt="Justificatif">`;
+      }).join('');
+      Swal.fire({
+        title: 'Justificatifs du frais',
+        html: `<div style="text-align:center;">${galleryHtml}</div>`,
+        width: 500,
+        showCloseButton: true,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      Swal.fire('Erreur', 'Impossible de charger les justificatifs.', 'error');
+    }
+  }
+  window.admViewExpenseReceipts = admViewExpenseReceipts;
+
+  async function admApproveExpense(expenseId) {
+    const result = await Swal.fire({
+      title: 'Approuver ce frais ?',
+      text: 'Cette action validera le frais définitivement.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Approuver',
+      cancelButtonText: 'Annuler',
+      confirmButtonColor: 'var(--success)',
+      input: 'textarea',
+      inputPlaceholder: 'Note facultative…',
+      inputAttributes: { maxlength: 500 }
+    });
+    if (!result.isConfirmed) return;
+    const sb = getSupabase();
+    if (!sb) return;
+    Swal.fire({ title: 'Traitement…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+    const { error } = await sb.rpc('review_mission_expense', {
+      p_expense_id: expenseId,
+      p_target_status: 'approved',
+      p_review_notes: result.value || null
+    });
+    if (error) {
+      Swal.fire('Erreur', 'Approbation refusée.', 'error');
+      return;
+    }
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Frais approuvé', timer: 2500, showConfirmButton: false });
+    _refreshAdminExpenses();
+  }
+  window.admApproveExpense = admApproveExpense;
+
+  async function admRejectExpense(expenseId) {
+    const result = await Swal.fire({
+      title: 'Refuser ce frais',
+      text: 'Le motif de refus est obligatoire.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Refuser',
+      cancelButtonText: 'Annuler',
+      confirmButtonColor: '#c62828',
+      input: 'textarea',
+      inputPlaceholder: 'Motif du refus *',
+      inputAttributes: { maxlength: 500 },
+      inputValidator: (value) => {
+        if (!value || !value.trim()) return 'Le motif du refus est obligatoire.';
+      }
+    });
+    if (!result.isConfirmed) return;
+    const sb = getSupabase();
+    if (!sb) return;
+    Swal.fire({ title: 'Traitement…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+    const { error } = await sb.rpc('review_mission_expense', {
+      p_expense_id: expenseId,
+      p_target_status: 'rejected',
+      p_review_notes: result.value
+    });
+    if (error) {
+      Swal.fire('Erreur', 'Refus refusé par le backend.', 'error');
+      return;
+    }
+    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Frais refusé', timer: 2500, showConfirmButton: false });
+    _refreshAdminExpenses();
+  }
+  window.admRejectExpense = admRejectExpense;
+
+  async function _refreshAdminExpenses() {
+    const sb = getSupabase();
+    if (!sb) return;
+    // Reload all expenses
+    try {
+      const { data: expCounts, error: expErr } = await sb.from('mission_expenses')
+        .select('id,mission_id,expense_type,amount,expense_date,description,status,created_at,submitted_at,reviewed_by,reviewed_at,review_notes');
+      if (!expErr && expCounts) {
+        _allExpenses = expCounts;
+        _missionExpenseSubmittedCounts = {};
+        expCounts.forEach(exp => {
+          if (exp.status === 'submitted') {
+            _missionExpenseSubmittedCounts[exp.mission_id] = (_missionExpenseSubmittedCounts[exp.mission_id] || 0) + 1;
+          }
+        });
+      }
+    } catch (e) { console.warn('Expense reload failed:', e); }
+    // Reload receipt counts for submitted expenses
+    _adminExpenseReceiptCounts = {};
+    try {
+      const submittedExpIds = _allExpenses.filter(e => e.status === 'submitted').map(e => e.id);
+      if (submittedExpIds.length > 0) {
+        const { data: subReceipts, error: subRErr } = await sb.from('mission_expense_receipts')
+          .select('expense_id')
+          .in('expense_id', submittedExpIds);
+        if (!subRErr && subReceipts) {
+          subReceipts.forEach(r => {
+            _adminExpenseReceiptCounts[r.expense_id] = (_adminExpenseReceiptCounts[r.expense_id] || 0) + 1;
+          });
+        }
+      }
+    } catch (e) { console.warn('Expense receipt counts reload failed:', e); }
+    renderExpensesToValidate();
+    if (_adminCurrentExpenseMissionId) loadAdminMissionExpenses(_adminCurrentExpenseMissionId);
+    const visibleMissions = _allMissions.filter(m => m.status !== 'archived');
+    renderMissionsTable(visibleMissions);
+  }
   </script>
 
 <!-- BOTTOM NAV MOBILE -->
