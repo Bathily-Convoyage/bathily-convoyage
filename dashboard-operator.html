@@ -1827,7 +1827,7 @@
               p_location_text: locationText
             });
             if (error) {
-              Swal.showValidationMessage('Impossible de signaler l'incident. Vérifiez les informations et réessayez.');
+              Swal.showValidationMessage("Impossible de signaler l'incident. Vérifiez les informations et réessayez.");
               return false;
             }
             return data;
@@ -1859,7 +1859,7 @@
             const typeOpts = Object.entries(INCIDENT_TYPES).map(([v, l]) => `<option value="${v}"${v === inc.incident_type ? ' selected' : ''}>${l}</option>`).join('');
             const sevOpts = Object.entries(INCIDENT_SEVERITIES).map(([v, l]) => `<option value="${v}"${v === inc.severity ? ' selected' : ''}>${l}</option>`).join('');
             Swal.fire({
-              title: 'Modifier l'incident',
+              title: "Modifier l'incident",
               html: `<div class="swal-incident-form">
                 <label for="inc-type">Type *</label>
                 <select id="inc-type">${typeOpts}</select>
@@ -1902,7 +1902,7 @@
                   p_location_text: locationText
                 });
                 if (rpcErr) {
-                  Swal.showValidationMessage('Impossible de modifier l'incident. Il a peut-être été traité par l'administration.');
+                  Swal.showValidationMessage("Impossible de modifier l'incident. Il a peut-être été traité par l'administration.");
                   return false;
                 }
                 return true;
@@ -1940,7 +1940,7 @@
           reader.onload = async (e) => {
             const previewUrl = e.target.result;
             Swal.fire({
-              title: 'Confirmer l'ajout',
+              title: "Confirmer l'ajout",
               html: `<img src="${previewUrl}" class="swal-preview-img" alt="Aperçu"><p style="font-size:0.75rem;color:var(--gray-mid);margin-top:8px;">${escapeHtml(file.name)} · ${(file.size/1024).toFixed(0)} Ko</p>`,
               showCancelButton: true,
               confirmButtonText: '<i class="fas fa-upload"></i> Ajouter cette photo',
@@ -1958,7 +1958,7 @@
                 const path = `missions/${_currentIncidentMissionId}/incidents/${incidentId}/${fileName}`;
                 const { error: upErr } = await sb.storage.from('mission-incidents').upload(path, file, { contentType: file.type, upsert: false });
                 if (upErr) {
-                  Swal.showValidationMessage('L'envoi de la photo a échoué. Réessayez.');
+                  Swal.showValidationMessage("L'envoi de la photo a échoué. Réessayez.");
                   return false;
                 }
                 const { error: regErr } = await sb.rpc('register_mission_incident_evidence', {
@@ -1968,7 +1968,7 @@
                   p_mime_type: file.type
                 });
                 if (regErr) {
-                  Swal.showValidationMessage('La photo a été envoyée mais n'a pas pu être enregistrée. Réessayez.');
+                  Swal.showValidationMessage("La photo a été envoyée mais n'a pas pu être enregistrée. Réessayez.");
                   return false;
                 }
                 return true;
@@ -2016,7 +2016,7 @@
           }
           const galleryHtml = validUrls.map(u => `<img src="${u.url}" class="swal-preview-img" style="max-height:300px;margin-bottom:8px;" alt="Photo incident">`).join('');
           Swal.fire({
-            title: 'Photos de l'incident',
+            title: "Photos de l'incident",
             html: `<div style="text-align:center;">${galleryHtml}</div>`,
             width: 500,
             showCloseButton: true,
