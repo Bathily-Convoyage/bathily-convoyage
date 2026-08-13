@@ -876,7 +876,7 @@
       if (authError || !session) {
         Swal.fire({
           title: 'Authentification requise',
-         ml: 'Vous devez être connecté en tant que convoyeur pour démarrer une mission.<br><br><a href="dashboard-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">Se connecter</a>',
+         html: 'Vous devez être connecté en tant que convoyeur pour démarrer une mission.<br><br><a href="dashboard-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">Se connecter</a>',
           icon: 'warning',
           confirmButtonColor: 'var(--bordeaux)'
         });
@@ -894,7 +894,7 @@
       if (_paiementStatut !== 'paid' && _paiementStatut !== 'paye') {
         Swal.fire({
           title: 'Démarrage bloqué',
-         ml: `Le paiement de cette mission n'a pas encore été validé.<br><br>Le démarrage est bloqué. Veuillez contacter l'administrateur.`,
+         html: `Le paiement de cette mission n'a pas encore été validé.<br><br>Le démarrage est bloqué. Veuillez contacter l'administrateur.`,
           icon: 'warning',
           confirmButtonColor: 'var(--bordeaux)'
         });

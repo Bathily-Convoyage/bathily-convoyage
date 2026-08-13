@@ -1094,7 +1094,7 @@
 
           Swal.fire({
             title: 'Véhicule identifié !',
-           ml: `<strong>${data.marque} ${data.modele || ''}</strong><br>${data.energie || ''} • ${data.annee || ''}`,
+           html: `<strong>${escapeHtml(data.marque)} ${escapeHtml(data.modele || '')}</strong><br>${escapeHtml(data.energie || '')} • ${escapeHtml(data.annee || '')}`,
             icon: 'success',
             confirmButtonColor: 'var(--bordeaux)'
           });

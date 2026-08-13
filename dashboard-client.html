@@ -1626,8 +1626,8 @@
           if (res.isConfirmed) {
             const { value: formValues } = await Swal.fire({
               title: 'Demande au support',
-             ml: `<div style="text-align:left;">
-                <div class="f-grp" style="margin-bottom:10px;"><label>Votre email</label><input type="email" id="supportEmail" class="swal2-input" value="${email}" style="width:100%"></div>
+             html: `<div style="text-align:left;">
+                <div class="f-grp" style="margin-bottom:10px;"><label>Votre email</label><input type="email" id="supportEmail" class="swal2-input" value="${escapeHtml(email)}" style="width:100%"></div>
                 <div class="f-grp" style="margin-bottom:10px;"><label>Votre message</label><textarea id="supportMsg" class="swal2-textarea" placeholder="Expliquez votre situation..." style="width:100%;height:80px;"></textarea></div>
               </div>`,
               showCancelButton: true,

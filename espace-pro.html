@@ -565,6 +565,13 @@
   </footer>
 
   <script>
+    function escapeHtml(str) {
+      if (!str) return '';
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
     // ========== DETECT EXISTING SESSION ==========
     (async function() {
       try {
@@ -618,7 +625,7 @@
 
               Swal.fire({
                 title: 'Demande envoyée !',
-               ml: 'Votre demande pour devenir convoyeur a bien été enregistrée.<br>Notre équipe vous contactera sous <strong>24h ouvrées</strong>.',
+               html: 'Votre demande pour devenir convoyeur a bien été enregistrée.<br>Notre équipe vous contactera sous <strong>24h ouvrées</strong>.',
                 icon: 'success',
                 confirmButtonColor: '#0A4D68',
                 confirmButtonText: 'OK'
@@ -670,7 +677,7 @@
 
         Swal.fire({
           title: 'Demande envoyée !',
-         ml: `Bonjour <strong>${prenom}</strong>,<br><br>Votre demande de compte Pro a bien été enregistrée.<br>Notre équipe valide votre accès sous <strong>24h ouvrées</strong>.<br><br>Vous recevrez un email de confirmation à <strong>${email}</strong>.`,
+         html: `Bonjour <strong>${escapeHtml(prenom)}</strong>,<br><br>Votre demande de compte Pro a bien été enregistrée.<br>Notre équipe valide votre accès sous <strong>24h ouvrées</strong>.<br><br>Vous recevrez un email de confirmation à <strong>${escapeHtml(email)}</strong>.`,
           icon: 'success',
           confirmButtonColor: '#0A4D68',
           confirmButtonText: 'OK'

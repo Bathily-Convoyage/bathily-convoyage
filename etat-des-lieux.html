@@ -1451,7 +1451,7 @@ async function lookupLicensePlate() {
       
       Swal.fire({
         title: 'Véhicule identifié !',
-       ml: `<strong>Marque :</strong> ${escapeHtml(data.marque)}<br><strong>Modèle :</strong> ${escapeHtml(data.modele || '-')}`,
+       html: `<strong>Marque :</strong> ${escapeHtml(data.marque)}<br><strong>Modèle :</strong> ${escapeHtml(data.modele || '-')}`,
         icon: 'success',
         confirmButtonColor: 'var(--bordeaux)'
       });

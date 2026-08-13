@@ -1624,7 +1624,7 @@
           await client.auth.signOut();
           Swal.fire({
             title: 'Accès refusé',
-           ml: 'Aucun dossier de formation trouvé pour cet email.<br>Vous devez d\'abord suivre la <a href="formation-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">formation en ligne</a> et être approuvé par notre équipe.',
+           html: 'Aucun dossier de formation trouvé pour cet email.<br>Vous devez d\'abord suivre la <a href="formation-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">formation en ligne</a> et être approuvé par notre équipe.',
             icon: 'warning',
             confirmButtonColor: 'var(--bordeaux)'
           });
@@ -1691,7 +1691,7 @@
       e.preventDefault();
       Swal.fire({
         title: 'Inscription impossible',
-       ml: 'Pour devenir convoyeur chez Bathily-Convoyage, vous devez d\'abord suivre la <strong>formation en ligne</strong> et faire valider votre dossier par notre équipe.<br><br><a href="formation-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">Cliquez ici pour accéder à la formation →</a>',
+       html: 'Pour devenir convoyeur chez Bathily-Convoyage, vous devez d\'abord suivre la <strong>formation en ligne</strong> et faire valider votre dossier par notre équipe.<br><br><a href="formation-convoyeur.html" style="color:var(--bordeaux); font-weight:700;">Cliquez ici pour accéder à la formation →</a>',
         icon: 'info',
         confirmButtonColor: 'var(--bordeaux)',
         confirmButtonText: 'Compris'
