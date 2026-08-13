@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
-import { getCorsHeaders, jsonResponse, handleOptions } from '../_utils.js';
+import { getCorsHeaders, jsonResponse, handleOptions, escapeHtml } from '../_utils.js';
 import { sendEmail, wrapEmailLayout } from '../_email.js';
 
 const SUBJECTS = {
   mission_assigned: 'Votre mission est assignée',
   edl_departure_validated: 'Départ confirmé',
+  mission_started: 'Mission en cours',
   edl_arrival_validated: 'Arrivée confirmée',
   mission_delivered: 'Mission livrée',
   mission_cancelled: 'Mission annulée'
@@ -12,7 +13,8 @@ const SUBJECTS = {
 
 function buildBody(reference, type) {
   const title = SUBJECTS[type] || 'Notification mission';
-  const body = `<p>Notification concernant la mission <strong>${reference}</strong>.</p>`;
+  const safeRef = escapeHtml(reference);
+  const body = `<p>Notification concernant la mission <strong>${safeRef}</strong>.</p>`;
   return wrapEmailLayout(title, body);
 }
 
@@ -27,26 +29,21 @@ export async function onRequest(context) {
   }
 
   try {
-    const authHeader = request.headers.get('authorization') || '';
-    if (!authHeader.startsWith('Bearer ')) {
-      return jsonResponse({ error: 'Authentification requise.' }, 401, getCorsHeaders(request));
-    }
-
     if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
       return jsonResponse({ error: 'Configuration Supabase manquante.' }, 500, getCorsHeaders(request));
     }
 
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-    const token = authHeader.split(' ')[1];
-    const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
-    if (userErr || !user) {
-      return jsonResponse({ error: 'Token invalide.' }, 401, getCorsHeaders(request));
+    if (!env.CRON_SECRET) {
+      return jsonResponse({ error: 'Configuration CRON_SECRET manquante.' }, 500, getCorsHeaders(request));
     }
 
-    const { data: profile } = await supabase.rpc('is_internal_user');
-    if (!profile) {
-      return jsonResponse({ error: 'Accès réservé admin/operator.' }, 403, getCorsHeaders(request));
+    const cronSecret = request.headers.get('x-cron-secret') || '';
+
+    if (!cronSecret || cronSecret !== env.CRON_SECRET) {
+      return jsonResponse({ error: 'Non autorisé.' }, 401, getCorsHeaders(request));
     }
+
+    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
     const { data: rows, error: rpcErr } = await supabase.rpc('process_notification_outbox', { p_limit: 10 });
     if (rpcErr) throw rpcErr;

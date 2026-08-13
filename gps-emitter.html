@@ -955,11 +955,13 @@
           document.getElementById('missionStatus').textContent = '⚠️ Inconnu';
           return;
         }
-        const status = data.status || 'planned';
+        const status = data.status || 'assigned';
         const statusMap = {
-          'planned': 'Planifiée',
+          'assigned': 'Assignée',
+          'accepted': 'Planifiée',
           'available': 'Disponible',
           'in_progress': 'En cours',
+          'delivered': 'Livrée',
           'completed': 'Terminée',
           'cancelled': 'Annulée'
         };

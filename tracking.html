@@ -651,7 +651,7 @@
         document.getElementById('cityDepart').textContent = cleanDep;
         document.getElementById('cityArrivee').textContent = cleanArr;
 
-        const status = m.status || 'planned';
+        const status = m.status || 'assigned';
         const badge = document.getElementById('statusBadge');
         if (status === 'in_progress' || status === 'en_cours') {
           badge.className = 'sh-status-badge status-transit';

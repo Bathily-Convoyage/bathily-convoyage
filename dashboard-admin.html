@@ -5048,30 +5048,8 @@ Cadeau premium personnalisé</textarea>
     await sb.from('candidatures').update({ status: 'approved' }).eq('id', candidatureId);
     await sb.from('candidatures').update({ status: 'rejected' }).eq('mission_id', missionId).neq('id', candidatureId);
 
-    // Notifier le client et le convoyeur par email
-    try {
-      const selectedConv = _convoyeursList.find(c => `${c.prenom} ${c.nom}` === convoyeurNom);
-      const mission = _allMissions.find(m => m.id === missionId);
-      if (selectedConv && mission) {
-        const sbA5 = getSupabase();
-        const tokA5 = (await sbA5.auth.getSession()).data?.session?.access_token;
-        await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(tokA5 ? { 'Authorization': `Bearer ${tokA5}` } : {}) },
-          body: JSON.stringify({
-            trigger: 'mission_assigned',
-            id: missionId,
-            convoyeur_nom: `${selectedConv.prenom} ${selectedConv.nom}`,
-            convoyeur_email: selectedConv.email,
-            client_email: mission.client_email,
-            depart: mission.depart,
-            arrivee: mission.arrivee,
-            date_mission: mission.date_mission,
-            reference: mission.reference
-          })
-        });
-      }
-    } catch (e) { console.warn('Notification email candidature failed:', e); }
+    // Notification mission_assigned is handled by the outbox trigger (mission_events → notification_outbox).
+    // No direct email here to avoid duplicates.
 
     Swal.fire('Mission attribuée !', `${convoyeurNom} est maintenant le convoyeur de cette mission.`, 'success');
     loadMissions();
@@ -5091,7 +5069,7 @@ Cadeau premium personnalisé</textarea>
   window.viewMissionDetails = async function(id) {
     const mission = _allMissions.find(m => m.id === id);
     if (!mission) return Swal.fire('Erreur', 'Mission introuvable', 'error');
-    const status = mission.status || 'planned';
+    const status = mission.status || 'assigned';
     const payStatus = mission.paiement_statut || 'pending';
 
     const sb = getSupabase();
@@ -5099,7 +5077,9 @@ Cadeau premium personnalisé</textarea>
 
     let statusBadge = '';
     if (status === 'available') statusBadge = '<span class="sp sp-att"><span class="sp-dot"></span>Sur le marché</span>';
-    else if (status === 'planned') statusBadge = '<span class="sp sp-att"><span class="sp-dot"></span>Planifiée</span>';
+    else if (status === 'assigned') statusBadge = '<span class="sp sp-att"><span class="sp-dot"></span>Assignée</span>';
+    else if (status === 'accepted') statusBadge = '<span class="sp sp-att"><span class="sp-dot"></span>Planifiée</span>';
+    else if (status === 'delivered') statusBadge = '<span class="sp sp-cours"><span class="sp-dot"></span>Livrée</span>';
     else if (status === 'in_progress') statusBadge = '<span class="sp sp-cours"><span class="sp-dot"></span>En cours</span>';
     else if (status === 'completed') statusBadge = '<span class="sp sp-ok"><span class="sp-dot"></span>Terminée</span>';
     else if (status === 'cancelled') statusBadge = '<span class="sp sp-err"><span class="sp-dot"></span>Annulée</span>';
@@ -5110,11 +5090,8 @@ Cadeau premium personnalisé</textarea>
       : '<span class="sp sp-err"><span class="sp-dot"></span>En attente</span>';
 
     let actionsHtml = '';
-    if (status === 'available' || status === 'planned') {
+    if (status === 'available' || status === 'assigned') {
       actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); assignConvoyeurToMission('${mission.id}')" style="margin-right:6px;"><i class="fas fa-user-plus"></i> Attribuer convoyeur</button>`;
-    }
-    if (status === 'planned') {
-      actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); updateMissionStatus('${mission.id}', 'in_progress')" style="margin-right:6px;"><i class="fas fa-play"></i> Démarrer</button>`;
     }
     if (status === 'delivered') {
       actionsHtml += `<button class="btn-sm btn-sm-green" onclick="Swal.close(); updateMissionStatus('${mission.id}', 'completed')" style="margin-right:6px;"><i class="fas fa-check"></i> Terminer</button>`;
@@ -5155,7 +5132,7 @@ Cadeau premium personnalisé</textarea>
         <b>Créée le :</b> ${formatDate(mission.created_at)}
         ${(() => {
           // Indicateur de retours possibles
-          if (status !== 'planned' && status !== 'in_progress') return '';
+          if (status !== 'assigned' && status !== 'accepted' && status !== 'in_progress') return '';
           const normalizeCity = (s) => (s || '').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^(le|la|les)\s+/, '');
           const dest = normalizeCity(mission.arrivee);
           if (!dest) return '';

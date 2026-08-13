@@ -1921,6 +1921,10 @@
           statusLabel = 'Livrée';
           pct = 100;
           strokeColor = 'var(--success)'; }
+        if (st === 'delivered') { statusClass = 'status-en-cours';
+          statusLabel = 'Livrée';
+          pct = 90;
+          strokeColor = 'var(--success)'; }
         if (st === 'available') { statusLabel = 'Sur le marché';
           pct = 5;
           strokeColor = 'var(--warning)'; }
@@ -1932,7 +1936,7 @@
         const payStatus = m.paiement_statut || 'pending';
         const tagPay = (payStatus === 'paid' || payStatus === 'paye') ? '<span class="mc-tag" style="background:rgba(74,124,107,0.12);color:var(--success);font-weight:700;"><i class="fas fa-check-circle"></i> Payée</span>' : '<span class="mc-tag" style="background:rgba(224,163,67,0.12);color:var(--warning);font-weight:700;"><i class="fas fa-clock"></i> En attente</span>';
 
-        const trackBtn = (st === 'in_progress') ? `<span class="btn-sm btn-sm-ghost" title="Lien de suivi fourni par le dispatch"><i class="fas fa-map-marker-alt"></i> Suivre</span>` : '';
+        const trackBtn = (st === 'in_progress' || st === 'accepted' || st === 'assigned') ? `<button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation(); openTracking('${m.id}')" title="Suivre ma mission en temps réel"><i class="fas fa-map-marker-alt"></i> Suivre</button>` : '';
         const canPay = payStatus !== 'paid' && payStatus !== 'paye' && st !== 'completed' && st !== 'cancelled' && st !== 'available';
         const payBtn = canPay ? `<button class="btn-sm btn-sm-red" onclick="payMission('${m.id}')" style="background:#2ecc71;color:white;border:none;"><i class="fas fa-credit-card"></i> Payer</button>` : '';
 
@@ -2047,6 +2051,22 @@
         Swal.fire({ toast: true, icon: 'success', title: 'Supprimé', timer: 2000 });
         _vehiculesList = _vehiculesList.filter(v => v.id !== id);
         renderVehicules();
+      }
+    }
+
+    // ========== TRACKING ==========
+    async function openTracking(missionId) {
+      try {
+        const client = getSBCli();
+        const { data: token, error } = await client.rpc('create_tracking_token', { p_mission_id: missionId });
+        if (error || !token) {
+          Swal.fire('Suivi indisponible', 'Impossible de générer un lien de suivi pour cette mission.', 'info');
+          return;
+        }
+        const link = `${window.location.origin}/tracking.html?token=${encodeURIComponent(token)}`;
+        window.open(link, '_blank', 'noopener');
+      } catch (err) {
+        Swal.fire('Suivi indisponible', 'Une erreur est survenue.', 'error');
       }
     }
 

@@ -604,7 +604,7 @@
     let _paiementStatut = 'pending';
     let _vehicle = '…';
     let _route = '… → …';
-    let _missionStatus = 'planned';
+    let _missionStatus = 'assigned';
     let _missionData = null;
 
     // ========== LOAD FROM SUPABASE ==========
@@ -702,7 +702,7 @@
       _paiementStatut = m.paiement_statut || 'pending';
       _vehicle = m.vehicule || '…';
       _route = (m.depart || '…') + ' → ' + (m.arrivee || '…');
-      _missionStatus = m.status || 'planned';
+      _missionStatus = m.status || 'assigned';
 
       // ---- Remplir les données ----
       // Topbar
