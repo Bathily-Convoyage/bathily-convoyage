@@ -5222,28 +5222,8 @@ Cadeau premium personnalisé</textarea>
     if (error) {
       Swal.fire('Erreur', error.message, 'error');
     } else {
-      // Notifier le client et le convoyeur par email si un convoyeur est assigné
-      if (assignedConvoyeur) {
-        try {
-          const sbA3 = getSupabase();
-          const tokA3 = (await sbA3.auth.getSession()).data?.session?.access_token;
-          await fetch('/api/send-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...(tokA3 ? { 'Authorization': `Bearer ${tokA3}` } : {}) },
-            body: JSON.stringify({
-              trigger: 'mission_assigned',
-              id: missionId,
-              convoyeur_nom: `${assignedConvoyeur.prenom} ${assignedConvoyeur.nom}`,
-              convoyeur_email: assignedConvoyeur.email,
-              client_email: mission.client_email,
-              depart: mission.depart,
-              arrivee: mission.arrivee,
-              date_mission: mission.date_mission,
-              reference: mission.reference
-            })
-          });
-        } catch (e) { console.warn('Notification email failed:', e); }
-      }
+      // Notification mission_assigned is handled by the outbox trigger (mission_events → notification_outbox).
+      // No direct email here to avoid duplicates.
       Swal.fire({ 
         toast: true, 
         position: 'top-end', 
@@ -6430,7 +6410,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
 
     Swal.fire({
       title: 'Relancer ce client ?',
-      html: 'Un email de relance sera envoyé à <strong>' + email + '</strong>',
+      html: 'Un email de relance sera envoyé à <strong>' + escapeHtml(email) + '</strong>',
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Envoyer la relance',
