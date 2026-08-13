@@ -138,7 +138,7 @@ async function sendSuccessResponse(env, clientProfile, candidatureId, headers) {
   // Envoyer un email à l'admin
   const resendApiKey = env.RESEND_API_KEY;
   const FROM_EMAIL = env.EMAIL_FROM || 'onboarding@resend.dev';
-  const adminEmail = env.ADMIN_EMAIL || 'contact@bathily-convoyage.fr';
+  const adminEmail = env.EMAIL_ADMIN || 'contact@bathily-convoyage.fr';
 
   if (resendApiKey) {
     try {

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { jsonResponse, handleOptions, parseBody, getQueryParams } from '../_utils.js';
+import { jsonResponse, handleOptions, parseBody } from '../_utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -13,9 +13,14 @@ export async function onRequest(context) {
     return jsonResponse({ error: 'POST requis' }, 405, headers);
   }
 
-  const params = getQueryParams(request);
-  const cronSecret = request.headers.get('x-cron-secret') || params.secret;
-  if (cronSecret !== env.CRON_SECRET) {
+  // Fail closed if CRON_SECRET is not configured.
+  if (!env.CRON_SECRET) {
+    return jsonResponse({ error: 'Configuration CRON_SECRET manquante.' }, 500, headers);
+  }
+
+  // Header-only authentication. Query param ?secret= is refused.
+  const cronSecret = request.headers.get('x-cron-secret') || '';
+  if (!cronSecret || cronSecret !== env.CRON_SECRET) {
     return jsonResponse({ error: 'Non autorisé' }, 401, headers);
   }
 
