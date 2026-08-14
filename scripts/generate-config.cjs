@@ -12,7 +12,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const publicDir = path.resolve(__dirname, '..', 'public');
+const repoRoot = path.resolve(__dirname, '..');
+const publicDir = path.join(repoRoot, 'public');
 if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 
 // --- Supabase ---
@@ -29,8 +30,12 @@ window.SUPABASE_URL = "${supabaseUrl || 'https://YOUR_PROJECT.supabase.co'}";
 window.SUPABASE_ANON_KEY = "${supabaseAnonKey || 'YOUR_SUPABASE_ANON_KEY'}";
 `;
 
+// Write to both destinations:
+// 1. Repository root → for Cloudflare Pages (deploys repo root, not dist/)
+// 2. public/ → for Vite build (copies to dist/)
+fs.writeFileSync(path.join(repoRoot, 'supabase-config.js'), supabaseContent);
 fs.writeFileSync(path.join(publicDir, 'supabase-config.js'), supabaseContent);
-console.log('✅ public/supabase-config.js generated');
+console.log('✅ supabase-config.js generated (root + public/)');
 
 // --- Firebase (optional) ---
 const fbApiKey = process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY;
