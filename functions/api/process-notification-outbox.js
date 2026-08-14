@@ -1,65 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
-import { getCorsHeaders, jsonResponse, handleOptions, escapeHtml } from '../_utils.js';
-import { sendEmail, wrapEmailLayout } from '../_email.js';
-
-const SUBJECTS = {
-  mission_assigned: 'Votre mission est assignée',
-  edl_departure_validated: 'Départ confirmé',
-  mission_started: 'Mission en cours',
-  edl_arrival_validated: 'Arrivée confirmée',
-  mission_delivered: 'Mission livrée',
-  mission_cancelled: 'Mission annulée'
-};
-
-function buildBody(reference, type) {
-  const title = SUBJECTS[type] || 'Notification mission';
-  const safeRef = escapeHtml(reference);
-  const body = `<p>Notification concernant la mission <strong>${safeRef}</strong>.</p>`;
-  return wrapEmailLayout(title, body);
-}
+import { getCorsHeaders, jsonResponse, handleOptions } from '../_utils.js';
+import { sendEmail, ProviderError } from '../_email.js';
 
 // =========================================================
-// PERSISTENCE ERROR — distinct from provider errors
-// =========================================================
-class PersistenceError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'PersistenceError';
-  }
-}
-
-// =========================================================
-// CONTROLLED OUTBOX UPDATE HELPER
+// PROD-1D-B.2 — PERMANENT CRON RECOVERY CONSUMER
 //
-// Executes an UPDATE with compare-and-set protection:
-//   id = expected row
-//   status = 'prepared'
-//   attempts = expected current attempts
+// Architecture:
+//   1. Auth via OUTBOX_CRON_SECRET (dedicated, least-privilege)
+//   2. RPC process_notification_outbox → prepare rows (freeze to/subject/html)
+//   3. RPC begin_delivery_attempt → persistence barrier (freeze from, set
+//      delivery_id, first_provider_attempt_at, current_attempt_id, increment
+//      attempts, insert ledger row, transition prepared → sending)
+//   4. sendEmail with frozen provider_request (verbatim from)
+//   5. RPC complete_delivery_attempt → idempotent completion with CAS
 //
-// Verifies:
-//   1. No PostgREST error
-//   2. Exactly one row affected (data != null)
-//
-// Throws PersistenceError on any failure.
-// Never masks a PostgREST error.
+// No provider call is possible before the persistence barrier succeeds.
+// No provider call is possible after 20h idempotency ceiling.
 // =========================================================
-async function updateOutboxState(supabase, id, expectedAttempts, update) {
-  const { data, error } = await supabase
-    .from('notification_outbox')
-    .update(update)
-    .eq('id', id)
-    .eq('status', 'prepared')
-    .eq('attempts', expectedAttempts)
-    .select('id')
-    .maybeSingle();
 
-  if (error) {
-    throw new PersistenceError(`Outbox update error: ${error.message}`);
-  }
-  if (!data) {
-    throw new PersistenceError('Outbox update affected 0 rows (CAS mismatch)');
-  }
-  return data;
+function buildFromHeader(env) {
+  const fromEmail = env.EMAIL_FROM || 'onboarding@resend.dev';
+  return `Bathily Convoyage <${fromEmail}>`;
 }
 
 export async function onRequest(context) {
@@ -77,99 +38,166 @@ export async function onRequest(context) {
       return jsonResponse({ error: 'Configuration Supabase manquante.' }, 500, getCorsHeaders(request));
     }
 
-    if (!env.CRON_SECRET) {
-      return jsonResponse({ error: 'Configuration CRON_SECRET manquante.' }, 500, getCorsHeaders(request));
+    // B.2: authenticate ONLY against OUTBOX_CRON_SECRET (least-privilege).
+    // CRON_SECRET MUST NOT authorize this endpoint.
+    if (!env.OUTBOX_CRON_SECRET) {
+      return jsonResponse({ error: 'Non autorisé.' }, 401, getCorsHeaders(request));
     }
 
     const cronSecret = request.headers.get('x-cron-secret') || '';
-
-    if (!cronSecret || cronSecret !== env.CRON_SECRET) {
+    if (!cronSecret || cronSecret !== env.OUTBOX_CRON_SECRET) {
       return jsonResponse({ error: 'Non autorisé.' }, 401, getCorsHeaders(request));
     }
 
     const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
+    // Step 1: Prepare rows (RPC handles quarantine, stale recovery, preparation)
     const { data: rows, error: rpcErr } = await supabase.rpc('process_notification_outbox', { p_limit: 10 });
     if (rpcErr) throw rpcErr;
 
     const results = [];
+    const fromHeader = buildFromHeader(env);
+
     for (const row of (rows || [])) {
-      const outbox = await supabase
+      // Only process rows that are now 'prepared'
+      if (row.status !== 'prepared') {
+        results.push({ id: row.id, status: row.status });
+        continue;
+      }
+
+      // Step 2: Read the prepared row to get current attempts
+      const { data: outboxRow, error: fetchErr } = await supabase
         .from('notification_outbox')
-        .select('id, notification_type, payload, status, attempts, mission_id, prepared_at, sent_at')
+        .select('id, attempts, payload, status')
         .eq('id', row.id)
         .single();
 
-      if (outbox.error || !outbox.data || outbox.data.status !== 'prepared') {
-        results.push({ id: row.id, status: outbox.data?.status || row.status || 'skipped' });
+      if (fetchErr || !outboxRow || outboxRow.status !== 'prepared') {
+        results.push({ id: row.id, status: 'skipped' });
         continue;
       }
 
-      const { payload, attempts: currentAttempts } = outbox.data;
-      const to = payload?.to;
-      const subject = payload?.subject;
-      const html = payload?.body;
+      // Step 3: Persistence barrier — begin_delivery_attempt
+      const { data: beginResult, error: beginErr } = await supabase.rpc('begin_delivery_attempt', {
+        p_outbox_id: outboxRow.id,
+        p_expected_attempts: outboxRow.attempts,
+        p_from: fromHeader
+      });
 
-      // ─── INCOMPLETE PAYLOAD → failed (no provider call) ───
-      if (!to || !subject || !html) {
-        try {
-          await updateOutboxState(supabase, row.id, currentAttempts, {
-            status: 'failed', prepared_at: null, sent_at: null, last_error: 'Payload incomplet'
-          });
-          results.push({ id: row.id, status: 'failed' });
-        } catch (persistErr) {
-          // Persistence failure → STOP batch, HTTP 500
-          return jsonResponse({ error: 'Outbox persistence failure' }, 500, getCorsHeaders(request));
-        }
+      if (beginErr) {
+        // RPC failure — no provider call
+        results.push({ id: row.id, status: 'begin_error', error: beginErr.message });
         continue;
       }
 
-      const idempotencyKey = `notification-outbox/${outbox.data.id}`;
-      const newAttempts = (currentAttempts || 0) + 1;
+      // beginResult is an array of rows from RETURNS TABLE
+      const begin = Array.isArray(beginResult) ? beginResult[0] : beginResult;
 
-      // ─── PHASE A: PROVIDER CALL (isolated from DB ACK) ───
+      if (!begin || begin.result !== 'ok') {
+        // Barrier rejected (cas_mismatch, deadline_expired, invalid_from, etc.)
+        results.push({
+          id: row.id,
+          status: begin?.result || 'begin_failed',
+          error: begin?.result
+        });
+        continue;
+      }
+
+      // Step 4: Provider call with frozen provider_request
+      const providerRequest = begin.provider_request;
+      const idempotencyKey = `notification-outbox/${begin.delivery_id}`;
+
       let providerResult = null;
       let providerError = null;
       try {
-        providerResult = await sendEmail({ to, subject, html, idempotencyKey }, env);
+        providerResult = await sendEmail({
+          from: providerRequest.from,
+          to: providerRequest.to,
+          subject: providerRequest.subject,
+          html: providerRequest.html,
+          idempotencyKey
+        }, env);
       } catch (err) {
         providerError = err;
       }
 
-      // ─── PHASE B: PERSIST PROVIDER OUTCOME ───
+      // Step 5: Complete delivery attempt (idempotent, CAS-protected)
+      let classification, httpStatus, errorCode, messageId, lastError, nextRetryAt;
+
       if (providerError === null) {
-        // Provider success → persist sent
-        try {
-          await updateOutboxState(supabase, row.id, currentAttempts, {
-            status: 'sent',
-            sent_at: new Date().toISOString(),
-            attempts: newAttempts,
-            prepared_at: null,
-            last_error: null,
-            payload: { ...payload, provider_message_id: providerResult?.id }
-          });
-          results.push({ id: row.id, status: 'sent', message_id: providerResult?.id });
-        } catch (persistErr) {
-          // DB ACK failure after provider success:
-          // DO NOT report sent, DO NOT retry provider, STOP batch
-          return jsonResponse({ error: 'Outbox persistence failure' }, 500, getCorsHeaders(request));
+        classification = 'success';
+        httpStatus = 200;
+        errorCode = null;
+        messageId = providerResult?.id || null;
+        lastError = null;
+        nextRetryAt = null;
+      } else if (providerError instanceof ProviderError) {
+        classification = providerError.classification;
+        httpStatus = providerError.httpStatus;
+        errorCode = providerError.errorCode;
+        messageId = null;
+        lastError = providerError.message;
+
+        // Compute next_retry_at for retryable classifications
+        if (classification === 'transient_retryable' || classification === 'ambiguous_retryable') {
+          const retryAfterSec = providerError.retryAfter || 30;
+          nextRetryAt = new Date(Date.now() + retryAfterSec * 1000).toISOString();
+        } else {
+          nextRetryAt = null;
         }
       } else {
-        // Provider failure → persist retry/failed
-        const nextStatus = newAttempts >= 3 ? 'failed' : 'retry';
-        try {
-          await updateOutboxState(supabase, row.id, currentAttempts, {
-            status: nextStatus,
-            attempts: newAttempts,
-            prepared_at: null,
-            sent_at: null,
-            last_error: providerError.message
-          });
-          results.push({ id: row.id, status: nextStatus, error: providerError.message });
-        } catch (persistErr) {
-          // DB ACK failure after provider failure:
-          // DO NOT retry provider, DO NOT report retry/failed, STOP batch
-          return jsonResponse({ error: 'Outbox persistence failure' }, 500, getCorsHeaders(request));
+        // Unexpected non-ProviderError → treat as ambiguous
+        classification = 'ambiguous_retryable';
+        httpStatus = null;
+        errorCode = null;
+        messageId = null;
+        lastError = providerError?.message || 'Unknown error';
+        nextRetryAt = new Date(Date.now() + 30 * 1000).toISOString();
+      }
+
+      const { data: completeResult, error: completeErr } = await supabase.rpc('complete_delivery_attempt', {
+        p_outbox_id: outboxRow.id,
+        p_expected_attempt_id: begin.attempt_id,
+        p_expected_delivery_id: begin.delivery_id,
+        p_attempt_number: begin.attempt_number,
+        p_classification: classification,
+        p_provider_http_status: httpStatus,
+        p_provider_error_code: errorCode,
+        p_provider_message_id: messageId,
+        p_last_error: lastError,
+        p_next_retry_at: nextRetryAt
+      });
+
+      if (completeErr) {
+        // RPC failure — batch stops
+        return jsonResponse({ error: 'Completion RPC failure', detail: completeErr.message }, 500, getCorsHeaders(request));
+      }
+
+      const complete = Array.isArray(completeResult) ? completeResult[0] : completeResult;
+
+      if (!complete) {
+        return jsonResponse({ error: 'Completion returned no result' }, 500, getCorsHeaders(request));
+      }
+
+      if (complete.ack_applied) {
+        results.push({
+          id: row.id,
+          status: complete.outbox_status,
+          message_id: messageId,
+          attempt_id: begin.attempt_id
+        });
+      } else {
+        // ACK rejected (stale, conflict, invalid transition, etc.)
+        // Provider result was persisted (if provider_result_persisted = true)
+        results.push({
+          id: row.id,
+          status: complete.outbox_status || 'unknown',
+          failure_reason: complete.failure_reason,
+          provider_result_persisted: complete.provider_result_persisted
+        });
+        // If result_conflict or outbox_cas_mismatch, stop batch
+        if (complete.failure_reason === 'result_conflict') {
+          return jsonResponse({ error: 'Result conflict on replay', results }, 500, getCorsHeaders(request));
         }
       }
     }
