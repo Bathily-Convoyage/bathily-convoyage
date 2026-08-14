@@ -1,6 +1,6 @@
 import { escapeHtml } from './_utils.js';
 
-export async function sendEmail({ to, subject, html }, env) {
+export async function sendEmail({ to, subject, html, idempotencyKey }, env) {
   const resendApiKey = env.RESEND_API_KEY;
   const FROM_EMAIL = env.EMAIL_FROM || 'onboarding@resend.dev';
 
@@ -8,12 +8,23 @@ export async function sendEmail({ to, subject, html }, env) {
     throw new Error('RESEND_API_KEY manquante');
   }
 
+  if (idempotencyKey !== undefined) {
+    if (typeof idempotencyKey !== 'string' || idempotencyKey.length < 1 || idempotencyKey.length > 256) {
+      throw new Error('idempotencyKey invalide (longueur doit être entre 1 et 256)');
+    }
+  }
+
+  const headers = {
+    'Authorization': `Bearer ${resendApiKey}`,
+    'Content-Type': 'application/json'
+  };
+  if (idempotencyKey) {
+    headers['Idempotency-Key'] = idempotencyKey;
+  }
+
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${resendApiKey}`,
-      'Content-Type': 'application/json'
-    },
+    headers,
     body: JSON.stringify({
       from: `Bathily Convoyage <${FROM_EMAIL}>`,
       to: Array.isArray(to) ? to : [to],

@@ -52,16 +52,16 @@ export async function onRequest(context) {
     for (const row of (rows || [])) {
       const outbox = await supabase
         .from('notification_outbox')
-        .select('id, payload, status, attempts, mission_id')
+        .select('id, notification_type, payload, status, attempts, mission_id, prepared_at, sent_at')
         .eq('id', row.id)
         .single();
 
       if (outbox.error || !outbox.data || outbox.data.status !== 'prepared') {
-        results.push({ id: row.id, status: outbox.data?.status || 'skipped' });
+        results.push({ id: row.id, status: outbox.data?.status || row.status || 'skipped' });
         continue;
       }
 
-      const { payload } = outbox.data;
+      const { payload, attempts: currentAttempts } = outbox.data;
       const to = payload?.to;
       const subject = payload?.subject;
       const html = payload?.body;
@@ -69,31 +69,34 @@ export async function onRequest(context) {
       if (!to || !subject || !html) {
         await supabase
           .from('notification_outbox')
-          .update({ status: 'failed', last_error: 'Payload incomplet' })
+          .update({ status: 'failed', prepared_at: null, sent_at: null, last_error: 'Payload incomplet' })
           .eq('id', row.id);
         results.push({ id: row.id, status: 'failed' });
         continue;
       }
 
+      const idempotencyKey = `notification-outbox/${outbox.data.id}`;
+      const newAttempts = (currentAttempts || 0) + 1;
+
       try {
-        const res = await sendEmail({ to, subject, html }, env);
+        const res = await sendEmail({ to, subject, html, idempotencyKey }, env);
         await supabase
           .from('notification_outbox')
           .update({
             status: 'sent',
             sent_at: new Date().toISOString(),
-            attempts: (outbox.data.attempts || 0) + 1,
+            attempts: newAttempts,
+            prepared_at: null,
             last_error: null,
             payload: { ...payload, provider_message_id: res?.id }
           })
           .eq('id', row.id);
         results.push({ id: row.id, status: 'sent', message_id: res?.id });
       } catch (sendErr) {
-        const attempts = (outbox.data.attempts || 0) + 1;
-        const nextStatus = attempts >= 3 ? 'failed' : 'retry';
+        const nextStatus = newAttempts >= 3 ? 'failed' : 'retry';
         await supabase
           .from('notification_outbox')
-          .update({ status: nextStatus, attempts, last_error: sendErr.message })
+          .update({ status: nextStatus, attempts: newAttempts, prepared_at: null, sent_at: null, last_error: sendErr.message })
           .eq('id', row.id);
         results.push({ id: row.id, status: nextStatus, error: sendErr.message });
       }
