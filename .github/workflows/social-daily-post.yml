@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: bathily-buffer-social-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   post-to-buffer:
     runs-on: ubuntu-latest
@@ -24,10 +28,7 @@ jobs:
       - name: Installer les dépendances
         run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
 
+      # Live Buffer publication is intentionally disabled.
+      # Re-enabling requires a separately approved production gate.
       - name: Publier le post du jour sur Buffer
-        env:
-          BUFFER_ACCESS_TOKEN: ${{ secrets.BUFFER_ACCESS_TOKEN }}
-          BUFFER_INSTAGRAM_CHANNEL_ID: ${{ secrets.BUFFER_INSTAGRAM_CHANNEL_ID }}
-          BUFFER_LINKEDIN_CHANNEL_ID: ${{ secrets.BUFFER_LINKEDIN_CHANNEL_ID }}
-          BUFFER_TIKTOK_CHANNEL_ID: ${{ secrets.BUFFER_TIKTOK_CHANNEL_ID }}
-        run: node scripts/post-to-buffer.js
+        run: node scripts/post-to-buffer.js --dry-run
