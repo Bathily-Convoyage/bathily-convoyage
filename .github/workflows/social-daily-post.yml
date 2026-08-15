@@ -4,7 +4,10 @@ on:
   schedule:
     # 08h00 UTC = 09h00 (hiver) ou 10h00 (été) heure de Paris
     - cron: '0 8 * * *'
-  workflow_dispatch: {}
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   post-to-buffer:
@@ -19,7 +22,7 @@ jobs:
           node-version: '22'
 
       - name: Installer les dépendances
-        run: npm install --omit=dev --no-audit --no-fund
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
 
       - name: Publier le post du jour sur Buffer
         env:
