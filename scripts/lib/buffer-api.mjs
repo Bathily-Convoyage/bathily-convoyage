@@ -22,10 +22,10 @@ export async function bufferGraphql({
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
+  let timer;
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => {
+    timer = setTimeout(() => {
+      controller.abort();
       reject(new BufferApiError('Buffer request timed out', { classification: 'timeout' }));
     }, timeoutMs);
   });
@@ -49,7 +49,7 @@ export async function bufferGraphql({
     const classification = err.name === 'AbortError' ? 'timeout' : 'network_error';
     throw new BufferApiError(`Buffer request failed: ${classification}`, { classification, details: err.name });
   } finally {
-    clearTimeout(timeout);
+    clearTimeout(timer);
   }
 
   let text;

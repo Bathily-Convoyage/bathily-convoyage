@@ -179,7 +179,7 @@ export async function publishTodayPost({ live = false, fetchImpl = globalThis.fe
 
   const autoPublish = process.env.BUFFER_AUTOPUBLISH_ENABLED;
   if (autoPublish !== 'true') {
-    throw new Error('Live Buffer publication is not enabled. Set BUFFER_AUTOPUBLISH=true to authorize.');
+    throw new Error('Live Buffer publication is not enabled. Set BUFFER_AUTOPUBLISH_ENABLED=true to authorize.');
   }
 
   const runAttempt = process.env.GITHUB_RUN_ATTEMPT;

@@ -573,6 +573,170 @@ test('no real network request occurred during test suite', async () => {
   assert.strictEqual(0, 0);
 });
 
+// T42-T52 audit V2 tests
+test('data/social-posts.json has zero U+FFFD', async () => {
+  const s = fs.readFileSync(path.join(repoRoot, 'data', 'social-posts.json'), 'utf8');
+  assert(!s.includes('\uFFFD'), 'U+FFFD found in social-posts.json');
+});
+
+test('data/social-posts-linkedin.json has zero U+FFFD', async () => {
+  const s = fs.readFileSync(path.join(repoRoot, 'data', 'social-posts-linkedin.json'), 'utf8');
+  assert(!s.includes('\uFFFD'), 'U+FFFD found in social-posts-linkedin.json');
+});
+
+test('data files contain valid JSON', async () => {
+  const g = fs.readFileSync(path.join(repoRoot, 'data', 'social-posts.json'), 'utf8');
+  const l = fs.readFileSync(path.join(repoRoot, 'data', 'social-posts-linkedin.json'), 'utf8');
+  assert(Array.isArray(JSON.parse(g)));
+  assert(Array.isArray(JSON.parse(l)));
+});
+
+test('general posts have exactly 7 unique days', async () => {
+  const posts = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data', 'social-posts.json'), 'utf8'));
+  const days = new Set(posts.map(p => p.day));
+  assert.strictEqual(days.size, 7);
+  assert.strictEqual(posts.length, 7);
+});
+
+test('linkedin posts have exactly 7 unique days', async () => {
+  const posts = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data', 'social-posts-linkedin.json'), 'utf8'));
+  const days = new Set(posts.map(p => p.day));
+  assert.strictEqual(days.size, 7);
+  assert.strictEqual(posts.length, 7);
+});
+
+test('general posts contain Monday through Sunday', async () => {
+  const posts = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data', 'social-posts.json'), 'utf8'));
+  const expected = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const days = new Set(posts.map(p => p.day));
+  for (const d of expected) assert(days.has(d), `missing ${d} in general posts`);
+});
+
+test('linkedin posts contain Monday through Sunday', async () => {
+  const posts = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data', 'social-posts-linkedin.json'), 'utf8'));
+  const expected = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const days = new Set(posts.map(p => p.day));
+  for (const d of expected) assert(days.has(d), `missing ${d} in linkedin posts`);
+});
+
+test('missing gate error message names BUFFER_AUTOPUBLISH_ENABLED', async () => {
+  process.env.BUFFER_AUTOPUBLISH_ENABLED = '';
+  process.env.BUFFER_ACCESS_TOKEN = 'tok';
+  process.env.BUFFER_INSTAGRAM_CHANNEL_ID = 'ig';
+  let error;
+  try {
+    await publishTodayPost({ live: true, fetchImpl: async () => { throw new Error('should not be called'); } });
+  } catch (e) { error = e; }
+  assert(error);
+  assert(error.message.includes('BUFFER_AUTOPUBLISH_ENABLED=true'), `message was: ${error.message}`);
+});
+
+test('CLI --live without env gate rejects and names BUFFER_AUTOPUBLISH_ENABLED', async () => {
+  const { exitCode, stdout, stderr } = await new Promise(resolve => {
+    execFile('node', ['scripts/post-to-buffer.js', '--live'], {
+      cwd: repoRoot,
+      env: { ...process.env, BUFFER_AUTOPUBLISH_ENABLED: '', BUFFER_ACCESS_TOKEN: '', BUFFER_INSTAGRAM_CHANNEL_ID: '', BUFFER_LINKEDIN_CHANNEL_ID: '', BUFFER_TIKTOK_CHANNEL_ID: '' }
+    }, (err, stdout, stderr) => resolve({ exitCode: err ? err.code : 0, stdout, stderr }));
+  });
+  assert.notStrictEqual(exitCode, 0);
+  const out = (stdout + stderr).join ? (stdout + stderr).join('') : (stdout || '') + (stderr || '');
+  assert(out.includes('BUFFER_AUTOPUBLISH_ENABLED=true'), `output was: ${out}`);
+});
+
+test('timeout error classification is timeout', async () => {
+  const fetchImpl = async () => new Promise(() => {});
+  try {
+    await bufferGraphql({ token: 't', query: 'q', fetchImpl, timeoutMs: 50 });
+    assert.fail('expected timeout');
+  } catch (err) {
+    assert.strictEqual(err.classification, 'timeout');
+  }
+});
+
+test('duplicate detection performs zero createPost calls', async () => {
+  const defaultPosts = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data', 'social-posts.json'), 'utf8'));
+  const dayName = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', weekday: 'long' }).format(new Date());
+  const dayPost = defaultPosts.find(p => p.day === dayName);
+  const fetchImpl = async () => ({
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({
+      data: {
+        account: { organizations: [{ id: 'org1' }] },
+        channels: { channels: [{ id: 'ig', service: 'instagram' }, { id: 'li', service: 'linkedin' }] },
+        posts: { posts: [{ id: 'p1', text: dayPost.text, createdAt: new Date().toISOString(), dueAt: new Date().toISOString() }] }
+      }
+    })
+  });
+  let createCalls = 0;
+  const wrappedFetch = async (url, init) => {
+    const body = init?.body ? JSON.parse(init.body) : {};
+    if (body.query && body.query.includes('createPost')) createCalls++;
+    return fetchImpl(url, init);
+  };
+  process.env.BUFFER_AUTOPUBLISH_ENABLED = 'true';
+  process.env.BUFFER_ACCESS_TOKEN = 'tok';
+  process.env.BUFFER_INSTAGRAM_CHANNEL_ID = 'ig';
+  process.env.BUFFER_LINKEDIN_CHANNEL_ID = '';
+  process.env.BUFFER_TIKTOK_CHANNEL_ID = '';
+  process.env.GITHUB_RUN_ATTEMPT = '1';
+  try {
+    await publishTodayPost({ live: true, fetchImpl: wrappedFetch });
+  } catch {}
+  delete process.env.GITHUB_RUN_ATTEMPT;
+  assert.strictEqual(createCalls, 0, 'duplicate should not call createPost');
+});
+
+test('channel validation unchanged', async () => {
+  const fetchImpl = async () => ({
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({
+      data: {
+        account: { organizations: [{ id: 'org1' }] },
+        channels: { channels: [{ id: 'ig', service: 'instagram' }] }
+      }
+    })
+  });
+  process.env.BUFFER_AUTOPUBLISH_ENABLED = 'true';
+  process.env.BUFFER_ACCESS_TOKEN = 'tok';
+  process.env.BUFFER_INSTAGRAM_CHANNEL_ID = 'ig';
+  process.env.BUFFER_LINKEDIN_CHANNEL_ID = 'li';
+  process.env.BUFFER_TIKTOK_CHANNEL_ID = '';
+  process.env.GITHUB_RUN_ATTEMPT = '1';
+  try {
+    await publishTodayPost({ live: true, fetchImpl });
+    assert.fail('expected validation to fail for missing configured channel');
+  } catch (err) {
+    assert(err.message.includes('not found'), `unexpected: ${err.message}`);
+  }
+  delete process.env.GITHUB_RUN_ATTEMPT;
+});
+
+test('successful Buffer request cancels the timeout timer', async () => {
+  const origSetTimeout = globalThis.setTimeout;
+  const origClearTimeout = globalThis.clearTimeout;
+  let cleared = 0;
+  globalThis.setTimeout = (fn, ms, ...args) => ({ _fn: fn, _ms: ms, _id: origSetTimeout(fn, ms, ...args) });
+  globalThis.clearTimeout = (handle) => { cleared++; if (handle?._id !== undefined) origClearTimeout(handle._id); };
+  try {
+    await bufferGraphql({
+      token: 't',
+      query: 'q',
+      timeoutMs: 100,
+      fetchImpl: async () => ({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ data: { ok: true } })
+      })
+    });
+  } finally {
+    globalThis.setTimeout = origSetTimeout;
+    globalThis.clearTimeout = origClearTimeout;
+  }
+  assert(cleared >= 1, 'timeout timer was not cancelled after successful request');
+});
+
 let passed = 0;
 let failed = 0;
 const failures = [];
