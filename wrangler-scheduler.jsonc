@@ -1,7 +1,10 @@
-// PROD-1D-C.2 — Local Wrangler configuration for the notification scheduler Worker.
+// PROD-1D-C.6R1 — Source-of-truth activation configuration for the notification
+// scheduler Worker. This file is the LOCAL target state only.
 //
 // This Worker is intentionally NOT the Pages project. It runs its own Worker.
-// NO production Cron Trigger is defined here. Activation is a later gate.
+//
+// IMPORTANT: committing this file locally does NOT activate the remote Worker.
+// Remote Worker / version / trigger deployment requires explicit later gates.
 //
 // Local env (non-committed):
 //   OUTBOX_CRON_SECRET = <secret>
@@ -15,10 +18,13 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
   "preview_urls": false,
+  "secrets": {
+    "required": ["OUTBOX_CRON_SECRET"]
+  },
   "vars": {
-    "NOTIFICATION_SCHEDULER_ENABLED": "false"
+    "NOTIFICATION_SCHEDULER_ENABLED": "true"
   },
   "triggers": {
-    "crons": []
+    "crons": ["* * * * *"]
   }
 }

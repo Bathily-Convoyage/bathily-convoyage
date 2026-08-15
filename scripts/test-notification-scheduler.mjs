@@ -126,6 +126,15 @@ async function runTest(env, fetchMock, timeoutMode = false) {
   }
 }
 
+function parseJsonc(filePath) {
+  const raw = readFileSync(filePath, 'utf8');
+  const stripped = raw
+    .split('\n')
+    .filter(line => !line.trim().startsWith('//'))
+    .join('\n');
+  return JSON.parse(stripped);
+}
+
 // =========================================================
 // TESTS
 // =========================================================
@@ -330,10 +339,29 @@ await t('T19 arbitrary target URL cannot be injected in Production mode', async 
   assert.ok(findLog('target_error'));
 });
 
-await t('T20 triggers.crons remains []', async () => {
-  const raw = readFileSync(join(__dirname, '..', 'wrangler-scheduler.jsonc'), 'utf8');
-  assert.ok(/"crons"\s*:\s*\[\s*\]/.test(raw), 'crons array not empty');
-  assert.strictEqual(raw.includes('* * * * *'), false, 'cron expression found in config');
+await t('T20 activation config has exactly one Cron: "* * * * *"', async () => {
+  const config = parseJsonc(join(__dirname, '..', 'wrangler-scheduler.jsonc'));
+  assert.ok(Array.isArray(config.triggers.crons), 'triggers.crons missing');
+  assert.strictEqual(config.triggers.crons.length, 1, 'cron count not 1');
+  assert.strictEqual(config.triggers.crons[0], '* * * * *', 'cron expression mismatch');
+});
+
+await t('T21 vars.NOTIFICATION_SCHEDULER_ENABLED === "true"', async () => {
+  const config = parseJsonc(join(__dirname, '..', 'wrangler-scheduler.jsonc'));
+  assert.strictEqual(config.vars.NOTIFICATION_SCHEDULER_ENABLED, 'true', 'scheduler not enabled');
+});
+
+await t('T22 secrets.required is exactly ["OUTBOX_CRON_SECRET"]', async () => {
+  const config = parseJsonc(join(__dirname, '..', 'wrangler-scheduler.jsonc'));
+  assert.ok(Array.isArray(config.secrets.required), 'secrets.required missing');
+  assert.deepStrictEqual(config.secrets.required, ['OUTBOX_CRON_SECRET'], 'required secret mismatch');
+});
+
+await t('T23 exposure hardening: workers_dev=false, preview_urls=false, no routes', async () => {
+  const config = parseJsonc(join(__dirname, '..', 'wrangler-scheduler.jsonc'));
+  assert.strictEqual(config.workers_dev, false, 'workers_dev not false');
+  assert.strictEqual(config.preview_urls, false, 'preview_urls not false');
+  assert.strictEqual('routes' in config, false, 'routes key must not exist');
 });
 
 // =========================================================
