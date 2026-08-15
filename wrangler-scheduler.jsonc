@@ -1,0 +1,22 @@
+// PROD-1D-C.2 — Local Wrangler configuration for the notification scheduler Worker.
+//
+// This Worker is intentionally NOT the Pages project. It runs its own Worker.
+// NO production Cron Trigger is defined here. Activation is a later gate.
+//
+// Local env (non-committed):
+//   OUTBOX_CRON_SECRET = <secret>
+//   OUTBOX_CONSUMER_URL = http://127.0.0.1:8788/mock
+//   ENVIRONMENT = local
+
+{
+  "name": "bathily-convoyage-notification-scheduler",
+  "main": "src/workers/notification-scheduler.js",
+  "compatibility_date": "2024-12-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "NOTIFICATION_SCHEDULER_ENABLED": "false"
+  },
+  "triggers": {
+    "crons": []
+  }
+}
