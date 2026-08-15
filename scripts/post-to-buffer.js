@@ -276,9 +276,9 @@ export async function publishTodayPost({ live = false, fetchImpl = globalThis.fe
   }
 
   if (failures.length > 0) {
-    console.error(`\n${failures.length} échec(s) de publication : ${failures.map(f => `${f.platform} (${f.classification})`).join(', ')}`);
-    process.exitCode = 1;
-    return;
+    const summary = failures.map(f => `${f.platform} (${f.classification})`).join(', ');
+    console.error(`\n${failures.length} échec(s) de publication : ${summary}`);
+    throw new Error(`Buffer publication failed: ${summary}`);
   }
 
   console.log('Tous les posts programmés ont été transmis à Buffer.');

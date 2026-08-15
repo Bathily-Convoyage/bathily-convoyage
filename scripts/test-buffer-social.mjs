@@ -260,10 +260,15 @@ test('duplicate same text/same channel/same Paris day skips createPost', async (
       }
     })
   });
-  let createCalls = 0;
   const wrappedFetch = async (url, init) => {
     const body = init?.body ? JSON.parse(init.body) : {};
-    if (body.query && body.query.includes('createPost')) createCalls++;
+    if (body.query && body.query.includes('createPost')) {
+      return {
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ data: { createPost: { __typename: 'PostActionSuccess', post: { id: 'p1' } } } })
+      };
+    }
     return fetchImpl(url, init);
   };
   process.env.BUFFER_AUTOPUBLISH_ENABLED = 'true';
@@ -424,11 +429,59 @@ test('one live channel failure makes overall result failure', async () => {
   process.env.BUFFER_LINKEDIN_CHANNEL_ID = 'li';
   process.env.BUFFER_TIKTOK_CHANNEL_ID = '';
   process.env.GITHUB_RUN_ATTEMPT = '1';
-  try {
-    await publishTodayPost({ live: true, fetchImpl: wrappedFetch });
-    assert.fail('expected failure');
-  } catch {}
+  await assert.rejects(
+    publishTodayPost({ live: true, fetchImpl: wrappedFetch }),
+    /Buffer publication failed.*linkedin \(mutation_error\)/
+  );
   delete process.env.GITHUB_RUN_ATTEMPT;
+});
+
+test('publishTodayPost failure does not set process.exitCode', async () => {
+  const fetchImpl = async () => ({
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({
+      data: {
+        account: { organizations: [{ id: 'org1' }] },
+        channels: { channels: [{ id: 'ig', service: 'instagram' }] },
+        posts: { posts: [] }
+      }
+    })
+  });
+  const wrappedFetch = async (url, init) => {
+    const body = init?.body ? JSON.parse(init.body) : {};
+    if (body.query && body.query.includes('createPost')) {
+      return {
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ data: { createPost: { __typename: 'MutationError', message: 'rejected' } } })
+      };
+    }
+    return fetchImpl(url, init);
+  };
+  process.env.BUFFER_AUTOPUBLISH_ENABLED = 'true';
+  process.env.BUFFER_ACCESS_TOKEN = 'tok';
+  process.env.BUFFER_INSTAGRAM_CHANNEL_ID = 'ig';
+  process.env.BUFFER_LINKEDIN_CHANNEL_ID = '';
+  process.env.BUFFER_TIKTOK_CHANNEL_ID = '';
+  process.env.GITHUB_RUN_ATTEMPT = '1';
+  const initialExitCode = process.exitCode;
+  await assert.rejects(
+    publishTodayPost({ live: true, fetchImpl: wrappedFetch }),
+    /Buffer publication failed/
+  );
+  delete process.env.GITHUB_RUN_ATTEMPT;
+  assert.strictEqual(process.exitCode, initialExitCode, 'process.exitCode was mutated');
+});
+
+test('CLI dry-run exits 0', async () => {
+  const exitCode = await new Promise(resolve => {
+    execFile('node', ['scripts/post-to-buffer.js', '--dry-run'], {
+      cwd: repoRoot,
+      env: { ...process.env, BUFFER_ACCESS_TOKEN: '', BUFFER_INSTAGRAM_CHANNEL_ID: '', BUFFER_LINKEDIN_CHANNEL_ID: '', BUFFER_TIKTOK_CHANNEL_ID: '' }
+    }, (err) => resolve(err ? err.code : 0));
+  });
+  assert.strictEqual(exitCode, 0);
 });
 
 test('logs never contain token', async () => {
