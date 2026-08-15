@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "node scripts/copy-social-media-assets.mjs",
     "preview": "vite preview",
     "postinstall": "node scripts/generate-config.cjs",
     "test": "npx playwright test",
     "test:ui": "npx playwright test --ui",
-    "test:report": "npx playwright show-report"
+    "test:report": "npx playwright show-report",
+    "test:buffer": "node scripts/test-buffer-social.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
