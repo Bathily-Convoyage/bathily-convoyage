@@ -1,6 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody } from '../_utils.js';
 
+/**
+ * Parse the external_convoyeurs_enabled value from app_settings.
+ * Fail-closed: anything except an explicit truthy representation is false.
+ */
+export function evaluateExternalConvoyeursEnabled(value) {
+  if (value === true) return true;
+  if (typeof value === 'boolean') return value === true;
+  if (typeof value === 'string') return value.trim().toLowerCase() === 'true';
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'object') {
+    if ('value' in value) {
+      const inner = value.value;
+      if (typeof inner === 'boolean') return inner === true;
+      if (typeof inner === 'string') return inner.trim().toLowerCase() === 'true';
+      return false;
+    }
+    return false;
+  }
+  return false;
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -31,6 +52,26 @@ export async function onRequest(context) {
     const supabaseAdmin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
+
+    // ── Server-side external convoyeur recruitment gate ──
+    const { data: flagRow, error: flagError } = await supabaseAdmin
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'external_convoyeurs_enabled')
+      .maybeSingle();
+
+    if (flagError) {
+      console.error('Recruitment gate: DB error reading external_convoyeurs_enabled:', flagError);
+      return jsonResponse({ error: 'recruitment_gate_unavailable', message: 'Le recrutement est temporairement indisponible.' }, 503, getCorsHeaders(request));
+    }
+
+    if (!flagRow) {
+      return jsonResponse({ error: 'recruitment_gate_unavailable', message: 'Le recrutement est temporairement indisponible.' }, 503, getCorsHeaders(request));
+    }
+
+    if (!evaluateExternalConvoyeursEnabled(flagRow.value)) {
+      return jsonResponse({ error: 'external_convoyeur_recruitment_disabled', message: 'Le recrutement de convoyeurs partenaires est temporairement suspendu.' }, 403, getCorsHeaders(request));
+    }
 
     // Vérifier l'identité du client
     const { data: { user }, error: authError } = await supabaseAnon.auth.getUser(token);
