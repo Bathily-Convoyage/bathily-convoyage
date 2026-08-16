@@ -11,6 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <title>Devenir convoyeur – Bathily-Convoyage</title>
   <meta name="description" content="Formation convoyeur Bathily-Convoyage. Le recrutement de convoyeurs partenaires est temporairement suspendu. La formation reste consultable.">
+  <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -339,8 +340,21 @@
     }
   </style>
   <link rel="stylesheet" href="css/mobile-nav.css">
+  <style>
+    /* Public training temporarily suspended: hide all page chrome, keep the code intact */
+    body > *:not(.formation-suspension-overlay) { display: none !important; }
+  </style>
 </head>
 <body>
+
+<div class="formation-suspension-overlay" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FDFBF7;color:#2D2A24;padding:24px;font-family:Inter,sans-serif;">
+  <div style="max-width:600px;text-align:center;background:white;border-radius:28px;padding:48px 40px;border:1px solid #E8E1D9;box-shadow:0 24px 60px rgba(0,0,0,0.08);">
+    <i class="fas fa-pause-circle" style="font-size:3rem;color:#F5A623;margin-bottom:20px;"></i>
+    <h1 style="font-family:Montserrat,sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:16px;color:#0A4D68;">Formation convoyeur temporairement indisponible</h1>
+    <p style="font-size:1rem;line-height:1.7;color:#6B625A;">Le recrutement et la formation des nouveaux convoyeurs partenaires sont temporairement suspendus.</p>
+    <a href="index.html" style="display:inline-block;margin-top:32px;padding:12px 32px;background:#0A4D68;color:white;text-decoration:none;border-radius:40px;font-weight:600;font-size:0.9rem;">Retour à l'accueil</a>
+  </div>
+</div>
 
 <header>
   <a href="index.html" class="logo"><img src="/logo.png" alt="Bathily-Convoyage" /></a>
