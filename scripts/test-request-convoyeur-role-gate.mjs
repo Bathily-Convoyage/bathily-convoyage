@@ -1,4 +1,17 @@
-import { handleRequest, evaluateExternalConvoyeursEnabled } from '../functions/api/request-convoyeur-role.js';
+// Guard: block any real outbound network call and measure attempts.
+const originalFetch = globalThis.fetch;
+let realNetworkCalls = 0;
+
+globalThis.fetch = async (...args) => {
+  realNetworkCalls++;
+  throw new Error('REAL_NETWORK_CALL_BLOCKED');
+};
+
+// Import the module under test while the global fetch is guarded.
+const {
+  handleRequest,
+  evaluateExternalConvoyeursEnabled
+} = await import('../functions/api/request-convoyeur-role.js');
 
 const env = {
   SUPABASE_URL: 'https://test.supabase.co',
@@ -18,8 +31,7 @@ function resetStats() {
     convoyeursSelectCalls: 0,
     candidaturesSelectCalls: 0,
     candidatureInsertCalls: 0,
-    emailFetchCalls: 0,
-    networkCalls: 0
+    emailFetchMockCalls: 0
   };
 }
 
@@ -133,7 +145,8 @@ async function testNoBearer() {
   assertEqual('T1 POST without Bearer => 401', res.status, 401);
   assertEqual('T1 app_settings read 0', stats.appSettingsReadCalls, 0);
   assertEqual('T1 insert 0', stats.candidatureInsertCalls, 0);
-  assertEqual('T1 email 0', stats.emailFetchCalls, 0);
+  assertEqual('T1 email mock 0', stats.emailFetchMockCalls, 0);
+  assertEqual('T1 real network 0', realNetworkCalls, 0);
 }
 
 async function testInvalidBearer() {
@@ -144,7 +157,8 @@ async function testInvalidBearer() {
   assertEqual('T2 app_settings read 0', stats.appSettingsReadCalls, 0);
   assertEqual('T2 service role table calls 0', stats.clientsSelectCalls, 0);
   assertEqual('T2 insert 0', stats.candidatureInsertCalls, 0);
-  assertEqual('T2 email 0', stats.emailFetchCalls, 0);
+  assertEqual('T2 email mock 0', stats.emailFetchMockCalls, 0);
+  assertEqual('T2 real network 0', realNetworkCalls, 0);
 }
 
 async function testFlagFalse() {
@@ -156,7 +170,8 @@ async function testFlagFalse() {
   assertEqual('T3 profile lookup 0', stats.clientsSelectCalls, 0);
   assertEqual('T3 candidature lookup 0', stats.candidaturesSelectCalls, 0);
   assertEqual('T3 insert 0', stats.candidatureInsertCalls, 0);
-  assertEqual('T3 email 0', stats.emailFetchCalls, 0);
+  assertEqual('T3 email mock 0', stats.emailFetchMockCalls, 0);
+  assertEqual('T3 real network 0', realNetworkCalls, 0);
 }
 
 async function testFlagMissing() {
@@ -166,7 +181,8 @@ async function testFlagMissing() {
   assertEqual('T4 flag missing => 503', res.status, 503);
   assertEqual('T4 error recruitment_gate_unavailable', body.error, 'recruitment_gate_unavailable');
   assertEqual('T4 insert 0', stats.candidatureInsertCalls, 0);
-  assertEqual('T4 email 0', stats.emailFetchCalls, 0);
+  assertEqual('T4 email mock 0', stats.emailFetchMockCalls, 0);
+  assertEqual('T4 real network 0', realNetworkCalls, 0);
 }
 
 async function testGateDbError() {
@@ -176,7 +192,8 @@ async function testGateDbError() {
   assertEqual('T5 DB gate error => 503', res.status, 503);
   assertEqual('T5 error recruitment_gate_unavailable', body.error, 'recruitment_gate_unavailable');
   assertEqual('T5 insert 0', stats.candidatureInsertCalls, 0);
-  assertEqual('T5 email 0', stats.emailFetchCalls, 0);
+  assertEqual('T5 email mock 0', stats.emailFetchMockCalls, 0);
+  assertEqual('T5 real network 0', realNetworkCalls, 0);
 }
 
 async function testUnexpectedFlagValue() {
@@ -185,7 +202,8 @@ async function testUnexpectedFlagValue() {
   const body = await res.json();
   assertEqual('T6 unexpected flag value => fail closed (403)', res.status, 403);
   assertEqual('T6 insert 0', stats.candidatureInsertCalls, 0);
-  assertEqual('T6 email 0', stats.emailFetchCalls, 0);
+  assertEqual('T6 email mock 0', stats.emailFetchMockCalls, 0);
+  assertEqual('T6 real network 0', realNetworkCalls, 0);
 }
 
 async function testTrueBoolean() {
@@ -194,6 +212,7 @@ async function testTrueBoolean() {
   const body = await res.json();
   assertEqual('T7 boolean true => success', res.status, 200);
   assertEqual('T7 insert called', stats.candidatureInsertCalls, 1);
+  assertEqual('T7 real network 0', realNetworkCalls, 0);
 }
 
 async function testTrueString() {
@@ -202,6 +221,7 @@ async function testTrueString() {
   const body = await res.json();
   assertEqual('T8 string "true" => success', res.status, 200);
   assertEqual('T8 insert called', stats.candidatureInsertCalls, 1);
+  assertEqual('T8 real network 0', realNetworkCalls, 0);
 }
 
 async function testSuccessfulInsert() {
@@ -210,33 +230,34 @@ async function testSuccessfulInsert() {
   const body = await res.json();
   assertEqual('T9 successful path insert called', stats.candidatureInsertCalls, 1);
   assertEqual('T9 candidature_id', body.candidature_id, 'cand-42');
+  assertEqual('T9 real network 0', realNetworkCalls, 0);
 }
 
 async function testEmailMockCalled() {
-  const fetchMock = async (url, opts) => { stats.emailFetchCalls++; stats.networkCalls++; return { ok: true }; };
+  const fetchMock = async (url, opts) => { stats.emailFetchMockCalls++; return { ok: true }; };
   const createClient = createMockClient({ authUser: { id: 'user-1' }, appSettingsValue: true, clientProfile: { prenom: 'A', nom: 'B', email: 'a@b.com', telephone: '06', ville: 'Mtp' } });
   const res = await handleRequest({ request: createRequest({ auth: 'Bearer valid-token' }), env }, { createClient, fetch: fetchMock, checkRateLimit: () => null, parseBody: async () => ({}) });
   const body = await res.json();
-  assertEqual('T10 email fetch called', stats.emailFetchCalls, 1);
-  assertEqual('T10 network call counted', stats.networkCalls, 1);
+  assertEqual('T10 email mock called', stats.emailFetchMockCalls, 1);
+  assertEqual('T10 real network 0', realNetworkCalls, 0);
 }
 
 async function testFalseNoEmail() {
-  const fetchMock = async () => { stats.networkCalls++; return { ok: true }; };
+  const fetchMock = async () => { return { ok: true }; };
   const createClient = createMockClient({ authUser: { id: 'user-1' }, appSettingsValue: false, clientProfile: { prenom: 'A', nom: 'B', email: 'a@b.com', telephone: '06', ville: 'Mtp' } });
   const res = await handleRequest({ request: createRequest({ auth: 'Bearer valid-token' }), env }, { createClient, fetch: fetchMock, checkRateLimit: () => null, parseBody: async () => ({}) });
   const body = await res.json();
-  assertEqual('T11 false path => no email', stats.emailFetchCalls, 0);
-  assertEqual('T11 false path => no network', stats.networkCalls, 0);
+  assertEqual('T11 false path => no email', stats.emailFetchMockCalls, 0);
+  assertEqual('T11 false path => no real network', realNetworkCalls, 0);
 }
 
 async function testInvalidSessionNoEmail() {
-  const fetchMock = async () => { stats.networkCalls++; return { ok: true }; };
+  const fetchMock = async () => { return { ok: true }; };
   const createClient = createMockClient({ appSettingsValue: true });
   const res = await handleRequest({ request: createRequest({ auth: 'Bearer bad-token' }), env }, { createClient, fetch: fetchMock, checkRateLimit: () => null, parseBody: async () => ({}) });
   const body = await res.json();
-  assertEqual('T12 invalid session => no email', stats.emailFetchCalls, 0);
-  assertEqual('T12 invalid session => no network', stats.networkCalls, 0);
+  assertEqual('T12 invalid session => no email', stats.emailFetchMockCalls, 0);
+  assertEqual('T12 invalid session => no real network', realNetworkCalls, 0);
 }
 
 // Parser tests
@@ -276,12 +297,18 @@ await runTest('T10 email mock called', testEmailMockCalled);
 await runTest('T11 false no email', testFalseNoEmail);
 await runTest('T12 invalid session no email', testInvalidSessionNoEmail);
 
+// Restore original fetch before final output.
+globalThis.fetch = originalFetch;
+
+// Final real-network-call fail-safe assertion (measured, not hardcoded).
+assertEqual('No real network calls', realNetworkCalls, 0);
+
 results.forEach(r => console.log(r));
 
 const total = pass + fail;
 console.log(`SERVER_GATE_TEST_TOTAL=${total}`);
 console.log(`SERVER_GATE_TEST_PASS=${pass}`);
 console.log(`SERVER_GATE_TEST_FAIL=${fail}`);
-console.log(`REAL_NETWORK_CALLS=0`);
+console.log(`REAL_NETWORK_CALLS=${realNetworkCalls}`);
 
 process.exit(fail > 0 ? 1 : 0);
