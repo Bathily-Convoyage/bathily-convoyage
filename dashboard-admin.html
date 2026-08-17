@@ -2518,8 +2518,8 @@ Cadeau premium personnalisé</textarea>
         <div class="f-grp"><label>Email Client</label><input type="email" id="md-client-email"></div>
       </div>
       <div class="f-row">
-        <div class="f-grp"><label>Départ</label><input type="text" id="md-depart"></div>
-        <div class="f-grp"><label>Arrivée</label><input type="text" id="md-arrivee"></div>
+        <div class="f-grp" style="position:relative;"><label>Départ</label><input type="text" id="md-depart" autocomplete="off"><div class="suggest-box" id="mdDepartSuggests"></div></div>
+        <div class="f-grp" style="position:relative;"><label>Arrivée</label><input type="text" id="md-arrivee" autocomplete="off"><div class="suggest-box" id="mdArriveeSuggests"></div></div>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Montant (€)</label><input type="number" id="md-price"></div>
@@ -2772,64 +2772,10 @@ Cadeau premium personnalisé</textarea>
   }
 
   // ============================================================
-  // PARTIE 5 : AUTOCOMPLÉTION ADRESSES (API BAN)
+  // PARTIE 5 : AUTOCOMPLÉTION ADRESSES (shared library)
   // ============================================================
-  let addressDebounceTimer = null;
-
-  async function fetchAddressSuggestions(query) {
-    if (!query || query.length < 2) return [];
-    try {
-      const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
-      if (!response.ok) return [];
-      const data = await response.json();
-      return data.features.map(f => ({
-        label: f.properties.label,
-        city: f.properties.city || '',
-        postcode: f.properties.postcode || ''
-      }));
-    } catch (err) {
-      console.warn("Erreur géocodage:", err);
-      return [];
-    }
-  }
-
-  function setupAddressAutocomplete(inputId, suggestId) {
-    const input = document.getElementById(inputId);
-    const box = document.getElementById(suggestId);
-    if (!input || !box) return;
-
-    input.addEventListener('input', function() {
-      clearTimeout(addressDebounceTimer);
-      const query = this.value.trim();
-      if (query.length < 2) {
-        box.style.display = 'none';
-        return;
-      }
-      addressDebounceTimer = setTimeout(async () => {
-        const suggestions = await fetchAddressSuggestions(query);
-        box.innerHTML = '';
-        if (suggestions.length === 0) {
-          box.style.display = 'none';
-          return;
-        }
-        suggestions.forEach(s => {
-          const div = document.createElement('div');
-          div.className = 'suggest-item';
-          div.textContent = s.label;
-          div.addEventListener('mousedown', () => {
-            input.value = s.label;
-            box.style.display = 'none';
-          });
-          box.appendChild(div);
-        });
-        box.style.display = 'block';
-      }, 300);
-    });
-
-    input.addEventListener('blur', () => {
-      setTimeout(() => { box.style.display = 'none'; }, 200);
-    });
-  }
+  // Custom implementation removed — uses js/address-autocomplete.js
+  // Init in DOMContentLoaded below
 
   // ============================================================
   // PARTIE 6 : AUTOCOMPLÉTION VÉHICULE (marque / modèle)
@@ -4259,8 +4205,8 @@ Cadeau premium personnalisé</textarea>
 
           <div style="font-weight:700;margin-bottom:10px;color:var(--bordeaux);font-size:0.9rem;"><i class="fas fa-route"></i> Trajet</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-            <div><label style="font-size:0.7rem;font-weight:600;">Départ *</label><input id="cdDepart" class="swal2-input" style="width:100%;margin:0;" placeholder="Paris"></div>
-            <div><label style="font-size:0.7rem;font-weight:600;">Arrivée *</label><input id="cdArrivee" class="swal2-input" style="width:100%;margin:0;" placeholder="Marseille"></div>
+            <div style="position:relative;"><label style="font-size:0.7rem;font-weight:600;">Départ *</label><input id="cdDepart" class="swal2-input" style="width:100%;margin:0;" placeholder="Paris" autocomplete="off"><div class="suggest-box" id="cdDepartSuggests" style="z-index:10000;"></div></div>
+            <div style="position:relative;"><label style="font-size:0.7rem;font-weight:600;">Arrivée *</label><input id="cdArrivee" class="swal2-input" style="width:100%;margin:0;" placeholder="Marseille" autocomplete="off"><div class="suggest-box" id="cdArriveeSuggests" style="z-index:10000;"></div></div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
             <div><label style="font-size:0.7rem;font-weight:600;">Date livraison</label><input id="cdDate" class="swal2-input" type="date" style="width:100%;margin:0;"></div>
@@ -5394,47 +5340,10 @@ Cadeau premium personnalisé</textarea>
       setTimeout(() => suggestBox.style.display = 'none', 200);
     });
 
-    // ---- Address autocomplete ----
-    // Definition of setupAddressAutocomplete
-    let addressDebounceTimer;
-    window.setupAddressAutocomplete = function(inputId, suggestBoxId) {
-      const input = document.getElementById(inputId);
-      const box = document.getElementById(suggestBoxId);
-      if(!input || !box) return;
-
-      input.addEventListener('input', function() {
-        clearTimeout(addressDebounceTimer);
-        const query = this.value.trim();
-        if(query.length < 3) { box.style.display = 'none'; return; }
-        addressDebounceTimer = setTimeout(async () => {
-          try {
-            const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
-            const data = await res.json();
-            box.innerHTML = '';
-            if(data.features && data.features.length > 0) {
-              data.features.forEach(f => {
-                const div = document.createElement('div');
-                div.className = 'suggest-item';
-                div.textContent = `${f.properties.label}`;
-                div.addEventListener('mousedown', () => {
-                  input.value = f.properties.label;
-                  box.style.display = 'none';
-                  if(typeof calculateAdminPrice === 'function') calculateAdminPrice();
-                });
-                box.appendChild(div);
-              });
-              box.style.display = 'block';
-            } else {
-              box.style.display = 'none';
-            }
-          } catch(e) { box.style.display = 'none'; }
-        }, 300);
-      });
-      input.addEventListener('blur', () => { setTimeout(() => box.style.display = 'none', 200); });
-    };
-
-    setupAddressAutocomplete('manual-depart', 'departSuggests');
-    setupAddressAutocomplete('manual-arrivee', 'arriveeSuggests');
+    // ---- Address autocomplete (shared library) ----
+    // Custom setupAddressAutocomplete removed — uses js/address-autocomplete.js
+    // manual-depart, manual-arrivee, md-depart, md-arrivee, cdDepart, cdArrivee
+    // initialized in DOMContentLoaded below
 
     // ---- Vehicle autocomplete ----
     // Précharger la base véhicules au focus sur la marque
@@ -5713,7 +5622,7 @@ async function geocodeAdminAddress(query) {
   if (!query.trim()) return null;
   try {
     const response = await fetch(
-      `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=1`
+      `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(query)}&limit=1`
     );
     const data = await response.json();
     if (data.features && data.features.length > 0) {
@@ -6967,6 +6876,15 @@ if ("serviceWorker" in navigator) {
       // Modal convoyeur — adresse + ville (remplit CP auto)
       AddressAutocomplete.setupAddressWithCity('convEditAdresse', 'convEditAdresseSuggests', 'convEditCp', 'convEditVille');
       AddressAutocomplete.setupCity('convEditVille', 'convEditVilleSuggests');
+      // Mission départ/arrivée (manual creation)
+      AddressAutocomplete.setupCity('manual-depart', 'departSuggests', function() { if(typeof calculateAdminPrice === 'function') calculateAdminPrice(); });
+      AddressAutocomplete.setupCity('manual-arrivee', 'arriveeSuggests', function() { if(typeof calculateAdminPrice === 'function') calculateAdminPrice(); });
+      // Mission detail view — départ/arrivée
+      AddressAutocomplete.setupCity('md-depart', 'mdDepartSuggests');
+      AddressAutocomplete.setupCity('md-arrivee', 'mdArriveeSuggests');
+      // Quick create mission modal — départ/arrivée
+      AddressAutocomplete.setupCity('cdDepart', 'cdDepartSuggests');
+      AddressAutocomplete.setupCity('cdArrivee', 'cdArriveeSuggests');
     }
   });
 </script>

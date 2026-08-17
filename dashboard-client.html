@@ -1282,13 +1282,13 @@
           <div class="f-grp"><label>Téléphone</label><input type="tel" id="profilTel" value=""></div>
           <div class="f-grp" style="grid-column:span 2; position:relative;">
             <label>Adresse (N° et rue)</label>
-            <input type="text" id="profilAdresse" value="" oninput="debounceGeocodeAddress(this, 'suggProfilAdresse')">
+            <input type="text" id="profilAdresse" value="">
             <div class="suggest-box" id="suggProfilAdresse"></div>
           </div>
           <div class="f-grp"><label>Code postal</label><input type="text" id="profilCp" value=""></div>
           <div class="f-grp" style="position:relative;">
             <label>Ville</label>
-            <input type="text" id="profilVille" value="" oninput="debounceGeocode(this, 'suggProfilVille')">
+            <input type="text" id="profilVille" value="">
             <div class="suggest-box" id="suggProfilVille"></div>
           </div>
           <div class="f-grp" style="grid-column:span 2"><label>Pays</label><input type="text" id="profilPays" value="France"></div>
@@ -2309,70 +2309,9 @@
     // ========== DATE ==========
     document.getElementById('dashDate').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-    // ========== GEOCODE AUTOCOMPLETE ==========
-    let debounceTimer;
-
-    async function fetchCitySuggestions(query) {
-      if (!query || query.length < 2) return [];
-      try {
-        const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5&type=municipality`);
-        const data = await res.json();
-        return data.features.map(f => ({ label: f.properties.city || f.properties.label, postcode: f.properties.postcode || '' }));
-      } catch { return []; }
-    }
-
-    async function fetchAddressSuggestions(query) {
-      if (!query || query.length < 3) return [];
-      try {
-        const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
-        const data = await res.json();
-        return data.features.map(f => ({ label: f.properties.name || f.properties.label, postcode: f.properties.postcode || '', city: f.properties.city || '' }));
-      } catch { return []; }
-    }
-
-    function showSuggestions(inputId, boxId, suggestions, isCityOnly) {
-      const box = document.getElementById(boxId);
-      if (!box) return;
-      box.innerHTML = '';
-      if (!suggestions.length) { box.style.display = 'none'; return; }
-      suggestions.forEach(s => {
-        const div = document.createElement('div');
-        div.className = 'suggest-item';
-        div.textContent = isCityOnly ? `${s.label} (${s.postcode})` : `${s.label}, ${s.city} (${s.postcode})`;
-        div.addEventListener('click', () => {
-          document.getElementById(inputId).value = s.label;
-          if (!isCityOnly) {
-            if (document.getElementById('profilCp')) document.getElementById('profilCp').value = s.postcode;
-            if (document.getElementById('profilVille')) document.getElementById('profilVille').value = s.city;
-          } else {
-            if (document.getElementById('profilCp')) document.getElementById('profilCp').value = s.postcode;
-          }
-          box.style.display = 'none';
-        });
-        box.appendChild(div);
-      });
-      box.style.display = 'block';
-    }
-
-    function debounceGeocode(input, boxId) {
-      clearTimeout(debounceTimer);
-      const q = input.value.trim();
-      if (q.length < 2) { document.getElementById(boxId).style.display = 'none'; return; }
-      debounceTimer = setTimeout(async () => {
-        const suggestions = await fetchCitySuggestions(q);
-        showSuggestions(input.id, boxId, suggestions, true);
-      }, 300);
-    }
-
-    function debounceGeocodeAddress(input, boxId) {
-      clearTimeout(debounceTimer);
-      const q = input.value.trim();
-      if (q.length < 3) { document.getElementById(boxId).style.display = 'none'; return; }
-      debounceTimer = setTimeout(async () => {
-        const suggestions = await fetchAddressSuggestions(q);
-        showSuggestions(input.id, boxId, suggestions, false);
-      }, 300);
-    }
+    // ========== GEOCODE AUTOCOMPLETE (shared library) ==========
+    // Custom implementations removed — uses js/address-autocomplete.js
+    // Init for profil fields done in DOMContentLoaded below
 
     document.addEventListener('click', function(e) {
       if (!e.target.closest('.f-grp')) {
@@ -2645,8 +2584,12 @@ if ("serviceWorker" in navigator) {
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     if (window.AddressAutocomplete) {
+      // Signup fields
       AddressAutocomplete.setupAddressWithCity('signupAdresse', 'signupAdresseSuggests', 'signupCp', 'signupVille');
       AddressAutocomplete.setupCity('signupVille', 'signupVilleSuggests');
+      // Profil fields
+      AddressAutocomplete.setupAddressWithCity('profilAdresse', 'suggProfilAdresse', 'profilCp', 'profilVille');
+      AddressAutocomplete.setupCity('profilVille', 'suggProfilVille');
     }
   });
 </script>
