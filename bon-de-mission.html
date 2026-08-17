@@ -234,13 +234,53 @@
       .dh-badges { justify-content: flex-start; }
       .data-grid, .data-grid-3, .data-grid-4, .sig-section, .urgence-grid { grid-template-columns: 1fr; }
     }
+    /* ========== INITIAL RENDER SECURITY (WAVE 2B.2) ========== */
+    #loadingGate {
+      position: fixed; inset: 0; background: #FDFBF7; z-index: 9500;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #loadingGate.hidden { display: none; }
+    .lg-box { text-align: center; max-width: 360px; padding: 24px; }
+    .lg-spinner {
+      width: 48px; height: 48px; border: 4px solid var(--border-light);
+      border-top-color: var(--bordeaux); border-radius: 50%;
+      margin: 0 auto 16px; animation: lg-spin 0.8s linear infinite;
+    }
+    @keyframes lg-spin { to { transform: rotate(360deg); } }
+    .lg-title { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 700; color: var(--gray-dark); margin-bottom: 4px; }
+    .lg-sub { font-size: 0.8rem; color: var(--gray-mid); }
+    #bonShell { display: none; }
+    #bonShell.revealed { display: block; }
   </style>
 </head>
 <body>
 
+  <!-- LOADING GATE (WAVE 2B.2) — visible immediately, hides all content until auth+data ready -->
+  <div id="loadingGate">
+    <div class="lg-box">
+      <div class="lg-spinner"></div>
+      <div class="lg-title">Chargement du bon de mission…</div>
+      <div class="lg-sub">Vérification de l'accès et des données de mission.</div>
+    </div>
+  </div>
+
+  <!-- NO-JS FAIL-CLOSED (WAVE 2B.2) -->
+  <noscript>
+    <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#FDFBF7;padding:24px;z-index:9999;">
+      <div style="background:white;border:1px solid #E8E1D9;border-radius:20px;padding:36px;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.08);">
+        <div style="width:64px;height:64px;background:#fdecea;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#c0392b;font-size:1.6rem;"><i class="fas fa-lock"></i></div>
+        <h1 style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:700;color:#2D2A24;margin-bottom:8px;">JavaScript requis</h1>
+        <p style="font-size:0.85rem;color:#6B625A;margin-bottom:20px;line-height:1.6;">JavaScript est requis pour accéder à ce bon de mission. Veuillez activer JavaScript dans votre navigateur.</p>
+      </div>
+    </div>
+  </noscript>
+
   <!-- Curseur personnalisé -->
   <div class="cur" id="cur"></div>
   <div class="cur-ring" id="cring"></div>
+
+  <!-- BON SHELL (WAVE 2B.2) — hidden until auth + mission data loaded -->
+  <div id="bonShell">
 
   <!-- Topbar -->
   <div class="topbar">
@@ -347,13 +387,9 @@
         </div>
         <div class="data-grid-4">
           <div class="data-item"><div class="data-lbl">Kilométrage départ</div><div class="data-val highlight">… relevé</div></div>
-          <div class="data-item"><div class="data-lbl">Tolérance</div><div class="data-val orange">+470 km</div></div>
+          <div class="data-item"><div class="data-lbl">Tolérance</div><div class="data-val orange">—</div></div>
           <div class="data-item"><div class="data-lbl">Carburant départ</div><div class="data-val highlight">… noter</div></div>
-          <div class="data-item"><div class="data-lbl">Prochain CT</div><div class="data-val">Octobre 2025</div></div>
-        </div>
-        <div class="alert alert-info" style="margin-top:12px">
-          <i class="fas fa-bolt"></i>
-          <p><strong>Véhicule hybride :</strong> Activez le mode éco-conduite. En cas de recharge, utilisez IONITY ou Fastned.</p>
+          <div class="data-item"><div class="data-lbl">Prochain CT</div><div class="data-val">—</div></div>
         </div>
       </div>
     </div>
@@ -391,12 +427,12 @@
           </div>
         </div>
         <div class="data-grid-3" style="margin-top:16px">
-          <div class="data-item"><div class="data-lbl">Permis</div><div class="data-val">XX-123456-XX</div></div>
-          <div class="data-item"><div class="data-lbl">Validité permis</div><div class="data-val">15 juin 2030</div></div>
-          <div class="data-item"><div class="data-lbl">RC Pro</div><div class="data-val">AXA-2025-XX-XXXX</div></div>
-          <div class="data-item"><div class="data-lbl">Missions</div><div class="data-val green">47 missions ★ 4.9</div></div>
-          <div class="data-item"><div class="data-lbl">Certification</div><div class="data-val green">Valide 2025</div></div>
-          <div class="data-item"><div class="data-lbl">Expérience</div><div class="data-val">+3 ans</div></div>
+          <div class="data-item"><div class="data-lbl">Permis</div><div class="data-val">—</div></div>
+          <div class="data-item"><div class="data-lbl">Validité permis</div><div class="data-val">—</div></div>
+          <div class="data-item"><div class="data-lbl">RC Pro</div><div class="data-val">—</div></div>
+          <div class="data-item"><div class="data-lbl">Missions</div><div class="data-val">—</div></div>
+          <div class="data-item"><div class="data-lbl">Certification</div><div class="data-val">—</div></div>
+          <div class="data-item"><div class="data-lbl">Expérience</div><div class="data-val">—</div></div>
         </div>
       </div>
     </div>
@@ -416,7 +452,7 @@
         </table>
         <div class="data-grid" style="margin-top:16px">
           <div class="data-item"><div class="data-lbl">Rémunération convoyeur (net)</div><div class="data-val highlight" id="remConvoyeur">…</div></div>
-          <div class="data-item"><div class="data-lbl">Paiement</div><div class="data-val">Virement sous 48h après validation EDL arrivée</div></div>
+          <div class="data-item"><div class="data-lbl">Paiement</div><div class="data-val">Modalités de paiement : —</div></div>
         </div>
       </div>
     </div>
@@ -428,13 +464,12 @@
       </div>
       <div class="section-body">
         <div class="timeline">
-          <div class="tl-item"><div class="tl-dot active">1</div><div class="tl-content"><div class="tl-time">08:30</div><div class="tl-title">Briefing & vérification documents</div><div class="tl-sub">Consulter le bon de mission, vérifier coordonnées client et RC Pro.</div></div></div>
-          <div class="tl-item"><div class="tl-dot">2</div><div class="tl-content"><div class="tl-time">09:00</div><div class="tl-title">Prise en charge</div><div class="tl-sub">15 Rue de Rivoli, Paris. Contacter Jean Dupont. Effectuer l'état des lieux de départ (20 photos + signature).</div></div></div>
-          <div class="tl-item"><div class="tl-dot">3</div><div class="tl-content"><div class="tl-time">09:30</div><div class="tl-title">Départ & activation GPS</div><div class="tl-sub">Activer le suivi GPS. Itinéraire A6 via Auxerre.</div></div></div>
-          <div class="tl-item"><div class="tl-dot">4</div><div class="tl-content"><div class="tl-time">~11:30</div><div class="tl-title">Pause obligatoire</div><div class="tl-sub">15-20 min. Vérifier moteur, pneus, niveau carburant.</div></div></div>
-          <div class="tl-item"><div class="tl-dot">5</div><div class="tl-content"><div class="tl-time">~14:00</div><div class="tl-title">Nettoyage (Pack Sérénité)</div><div class="tl-sub">Station de lavage à l'approche de Lyon. Mise à niveau carburant.</div></div></div>
-          <div class="tl-item"><div class="tl-dot">6</div><div class="tl-content"><div class="tl-time">15:30</div><div class="tl-title">Livraison</div><div class="tl-sub">3 Rue Servient, Lyon. Contacter Marie Dupont 30 min avant. État des lieux arrivée.</div></div></div>
-          <div class="tl-item"><div class="tl-dot">7</div><div class="tl-content"><div class="tl-time">Après livraison</div><div class="tl-title">Clôture de mission</div><div class="tl-sub">Soumettre rapport, envoyer documents signés.</div></div></div>
+          <div class="tl-item"><div class="tl-dot active">1</div><div class="tl-content"><div class="tl-time">—</div><div class="tl-title">Briefing & vérification documents</div><div class="tl-sub">Consulter le bon de mission, vérifier les coordonnées client.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">2</div><div class="tl-content"><div class="tl-time">—</div><div class="tl-title">Prise en charge</div><div class="tl-sub">Contact client, état des lieux de départ (10 photos minimum + signature).</div></div></div>
+          <div class="tl-item"><div class="tl-dot">3</div><div class="tl-content"><div class="tl-time">—</div><div class="tl-title">Départ & activation GPS</div><div class="tl-sub">Activer le suivi GPS en temps réel.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">4</div><div class="tl-content"><div class="tl-time">—</div><div class="tl-title">Pause obligatoire</div><div class="tl-sub">15-20 min. Vérifier moteur, pneus, niveau carburant.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">5</div><div class="tl-content"><div class="tl-time">—</div><div class="tl-title">Livraison</div><div class="tl-sub">Contacter le client 30 min avant. État des lieux arrivée.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">6</div><div class="tl-content"><div class="tl-time">—</div><div class="tl-title">Clôture de mission</div><div class="tl-sub">Soumettre rapport, envoyer documents signés.</div></div></div>
         </div>
       </div>
     </div>
@@ -451,15 +486,15 @@
           <p>Les 7 premières étapes sont <strong>obligatoires</strong> pour démarrer la mission.</p>
         </div>
         <div class="checklist" id="checklist">
-          <div class="check-item" onclick="toggleCheck(this,0)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Documents vérifiés</div><div class="check-desc">Bon de mission lu, coordonnées client notées, RC Pro en poche.</div></div><div class="check-required">Obligatoire</div></div>
-          <div class="check-item" onclick="toggleCheck(this,1)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Prise en charge confirmée</div><div class="check-desc">Appel ou SMS de confirmation envoyé à Jean Dupont.</div></div><div class="check-required">Obligatoire</div></div>
-          <div class="check-item" onclick="toggleCheck(this,2)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">État des lieux départ complété</div><div class="check-desc">20 photos prises, état général noté, dommages signalés.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,0)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Documents vérifiés</div><div class="check-desc">Bon de mission lu, coordonnées client notées.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,1)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Prise en charge confirmée</div><div class="check-desc">Appel ou SMS de confirmation envoyé au client.</div></div><div class="check-required">Obligatoire</div></div>
+          <div class="check-item" onclick="toggleCheck(this,2)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">État des lieux départ complété</div><div class="check-desc">10 photos minimum prises, état général noté, dommages signalés.</div></div><div class="check-required">Obligatoire</div></div>
           <div class="check-item" onclick="toggleCheck(this,3)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Signature client obtenue</div><div class="check-desc">EDL de départ signé électroniquement.</div></div><div class="check-required">Obligatoire</div></div>
           <div class="check-item" onclick="toggleCheck(this,4)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Kilométrage départ noté</div><div class="check-desc">Relevé exact du compteur.</div></div><div class="check-required">Obligatoire</div></div>
           <div class="check-item" onclick="toggleCheck(this,5)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Niveau carburant noté</div><div class="check-desc">Niveau en % ou barre de jauge.</div></div><div class="check-required">Obligatoire</div></div>
           <div class="check-item" onclick="toggleCheck(this,6)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Suivi GPS activé</div><div class="check-desc">Application Bathily ouverte, position partagée.</div></div><div class="check-required">Obligatoire</div></div>
           <div class="check-item" onclick="toggleCheck(this,7)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Itinéraire vérifié</div><div class="check-desc">Bison Futé consulté, GPS paramétré.</div></div></div>
-          <div class="check-item" onclick="toggleCheck(this,8)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Contact livraison confirmé</div><div class="check-desc">Marie Dupont informée de l'heure d'arrivée.</div></div></div>
+          <div class="check-item" onclick="toggleCheck(this,8)" role="checkbox" aria-checked="false" tabindex="0"><div class="check-box"></div><div><div class="check-title">Contact livraison confirmé</div><div class="check-desc">Client informé de l'heure d'arrivée.</div></div></div>
         </div>
       </div>
     </div>
@@ -471,12 +506,8 @@
       </div>
       <div class="section-body">
         <div class="instructions-list">
-          <div class="instr-item important"><i class="fas fa-exclamation-triangle instr-ico"></i><div class="instr-text"><strong>Véhicule hybride :</strong> Ne pas laisser tourner à l'arrêt plus de 5min. Activer le mode éco-conduite.</div></div>
-          <div class="instr-item important"><i class="fas fa-camera instr-ico"></i><div class="instr-text"><strong>Pack Sérénité :</strong> Nettoyage extérieur haute pression avant livraison. Conserver les justificatifs.</div></div>
-          <div class="instr-item info"><i class="fas fa-parking instr-ico"></i><div class="instr-text"><strong>Livraison :</strong> Parking souterrain 3 Rue Servient, Lyon. Place réservée "DUPONT".</div></div>
           <div class="instr-item info"><i class="fas fa-phone instr-ico"></i><div class="instr-text"><strong>Communication :</strong> Prévenir le client 30min avant l'arrivée. En cas de retard >30min, prévenir client ET dispatch.</div></div>
-          <div class="instr-item success"><i class="fas fa-check-circle instr-ico"></i><div class="instr-text"><strong>Objets :</strong> Sac de voyage bleu dans coffre, casque sur banquette arrière. Ne pas déplacer.</div></div>
-          <div class="instr-item"><i class="fas fa-shield-alt instr-ico"></i><div class="instr-text"><strong>Assurance :</strong> Double RC Pro active. En cas d'incident, ne pas admettre de responsabilité, contacter dispatch.</div></div>
+          <div class="instr-item"><i class="fas fa-shield-alt instr-ico"></i><div class="instr-text"><strong>Incident :</strong> En cas d'incident, sécuriser la situation et contacter le dispatch Bathily-Convoyage.</div></div>
         </div>
       </div>
     </div>
@@ -488,9 +519,9 @@
       </div>
       <div class="section-body">
         <div class="urgence-grid">
-          <div class="urgence-card"><div class="urg-title"><i class="fas fa-bolt"></i> Dispatch Bathily · Urgence 24h</div><div class="urg-val">disponible 24h/24</div><div class="urg-note">Pour tout incident, panne ou problème</div></div>
-          <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Client · Jean Dupont</div><div class="urg-val">+33 6 12 34 56 78</div><div class="urg-note">Prise en charge</div></div>
-          <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Contact livraison · Marie Dupont</div><div class="urg-val">+33 6 98 76 54 32</div><div class="urg-note">Livraison à partir de 14h</div></div>
+          <div class="urgence-card"><div class="urg-title"><i class="fas fa-bolt"></i> Dispatch Bathily-Convoyage</div><div class="urg-val">—</div><div class="urg-note">Pour tout incident, panne ou problème</div></div>
+          <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Client · Prise en charge</div><div class="urg-val">—</div><div class="urg-note">Contact à confirmer via le bon de mission</div></div>
+          <div class="urgence-card"><div class="urg-title"><i class="fas fa-user"></i> Contact livraison</div><div class="urg-val">—</div><div class="urg-note">Contact à confirmer via le bon de mission</div></div>
           <div class="urgence-card"><div class="urg-title"><i class="fas fa-car-crash"></i> Assistance routière</div><div class="urg-val">17 · 15 · 18</div><div class="urg-note">Police · SAMU · Pompiers</div></div>
         </div>
         <div class="alert alert-info" style="margin-top:12px">
@@ -505,7 +536,7 @@
       <div class="qr-code"><i class="fas fa-qrcode"></i></div>
       <div class="qr-info">
         <div class="qr-title">Lien de suivi client</div>
-        <div class="qr-sub" id="qrLink">Bathily-Convoyage.fr/tracking/...<br><span style="font-size:0.6rem">Lien valable 48h après livraison</span></div>
+        <div class="qr-sub" id="qrLink">—<br><span style="font-size:0.6rem">Lien de suivi fourni par le dispatch</span></div>
       </div>
     </div>
 
@@ -542,8 +573,8 @@
     <!-- Mentions légales -->
     <div style="background: var(--beige); border-radius: 16px; padding: 16px; margin-top: 16px;">
       <p style="font-size: 0.65rem; color: var(--gray-mid); line-height: 1.6; text-align: justify;">
-        Ce bon de mission constitue un document contractuel entre Bathily-Convoyage, le convoyeur assigné et le client. Il est régi par les CGV disponibles sur Bathily-Convoyage.fr/cgv. 
-        La double assurance RC Pro couvre les dommages survenus au véhicule pendant la durée de la mission. Toute modification doit être validée par le dispatch Bathily. 
+        Ce bon de mission constitue un document de mission entre Bathily-Convoyage, le convoyeur assigné et le client. Pour toute question sur les conditions applicables, consultez la page <a href="mentions-legales.html" style="color: var(--bordeaux); text-decoration: underline;">mentions légales</a>.
+        Toute modification doit être validée par le dispatch Bathily-Convoyage.
         © 2025 Bathily-Convoyage · Document confidentiel · Réf. <span id="footerRef">…</span>
       </p>
     </div>
@@ -560,6 +591,8 @@
       <button class="tb-btn tb-green" id="startBtn" onclick="startMission()"><i class="fas fa-play"></i> Démarrer</button>
     </div>
   </div>
+
+  </div><!-- /#bonShell -->
 
   <script>
     // ========== SUPABASE ==========
@@ -617,9 +650,20 @@
       const params = new URLSearchParams(window.location.search);
       const missionId = params.get('id');
 
+      // Helper: show error and hide loading gate (WAVE 2B.2)
+      function showGateError(title, msg, linkHref, linkLabel) {
+        document.getElementById('loadingGate').innerHTML = `
+          <div style="background:white;border:1px solid #E8E1D9;border-radius:20px;padding:36px;max-width:440px;width:90%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.08);">
+            <div style="width:64px;height:64px;background:#fdecea;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#c0392b;font-size:1.6rem;"><i class="fas fa-lock"></i></div>
+            <h1 style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:700;color:#2D2A24;margin-bottom:8px;">${title}</h1>
+            <p style="font-size:0.85rem;color:#6B625A;margin-bottom:20px;line-height:1.6;">${msg}</p>
+            ${linkHref ? `<a href="${linkHref}" style="display:inline-block;background:#0A4D68;color:white;text-decoration:none;padding:12px 24px;border-radius:12px;font-size:0.85rem;font-weight:700;min-height:44px;">${linkLabel}</a>` : ''}
+            <a href="index.html" style="display:block;margin-top:12px;font-size:0.75rem;color:#6B625A;text-decoration:none;">← Retour au site</a>
+          </div>`;
+      }
+
       if (!missionId) {
-        document.getElementById('topRef').textContent = 'Aucune mission sélectionnée';
-        Swal.fire('Information', 'Aucun identifiant de mission fourni.', 'info');
+        showGateError('Aucune mission', 'Aucun identifiant de mission fourni.', 'dashboard-convoyeur.html', 'Espace convoyeur');
         return;
       }
 
@@ -640,6 +684,10 @@
       //      — si aucun des deux → refus propre
       //   3. Only then : lecture de la mission
       const client = getSB();
+      if (!client) {
+        showGateError('Configuration manquante', 'La configuration requise pour accéder à ce document est indisponible. Veuillez contacter le support.', 'index.html', 'Retour au site');
+        return;
+      }
       let _authOk = false;
       try {
         const { data: { session }, error: sessErr } = await client.auth.getSession();
@@ -672,17 +720,7 @@
       }
 
       if (!_authOk) {
-        document.getElementById('topRef').textContent = 'Accès réservé';
-        document.body.innerHTML = `
-          <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#FDFBF7;padding:24px;">
-            <div style="background:white;border:1px solid #E8E1D9;border-radius:20px;padding:36px;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.08);">
-              <div style="width:64px;height:64px;background:#fdecea;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#c0392b;font-size:1.6rem;"><i class="fas fa-lock"></i></div>
-              <h1 style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:700;color:#2D2A24;margin-bottom:8px;">Accès réservé</h1>
-              <p style="font-size:0.85rem;color:#6B625A;margin-bottom:20px;line-height:1.6;">Vous devez être authentifié en tant qu'opérateur interne ou convoyeur assigné à cette mission pour consulter le bon de mission.</p>
-              <a href="dashboard-operator.html" style="display:inline-block;background:#0A4D68;color:white;text-decoration:none;padding:12px 24px;border-radius:12px;font-size:0.85rem;font-weight:700;min-height:44px;"><i class="fas fa-sign-in-alt"></i> Espace Missions</a>
-              <a href="index.html" style="display:block;margin-top:12px;font-size:0.75rem;color:#6B625A;text-decoration:none;">← Retour au site</a>
-            </div>
-          </div>`;
+        showGateError('Accès réservé', 'Vous devez être authentifié en tant qu\'opérateur interne ou convoyeur assigné à cette mission pour consulter le bon de mission.', 'dashboard-operator.html', '<i class="fas fa-sign-in-alt"></i> Espace Missions');
         return;
       }
 
@@ -692,8 +730,7 @@
       const { data: m, error } = await client.from('missions').select('id,reference,depart,arrivee,trajet,vehicule,immatriculation,annee,carburant,puissance,type_vehicule,mode,mode_transport,pack,date_mission,client_nom,convoyeur_nom,convoyeur_id,convoyeur_telephone,remuneration_convoyeur,status,paiement_statut,notes,created_at,updated_at').eq('id', missionId).single();
 
       if (error || !m) {
-        document.getElementById('topRef').textContent = 'Mission introuvable';
-        Swal.fire('Information', 'Mission introuvable ou accès non autorisé.', 'info');
+        showGateError('Mission introuvable', 'Mission introuvable ou accès non autorisé.', 'dashboard-convoyeur.html', 'Espace convoyeur');
         return;
       }
 
@@ -761,7 +798,6 @@
       document.getElementById('tarifBody').innerHTML = `
         <tr><td>Convoyage ${escapeHtml(m.mode_transport || m.mode || 'routier')}</td><td>${escapeHtml(m.vehicule || 'Automobile')} · ${escapeHtml(pack)}</td><td class="price-td">—</td></tr>
         <tr><td>Pack ${escapeHtml(pack)}</td><td>Inclus selon pack</td><td class="price-td">—</td></tr>
-        <tr><td>Double RC Pro</td><td>Inclus</td><td class="price-td">—</td></tr>
         <tr><td>État des lieux</td><td>Photos départ + arrivée</td><td class="price-td">—</td></tr>
         <tr class="tarif-total"><td><strong>Rémunération convoyeur (net)</strong></td><td></td><td class="price-td-total">${rem.toFixed(2)} €</td></tr>
       `;
@@ -792,6 +828,11 @@
       }
 
       // Si paiement non payé, on bloque le démarrage (le bouton sera désactivé via la logique)
+
+      // ========== REVEAL SHELL (WAVE 2B.2) ==========
+      // Only reveal operational content after auth + mission data successfully loaded
+      document.getElementById('bonShell').classList.add('revealed');
+      document.getElementById('loadingGate').classList.add('hidden');
     });
 
     // ========== CHECKLIST ==========
