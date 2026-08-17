@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="mobile-web-app-capable" content="yes">
   <title>Devis - Convoyage Auto &amp; Moto | Bathily-Convoyage</title>
-  <meta name="description" content="Demandez un devis de convoyage gratuit et sans engagement. Estimez le prix de votre transport de voiture ou moto en France en 2 minutes.">
+  <meta name="description" content="Demandez un devis de convoyage gratuit et sans engagement. Estimez le prix de votre transport de voiture ou moto en France en ligne.">
   <meta property="og:title" content="Devis de Convoyage Auto &amp; Moto | Bathily-Convoyage">
   <meta property="og:description" content="Estimation rapide de votre convoyage automobile ou moto. Devis gratuit en ligne.">
   <meta property="og:type" content="website">
@@ -500,7 +500,7 @@
 
     <section class="container">
       <div class="devis-form-wrapper">
-        <h2 class="section-title">Estimation en <em>2 minutes</em></h2>
+        <h2 class="section-title">Estimation en ligne</h2>
         <p class="section-sub">Suivez les étapes pour recevoir votre estimation de prix.</p>
 
         <!-- Indicateur d'étapes -->
@@ -654,16 +654,16 @@
               <div class="included-items">
                 <div class="included-item"><i class="fas fa-road"></i> Péages inclus</div>
                 <div class="included-item"><i class="fas fa-gas-pump"></i> Carburant inclus</div>
-                <div class="included-item"><i class="fas fa-shield-alt"></i> Assurance tous risques (Double RC Pro)</div>
+                <div class="included-item"><i class="fas fa-shield-alt"></i> Conditions de prise en charge précisées au devis</div>
                 <div class="included-item"><i class="fas fa-headset"></i> Service client dédié</div>
               </div>
             </div>
 
             <!-- Trust pills -->
             <div class="trust-info">
-              <div class="trust-pill"><i class="fas fa-clock"></i> Garantie prise en charge sous 72h</div>
-              <div class="trust-pill"><i class="fas fa-shield-halved"></i> Double RC Pro</div>
-              <div class="trust-pill"><i class="fas fa-map-marker-alt"></i> Suivi GPS temps réel</div>
+              <div class="trust-pill"><i class="fas fa-clock"></i> Demande étudiée selon disponibilité et contraintes de mission</div>
+              <div class="trust-pill"><i class="fas fa-shield-halved"></i> Conditions de prise en charge précisées au devis</div>
+              <div class="trust-pill"><i class="fas fa-map-marker-alt"></i> Suivi de mission</div>
             </div>
 
             <div class="wizard-nav">
@@ -692,7 +692,7 @@
             <div class="f-grp">
               <label>Pack de service</label>
               <select id="packSelect">
-                <option value="starter">Starter — Inclus (convoyeur certifié, suivi GPS, état des lieux 20 photos)</option>
+                <option value="starter">Starter — Inclus (suivi de mission, état des lieux numérique avec photos, service client)</option>
                 <option value="serenite">Sérénité — +69€ (nettoyage int./ext., lavage, RDV planifié, support VIP)</option>
                 <option value="excellence">Excellence — +159€ (plein carburant, photos 4K, livraison dim./férié, priorité)</option>
               </select>
@@ -740,7 +740,7 @@
             <!-- Compteur réactivité -->
             <div style="margin-top:16px;text-align:center;padding:12px;background:linear-gradient(135deg,rgba(10,77,104,0.05),rgba(8,131,149,0.05));border-radius:12px;">
               <div style="font-size:0.8rem;color:var(--bordeaux);font-weight:600;">
-                <i class="fas fa-bolt" style="color:#F5A623;"></i> Réponse sous <strong>1h32</strong> en moyenne pendant les heures ouvrées
+                <i class="fas fa-bolt" style="color:#F5A623;"></i> Demande étudiée selon disponibilité et contraintes de mission
               </div>
             </div>
 
@@ -820,7 +820,7 @@
                 <div class="price-label">Estimation finale</div>
                 <div class="price-amount" id="priceDisplayFinal">— <span>€</span></div>
                 <div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">
-                  Tout inclus : péages, carburant, assurance Double RC Pro, service client
+                  Tout inclus : péages, carburant, service client (conditions précisées au devis)
                 </div>
               </div>
               <button type="submit" class="btn-red" id="submitBtn"><i class="fas fa-paper-plane"></i> Envoyer la demande</button>
@@ -1028,9 +1028,9 @@
       if (tel)ml += ' — ' + escapeHtml(tel);
      ml += '</span></div>';
      ml += '<div style="margin-top:8px;padding:12px;background:white;border-radius:12px;font-size:0.75rem;color:var(--gray-mid);">';
-     ml += '<i class="fas fa-check-circle" style="color:var(--success);"></i> Tout inclus : péages, carburant, assurance Double RC Pro, service client<br>';
-     ml += '<i class="fas fa-clock" style="color:var(--bordeaux);"></i> Garantie prise en charge sous 72h<br>';
-     ml += '<i class="fas fa-shield-halved" style="color:var(--bordeaux);"></i> Double RC Pro + suivi GPS temps réel';
+     ml += '<i class="fas fa-check-circle" style="color:var(--success);"></i> Tout inclus : péages, carburant, service client (conditions précisées au devis)<br>';
+     ml += '<i class="fas fa-clock" style="color:var(--bordeaux);"></i> Demande étudiée selon disponibilité et contraintes de mission<br>';
+     ml += '<i class="fas fa-shield-halved" style="color:var(--bordeaux);"></i> Conditions de prise en charge précisées au devis + suivi de mission';
      ml += '</div>';
      ml += '</div>';
 

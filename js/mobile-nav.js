@@ -83,7 +83,6 @@
     var menuLinks = [
       { href: '/index.html', dataPage: 'index', icon: 'fas fa-home', text: ' Accueil' },
       { href: '/devis.html', dataPage: 'devis', icon: 'fas fa-calculator', text: ' Demander un devis' },
-      { href: '/formation-convoyeur.html', dataPage: 'formation', icon: 'fas fa-graduation-cap', text: ' Devenir convoyeur' },
       { href: '/espace-pro.html', dataPage: 'pro', icon: 'fas fa-briefcase', text: ' Espace Pro' },
       { href: '/dashboard-client.html', dataPage: 'client', icon: 'fas fa-user', text: ' Espace client' },
       { href: '/dashboard-convoyeur.html', dataPage: 'convoyeur', icon: 'fas fa-truck', text: ' Espace convoyeur' },

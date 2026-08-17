@@ -1,7 +1,35 @@
 import { createClient } from '@supabase/supabase-js';
 import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody } from '../_utils.js';
 
-export async function onRequest(context) {
+/**
+ * Parse the external_convoyeurs_enabled value from app_settings.
+ * Fail-closed: anything except an explicit truthy representation is false.
+ */
+export function evaluateExternalConvoyeursEnabled(value) {
+  if (value === true) return true;
+  if (typeof value === 'boolean') return value === true;
+  if (typeof value === 'string') return value.trim().toLowerCase() === 'true';
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'object') {
+    if ('value' in value) {
+      const inner = value.value;
+      if (typeof inner === 'boolean') return inner === true;
+      if (typeof inner === 'string') return inner.trim().toLowerCase() === 'true';
+      return false;
+    }
+    return false;
+  }
+  return false;
+}
+
+const defaultDeps = {
+  createClient,
+  fetch: globalThis.fetch,
+  checkRateLimit,
+  parseBody
+};
+
+export async function handleRequest(context, deps = defaultDeps) {
   const { request, env } = context;
 
   const optionsRes = handleOptions(request);
@@ -11,7 +39,7 @@ export async function onRequest(context) {
     return jsonResponse({ error: 'Méthode non autorisée.' }, 405, getCorsHeaders(request));
   }
 
-  const rl = checkRateLimit(request, 'request-convoyeur-role', 3, 3600000);
+  const rl = deps.checkRateLimit(request, 'request-convoyeur-role', 3, 3600000);
   if (rl) return rl;
 
   try {
@@ -25,20 +53,42 @@ export async function onRequest(context) {
       throw new Error('Configuration Supabase manquante.');
     }
 
-    const supabaseAnon = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
-    const supabaseAdmin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    // 1. Create anon client and validate session first
+    const supabaseAnon = deps.createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // Vérifier l'identité du client
     const { data: { user }, error: authError } = await supabaseAnon.auth.getUser(token);
     if (authError || !user) {
       return jsonResponse({ error: 'Session invalide. Veuillez vous reconnecter.' }, 401, getCorsHeaders(request));
     }
 
-    // Récupérer le profil client
+    // 2. Only after auth: create admin client and read gate
+    const supabaseAdmin = deps.createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // ── Server-side external convoyeur recruitment gate ──
+    const { data: flagRow, error: flagError } = await supabaseAdmin
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'external_convoyeurs_enabled')
+      .maybeSingle();
+
+    if (flagError) {
+      console.error('Recruitment gate: DB error reading external_convoyeurs_enabled:', flagError);
+      return jsonResponse({ error: 'recruitment_gate_unavailable', message: 'Le recrutement est temporairement indisponible.' }, 503, getCorsHeaders(request));
+    }
+
+    if (!flagRow) {
+      return jsonResponse({ error: 'recruitment_gate_unavailable', message: 'Le recrutement est temporairement indisponible.' }, 503, getCorsHeaders(request));
+    }
+
+    if (!evaluateExternalConvoyeursEnabled(flagRow.value)) {
+      return jsonResponse({ error: 'external_convoyeur_recruitment_disabled', message: 'Le recrutement de convoyeurs partenaires est temporairement suspendu.' }, 403, getCorsHeaders(request));
+    }
+
+    // 3. Authorized workflow
     const { data: clientProfile } = await supabaseAdmin
       .from('clients')
       .select('prenom, nom, email, telephone, ville, code_postal')
@@ -49,7 +99,6 @@ export async function onRequest(context) {
       return jsonResponse({ error: 'Profil client introuvable.' }, 404, getCorsHeaders(request));
     }
 
-    // Vérifier s'il est déjà convoyeur
     const { data: existingConvoyeur } = await supabaseAdmin
       .from('convoyeurs')
       .select('id')
@@ -60,7 +109,6 @@ export async function onRequest(context) {
       return jsonResponse({ error: 'already_convoyeur', message: 'Vous êtes déjà enregistré comme convoyeur.' }, 409, getCorsHeaders(request));
     }
 
-    // Vérifier s'il a déjà une candidature en cours
     const { data: existingCandidature } = await supabaseAdmin
       .from('convoyeur_candidatures')
       .select('id, statut')
@@ -72,14 +120,12 @@ export async function onRequest(context) {
       return jsonResponse({ error: 'already_pending', message: 'Votre demande est déjà en cours de traitement.' }, 409, getCorsHeaders(request));
     }
 
-    // Données supplémentaires optionnelles du body
-    const body = await parseBody(request);
+    const body = await deps.parseBody(request);
     const zone = body.zone || clientProfile.ville || '';
     const typePermis = body.type_permis || null;
     const selfie = body.selfie || null;
     const videoPresentation = body.video_presentation || null;
 
-    // Créer la candidature
     const { data: candidature, error: insertError } = await supabaseAdmin
       .from('convoyeur_candidatures')
       .insert([{
@@ -99,7 +145,6 @@ export async function onRequest(context) {
       .single();
 
     if (insertError) {
-      // Si la colonne existing_auth_user_id n'existe pas, réessayer sans
       if (insertError.message.includes('existing_auth_user_id')) {
         const { data: candidature2, error: insertError2 } = await supabaseAdmin
           .from('convoyeur_candidatures')
@@ -121,12 +166,12 @@ export async function onRequest(context) {
         if (insertError2) {
           return jsonResponse({ error: 'Erreur lors de la création de la candidature: ' + insertError2.message }, 500, getCorsHeaders(request));
         }
-        return await sendSuccessResponse(env, clientProfile, candidature2.id, getCorsHeaders(request));
+        return await sendSuccessResponse(env, clientProfile, candidature2.id, getCorsHeaders(request), deps.fetch);
       }
       return jsonResponse({ error: 'Erreur lors de la création de la candidature: ' + insertError.message }, 500, getCorsHeaders(request));
     }
 
-    return await sendSuccessResponse(env, clientProfile, candidature.id, getCorsHeaders(request));
+    return await sendSuccessResponse(env, clientProfile, candidature.id, getCorsHeaders(request), deps.fetch);
 
   } catch (error) {
     console.error('Erreur request-convoyeur-role:', error);
@@ -134,15 +179,18 @@ export async function onRequest(context) {
   }
 }
 
-async function sendSuccessResponse(env, clientProfile, candidatureId, headers) {
-  // Envoyer un email à l'admin
+export async function onRequest(context) {
+  return handleRequest(context);
+}
+
+async function sendSuccessResponse(env, clientProfile, candidatureId, headers, fetchImpl = globalThis.fetch) {
   const resendApiKey = env.RESEND_API_KEY;
   const FROM_EMAIL = env.EMAIL_FROM || 'onboarding@resend.dev';
   const adminEmail = env.EMAIL_ADMIN || 'contact@bathily-convoyage.fr';
 
   if (resendApiKey) {
     try {
-      await fetch('https://api.resend.com/emails', {
+      await fetchImpl('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
