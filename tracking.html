@@ -556,7 +556,7 @@
       if (!query || query.length < 2) return null;
       const clean = query.split('(')[0].trim();
       try {
-        const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(clean)}&limit=1`);
+        const res = await fetch(`https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(clean)}&limit=1`);
         const data = await res.json();
         if (data.features && data.features.length > 0) {
           const [lon, lat] = data.features[0].geometry.coordinates;
