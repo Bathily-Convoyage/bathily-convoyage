@@ -313,6 +313,23 @@
         text-align: center; border-top: 1px solid #ddd; padding-top: 12px;
       }
     }
+    /* ========== INITIAL RENDER SECURITY (WAVE 2B.3A) ========== */
+    #loadingGate {
+      position: fixed; inset: 0; background: #FDFBF7; z-index: 9500;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #loadingGate.hidden { display: none; }
+    .lg-box { text-align: center; max-width: 360px; padding: 24px; }
+    .lg-spinner {
+      width: 48px; height: 48px; border: 4px solid #E8E1D9;
+      border-top-color: #0A4D68; border-radius: 50%;
+      margin: 0 auto 16px; animation: lg-spin 0.8s linear infinite;
+    }
+    @keyframes lg-spin { to { transform: rotate(360deg); } }
+    .lg-title { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 700; color: #2D2A24; margin-bottom: 4px; }
+    .lg-sub { font-size: 0.8rem; color: #6B625A; }
+    #edlShell { display: none; }
+    #edlShell.revealed { display: block; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
@@ -320,15 +337,38 @@
 </head>
 <body>
 
+<!-- LOADING GATE (WAVE 2B.3A) — visible immediately, hides all content until auth+data ready -->
+<div id="loadingGate">
+  <div class="lg-box">
+    <div class="lg-spinner"></div>
+    <div class="lg-title">Chargement de l'état des lieux…</div>
+    <div class="lg-sub">Vérification de l'accès et des données de mission.</div>
+  </div>
+</div>
+
+<!-- NO-JS FAIL-CLOSED (WAVE 2B.3A) -->
+<noscript>
+  <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#FDFBF7;padding:24px;z-index:9999;">
+    <div style="background:white;border:1px solid #E8E1D9;border-radius:20px;padding:36px;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.08);">
+      <div style="width:64px;height:64px;background:#fdecea;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#c0392b;font-size:1.6rem;"><i class="fas fa-lock"></i></div>
+      <h1 style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:700;color:#2D2A24;margin-bottom:8px;">JavaScript requis</h1>
+      <p style="font-size:0.85rem;color:#6B625A;margin-bottom:20px;line-height:1.6;">JavaScript est requis pour accéder à l'état des lieux. Veuillez activer JavaScript dans votre navigateur.</p>
+    </div>
+  </div>
+</noscript>
+
 <div class="cur" id="cur"></div>
 <div class="cur-ring" id="cring"></div>
+
+<!-- EDL SHELL (WAVE 2B.3A) — hidden until auth + mission data loaded -->
+<div id="edlShell">
 
 <!-- ========== TOPBAR ========== -->
 <div class="topbar">
   <a href="index.html" class="topbar-logo">Bathily-Convoyage<span>.</span></a>
   <div class="topbar-mid">
     <div class="topbar-title">État des Lieux Numérisé</div>
-    <div class="topbar-ref" id="topRef">BC-2025-0847 · BMW Série 3 · IJ-789-KL</div>
+    <div class="topbar-ref" id="topRef">—</div>
   </div>
   <div class="topbar-right">
     <button class="topbar-btn" onclick="saveDraft()"><i class="fas fa-save"></i> Sauvegarder</button>
@@ -362,7 +402,7 @@
     <div style="text-align:right;">
       <div style="font-family:'Montserrat',sans-serif; font-size:14pt; font-weight:700; color:#0A4D68;">État des lieux</div>
       <div style="font-size:9pt;" id="printType">DÉPART</div>
-      <div style="font-size:8pt; color:#888;" id="printRef">EDL-2025-0847-DEP</div>
+      <div style="font-size:8pt; color:#888;" id="printRef">—</div>
       <div style="font-size:8pt; color:#888;" id="printDate">Date : _______________</div>
     </div>
   </div>
@@ -442,7 +482,7 @@
 
   <!-- Pied de page -->
   <div class="pe-footer">
-    Document généré par Bathily-Convoyage — État des lieux certifié — Tous droits réservés © 2025
+    Document généré par Bathily-Convoyage — État des lieux — Tous droits réservés © 2025
   </div>
 </div>
 
@@ -460,13 +500,13 @@
       <div id="badgeArrivee" class="type-badge" style="background:rgba(240,237,237,.04); border-radius:40px; padding:6px 16px; font-size:0.7rem; font-weight:700; cursor:pointer;" onclick="setEdlType('arrivee')"><i class="fas fa-flag-checkered"></i> État des lieux d'ARRIVÉE</div>
     </div>
     <div class="card"><div class="card-title"><i class="fas fa-route"></i> Détails de la mission</div>
-      <div class="f-row"><div class="f-grp"><label>Référence mission *</label><input type="text" id="mRef" value="BC-2025-0847" oninput="updateRef()"></div><div class="f-grp"><label>Date & heure *</label><input type="datetime-local" id="mDate"></div></div>
-      <div class="f-row"><div class="f-grp"><label>Convoyeur *</label><input type="text" id="mConvoyeur" value="M. Bathily"></div><div class="f-grp"><label>N° permis</label><input type="text" id="mPermis" placeholder="XX-XXXXXX-XX"></div></div>
-      <div class="f-row"><div class="f-grp"><label>Ville de départ</label><input type="text" id="mDepart" value="Paris 8ème - 15 Rue de Rivoli"></div><div class="f-grp"><label>Ville d'arrivée</label><input type="text" id="mArrivee" value="Lyon Part-Dieu - 3 Rue Servient"></div></div>
+      <div class="f-row"><div class="f-grp"><label>Référence mission *</label><input type="text" id="mRef" value="" oninput="updateRef()"></div><div class="f-grp"><label>Date & heure *</label><input type="datetime-local" id="mDate"></div></div>
+      <div class="f-row"><div class="f-grp"><label>Convoyeur *</label><input type="text" id="mConvoyeur" value=""></div><div class="f-grp"><label>N° permis</label><input type="text" id="mPermis" placeholder="XX-XXXXXX-XX"></div></div>
+      <div class="f-row"><div class="f-grp"><label>Ville de départ</label><input type="text" id="mDepart" value=""></div><div class="f-grp"><label>Ville d'arrivée</label><input type="text" id="mArrivee" value=""></div></div>
     </div>
     <div class="card"><div class="card-title"><i class="fas fa-user"></i> Informations client</div>
-      <div class="f-row"><div class="f-grp"><label>Nom & prénom *</label><input type="text" id="cNom" value="Jean Dupont"></div><div class="f-grp"><label>Téléphone *</label><input type="tel" id="cTel" value="+33 6 12 34 56 78"></div></div>
-      <div class="f-grp"><label>Email</label><input type="email" id="cEmail" value="jean.dupont@email.fr"></div>
+      <div class="f-row"><div class="f-grp"><label>Nom & prénom *</label><input type="text" id="cNom" value=""></div><div class="f-grp"><label>Téléphone *</label><input type="tel" id="cTel" value=""></div></div>
+      <div class="f-grp"><label>Email</label><input type="email" id="cEmail" value=""></div>
     </div>
     <div class="step-nav"><button class="btn-nav btn-prev" disabled><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
@@ -475,13 +515,13 @@
   <div class="edl-step" data-step="2">
     <div class="step-header"><div class="step-tag">Étape 2 / 7</div><h2 class="step-title">Identification <em>véhicule</em></h2><p class="step-sub">Vérifiez les informations.</p></div>
     <div class="card"><div class="card-title"><i class="fas fa-search"></i> Données</div>
-      <div class="f-row"><div class="f-grp"><label>Plaque d'immatriculation *</label><div style="display:flex; gap:8px;"><input type="text" id="vPlaque" value="IJ-789-KL" oninput="fmtPlaque(this)" style="flex:1;"><button type="button" class="btn-sig" style="padding:0 15px; margin:0;" onclick="lookupLicensePlate()" title="Rechercher avec le"><i class="fas fa-search"></i></button></div></div><div class="f-grp"><label>Type</label><select id="vType"><option value="berline">Berline</option><option value="suv">SUV</option><option value="break">Break</option><option value="utilitaire">Utilitaire</option><option value="moto">Moto</option></select></div></div>
-      <div class="f-row3"><div class="f-grp"><label>Marque *</label><input type="text" id="vMarque" value="BMW"></div><div class="f-grp"><label>Modèle *</label><input type="text" id="vModele" value="Série 3"></div><div class="f-grp"><label>Année</label><input type="number" id="vAnnee" value="2023"></div></div>
-      <div class="f-row3"><div class="f-grp"><label>Couleur *</label><input type="text" id="vCouleur" value="Gris Mineralgrau"></div><div class="f-grp"><label>Énergie</label><select id="vEnergie"><option>Essence</option><option selected>Hybride</option><option>Diesel</option><option>Électrique</option></select></div><div class="f-grp"><label>Transmission</label><select id="vTransmission"><option>Manuelle</option><option selected>Automatique</option></select></div></div>
+      <div class="f-row"><div class="f-grp"><label>Plaque d'immatriculation *</label><div style="display:flex; gap:8px;"><input type="text" id="vPlaque" value="" oninput="fmtPlaque(this)" style="flex:1;"><button type="button" class="btn-sig" style="padding:0 15px; margin:0;" onclick="lookupLicensePlate()" title="Rechercher avec le"><i class="fas fa-search"></i></button></div></div><div class="f-grp"><label>Type</label><select id="vType"><option value="berline">Berline</option><option value="suv">SUV</option><option value="break">Break</option><option value="utilitaire">Utilitaire</option><option value="moto">Moto</option></select></div></div>
+      <div class="f-row3"><div class="f-grp"><label>Marque *</label><input type="text" id="vMarque" value=""></div><div class="f-grp"><label>Modèle *</label><input type="text" id="vModele" value=""></div><div class="f-grp"><label>Année</label><input type="number" id="vAnnee" value=""></div></div>
+      <div class="f-row3"><div class="f-grp"><label>Couleur *</label><input type="text" id="vCouleur" value=""></div><div class="f-grp"><label>Énergie</label><select id="vEnergie"><option value="">—</option><option>Essence</option><option>Hybride</option><option>Diesel</option><option>Électrique</option></select></div><div class="f-grp"><label>Transmission</label><select id="vTransmission"><option value="">—</option><option>Manuelle</option><option>Automatique</option></select></div></div>
     </div>
     <div class="card"><div class="card-title"><i class="fas fa-tachometer-alt"></i> Relevés au départ</div>
       <div class="f-row4"><div class="f-grp"><label>Kilométrage *</label><input type="number" id="vKm" placeholder="Ex: 24500"></div><div class="f-grp"><label>VIN</label><input type="text" id="vVin" placeholder="17 caractères"></div><div class="f-grp"><label>Prochain CT</label><input type="month" id="vCt"></div><div class="f-grp"><label>Assurance</label><input type="date" id="vAssurance"></div></div>
-      <div class="f-grp"><label>Niveau carburant / charge</label><div class="fuel-gauge"><div class="fuel-marks" style="display:flex; justify-content:space-between;"><span>0</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div><input type="range" class="fuel-slider" id="fuelSlider" min="0" max="100" value="65" step="5" oninput="updFuel(this.value)"><div class="fuel-val" id="fuelVal">65%</div></div></div>
+      <div class="f-grp"><label>Niveau carburant / charge</label><div class="fuel-gauge"><div class="fuel-marks" style="display:flex; justify-content:space-between;"><span>0</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div><input type="range" class="fuel-slider" id="fuelSlider" min="0" max="100" value="0" step="5" oninput="updFuel(this.value)"><div class="fuel-val" id="fuelVal">0%</div></div></div>
     </div>
     <div class="card"><div class="card-title"><i class="fas fa-clipboard-check"></i> Documents & accessoires</div>
       <div class="doc-grid" id="docGrid"></div>
@@ -554,7 +594,7 @@
     <div class="card">
       <div class="card-title"><i class="fas fa-truck"></i> Signature du convoyeur</div>
       <div class="f-row" style="margin-bottom:12px;">
-        <div class="f-grp"><label>Nom</label><input type="text" id="sigConvNom" value="M. Bathily" readonly></div>
+        <div class="f-grp"><label>Nom</label><input type="text" id="sigConvNom" value="" readonly></div>
         <div class="f-grp"><label>Horodatage</label><input type="text" id="sigConvDate" readonly placeholder="Non signé"></div>
       </div>
       <div class="sig-done" id="sigConvDone"><i class="fas fa-check-circle"></i> Signature enregistrée</div>
@@ -571,7 +611,7 @@
     <div class="card">
       <div class="card-title"><i class="fas fa-user"></i> Signature du client</div>
       <div class="f-row" style="margin-bottom:12px;">
-        <div class="f-grp"><label>Nom</label><input type="text" id="sigCliNom" value="Jean Dupont" readonly></div>
+        <div class="f-grp"><label>Nom</label><input type="text" id="sigCliNom" value="" readonly></div>
         <div class="f-grp"><label>Horodatage</label><input type="text" id="sigCliDate" readonly placeholder="Non signé"></div>
       </div>
       <div class="sig-done" id="sigCliDone"><i class="fas fa-check-circle"></i> Signature enregistrée</div>
@@ -598,7 +638,7 @@
   <!-- ÉTAPE 7 : VALIDATION -->
   <div class="edl-step" data-step="7">
     <div class="step-header"><div class="step-tag">Étape 7 / 7</div><h2 class="step-title">Récapitulatif & <em>validation</em></h2><p class="step-sub">Vérifiez et validez l'État des lieux.</p></div>
-    <div class="recap-grid"><div class="recap-card"><div class="recap-card-title">Mission</div><div class="recap-line"><span>Référence</span><span id="recRef">BC-2025-0847</span></div><div class="recap-line"><span>Type EDL</span><span id="recType">Départ</span></div><div class="recap-line"><span>Convoyeur</span><span id="recConv">M. Bathily</span></div></div><div class="recap-card"><div class="recap-card-title">Véhicule</div><div class="recap-line"><span>Plaque</span><span id="recPlaque">IJ-789-KL</span></div><div class="recap-line"><span>Véhicule</span><span id="recVehicule">BMW Série 3</span></div><div class="recap-line"><span>Carburant</span><span id="recFuel">65%</span></div></div><div class="recap-card"><div class="recap-card-title">Photos & Dommages</div><div class="recap-line"><span>Photos extérieur</span><span id="recPhotoExt">0/5</span></div><div class="recap-line"><span>Photos intérieur</span><span id="recPhotoInt">0/5</span></div><div class="recap-line"><span>Dommages</span><span id="recDommages">0</span></div></div><div class="recap-card"><div class="recap-card-title">Signatures</div><div class="recap-line"><span>Convoyeur</span><span id="recSigConv">En attente</span></div><div class="recap-line"><span>Client</span><span id="recSigCli">En attente</span></div></div></div>
+    <div class="recap-grid"><div class="recap-card"><div class="recap-card-title">Mission</div><div class="recap-line"><span>Référence</span><span id="recRef">—</span></div><div class="recap-line"><span>Type EDL</span><span id="recType">Départ</span></div><div class="recap-line"><span>Convoyeur</span><span id="recConv">—</span></div></div><div class="recap-card"><div class="recap-card-title">Véhicule</div><div class="recap-line"><span>Plaque</span><span id="recPlaque">—</span></div><div class="recap-line"><span>Véhicule</span><span id="recVehicule">—</span></div><div class="recap-line"><span>Carburant</span><span id="recFuel">0%</span></div></div><div class="recap-card"><div class="recap-card-title">Photos & Dommages</div><div class="recap-line"><span>Photos extérieur</span><span id="recPhotoExt">0/5</span></div><div class="recap-line"><span>Photos intérieur</span><span id="recPhotoInt">0/5</span></div><div class="recap-line"><span>Dommages</span><span id="recDommages">0</span></div></div><div class="recap-card"><div class="recap-card-title">Signatures</div><div class="recap-line"><span>Convoyeur</span><span id="recSigConv">En attente</span></div><div class="recap-line"><span>Client</span><span id="recSigCli">En attente</span></div></div></div>
     <div class="card" id="cardFinMissionSelfie" style="display:none;">
       <div class="card-title"><i class="fas fa-camera"></i> Photo de fin de mission <span style="color:#c0392b">*Obligatoire</span></div>
       <div class="step-sub" style="margin-bottom:12px;">Pour finaliser la mission, prenez un selfie de vous avec le véhicule. Cette photo est obligatoire.</div>
@@ -611,11 +651,13 @@
         <div class="media-preview" id="preview-fin-mission-selfie"></div>
       </div>
     </div>
-    <div class="card"><div class="card-title"><i class="fas fa-paper-plane"></i> Envoi automatique</div><div class="f-row"><div class="f-grp"><label>Email client</label><input type="email" id="emailCli" value="jean.dupont@email.fr"></div><div class="f-grp"><label>Email convoyeur</label><input type="email" id="emailConv" value="m.bathily@convoyeur.fr"></div></div><div class="f-grp"><label>Email Bathily</label><input type="email" value="contact@Bathily-Convoyage.fr" readonly></div></div>
-    <div class="success-final" id="successFinal"><div class="sf-ico"><i class="fas fa-check-circle"></i></div><h3 class="sf-h">État des lieux <em>validé !</em></h3><div class="sf-ref-val" id="edlRef">EDL-2025-0847-DEP</div><div class="sf-actions" style="display:flex; gap:12px; justify-content:center; margin-top:20px;"><button class="btn-red" onclick="printEdl()"><i class="fas fa-download"></i> Télécharger PDF</button><a href="dashboard-convoyeur.html" class="btn-outline">Retour au dashboard</a><button class="btn-outline" onclick="newEdl()">Nouvel État des lieux</button></div></div>
+    <div class="card"><div class="card-title"><i class="fas fa-paper-plane"></i> Envoi automatique</div><div class="f-row"><div class="f-grp"><label>Email client</label><input type="email" id="emailCli" value=""></div><div class="f-grp"><label>Email convoyeur</label><input type="email" id="emailConv" value=""></div></div><div class="f-grp"><label>Email Bathily</label><input type="email" value="contact@Bathily-Convoyage.fr" readonly></div></div>
+    <div class="success-final" id="successFinal"><div class="sf-ico"><i class="fas fa-check-circle"></i></div><h3 class="sf-h">État des lieux <em>validé !</em></h3><div class="sf-ref-val" id="edlRef">—</div><div class="sf-actions" style="display:flex; gap:12px; justify-content:center; margin-top:20px;"><button class="btn-red" onclick="printEdl()"><i class="fas fa-download"></i> Télécharger PDF</button><a href="dashboard-convoyeur.html" class="btn-outline">Retour au dashboard</a><button class="btn-outline" onclick="newEdl()">Nouvel État des lieux</button></div></div>
     <div class="step-nav" id="finalNav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" style="background:var(--success)" onclick="validateEdl()"><i class="fas fa-check"></i> Valider & envoyer</button></div>
   </div>
 </div>
+
+</div><!-- /#edlShell -->
 
 <!-- ========== MODAL DOMMAGE (supprimé, plus utilisé) ========== -->
 
@@ -641,12 +683,16 @@ function escapeHtml(str) {
 
 // ========== ÉTAT GLOBAL ==========
 const STATE = {
-  step:1, edlType:'depart', photoExt:0, photoInt:0, dommages:[], sigConvDone:false, sigCliDone:false, fuelValue:65,
+  step:1, edlType:'depart', photoExt:0, photoInt:0, dommages:[], sigConvDone:false, sigCliDone:false, fuelValue:0,
   photosExt:[], photosInt:[], photosSup:[],
   zoneStates: {}, // { zoneName: 'bon'|'raye'|'enfonce'|'casse' }
   zonePhotos: {},  // { zoneName: 'data:image/...' }
   finMissionSelfie: null // File object for end-of-mission selfie (arrival only)
 };
+
+// ========== DATA_READY GATE (WAVE 2B.3A) ==========
+let _edlReady = false;
+let _edlUserId = null;
 
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded',()=>{
@@ -660,7 +706,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   buildZonesGrid();
   initPhotoSlots();
   updRecap();
-  loadDraft();
+  // WAVE 2B.3A: loadDraft() moved AFTER auth in initSupabaseEdl()
   initSupabaseEdl();
   setInterval(autoSave, 30000);
   window.addEventListener('beforeunload', (e) => { if (hasUnsavedChanges()) e.preventDefault(); });
@@ -677,6 +723,7 @@ function autoSave() { saveDraft(); showToast('Brouillon sauvegardé'); }
 function collectDraft() {
   return {
     mission_id: new URLSearchParams(window.location.search).get('mission_id') || '',
+    user_id: _edlUserId || '',
     step:STATE.step, edlType:STATE.edlType, photoExt:STATE.photoExt, photoInt:STATE.photoInt, dommages:STATE.dommages,
     sigConvDone:STATE.sigConvDone, sigCliDone:STATE.sigCliDone, fuelValue:STATE.fuelValue,
     zoneStates:STATE.zoneStates, zonePhotos:STATE.zonePhotos,
@@ -705,24 +752,45 @@ function loadDraft() {
     const d = JSON.parse(saved);
     const urlParams = new URLSearchParams(window.location.search);
     const urlMissionId = urlParams.get('mission_id');
-    if (urlMissionId && d.mission_id !== urlMissionId) {
+    // WAVE 2B.3A: draft must match both mission_id AND user_id
+    if (!urlMissionId || d.mission_id !== urlMissionId) {
+      localStorage.removeItem('bathily_edl_draft');
+      return;
+    }
+    if (!_edlUserId || d.user_id !== _edlUserId) {
       localStorage.removeItem('bathily_edl_draft');
       return;
     }
     if (d.edlType) setEdlType(d.edlType);
-    Object.keys(d).forEach(key => {
+    // WAVE 2B.3A FINAL: Only restore EDL-measured/observation fields from draft.
+    // MISSION_AUTHORITATIVE fields (populated from mission.* in initSupabaseEdl)
+    // are NEVER restored from draft — Supabase remains source of truth.
+    const RESTORABLE_FIELDS = [
+      'mPermis',      // EDL_FIELD_MEASURED_ON_SITE — permit number entered during EDL
+      'vCouleur',     // EDL_FIELD_MEASURED_ON_SITE — color observed on site or via lookup
+      'vKm',          // EDL_FIELD_MEASURED_ON_SITE — kilométrage relevé on site
+      'vVin',         // EDL_FIELD_MEASURED_ON_SITE — VIN observed on site or via lookup
+      'vCt',          // EDL_FIELD_MEASURED_ON_SITE — prochain CT date
+      'vAssurance',   // EDL_FIELD_MEASURED_ON_SITE — assurance date
+      'vObjets',      // USER_OBSERVATION — objets personnels
+      'obsGenerales', // USER_OBSERVATION — observations générales
+      'remTech',      // USER_OBSERVATION — remarques techniques
+      'emailConv'     // DERIVED_UI_STATE — convoyeur email (not from mission)
+    ];
+    RESTORABLE_FIELDS.forEach(key => {
+      if (d[key] === undefined) return;
       const el = document.getElementById(key);
-      if (el && el.value !== undefined && key !== 'step' && key !== 'edlType' && key !== 'photoExt' && key !== 'photoInt' && key !== 'dommages' && key !== 'sigConvDone' && key !== 'sigCliDone' && key !== 'fuelValue' && key !== 'zoneStates' && key !== 'zonePhotos') el.value = d[key];
+      if (el && el.value !== undefined) el.value = d[key];
     });
-    if (d.fuelValue) { STATE.fuelValue = d.fuelValue; document.getElementById('fuelSlider').value = d.fuelValue; document.getElementById('fuelVal').innerHTML = d.fuelValue+'%'; }
+    if (d.fuelValue !== undefined) { STATE.fuelValue = d.fuelValue; document.getElementById('fuelSlider').value = d.fuelValue; document.getElementById('fuelVal').innerHTML = d.fuelValue+'%'; }
     if (d.zoneStates) { STATE.zoneStates = d.zoneStates; }
     if (d.zonePhotos) { STATE.zonePhotos = d.zonePhotos; }
+    // WAVE 2B.3A: Do NOT restore signature flags or photo counters from draft
+    // Signatures must be re-done after reload; photos must be re-taken (files not persistable)
     if (d.dommages) { STATE.dommages = d.dommages; refreshDommageList(); }
-    if (d.sigConvDone) STATE.sigConvDone = true;
-    if (d.sigCliDone) STATE.sigCliDone = true;
-    if (d.photoExt !== undefined) { STATE.photoExt = d.photoExt; document.getElementById('photoExtCount').innerText = STATE.photoExt; document.getElementById('photoExtBar').style.width = (STATE.photoExt/5*100)+'%'; }
-    if (d.photoInt !== undefined) { STATE.photoInt = d.photoInt; document.getElementById('photoIntCount').innerText = STATE.photoInt; document.getElementById('photoIntBar').style.width = (STATE.photoInt/5*100)+'%'; }
-    if (d.step) goStep(d.step);
+    // WAVE 2B.3A: sigConvDone/sigCliDone NOT restored — must re-sign
+    // WAVE 2B.3A: photoExt/photoInt NOT restored — must re-take photos
+    if (d.step && d.step <= 7) goStep(d.step);
     // Rebuild zones grid to reflect loaded states
     buildZonesGrid();
     _lastSavedDraft = saved;
@@ -764,7 +832,10 @@ function goStep(n) {
   }
 }
 function nextStep(){
-  if(STATE.step===3 && (STATE.photoExt<5 || STATE.photoInt<5)){
+  // WAVE 2B.3A: check actual photo files, not just counters
+  const extFiles = (STATE.extPhotos || []).filter(p => p).length;
+  const intFiles = (STATE.intPhotos || []).filter(p => p).length;
+  if(STATE.step===3 && (extFiles<5 || intFiles<5)){
     document.getElementById('photoAlert').style.display='flex';
     setTimeout(()=>document.getElementById('photoAlert').style.display='none',3000);
     showToast('Veuillez prendre les 10 photos obligatoires', 'error');
@@ -1285,32 +1356,36 @@ async function initSupabaseEdl() {
     setEdlType(typeParam);
   }
 
-  if (!missionId) return;
+  // WAVE 2B.3A: Helper to show gate error (replaces loading gate content)
+  function showGateError(title, msg, linkHref, linkLabel) {
+    const gate = document.getElementById('loadingGate');
+    if (!gate) return;
+    gate.innerHTML = `
+      <div style="background:white;border:1px solid #E8E1D9;border-radius:20px;padding:36px;max-width:440px;width:90%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.08);">
+        <div style="width:64px;height:64px;background:#fdecea;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#c0392b;font-size:1.6rem;"><i class="fas fa-lock"></i></div>
+        <h1 style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:700;color:#2D2A24;margin-bottom:8px;">${title}</h1>
+        <p style="font-size:0.85rem;color:#6B625A;margin-bottom:20px;line-height:1.6;">${msg}</p>
+        ${linkHref ? `<a href="${linkHref}" style="display:inline-block;background:#0A4D68;color:white;text-decoration:none;padding:12px 24px;border-radius:12px;font-size:0.85rem;font-weight:700;min-height:44px;">${linkLabel}</a>` : ''}
+        <a href="index.html" style="display:block;margin-top:12px;font-size:0.75rem;color:#6B625A;text-decoration:none;">← Retour au site</a>
+      </div>`;
+  }
 
-  Swal.fire({
-    title: 'Chargement de la mission...',
-    allowOutsideClick: false,
-    didOpen: () => { Swal.showLoading(); }
-  });
+  // WAVE 2B.3A: No mission_id → fail-closed, never reveal EDL
+  if (!missionId) {
+    showGateError('Aucune mission', 'Aucun identifiant de mission fourni. L\'état des lieux nécessite un identifiant de mission valide.', 'dashboard-convoyeur.html', 'Espace convoyeur');
+    return;
+  }
 
   try {
     const client = getSupabase();
-    if (!client) throw new Error("Supabase non disponible");
+    if (!client) {
+      showGateError('Configuration manquante', 'La configuration requise pour accéder à cet état des lieux est indisponible.', 'index.html', 'Retour au site');
+      return;
+    }
 
     // =========================================================
-    // GARDE D'AUTHENTIFICATION AU CHARGEMENT (C-2.1)
+    // GARDE D'AUTHENTIFICATION (WAVE 2B.3A)
     // =========================================================
-    // Aucune donnée mission n'est chargée avant la résolution de
-    // la session Supabase. La sécurité réelle reste assurée par
-    // la RLS missions_select_b3 et la RPC validate_mission_edl
-    // côté backend ; cette garde est une barrière frontend + UX
-    // propre (pas de message brut Supabase affiché au visiteur).
-    //
-    // Étapes :
-    //   1. sb.auth.getSession() — si pas de session → refus propre
-    //   2. sb.rpc('is_operator') OU sb.rpc('is_convoyeur_for_mission')
-    //      — si aucun des deux → refus propre
-    //   3. Only then : lecture de la mission
     let _authOk = false;
     let _sessionUserId = null;
     try {
@@ -1344,17 +1419,7 @@ async function initSupabaseEdl() {
     }
 
     if (!_authOk) {
-      Swal.close();
-      document.body.innerHTML = `
-        <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#FDFBF7;padding:24px;">
-          <div style="background:white;border:1px solid #E8E1D9;border-radius:20px;padding:36px;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.08);">
-            <div style="width:64px;height:64px;background:#fdecea;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#c0392b;font-size:1.6rem;"><i class="fas fa-lock"></i></div>
-            <h1 style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:700;color:#2D2A24;margin-bottom:8px;">Accès réservé</h1>
-            <p style="font-size:0.85rem;color:#6B625A;margin-bottom:20px;line-height:1.6;">Vous devez être authentifié en tant qu'opérateur interne ou convoyeur assigné à cette mission pour accéder à l'état des lieux.</p>
-            <a href="dashboard-operator.html" style="display:inline-block;background:#0A4D68;color:white;text-decoration:none;padding:12px 24px;border-radius:12px;font-size:0.85rem;font-weight:700;min-height:44px;"><i class="fas fa-sign-in-alt"></i> Espace Missions</a>
-            <a href="index.html" style="display:block;margin-top:12px;font-size:0.75rem;color:#6B625A;text-decoration:none;">← Retour au site</a>
-          </div>
-        </div>`;
+      showGateError('Accès réservé', 'Vous devez être authentifié en tant qu\'opérateur interne ou convoyeur assigné à cette mission pour accéder à l\'état des lieux.', 'dashboard-operator.html', '<i class="fas fa-sign-in-alt"></i> Espace Missions');
       return;
     }
 
@@ -1363,24 +1428,36 @@ async function initSupabaseEdl() {
     // =========================================================
     const { data: mission, error } = await client
       .from('missions')
-      .select('id,reference,depart,arrivee,vehicule,immatriculation,annee,carburant,puissance,type_vehicule,mode,mode_transport,pack,date_mission,client_nom,convoyeur_nom,convoyeur_id,convoyeur_telephone,remuneration_convoyeur,status,paiement_statut,notes,created_at,updated_at')
+      .select('id,reference,depart,arrivee,vehicule,immatriculation,annee,carburant,puissance,type_vehicule,mode,mode_transport,pack,date_mission,client_nom,client_email,client_telephone,convoyeur_nom,convoyeur_id,convoyeur_telephone,remuneration_convoyeur,status,paiement_statut,notes,created_at,updated_at')
       .eq('id', missionId)
       .single();
 
     if (error || !mission) {
-      Swal.close();
-      Swal.fire('Information', 'Mission introuvable ou accès non autorisé.', 'info');
+      showGateError('Mission introuvable', 'Mission introuvable ou accès non autorisé.', 'dashboard-convoyeur.html', 'Espace convoyeur');
       return;
     }
 
+    // =========================================================
+    // POPULATION DOM (WAVE 2B.3A — no realistic fallbacks)
+    // =========================================================
     if (document.getElementById('mRef')) document.getElementById('mRef').value = mission.reference || '';
     if (document.getElementById('mDepart')) document.getElementById('mDepart').value = mission.depart || '';
     if (document.getElementById('mArrivee')) document.getElementById('mArrivee').value = mission.arrivee || '';
-    if (document.getElementById('mConvoyeur')) document.getElementById('mConvoyeur').value = mission.convoyeur_nom || 'M. Bathily';
-    if (document.getElementById('cNom')) document.getElementById('cNom').value = mission.client_nom || 'Client';
-    if (mission.client_email && document.getElementById('cEmail')) {
-      document.getElementById('cEmail').value = mission.client_email;
-      document.getElementById('emailCli').value = mission.client_email;
+    if (document.getElementById('mConvoyeur')) document.getElementById('mConvoyeur').value = mission.convoyeur_nom || '';
+    if (document.getElementById('cNom')) document.getElementById('cNom').value = mission.client_nom || '';
+    if (document.getElementById('cTel')) document.getElementById('cTel').value = mission.client_telephone || '';
+    if (mission.client_email) {
+      if (document.getElementById('cEmail')) document.getElementById('cEmail').value = mission.client_email;
+      if (document.getElementById('emailCli')) document.getElementById('emailCli').value = mission.client_email;
+    }
+    if (mission.immatriculation && document.getElementById('vPlaque')) document.getElementById('vPlaque').value = mission.immatriculation;
+    if (mission.annee && document.getElementById('vAnnee')) document.getElementById('vAnnee').value = mission.annee;
+    if (mission.carburant && document.getElementById('vEnergie')) {
+      const opt = Array.from(document.getElementById('vEnergie').options).find(o => o.text.toLowerCase().includes(mission.carburant.toLowerCase()));
+      if (opt) opt.selected = true;
+    }
+    if (mission.date_mission && document.getElementById('mDate')) {
+      try { document.getElementById('mDate').value = new Date(mission.date_mission).toISOString().slice(0,16); } catch(e) {}
     }
 
     if (mission.vehicule) {
@@ -1393,20 +1470,45 @@ async function initSupabaseEdl() {
       }
     }
 
+    // Set signature names from mission data
+    if (mission.convoyeur_nom && document.getElementById('sigConvNom')) document.getElementById('sigConvNom').value = mission.convoyeur_nom;
+    if (mission.client_nom && document.getElementById('sigCliNom')) document.getElementById('sigCliNom').value = mission.client_nom;
+
     updateRef();
     updRecap();
-    Swal.close();
+
+    // =========================================================
+    // DRAFT LOAD (WAVE 2B.3A — after auth + mission load)
+    // =========================================================
+    _edlUserId = _sessionUserId;
+    loadDraft();
+
+    // =========================================================
+    // DATA_READY — reveal shell (WAVE 2B.3A)
+    // =========================================================
+    _edlReady = true;
+    document.getElementById('edlShell').classList.add('revealed');
+    document.getElementById('loadingGate').classList.add('hidden');
+
   } catch (err) {
-    Swal.fire({
-      title: 'Erreur',
-      text: 'Impossible de charger les détails de la mission : ' + err.message,
-      icon: 'error',
-      confirmButtonColor: 'var(--bordeaux)'
-    });
+    console.error('initSupabaseEdl error:', err);
+    const gate = document.getElementById('loadingGate');
+    if (gate) {
+      gate.innerHTML = `
+        <div style="background:white;border:1px solid #E8E1D9;border-radius:20px;padding:36px;max-width:440px;width:90%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.08);">
+          <div style="width:64px;height:64px;background:#fdecea;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#c0392b;font-size:1.6rem;"><i class="fas fa-exclamation-triangle"></i></div>
+          <h1 style="font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:700;color:#2D2A24;margin-bottom:8px;">Erreur de chargement</h1>
+          <p style="font-size:0.85rem;color:#6B625A;margin-bottom:20px;line-height:1.6;">Impossible de charger l'état des lieux. Veuillez réessayer.</p>
+          <a href="dashboard-convoyeur.html" style="display:inline-block;background:#0A4D68;color:white;text-decoration:none;padding:12px 24px;border-radius:12px;font-size:0.85rem;font-weight:700;min-height:44px;">Espace convoyeur</a>
+          <a href="index.html" style="display:block;margin-top:12px;font-size:0.75rem;color:#6B625A;text-decoration:none;">← Retour au site</a>
+        </div>`;
+    }
   }
 }
 
 async function lookupLicensePlate() {
+  // WAVE 2B.3A: frontend gate — do not allow before DATA_READY
+  if (!_edlReady) { showToast('État des lieux non initialisé', 'error'); return; }
   const plaque = document.getElementById('vPlaque')?.value || '';
   if (!plaque) {
     Swal.fire({
@@ -1506,8 +1608,13 @@ async function uploadFile(client, bucket, path, file){
 }
 
 async function validateEdl(){
+  // WAVE 2B.3A: frontend gate
+  if (!_edlReady) { showToast('État des lieux non initialisé', 'error'); return; }
   if(!STATE.sigConvDone || !STATE.sigCliDone){ showToast('Les deux signatures sont requises', 'error'); return; }
-  if(STATE.photoExt<5 || STATE.photoInt<5){ showToast('10 photos obligatoires', 'error'); return; }
+  // WAVE 2B.3A: check actual photo files, not just counters
+  const extFiles = (STATE.extPhotos || []).filter(p => p).length;
+  const intFiles = (STATE.intPhotos || []).filter(p => p).length;
+  if(extFiles<5 || intFiles<5){ showToast('10 photos obligatoires (5 extérieur + 5 intérieur)', 'error'); return; }
   if(STATE.edlType === 'arrivee' && !STATE.finMissionSelfie){ showToast('La photo de fin de mission est obligatoire pour valider l\'arrivée', 'error'); return; }
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -1634,6 +1741,8 @@ async function validateEdl(){
 
 // ========== IMPRESSION PDF ==========
 function printEdl() {
+  // WAVE 2B.3A: frontend gate — do not allow before DATA_READY
+  if (!_edlReady) { showToast('État des lieux non initialisé', 'error'); return; }
   // Remplir les champs du PDF avec les données actuelles
   document.getElementById('printType').textContent = STATE.edlType === 'depart' ? 'DÉPART' : 'ARRIVÉE';
   document.getElementById('printRef').textContent = 'EDL-' + (document.getElementById('mRef')?.value || 'XXXX') + '-' + (STATE.edlType === 'depart' ? 'DEP' : 'ARR');
