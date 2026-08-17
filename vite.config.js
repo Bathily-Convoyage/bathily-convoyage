@@ -8,6 +8,8 @@ const __dirname = dirname(__filename);
 const publicHtmlFiles = [
   '404.html',
   'blog.html',
+  'blog/convoyage-ou-transport-camion.html',
+  'blog/convoyage-vehicule-electrique.html',
   'bon-de-mission.html',
   'carte-visite.html',
   'charte-graphique-complete.html',
