@@ -33,8 +33,8 @@ const cities = [
       { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#0A4D68' },
       { name: 'Marseille', lat: 43.2965, lon: 5.3698, color: '#4A7C6B' }
     ],
-    faqQuestion: 'Puis-je faire prendre en charge mon véhicule aux gares Part-Dieu ou Perrache ?',
-    faqAnswer: '<strong>Oui, absolument.</strong> Nos convoyeurs lyonnais se déplacent directement devant les déposes-minutes de Lyon Part-Dieu et Lyon Perrache, ou dans les communes de la métropole (Villeurbanne, Bron, Écully, Saint-Priest, etc.) pour récupérer ou livrer votre voiture ou votre moto.'
+    faqQuestion: 'Les prises en charge peuvent-elles être organisées à Lyon et dans les communes environnantes ?',
+    faqAnswer: '<strong>Oui.</strong> Les prises en charge peuvent être organisées à Lyon et dans les communes environnantes selon les modalités d\'accès du point de départ ou d\'arrivée.'
   },
   {
     name: 'Marseille',
@@ -47,8 +47,8 @@ const cities = [
       { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#0A4D68' },
       { name: 'Lyon', lat: 45.7640, lon: 4.8357, color: '#4A7C6B' }
     ],
-    faqQuestion: 'Gérez-vous la prise en charge au port maritime pour les transferts vers la Corse ?',
-    faqAnswer: '<strong>Oui, tout à fait.</strong> Nous assurons régulièrement des liaisons avec le grand port maritime de Marseille (GPMM) pour récupérer ou déposer des véhicules (autos et motos) en transit ferry vers la Corse ou l\'Afrique du Nord. Nous coordonnons l\'accès avec les compagnies maritimes.'
+    faqQuestion: 'Les prises en charge peuvent-elles être organisées à Marseille et dans les communes environnantes ?',
+    faqAnswer: '<strong>Oui.</strong> Les prises en charge peuvent être organisées à Marseille et dans les communes environnantes selon les modalités d\'accès du point de départ ou d\'arrivée.'
   },
   {
     name: 'Bordeaux',
@@ -61,8 +61,8 @@ const cities = [
       { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#0A4D68' },
       { name: 'Toulouse', lat: 43.6047, lon: 1.4442, color: '#4A7C6B' }
     ],
-    faqQuestion: 'Prenez-vous en charge les véhicules dans les châteaux et vignobles du Bordelais ?',
-    faqAnswer: '<strong>Oui, tout à fait.</strong> En plus de la gare Saint-Jean et de l\'aéroport de Mérignac, nos convoyeurs professionnels interviennent dans les domaines viticoles et les communes environnantes (Saint-Émilion, Pessac, Libourne, bassin d\'Arcachon) pour sécuriser le rapatriement de votre voiture ou deux-roues.'
+    faqQuestion: 'Les prises en charge peuvent-elles être organisées à Bordeaux et dans les communes environnantes ?',
+    faqAnswer: '<strong>Oui.</strong> Les prises en charge peuvent être organisées à Bordeaux et dans les communes environnantes selon les modalités d\'accès du point de départ ou d\'arrivée.'
   },
   {
     name: 'Toulouse',
@@ -75,8 +75,8 @@ const cities = [
       { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#0A4D68' },
       { name: 'Bordeaux', lat: 44.8378, lon: -0.5792, color: '#4A7C6B' }
     ],
-    faqQuestion: 'Livrez-vous les véhicules sur la zone aéronautique de Blagnac ?',
-    faqAnswer: '<strong>Oui, régulièrement.</strong> Nous collaborons avec de nombreux professionnels de l\'aéronautique à Toulouse. Nos convoyeurs assurent la livraison de flottes et de véhicules individuels à la gare Matabiau, à l\'aéroport de Blagnac, ainsi que sur les différents sites d\'Airbus.'
+    faqQuestion: 'Les prises en charge peuvent-elles être organisées à Toulouse et dans les communes environnantes ?',
+    faqAnswer: '<strong>Oui.</strong> Les prises en charge peuvent être organisées à Toulouse et dans les communes environnantes selon les modalités d\'accès du point de départ ou d\'arrivée.'
   },
   {
     name: 'Montpellier',
@@ -89,8 +89,8 @@ const cities = [
       { name: 'Paris', lat: 48.8566, lon: 2.3522, color: '#0A4D68' },
       { name: 'Marseille', lat: 43.2965, lon: 5.3698, color: '#4A7C6B' }
     ],
-    faqQuestion: 'Livrez-vous dans les stations balnéaires autour de Montpellier ?',
-    faqAnswer: '<strong>Oui, absolument.</strong> Notre équipe prend en charge et livre les voitures et motos dans Montpellier intra-muros (gare Saint-Roch, gare Sud de France) mais intervient aussi sur toute la bande côtière (La Grande-Motte, Carnon, Palavas-les-Flots, Sète, Agde).'
+    faqQuestion: 'Les prises en charge peuvent-elles être organisées à Montpellier et dans les communes environnantes ?',
+    faqAnswer: '<strong>Oui.</strong> Les prises en charge peuvent être organisées à Montpellier et dans les communes environnantes selon les modalités d\'accès du point de départ ou d\'arrivée.'
   }
 ];
 
@@ -124,7 +124,7 @@ cities.forEach(city => {
   );
   content = content.replace(
     /liaisons régulières depuis Paris/g,
-    `liaisons régulières depuis ${city.name}`
+    `exemples de trajets depuis ${city.name}`
   );
   content = content.replace(
     /Exemples de tracés vers Lyon et Marseille\./g,
