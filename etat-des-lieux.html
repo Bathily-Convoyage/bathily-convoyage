@@ -1520,6 +1520,40 @@ async function lookupLicensePlate() {
     return;
   }
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const missionId = urlParams.get('mission_id');
+  if (!missionId) {
+    Swal.fire({
+      title: 'Identification impossible',
+      text: 'Aucune mission associée. Saisie manuelle requise.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  const client = getSupabase();
+  if (!client) {
+    Swal.fire({
+      title: 'Identification impossible',
+      text: 'Configuration manquante. Saisie manuelle requise.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
+  const { data: { session } } = await client.auth.getSession();
+  if (!session || !session.access_token) {
+    Swal.fire({
+      title: 'Identification impossible',
+      text: 'Session expirée. Veuillez vous reconnecter.',
+      icon: 'warning',
+      confirmButtonColor: 'var(--bordeaux)'
+    });
+    return;
+  }
+
   Swal.fire({
     title: 'Recherche en cours...',
     text: 'Identification du véhicule...',
@@ -1528,7 +1562,10 @@ async function lookupLicensePlate() {
   });
 
   try {
-    const response = await fetch(`/api/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
+    const response = await fetch(
+      `/api/lookup-vehicle?plaque=${encodeURIComponent(plaque)}&mode=mission&mission_id=${encodeURIComponent(missionId)}`,
+      { headers: { 'Authorization': `Bearer ${session.access_token}` } }
+    );
     const data = await response.json();
 
     if (!response.ok) {
@@ -1536,21 +1573,25 @@ async function lookupLicensePlate() {
     }
 
     if (data.marque) {
-      if (document.getElementById('vMarque')) document.getElementById('vMarque').value = data.marque;
-      if (document.getElementById('vModele')) document.getElementById('vModele').value = data.modele || '';
-      if (document.getElementById('vAnnee') && data.annee) document.getElementById('vAnnee').value = data.annee;
-      if (document.getElementById('vCouleur') && data.couleur) document.getElementById('vCouleur').value = data.couleur;
-      if (document.getElementById('vVin') && data.vin) document.getElementById('vVin').value = data.vin;
-      
+      // WAVE 2B.3B: data precedence — only fill empty fields (mission-authoritative preserved)
+      if (document.getElementById('vMarque') && !document.getElementById('vMarque').value) document.getElementById('vMarque').value = data.marque;
+      if (document.getElementById('vModele') && !document.getElementById('vModele').value) document.getElementById('vModele').value = data.modele || '';
+      if (document.getElementById('vAnnee') && data.annee && !document.getElementById('vAnnee').value) document.getElementById('vAnnee').value = data.annee;
+      if (document.getElementById('vCouleur') && data.couleur && !document.getElementById('vCouleur').value) document.getElementById('vCouleur').value = data.couleur;
+      if (document.getElementById('vVin') && data.vin && !document.getElementById('vVin').value) document.getElementById('vVin').value = data.vin;
+
       if (data.energie && document.getElementById('vEnergie')) {
-        const opt = Array.from(document.getElementById('vEnergie').options)
-          .find(o => o.text.toLowerCase().includes(data.energie.toLowerCase()));
-        if (opt) opt.selected = true;
+        const currentEnergie = document.getElementById('vEnergie').value;
+        if (!currentEnergie) {
+          const opt = Array.from(document.getElementById('vEnergie').options)
+            .find(o => o.text.toLowerCase().includes(data.energie.toLowerCase()));
+          if (opt) opt.selected = true;
+        }
       }
 
       updateRef();
       updRecap();
-      
+
       Swal.fire({
         title: 'Véhicule identifié !',
        html: `<strong>Marque :</strong> ${escapeHtml(data.marque)}<br><strong>Modèle :</strong> ${escapeHtml(data.modele || '-')}`,

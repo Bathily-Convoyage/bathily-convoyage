@@ -1061,54 +1061,15 @@
     }
 
     async function lookupDevisPlaque() {
-      const plaque = document.getElementById('plaqueInput')?.value || '';
-      if (!plaque || plaque.length < 5) {
-        Swal.fire('Attention', "Veuillez saisir une plaque d'immatriculation valide.", 'warning');
-        return;
-      }
-
+      // WAVE 2B.3B: SIV lookup removed from public devis.
+      // Public devis uses data/vehicules-fr.json + manual entry only.
+      // SIV is reserved for authenticated EDL (mode=mission) and admin (mode=admin).
       Swal.fire({
-        title: 'Recherche en cours...',
-        text: 'Identification du véhicule...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
+        title: 'Identification par plaque',
+        html: 'L\'identification automatique par plaque est réservée aux missions et à l\'espace admin.<br><br>Veuillez sélectionner votre véhicule manuellement (marque, modèle, année).',
+        icon: 'info',
+        confirmButtonColor: 'var(--bordeaux)'
       });
-
-      try {
-        const response = await fetch(`/api/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
-        const data = await response.json();
-
-        if (!response.ok) throw new Error(data.error || 'Erreur');
-
-        if (data.marque) {
-          document.getElementById('sivVehicleName').textContent = `${data.marque} ${data.modele || ''}`;
-          document.getElementById('sivYear').textContent = data.annee || '—';
-          document.getElementById('sivEnergy').textContent = data.energie || '—';
-          document.getElementById('sivPower').textContent = data.puissance || '—';
-          document.getElementById('sivColor').textContent = data.couleur || '—';
-          document.getElementById('sivResult').style.display = 'block';
-
-          document.getElementById('marqueInput').value = data.marque;
-          document.getElementById('modeleInput').value = data.modele || '';
-          _selectedMarque = data.marque;
-
-          Swal.fire({
-            title: 'Véhicule identifié !',
-           html: `<strong>${escapeHtml(data.marque)} ${escapeHtml(data.modele || '')}</strong><br>${escapeHtml(data.energie || '')} • ${escapeHtml(data.annee || '')}`,
-            icon: 'success',
-            confirmButtonColor: 'var(--bordeaux)'
-          });
-        } else {
-          throw new Error('Aucun véhicule trouvé.');
-        }
-      } catch (err) {
-        Swal.fire({
-          title: 'Identification impossible',
-          text: err.message || 'Le service est indisponible. Sélectionnez manuellement.',
-          icon: 'error',
-          confirmButtonColor: 'var(--bordeaux)'
-        });
-      }
     }
 
     async function loadVehiculesDB() {

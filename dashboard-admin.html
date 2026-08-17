@@ -2941,6 +2941,17 @@ Cadeau premium personnalisé</textarea>
       return;
     }
 
+    const client = getSupabase();
+    if (!client) {
+      Swal.fire('Attention', 'Configuration manquante.', 'warning');
+      return;
+    }
+    const { data: { session } } = await client.auth.getSession();
+    if (!session || !session.access_token) {
+      Swal.fire('Attention', 'Session expirée. Veuillez vous reconnecter.', 'warning');
+      return;
+    }
+
     Swal.fire({
       title: 'Recherche en cours...',
       text: 'Identification du véhicule...',
@@ -2949,7 +2960,10 @@ Cadeau premium personnalisé</textarea>
     });
 
     try {
-      const response = await fetch(`/api/lookup-vehicle?plaque=${encodeURIComponent(plaque)}`);
+      const response = await fetch(
+        `/api/lookup-vehicle?plaque=${encodeURIComponent(plaque)}&mode=admin`,
+        { headers: { 'Authorization': `Bearer ${session.access_token}` } }
+      );
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || 'Erreur');
