@@ -164,7 +164,10 @@ test('source contract missing field rejected', () => {
     loadAndVerifySnapshot(path, plan);
     throw new Error('Expected error');
   } catch (err) {
-    assert.match(err.message, /Missing field Energie/);
+    assert.match(
+      err.message,
+      /^Missing required field in snapshot schema: Energie$/
+    );
   } finally {
     cleanup(path);
   }
