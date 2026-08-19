@@ -1,0 +1,16 @@
+{
+  "plan_version": 1,
+  "mode": "first-production-import",
+  "source_id": "ADEME_CAR_LABELLING",
+  "dataset_id": "ademe-car-labelling",
+  "dataset_updated_at": "2026-08-14T23:00:19.792Z",
+  "license": "Licence Ouverte / Open Licence",
+  "snapshot_sha256": "6eafe9751496d7d0eeae601c05336fc5756197c0d3840b3ed5800b268afaecbb",
+  "snapshot_rows": 3604,
+  "expected_accepted": 3604,
+  "expected_rejected": 0,
+  "expected_makes": 37,
+  "expected_models": 187,
+  "expected_variants": 3604,
+  "max_power_unit": "kW"
+}
