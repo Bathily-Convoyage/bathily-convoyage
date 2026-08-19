@@ -154,8 +154,9 @@ export function toNum(value) {
 
 function escapeSqlString(value) {
   if (value === null || value === undefined) return 'null';
-  const s = String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-  return `'${s}'`;
+  const s = String(value);
+  if (s.includes('\0')) throw new Error('NUL character not allowed in SQL string literal');
+  return `'${s.replace(/'/g, "''")}'`;
 }
 
 function formatTimestamp(iso) {
@@ -386,6 +387,7 @@ export function generateFirstProdImportSql(plan, manifest, catalog) {
   lines.push(`-- Expected rows: ${plan.snapshot_rows}`);
   lines.push('--');
   lines.push('BEGIN;');
+  lines.push('SET LOCAL standard_conforming_strings = on;');
   lines.push('');
 
   // Preconditions

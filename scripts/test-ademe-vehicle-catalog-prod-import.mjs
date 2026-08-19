@@ -602,6 +602,142 @@ test('output path outside repo allowed', () => {
   assert.equal(isPathInsideRepo(outPath), false);
 });
 
+// 32-40. SQL literal escaping regression
+
+test('apostrophe SQL literal escaping', () => {
+  const plan = makePlan();
+  const rows = makeSnapshotRows();
+  rows[0].Description_Commerciale = "D'ARTAGNAN";
+  const raw = JSON.stringify(rows);
+  const path = writeTemp('snap.json', raw);
+  plan.snapshot_sha256 = createHash('sha256').update(raw).digest('hex');
+  const loaded = loadAndVerifySnapshot(path, plan);
+  const catalog = buildVehicleCatalog(loaded, plan);
+  const sql = generateFirstProdImportSql(plan, {}, catalog);
+  assert.equal(sql.includes("'D''ARTAGNAN'"), true);
+  assert.equal(sql.includes("'D\\'ARTAGNAN'"), false);
+  cleanup(path);
+});
+
+test('multiple apostrophes SQL literal escaping', () => {
+  const plan = makePlan();
+  const rows = makeSnapshotRows();
+  rows[0].Description_Commerciale = "L'AVENTURE D'ALICE";
+  const raw = JSON.stringify(rows);
+  const path = writeTemp('snap.json', raw);
+  plan.snapshot_sha256 = createHash('sha256').update(raw).digest('hex');
+  const loaded = loadAndVerifySnapshot(path, plan);
+  const catalog = buildVehicleCatalog(loaded, plan);
+  const sql = generateFirstProdImportSql(plan, {}, catalog);
+  assert.equal(sql.includes("'L''AVENTURE D''ALICE'"), true);
+  cleanup(path);
+});
+
+test('backslash preserved in SQL literal', () => {
+  const plan = makePlan();
+  const rows = makeSnapshotRows();
+  rows[0].Description_Commerciale = "A\\B";
+  const raw = JSON.stringify(rows);
+  const path = writeTemp('snap.json', raw);
+  plan.snapshot_sha256 = createHash('sha256').update(raw).digest('hex');
+  const loaded = loadAndVerifySnapshot(path, plan);
+  const catalog = buildVehicleCatalog(loaded, plan);
+  const sql = generateFirstProdImportSql(plan, {}, catalog);
+  assert.equal(sql.includes("'A\\B'"), true);
+  assert.equal(sql.includes("'A\\\\B'"), false);
+  cleanup(path);
+});
+
+test('newline deterministic in SQL literal', () => {
+  const plan = makePlan();
+  const rows = makeSnapshotRows();
+  rows[0].Description_Commerciale = "LINE1\nLINE2";
+  const raw = JSON.stringify(rows);
+  const path = writeTemp('snap.json', raw);
+  plan.snapshot_sha256 = createHash('sha256').update(raw).digest('hex');
+  const loaded = loadAndVerifySnapshot(path, plan);
+  const catalog = buildVehicleCatalog(loaded, plan);
+  const sql = generateFirstProdImportSql(plan, {}, catalog);
+  const sql2 = generateFirstProdImportSql(plan, {}, catalog);
+  assert.equal(sql, sql2);
+  assert.equal(sql.includes("'LINE1\nLINE2'"), true);
+  cleanup(path);
+});
+
+test('NUL input rejected in SQL generation', () => {
+  const plan = makePlan();
+  const rows = makeSnapshotRows();
+  rows[0].Description_Commerciale = "BAD\0X";
+  const raw = JSON.stringify(rows);
+  const path = writeTemp('snap.json', raw);
+  plan.snapshot_sha256 = createHash('sha256').update(raw).digest('hex');
+  const loaded = loadAndVerifySnapshot(path, plan);
+  const catalog = buildVehicleCatalog(loaded, plan);
+  assert.throws(() => {
+    generateFirstProdImportSql(plan, {}, catalog);
+  }, /NUL character not allowed in SQL string literal/);
+  cleanup(path);
+});
+
+test('SET LOCAL standard_conforming_strings present', () => {
+  const plan = makePlan();
+  const rows = makeSnapshotRows();
+  const raw = JSON.stringify(rows);
+  const path = writeTemp('snap.json', raw);
+  plan.snapshot_sha256 = createHash('sha256').update(raw).digest('hex');
+  const loaded = loadAndVerifySnapshot(path, plan);
+  const catalog = buildVehicleCatalog(loaded, plan);
+  const sql = generateFirstProdImportSql(plan, {}, catalog);
+  assert.equal(sql.includes('SET LOCAL standard_conforming_strings = on;'), true);
+  cleanup(path);
+});
+
+test('no backslash quote escaping in generated SQL', () => {
+  const plan = makePlan();
+  const rows = makeSnapshotRows();
+  rows[0].Description_Commerciale = "can't don't";
+  rows[1].Description_Commerciale = "A\\B";
+  const raw = JSON.stringify(rows);
+  const path = writeTemp('snap.json', raw);
+  plan.snapshot_sha256 = createHash('sha256').update(raw).digest('hex');
+  const loaded = loadAndVerifySnapshot(path, plan);
+  const catalog = buildVehicleCatalog(loaded, plan);
+  const sql = generateFirstProdImportSql(plan, {}, catalog);
+  assert.equal(sql.includes("\\'"), false);
+  cleanup(path);
+});
+
+test('apostrophe escaping does not alter other characters', () => {
+  const plan = makePlan();
+  const rows = makeSnapshotRows();
+  rows[0].Description_Commerciale = "T-ROC 17'' to 19''";
+  const raw = JSON.stringify(rows);
+  const path = writeTemp('snap.json', raw);
+  plan.snapshot_sha256 = createHash('sha256').update(raw).digest('hex');
+  const loaded = loadAndVerifySnapshot(path, plan);
+  const catalog = buildVehicleCatalog(loaded, plan);
+  const sql = generateFirstProdImportSql(plan, {}, catalog);
+  assert.equal(sql.includes("'T-ROC 17'''' to 19'''''"), true);
+  assert.equal(sql.includes("\\'"), false);
+  cleanup(path);
+});
+
+test('SQL literal escaping deterministic', () => {
+  const plan = makePlan();
+  const rows = makeSnapshotRows();
+  rows[0].Description_Commerciale = "D'ARTAGNAN";
+  rows[1].Description_Commerciale = "A\\B";
+  const raw = JSON.stringify(rows);
+  const path = writeTemp('snap.json', raw);
+  plan.snapshot_sha256 = createHash('sha256').update(raw).digest('hex');
+  const loaded = loadAndVerifySnapshot(path, plan);
+  const catalog = buildVehicleCatalog(loaded, plan);
+  const sql1 = generateFirstProdImportSql(plan, {}, catalog);
+  const sql2 = generateFirstProdImportSql(plan, {}, catalog);
+  assert.equal(sql1, sql2);
+  cleanup(path);
+});
+
 // Summary
 console.log('');
 console.log(`${pass} passed, ${fail} failed`);
