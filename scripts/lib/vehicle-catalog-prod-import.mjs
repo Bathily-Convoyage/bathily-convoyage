@@ -494,9 +494,9 @@ export function generateFirstProdImportSql(plan, manifest, catalog) {
       lines.push(`INSERT INTO vehicle_variants (model_id, source_id, source_record_id, commercial_name, energy, fiscal_power, max_power_value, max_power_unit, source_hash, created_at, updated_at)`);
       const vValues = chunk.map(v => {
         const modelLookup = `(SELECT mm.model_id FROM mm WHERE mm.make_normalized = ${escapeSqlString(v.make_normalized)} AND mm.model_normalized = ${escapeSqlString(v.model_normalized)})`;
-        return `${modelLookup}, ${escapeSqlString(SOURCE_ID)}, ${escapeSqlString(v.source_record_id)}, ${escapeSqlString(v.commercial_name)}, ${escapeSqlString(v.energy)}, ${v.fiscal_power === null ? 'null' : v.fiscal_power}, ${v.max_power_value === null ? 'null' : v.max_power_value}, ${escapeSqlString(v.max_power_unit)}, ${escapeSqlString(v.source_hash)}, now(), now()`;
+        return `SELECT ${modelLookup}, ${escapeSqlString(SOURCE_ID)}, ${escapeSqlString(v.source_record_id)}, ${escapeSqlString(v.commercial_name)}, ${escapeSqlString(v.energy)}, ${v.fiscal_power === null ? 'null' : v.fiscal_power}, ${v.max_power_value === null ? 'null' : v.max_power_value}, ${escapeSqlString(v.max_power_unit)}, ${escapeSqlString(v.source_hash)}, now(), now()`;
       });
-      lines.push(`VALUES ${vValues.join(',\n')}`);
+      lines.push(vValues.join('\nUNION ALL\n'));
       lines.push(`ON CONFLICT (source_id, source_record_id) DO UPDATE SET`);
       lines.push(`  model_id = EXCLUDED.model_id,`);
       lines.push(`  commercial_name = EXCLUDED.commercial_name,`);

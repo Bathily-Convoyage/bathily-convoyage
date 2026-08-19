@@ -738,6 +738,20 @@ test('SQL literal escaping deterministic', () => {
   cleanup(path);
 });
 
+test('no VALUES (SELECT ... ) pattern in generated SQL', () => {
+  const plan = makePlan();
+  const rows = makeSnapshotRows();
+  const raw = JSON.stringify(rows);
+  const path = writeTemp('snap.json', raw);
+  plan.snapshot_sha256 = createHash('sha256').update(raw).digest('hex');
+  const loaded = loadAndVerifySnapshot(path, plan);
+  const catalog = buildVehicleCatalog(loaded, plan);
+  const sql = generateFirstProdImportSql(plan, {}, catalog);
+  assert.equal(/VALUES\s*\(\s*SELECT/i.test(sql), false);
+  assert.equal(/\bINSERT\s+INTO\s+vehicle_variants\b[\s\S]*\bSELECT\b/.test(sql), true);
+  cleanup(path);
+});
+
 // Summary
 console.log('');
 console.log(`${pass} passed, ${fail} failed`);
