@@ -10,7 +10,8 @@ import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, getQueryPa
 // - VIN only returned in mode=mission (authorized + plate-bound)
 // - Stable error codes, no raw RapidAPI messages exposed
 
-const UPSTREAM_HOST = 'api-siv-systeme-d-immatriculation-des-vehicules.p.rapidapi.com';
+const UPSTREAM_HOST = 'api-plaque-immatriculation-siv.p.rapidapi.com';
+const UPSTREAM_PATH = '/get-vehicule-info2';
 const UPSTREAM_TIMEOUT_MS = 8000;
 
 const defaultDeps = {
@@ -24,6 +25,13 @@ function normalizePlate(p) {
   return (p || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
+function formatProviderPlate(normalized) {
+  if (normalized.length === 7) {
+    return `${normalized.slice(0, 2)}-${normalized.slice(2, 5)}-${normalized.slice(5)}`;
+  }
+  return normalized;
+}
+
 function err(code, message, status, request) {
   return jsonResponse({ error: message, code }, status, getCorsHeaders(request));
 }
@@ -32,14 +40,18 @@ function err(code, message, status, request) {
 // Preserves the existing field mapping contract.
 function mapUpstreamData(data) {
   const innerData = (data && data.data) || {};
+  let annee = '';
+  if (innerData.date1erCir_us && /^\d{4}-\d{2}-\d{2}$/.test(innerData.date1erCir_us)) {
+    annee = innerData.date1erCir_us.substring(0, 4);
+  }
   const result = {
-    marque: innerData.AWN_marque || innerData.marque || data.marque || data.make || data.Brand || '',
-    modele: innerData.AWN_modele || innerData.modele || data.modele || data.model || data.Model || '',
-    energie: innerData.AWN_energie || innerData.energie || data.energie || data.fuelType || data.Fuel || '',
-    couleur: innerData.AWN_couleur || innerData.couleur || data.couleur || data.color || data.Color || '',
-    annee: (innerData.AWN_date_mise_en_circulation_us ? innerData.AWN_date_mise_en_circulation_us.substring(0, 4) : null) || innerData.AWN_annee_debut_modele || data.annee || data.year || '',
-    vin: innerData.AWN_VIN || innerData.vin || data.vin || data.vinNumber || '',
-    puissance: innerData.AWN_puissance_fiscale || innerData.puissance || data.puissanceFiscale || data.puissance_fiscale || data.power || ''
+    marque: innerData.marque || '',
+    modele: innerData.modele || '',
+    energie: innerData.energieNGC || '',
+    couleur: innerData.couleur || '',
+    annee,
+    vin: innerData.vin || '',
+    puissance: innerData.puisFisc || ''
   };
   if (result.marque) result.marque = result.marque.charAt(0).toUpperCase() + result.marque.slice(1).toLowerCase();
   if (result.modele) result.modele = result.modele.toUpperCase();
@@ -53,16 +65,21 @@ function stripVin(obj) {
   return rest;
 }
 
-async function callUpstream(formattedPlate, rapidApiKey, fetchFn) {
+function logUpstream(status, category) {
+  // Safe observability: only status and category; no secrets, VIN, or payload
+  console.error(`[lookup-vehicle upstream] status=${status} category=${category}`);
+}
+
+async function callUpstream(providerPlate, rapidApiKey, fetchFn) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+  const params = new URLSearchParams({ immatriculation: providerPlate });
   try {
-    const response = await fetchFn(`https://${UPSTREAM_HOST}/${formattedPlate}`, {
+    const response = await fetchFn(`https://${UPSTREAM_HOST}${UPSTREAM_PATH}?${params.toString()}`, {
       method: 'GET',
       headers: {
         'x-rapidapi-host': UPSTREAM_HOST,
-        'x-rapidapi-key': rapidApiKey,
-        'Content-Type': 'application/json'
+        'x-rapidapi-key': rapidApiKey
       },
       signal: controller.signal
     });
@@ -201,12 +218,15 @@ export async function handleRequest(context, deps = defaultDeps) {
   }
 
   let response;
+  const providerPlate = formatProviderPlate(formattedPlate);
   try {
-    response = await callUpstream(formattedPlate, rapidApiKey, fetchImpl);
+    response = await callUpstream(providerPlate, rapidApiKey, fetchImpl);
   } catch (fetchErr) {
     if (fetchErr.name === 'AbortError') {
+      logUpstream(0, 'TIMEOUT');
       return err('vehicle_provider_timeout', 'Délai dépassé. Veuillez réessayer.', 504, request);
     }
+    logUpstream(0, 'NETWORK_ERROR');
     return err('vehicle_provider_error', 'Service d\'identification véhicule indisponible.', 502, request);
   }
 
@@ -214,13 +234,28 @@ export async function handleRequest(context, deps = defaultDeps) {
   try {
     data = await response.json();
   } catch (e) {
+    logUpstream(response.status, 'INVALID_JSON');
     return err('vehicle_provider_error', 'Réponse invalide du fournisseur.', 502, request);
   }
 
   if (!response.ok || data.error || (data.code && data.code !== 200)) {
     if (response.status === 404) {
+      logUpstream(response.status, 'NOT_FOUND');
       return err('vehicle_not_found', 'Aucun véhicule trouvé pour cette plaque.', 404, request);
     }
+    if (response.status === 401 || response.status === 403) {
+      logUpstream(response.status, 'AUTH_ERROR');
+      return err('vehicle_provider_error', 'Service d\'identification véhicule indisponible.', 502, request);
+    }
+    if (response.status === 429) {
+      logUpstream(response.status, 'RATE_LIMIT');
+      return err('vehicle_provider_error', 'Service d\'identification véhicule indisponible.', 502, request);
+    }
+    if (response.status >= 500) {
+      logUpstream(response.status, 'UPSTREAM_5XX');
+      return err('vehicle_provider_error', 'Service d\'identification véhicule indisponible.', 502, request);
+    }
+    logUpstream(response.status, 'UPSTREAM_ERROR');
     return err('vehicle_provider_error', 'Service d\'identification véhicule indisponible.', 502, request);
   }
 

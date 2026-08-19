@@ -1,4 +1,4 @@
-// WAVE 2B.3B FINAL: Vehicle lookup security gate tests
+// WAVE 2B.3B FINAL + Gate 1J: Vehicle lookup security gate tests
 // REAL_NETWORK_CALLS = 0 — all fetch/createClient calls are mocked via deps injection.
 //
 // Network sentinel:
@@ -14,10 +14,10 @@ import { handleRequest } from '../functions/api/lookup-vehicle.js';
 import { jsonResponse, getCorsHeaders } from '../functions/_utils.js';
 import { readFileSync } from 'fs';
 
-const UPSTREAM_HOST = 'api-siv-systeme-d-immatriculation-des-vehicules.p.rapidapi.com';
+const UPSTREAM_HOST = 'api-plaque-immatriculation-siv.p.rapidapi.com';
+const UPSTREAM_PATH = '/get-vehicule-info2';
 
 // ── Mock factories ──
-// supabaseUser mock: user-scoped client with auth.getUser + rpc + from
 function mockSupabaseUser({
   user = null,
   isAdminResult = null,
@@ -63,7 +63,43 @@ function mockUpstreamResponse(data, status = 200) {
   });
 }
 
-// ── Test helpers ──
+function makeFullVehicleData(overrides = {}) {
+  return {
+    data: {
+      erreur: '',
+      immat: 'aa123bc',
+      co2: '134',
+      energie: '1',
+      energieNGC: 'DIESEL',
+      genreVCG: '1',
+      genreVCGNGC: 'VP',
+      puisFisc: '7',
+      carrosserieCG: 'CI',
+      marque: 'RENAULT',
+      modele: 'MEGANE III',
+      date1erCir_us: '2009-04-18',
+      date1erCir_fr: '18-04-2009',
+      collection: 'non',
+      vin: 'VF1RENAUL00000001',
+      boite_vitesse: 'M',
+      puisFiscReel: '130',
+      nr_passagers: '5',
+      nb_portes: '5',
+      type_mine: '...',
+      couleur: 'NOIR',
+      poids: '1310 kg',
+      cylindres: '4',
+      sra_id: '...',
+      sra_group: '32',
+      sra_commercial: '...',
+      logo_marque: '...',
+      code_moteur: '',
+      k_type: '...',
+      ...overrides
+    }
+  };
+}
+
 function makeContext(url, env, opts = {}) {
   const request = new Request(`https://example.com${url}`, {
     method: opts.method || 'GET',
@@ -81,9 +117,6 @@ function makeContext(url, env, opts = {}) {
   };
 }
 
-// makeDeps with network sentinel
-// fetchImpl: optional function(url, opts) → Response (for known provider URLs)
-// If fetchImpl is null and a fetch is attempted → recorded as unexpected
 function makeDeps({ createClientImpl, fetchImpl, rateLimitResult = null } = {}) {
   return {
     createClient: (...args) => {
@@ -92,13 +125,10 @@ function makeDeps({ createClientImpl, fetchImpl, rateLimitResult = null } = {}) 
     },
     fetch: (...args) => {
       const url = args[0];
-      // Only the known upstream host is allowed
       if (typeof url === 'string' && url.includes(UPSTREAM_HOST)) {
         if (fetchImpl) return fetchImpl(url, args[1]);
-        // No mock for provider URL — this is a test setup error, not unexpected URL
         throw new Error(`PROVIDER FETCH without mock: ${url}`);
       }
-      // Any other URL is unexpected
       throw new Error(`UNEXPECTED FETCH URL: ${url}`);
     },
     checkRateLimit: () => rateLimitResult,
@@ -218,9 +248,10 @@ await test('missing plate => 400', async () => {
 await test('unauthorized mission => 403', async () => {
   const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=mission&mission_id=test-1', {},
     { headers: { authorization: 'Bearer valid-token' } });
-  const deps = makeDeps({ createClientImpl: () => mockSupabaseUser({
-    user: { id: 'user-1' }, opResult: false, convResult: false
-  })});
+  const deps = makeDeps({
+    createClientImpl: () => mockSupabaseUser({
+      user: { id: 'user-1' }, opResult: false, convResult: false
+    })});
   const res = await handleRequest(ctx, deps);
   assertEq(res.status, 403, 'status');
   const body = await res.json();
@@ -231,10 +262,11 @@ await test('unauthorized mission => 403', async () => {
 await test('mission plate absent => 422', async () => {
   const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=mission&mission_id=test-1', {},
     { headers: { authorization: 'Bearer valid-token' } });
-  const deps = makeDeps({ createClientImpl: () => mockSupabaseUser({
-    user: { id: 'user-1' }, opResult: true, convResult: false,
-    missionData: { immatriculation: null }
-  })});
+  const deps = makeDeps({
+    createClientImpl: () => mockSupabaseUser({
+      user: { id: 'user-1' }, opResult: true, convResult: false,
+      missionData: { immatriculation: null }
+    })});
   const res = await handleRequest(ctx, deps);
   assertEq(res.status, 422, 'status');
   const body = await res.json();
@@ -245,10 +277,11 @@ await test('mission plate absent => 422', async () => {
 await test('mission plate mismatch => 409', async () => {
   const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=mission&mission_id=test-1', {},
     { headers: { authorization: 'Bearer valid-token' } });
-  const deps = makeDeps({ createClientImpl: () => mockSupabaseUser({
-    user: { id: 'user-1' }, opResult: true, convResult: false,
-    missionData: { immatriculation: 'ZZ-999-ZZ' }
-  })});
+  const deps = makeDeps({
+    createClientImpl: () => mockSupabaseUser({
+      user: { id: 'user-1' }, opResult: true, convResult: false,
+      missionData: { immatriculation: 'ZZ-999-ZZ' }
+    })});
   const res = await handleRequest(ctx, deps);
   assertEq(res.status, 409, 'status');
   const body = await res.json();
@@ -264,15 +297,26 @@ await test('operator authorized => 200 with VIN', async () => {
       user: { id: 'user-1' }, opResult: true, convResult: false,
       missionData: { immatriculation: 'AB-123-CD' }
     }),
-    fetchImpl: () => mockUpstreamResponse({
-      data: { AWN_marque: 'Renault', AWN_modele: 'CLIO', AWN_VIN: 'VF1CLIO123', AWN_energie: 'Essence' }
-    })
+    fetchImpl: () => mockUpstreamResponse(makeFullVehicleData({
+      marque: 'RENAULT',
+      modele: 'CLIO III',
+      energieNGC: 'ESSENCE',
+      couleur: 'ROUGE',
+      date1erCir_us: '2010-06-15',
+      puisFisc: '6',
+      vin: 'VF1CLIO123'
+    }))
   });
   const res = await handleRequest(ctx, deps);
   assertEq(res.status, 200, 'status');
   const body = await res.json();
   assert(body.vin === 'VF1CLIO123', 'VIN present in mission mode');
   assertEq(body.marque, 'Renault', 'marque');
+  assertEq(body.modele, 'CLIO III', 'modele');
+  assertEq(body.energie, 'Essence', 'energie');
+  assertEq(body.couleur, 'Rouge', 'couleur');
+  assertEq(body.annee, '2010', 'annee');
+  assertEq(body.puissance, '6', 'puissance fiscal, not reel');
 });
 
 // 14. assigned convoyeur => 200 with VIN
@@ -284,9 +328,12 @@ await test('assigned convoyeur => 200 with VIN', async () => {
       user: { id: 'user-1' }, opResult: false, convResult: true,
       missionData: { immatriculation: 'AB-123-CD' }
     }),
-    fetchImpl: () => mockUpstreamResponse({
-      data: { AWN_marque: 'Peugeot', AWN_modele: '208', AWN_VIN: 'VF3PEUGEOT', AWN_energie: 'Diesel' }
-    })
+    fetchImpl: () => mockUpstreamResponse(makeFullVehicleData({
+      marque: 'PEUGEOT',
+      modele: '208',
+      energieNGC: 'DIESEL',
+      vin: 'VF3PEUGEOT'
+    }))
   });
   const res = await handleRequest(ctx, deps);
   assertEq(res.status, 200, 'status');
@@ -303,9 +350,10 @@ await test('mission response includes VIN field', async () => {
       user: { id: 'user-1' }, opResult: true, convResult: false,
       missionData: { immatriculation: 'AB-123-CD' }
     }),
-    fetchImpl: () => mockUpstreamResponse({
-      data: { AWN_marque: 'Renault', AWN_VIN: 'VF1VIN999' }
-    })
+    fetchImpl: () => mockUpstreamResponse(makeFullVehicleData({
+      marque: 'RENAULT',
+      vin: 'VF1VIN999'
+    }))
   });
   const res = await handleRequest(ctx, deps);
   const body = await res.json();
@@ -348,7 +396,11 @@ await test('admin via is_admin true (user_roles) => 200', async () => {
     { headers: { authorization: 'Bearer valid-token' } });
   const deps = makeDeps({
     createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
-    fetchImpl: () => mockUpstreamResponse({ data: { AWN_marque: 'Audi', AWN_VIN: 'WAUAAA123' } })
+    fetchImpl: () => mockUpstreamResponse(makeFullVehicleData({
+      marque: 'AUDI',
+      modele: 'A3',
+      vin: 'WAUAAA123'
+    }))
   });
   const res = await handleRequest(ctx, deps);
   assertEq(res.status, 200, 'status');
@@ -356,13 +408,15 @@ await test('admin via is_admin true (user_roles) => 200', async () => {
 
 // 20. legacy admin recognized by is_admin => 200
 await test('legacy admin recognized by is_admin => 200', async () => {
-  // is_admin() returns true for both user_roles.admin AND clients.role='admin' legacy
-  // The RPC handles this internally — we just mock the result
   const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
   const deps = makeDeps({
     createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
-    fetchImpl: () => mockUpstreamResponse({ data: { AWN_marque: 'BMW', AWN_VIN: 'WBA123' } })
+    fetchImpl: () => mockUpstreamResponse(makeFullVehicleData({
+      marque: 'BMW',
+      modele: 'SERIE 3',
+      vin: 'WBA123'
+    }))
   });
   const res = await handleRequest(ctx, deps);
   assertEq(res.status, 200, 'status');
@@ -376,7 +430,10 @@ await test('admin response VIN absent', async () => {
     { headers: { authorization: 'Bearer valid-token' } });
   const deps = makeDeps({
     createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
-    fetchImpl: () => mockUpstreamResponse({ data: { AWN_marque: 'Audi', AWN_VIN: 'WAUAAA123' } })
+    fetchImpl: () => mockUpstreamResponse(makeFullVehicleData({
+      marque: 'AUDI',
+      vin: 'WAUAAA123'
+    }))
   });
   const res = await handleRequest(ctx, deps);
   const body = await res.json();
@@ -427,7 +484,49 @@ await test('provider 404 => 404', async () => {
   assertEq(body.code, 'vehicle_not_found', 'code');
 });
 
-// 25. provider 500 => 502
+// 25. provider 401 => 502 (logged as AUTH_ERROR)
+await test('provider 401 => 502 with auth error log', async () => {
+  const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
+    { headers: { authorization: 'Bearer valid-token' } });
+  const deps = makeDeps({
+    createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
+    fetchImpl: () => mockUpstreamResponse({ error: 'unauthorized' }, 401)
+  });
+  const res = await handleRequest(ctx, deps);
+  assertEq(res.status, 502, 'status');
+  const body = await res.json();
+  assertEq(body.code, 'vehicle_provider_error', 'code');
+});
+
+// 26. provider 403 => 502 (logged as AUTH_ERROR)
+await test('provider 403 => 502 with auth error log', async () => {
+  const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
+    { headers: { authorization: 'Bearer valid-token' } });
+  const deps = makeDeps({
+    createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
+    fetchImpl: () => mockUpstreamResponse({ error: 'forbidden' }, 403)
+  });
+  const res = await handleRequest(ctx, deps);
+  assertEq(res.status, 502, 'status');
+  const body = await res.json();
+  assertEq(body.code, 'vehicle_provider_error', 'code');
+});
+
+// 27. provider 429 => 502 (logged as RATE_LIMIT)
+await test('provider 429 => 502 with rate limit log', async () => {
+  const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
+    { headers: { authorization: 'Bearer valid-token' } });
+  const deps = makeDeps({
+    createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
+    fetchImpl: () => mockUpstreamResponse({ error: 'rate limit' }, 429)
+  });
+  const res = await handleRequest(ctx, deps);
+  assertEq(res.status, 502, 'status');
+  const body = await res.json();
+  assertEq(body.code, 'vehicle_provider_error', 'code');
+});
+
+// 28. provider 500 => 502
 await test('provider 500 => 502', async () => {
   const ctx = makeContext('/api/lookup-vehicle?plaque=XXXXXX&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
@@ -441,13 +540,13 @@ await test('provider 500 => 502', async () => {
   assertEq(body.code, 'vehicle_provider_error', 'code');
 });
 
-// 26. network error (provider URL, mock rejects) => 502
+// 29. network error (provider URL, mock rejects) => 502
 await test('provider network error => 502', async () => {
-  const ctx = makeContext('/api/lookup-vehicle?plaque=XXXXXX&mode=admin', {},
+  const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
   const deps = makeDeps({
     createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
-    fetchImpl: () => { throw new Error('network failure'); }
+    fetchImpl: () => { throw new Error('upstream down'); }
   });
   const res = await handleRequest(ctx, deps);
   assertEq(res.status, 502, 'status');
@@ -456,9 +555,9 @@ await test('provider network error => 502', async () => {
   assert(!body.marque, 'no synthetic marque');
 });
 
-// 27. timeout => 504
+// 30. timeout => 504
 await test('timeout => 504', async () => {
-  const ctx = makeContext('/api/lookup-vehicle?plaque=XXXXXX&mode=admin', {},
+  const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
   const deps = makeDeps({
     createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
@@ -470,9 +569,9 @@ await test('timeout => 504', async () => {
   assertEq(body.code, 'vehicle_provider_timeout', 'code');
 });
 
-// 28. invalid JSON => 502
+// 31. invalid JSON => 502
 await test('invalid JSON => 502', async () => {
-  const ctx = makeContext('/api/lookup-vehicle?plaque=XXXXXX&mode=admin', {},
+  const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
   const deps = makeDeps({
     createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
@@ -484,13 +583,13 @@ await test('invalid JSON => 502', async () => {
   assertEq(body.code, 'vehicle_provider_error', 'code');
 });
 
-// 29. incomplete response (no marque) => 404
+// 32. incomplete response (no marque) => 404
 await test('incomplete response => 404', async () => {
   const ctx = makeContext('/api/lookup-vehicle?plaque=XXXXXX&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
   const deps = makeDeps({
     createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
-    fetchImpl: () => mockUpstreamResponse({ data: { AWN_marque: '', AWN_VIN: '' } })
+    fetchImpl: () => mockUpstreamResponse(makeFullVehicleData({ marque: '' }))
   });
   const res = await handleRequest(ctx, deps);
   assertEq(res.status, 404, 'status');
@@ -498,8 +597,8 @@ await test('incomplete response => 404', async () => {
   assertEq(body.code, 'vehicle_not_found', 'code');
 });
 
-// 30. mockSIV absent — former mock plate goes to upstream
-await test('mockSIV absent — former mock plate goes to upstream', async () => {
+// 33. provider URL contract: correct host + path + query with dashes
+await test('provider URL contract is correct', async () => {
   const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
   let fetchCalled = false;
@@ -507,16 +606,20 @@ await test('mockSIV absent — former mock plate goes to upstream', async () => 
     createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
     fetchImpl: (url) => {
       fetchCalled = true;
-      assert(url.includes(UPSTREAM_HOST), 'fetch URL is the known provider host');
-      return mockUpstreamResponse({ data: { AWN_marque: 'RealCar' } });
+      assert(url.startsWith(`https://${UPSTREAM_HOST}${UPSTREAM_PATH}?`), `URL starts with correct host+path: ${url}`);
+      assert(url.includes('immatriculation=AB-123-CD'), `query uses dashed format: ${url}`);
+      assert(!url.includes('token='), 'no token query param');
+      assert(!url.includes('host_name='), 'no host_name query param');
+      assert(!url.includes('AL221FB'), 'no normalized plate without dashes');
+      return mockUpstreamResponse(makeFullVehicleData({ marque: 'RealCar' }));
     }
   });
   const res = await handleRequest(ctx, deps);
-  assert(fetchCalled, 'upstream fetch was called (not short-circuited by mock)');
+  assert(fetchCalled, 'upstream fetch was called');
   assertEq(res.status, 200, 'status');
 });
 
-// 31. synthetic vehicle generator absent
+// 34. synthetic vehicle generator absent
 await test('synthetic vehicle generator absent — error returns no fake marque', async () => {
   const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
@@ -531,7 +634,7 @@ await test('synthetic vehicle generator absent — error returns no fake marque'
   assert(!body.annee, 'no synthetic annee generated');
 });
 
-// 32. synthetic VIN absent
+// 35. synthetic VIN absent
 await test('synthetic VIN absent — error returns no fake VIN', async () => {
   const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
@@ -544,7 +647,7 @@ await test('synthetic VIN absent — error returns no fake VIN', async () => {
   assert(!body.vin, 'no synthetic VIN generated');
 });
 
-// 33. raw provider error not leaked
+// 36. raw provider error not leaked
 await test('raw provider error not leaked', async () => {
   const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
@@ -561,7 +664,7 @@ await test('raw provider error not leaked', async () => {
   assertEq(body.code, 'vehicle_provider_error', 'stable code');
 });
 
-// 34. rate limit retained
+// 37. rate limit retained
 await test('rate limit retained => 429', async () => {
   const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
@@ -572,14 +675,14 @@ await test('rate limit retained => 429', async () => {
   assertEq(res.status, 429, 'status');
 });
 
-// 35. devis.html /api/lookup-vehicle count = 0
+// 38. devis.html /api/lookup-vehicle count = 0
 await test('devis.html /api/lookup-vehicle count = 0', async () => {
   const devisContent = readFileSync(new URL('../devis.html', import.meta.url), 'utf-8');
   const count = (devisContent.match(/\/api\/lookup-vehicle/g) || []).length;
   assertEq(count, 0, 'devis.html must have 0 /api/lookup-vehicle references');
 });
 
-// 36. EDL mission fields not overwritten by lookup
+// 39. EDL mission fields not overwritten by lookup
 await test('EDL mission fields not overwritten by lookup (data precedence)', async () => {
   const edlContent = readFileSync(new URL('../etat-des-lieux.html', import.meta.url), 'utf-8');
   assert(edlContent.includes("!document.getElementById('vMarque').value"), 'vMarque only filled if empty');
@@ -589,45 +692,39 @@ await test('EDL mission fields not overwritten by lookup (data precedence)', asy
   assert(edlContent.includes("!document.getElementById('vVin').value"), 'vVin only filled if empty');
 });
 
-// 37. unexpected URL sentinel — non-provider URL must FAIL the test
+// 40. unexpected URL sentinel — non-provider URL must FAIL the test
 await test('unexpected URL sentinel — non-provider fetch throws', async () => {
   const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
     { headers: { authorization: 'Bearer valid-token' } });
-  // fetchImpl that tries to call a non-provider URL
   const deps = makeDeps({
     createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
     fetchImpl: (url) => {
-      // Simulate an attempt to call an unexpected URL
       if (!url.includes(UPSTREAM_HOST)) {
         throw new Error(`UNEXPECTED FETCH URL: ${url}`);
       }
-      return mockUpstreamResponse({ data: { AWN_marque: 'Test' } });
+      return mockUpstreamResponse(makeFullVehicleData({ marque: 'Test' }));
     }
   });
   const res = await handleRequest(ctx, deps);
-  // If the endpoint only calls the provider URL, this passes
   assertEq(res.status, 200, 'only provider URL was called');
 });
 
-// 38. service-role not required by lookup — static scan
+// 41. service-role not required by lookup — static scan
 await test('service-role not used in lookup-vehicle.js', async () => {
   const code = readFileSync(new URL('../functions/api/lookup-vehicle.js', import.meta.url), 'utf-8');
-  // No SERVICE_ROLE_KEY consumption (only in comment is OK)
   const functionalUses = (code.match(/SUPABASE_SERVICE_ROLE_KEY/g) || []).length;
-  // Should be 0 in functional code (comments don't count as functional)
-  // Check that it's not used in any cc() call or env check
   assert(!code.includes('env.SUPABASE_SERVICE_ROLE_KEY)'), 'no service-role env access in function');
   assert(!code.includes('SUPABASE_SERVICE_ROLE_KEY,'), 'no service-role passed to createClient');
 });
 
-// 39. static scan — no mode=devis functional branch
+// 42. static scan — no mode=devis functional branch
 await test('lookup-vehicle.js has no mode=devis functional branch', async () => {
   const code = readFileSync(new URL('../functions/api/lookup-vehicle.js', import.meta.url), 'utf-8');
   assert(!code.includes("'devis'"), "no 'devis' string in accepted modes");
   assert(!code.includes('"devis"'), 'no "devis" string in accepted modes');
 });
 
-// 40. static scan — no mockSIV or synthetic data
+// 43. static scan — no mockSIV or synthetic data
 await test('lookup-vehicle.js has no mockSIV or synthetic data', async () => {
   const code = readFileSync(new URL('../functions/api/lookup-vehicle.js', import.meta.url), 'utf-8');
   assert(!code.includes('mockSIV'), 'no mockSIV');
@@ -639,15 +736,60 @@ await test('lookup-vehicle.js has no mockSIV or synthetic data', async () => {
   assert(!code.includes('padEnd(9'), 'no synthetic VIN generation');
 });
 
-// 41. admin auth uses is_admin RPC — static scan
+// 44. admin auth uses is_admin RPC — static scan
 await test('lookup-vehicle.js uses is_admin RPC for admin auth', async () => {
   const code = readFileSync(new URL('../functions/api/lookup-vehicle.js', import.meta.url), 'utf-8');
   assert(code.includes("rpc('is_admin')"), 'uses is_admin RPC');
   assert(!code.includes("clients').select('role')"), 'no direct clients.role query');
 });
 
+// 45. Contract remediation: puissanceFisc must NOT use puisFiscReel
+await test('puissance uses fiscal power, not real power', async () => {
+  const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
+    { headers: { authorization: 'Bearer valid-token' } });
+  const deps = makeDeps({
+    createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
+    fetchImpl: () => mockUpstreamResponse(makeFullVehicleData({
+      puisFisc: '7',
+      puisFiscReel: '130'
+    }))
+  });
+  const res = await handleRequest(ctx, deps);
+  const body = await res.json();
+  assertEq(body.puissance, '7', 'puissance is fiscal power (puisFisc), not puisFiscReel');
+});
+
+// 46. Contract remediation: year extraction from date1erCir_us
+await test('annee extracted from date1erCir_us', async () => {
+  const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
+    { headers: { authorization: 'Bearer valid-token' } });
+  const deps = makeDeps({
+    createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
+    fetchImpl: () => mockUpstreamResponse(makeFullVehicleData({
+      date1erCir_us: '2015-09-23'
+    }))
+  });
+  const res = await handleRequest(ctx, deps);
+  const body = await res.json();
+  assertEq(body.annee, '2015', 'annee is first 4 chars of date1erCir_us');
+});
+
+// 47. provider 402 payment required => 502 (logged as AUTH_ERROR)
+await test('provider 402 => 502 with auth error log', async () => {
+  const ctx = makeContext('/api/lookup-vehicle?plaque=AB123CD&mode=admin', {},
+    { headers: { authorization: 'Bearer valid-token' } });
+  const deps = makeDeps({
+    createClientImpl: () => mockSupabaseUser({ user: { id: 'user-1' }, isAdminResult: true }),
+    fetchImpl: () => mockUpstreamResponse({ error: 'payment required' }, 402)
+  });
+  const res = await handleRequest(ctx, deps);
+  assertEq(res.status, 502, 'status');
+  const body = await res.json();
+  assertEq(body.code, 'vehicle_provider_error', 'code');
+});
+
 // ── Report ──
-console.log('\n=== WAVE 2B.3B FINAL LOOKUP VEHICLE GATE TESTS ===\n');
+console.log('\n=== GATE 1J LOOKUP VEHICLE GATE TESTS ===\n');
 _results.forEach(r => {
   console.log(`[${r.status}] ${r.name}${r.error ? ' — ' + r.error : ''}`);
 });
