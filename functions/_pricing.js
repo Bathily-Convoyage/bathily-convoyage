@@ -75,7 +75,7 @@ function haversine(lat1, lon1, lat2, lon2) {
 async function geocodeAddress(address) {
   if (!address) return null;
   try {
-    const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(address)}&limit=1`;
+    const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(address)}&limit=1`;
     const response = await fetch(url, { headers: { Accept: 'application/json' } });
     if (!response.ok) return null;
     const data = await response.json();

@@ -1,6 +1,8 @@
 /**
  * Bathily Convoyage — Sélecteur de langue
  * Utilise Google Translate en arrière-plan, sélecteur custom intégré à la navbar
+ * Desktop: injecté dans .nav-links
+ * Mobile/Tablette: injecté dans .mobile-menu-footer
  */
 (function () {
   const LANGS = [
@@ -53,29 +55,37 @@
     document.head.appendChild(script);
   }
 
-  function buildSwitcher() {
+  function buildSwitcher(variant) {
     const current = getCurrentLang();
     const currentLang = LANGS.find(l => l.code === current) || LANGS[0];
 
-    const style = document.createElement('style');
-    style.textContent = `
-      .lang-switcher { position: relative; display: inline-flex; align-items: center; margin-left: 16px; z-index: 99999; }
-      .lang-btn { display: flex; align-items: center; gap: 5px; background: #0a4d68; border: 1px solid #0a4d68; color: #fff; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; transition: all 0.2s; white-space: nowrap; box-shadow: 0 2px 8px rgba(10,77,104,0.25); }
-      .lang-btn:hover { background: #073d54; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(10,77,104,0.35); }
-      .lang-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); overflow: hidden; z-index: 99999; min-width: 160px; border: 1px solid #e8e1d9; }
-      .lang-dropdown.open { display: block; }
-      .lang-option { display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; font-size: 14px; color: #2d2a24; font-family: inherit; transition: background 0.15s; border: none; background: none; width: 100%; text-align: left; }
-      .lang-option:hover { background: #f5f0ea; }
-      .lang-option.active { background: #e6f0f4; color: #0a4d68; font-weight: 700; }
-      .lang-option .flag { font-size: 18px; }
-      .goog-te-banner-frame, .goog-te-balloon-frame { display: none !important; }
-      body { top: 0 !important; }
-      .skiptranslate { display: none !important; }
-    `;
-    document.head.appendChild(style);
+    // Inject styles only once
+    if (!document.getElementById('lang-switcher-styles')) {
+      const style = document.createElement('style');
+      style.id = 'lang-switcher-styles';
+      style.textContent = `
+        .lang-switcher { position: relative; display: inline-flex; align-items: center; margin-left: 16px; z-index: 99999; }
+        .lang-btn { display: flex; align-items: center; gap: 5px; background: #0a4d68; border: 1px solid #0a4d68; color: #fff; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; transition: all 0.2s; white-space: nowrap; box-shadow: 0 2px 8px rgba(10,77,104,0.25); }
+        .lang-btn:hover { background: #073d54; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(10,77,104,0.35); }
+        .lang-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); overflow: hidden; z-index: 99999; min-width: 160px; border: 1px solid #e8e1d9; }
+        .lang-dropdown.open { display: block; }
+        .lang-option { display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; font-size: 14px; color: #2d2a24; font-family: inherit; transition: background 0.15s; border: none; background: none; width: 100%; text-align: left; }
+        .lang-option:hover { background: #f5f0ea; }
+        .lang-option.active { background: #e6f0f4; color: #0a4d68; font-weight: 700; }
+        .lang-option .flag { font-size: 18px; }
+        .lang-switcher--mobile { margin-left: 0; margin-top: 12px; width: 100%; justify-content: center; }
+        .lang-switcher--mobile .lang-btn { width: 100%; justify-content: center; }
+        .lang-switcher--mobile .lang-dropdown { right: auto; left: 0; width: 100%; }
+        .goog-te-banner-frame, .goog-te-balloon-frame { display: none !important; }
+        body { top: 0 !important; }
+        .skiptranslate { display: none !important; }
+      `;
+      document.head.appendChild(style);
+    }
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'lang-switcher';
+    wrapper.className = 'lang-switcher' + (variant === 'mobile' ? ' lang-switcher--mobile' : '');
+    wrapper.setAttribute('data-lang-variant', variant || 'desktop');
 
     const btn = document.createElement('button');
     btn.className = 'lang-btn';
@@ -103,11 +113,47 @@
     return wrapper;
   }
 
-  function inject() {
+  function injectDesktop() {
     const navLinks = document.querySelector('.nav-links');
-    if (!navLinks) return;
-    const switcher = buildSwitcher();
+    if (!navLinks) return false;
+    // Prevent duplicate desktop injection
+    if (navLinks.querySelector('.lang-switcher[data-lang-variant="desktop"]')) return true;
+    const switcher = buildSwitcher('desktop');
     navLinks.appendChild(switcher);
+    return true;
+  }
+
+  function injectMobile() {
+    const footer = document.querySelector('.mobile-menu-footer');
+    if (!footer) return false;
+    // Prevent duplicate mobile injection
+    if (footer.querySelector('.lang-switcher[data-lang-variant="mobile"]')) return true;
+    const switcher = buildSwitcher('mobile');
+    footer.appendChild(switcher);
+    return true;
+  }
+
+  function inject() {
+    // Inject desktop switcher
+    injectDesktop();
+
+    // Inject mobile switcher — may need to wait for mobile-nav.js
+    if (!injectMobile()) {
+      // Mobile menu panel not yet created — observe DOM for its appearance
+      const observer = new MutationObserver(function (mutations) {
+        for (var i = 0; i < mutations.length; i++) {
+          if (injectMobile()) {
+            observer.disconnect();
+            return;
+          }
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: false });
+      // Safety timeout: stop observing after 10 seconds
+      setTimeout(function () { observer.disconnect(); }, 10000);
+    }
+
+    // Inject Google Translate singleton (only once)
     injectGoogleTranslate();
   }
 

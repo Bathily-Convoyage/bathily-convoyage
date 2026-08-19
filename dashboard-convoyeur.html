@@ -1379,7 +1379,7 @@
           <div class="f-grp"><label>Téléphone</label><input type="tel" id="convProfilTel"></div>
           <div class="f-grp"><label>Zone d'intervention</label><input type="text" id="convProfilZone"></div>
           <div class="f-grp"><label>Niveau</label><select id="convProfilNiveau"><option value="Standard">Standard</option><option value="Senior">Senior</option></select></div>
-          <div class="f-grp" style="grid-column:span 2; position:relative;"><label>Adresse <span style="color:#e74c3c">*</span></label><input type="text" id="convProfilAdresse" placeholder="N° et rue" required oninput="debounceConvGeocode(this, 'suggConvAdresse')"><div class="suggest-box" id="suggConvAdresse"></div></div>
+          <div class="f-grp" style="grid-column:span 2; position:relative;"><label>Adresse <span style="color:#e74c3c">*</span></label><input type="text" id="convProfilAdresse" placeholder="N° et rue" required><div class="suggest-box" id="suggConvAdresse"></div></div>
           <div class="f-grp"><label>Code Postal <span style="color:#e74c3c">*</span></label><input type="text" id="convProfilCp" required></div>
           <div class="f-grp"><label>Ville <span style="color:#e74c3c">*</span></label><input type="text" id="convProfilVille" required></div>
           <div class="f-grp" style="grid-column:span 2;">
@@ -2191,41 +2191,7 @@
       return data?.signedUrl || null;
     }
 
-    let _convGeocodeTimer;
-    async function debounceConvGeocode(input, boxId) {
-      const box = document.getElementById(boxId);
-      if (!box) return;
-      clearTimeout(_convGeocodeTimer);
-      const q = input.value.trim();
-      if (q.length < 3) { box.style.display = 'none'; return; }
-      _convGeocodeTimer = setTimeout(async () => {
-        try {
-          const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(q)}&limit=5`);
-          const json = await res.json();
-          const features = json.features || [];
-          if (features.length === 0) { box.style.display = 'none'; return; }
-          box.innerHTML = '';
-          features.forEach(f => {
-            const label = f.properties.label;
-            const postcode = f.properties.postcode || '';
-            const city = f.properties.city || '';
-            const div = document.createElement('div');
-            div.className = 'suggest-item';
-            div.textContent = label;
-            div.addEventListener('click', () => {
-              input.value = label;
-              const cpEl = document.getElementById('convProfilCp');
-              if (cpEl) cpEl.value = postcode;
-              const villeEl = document.getElementById('convProfilVille');
-              if (villeEl) villeEl.value = city;
-              box.style.display = 'none';
-            });
-            box.appendChild(div);
-          });
-          box.style.display = 'block';
-        } catch (e) { box.style.display = 'none'; }
-      }, 300);
-    }
+    // debounceConvGeocode removed — uses js/address-autocomplete.js
 
     async function updateConvoyeurProfile() {
       if (!_convoyeurUser) return Swal.fire('Action impossible', 'Vous devez être connecté.', 'warning');
@@ -2613,6 +2579,14 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
+</script>
+<script src="js/address-autocomplete.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.AddressAutocomplete) {
+      AddressAutocomplete.setupAddressWithCity('convProfilAdresse', 'suggConvAdresse', 'convProfilCp', 'convProfilVille');
+    }
+  });
 </script>
 </body>
 </html>
