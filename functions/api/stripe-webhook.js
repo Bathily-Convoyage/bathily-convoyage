@@ -59,11 +59,14 @@ export async function onRequest(context) {
         return new Response(`Mission ${reference} non payable (statut ${mission.status}).`, { status: 400 });
       }
 
-      const updateFields = { paiement_statut: 'paid' };
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('complete_stripe_checkout_payment', {
+        p_mission_id: missionId,
+        p_session_id: session.id
+      });
 
-      const { error: updateError } = await supabase.from('missions').update(updateFields).eq('id', missionId);
-      if (updateError) {
-        return new Response(`Erreur BDD: ${updateError.message}`, { status: 500 });
+      if (rpcError) {
+        console.error("Erreur paiement RPC:", rpcError.message);
+        return new Response(`Erreur BDD: ${rpcError.message}`, { status: 500 });
       }
 
       let tempPassword = null;

@@ -101,8 +101,22 @@ export async function onRequest(context) {
       metadata: { mission_id: missionId, reference: mission.reference, client_id: user.id }
     });
 
-    const { error: updateError } = await supabase.from('missions').update({ stripe_session_id: session.id }).eq('id', missionId);
-    if (updateError) console.error("Erreur enregistrement session Stripe:", updateError.message);
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('record_stripe_checkout_session', {
+      p_mission_id: missionId,
+      p_session_id: session.id
+    });
+
+    if (rpcError) {
+      console.error("Erreur liaison session Stripe (RPC):", rpcError.message);
+      // The Checkout Session was created in Stripe but DB link failed.
+      // Attempt to expire the orphan session so it cannot be used.
+      try {
+        await stripe.checkout.sessions.expire(session.id);
+      } catch (expireErr) {
+        console.error("Echec expiration session orpheline:", expireErr.message);
+      }
+      return jsonResponse({ error: 'Erreur lors de la liaison de la session de paiement.' }, 500, getCorsHeaders(request));
+    }
 
     return jsonResponse({ url: session.url }, 200, getCorsHeaders(request));
 
