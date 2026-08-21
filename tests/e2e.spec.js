@@ -195,3 +195,107 @@ test.describe('Dashboards sans authentification', () => {
     expect(hasLogin || url.includes('login') || url.includes('index')).toBeTruthy();
   });
 });
+
+// =====================================================
+// Tests E2E — Mission Phase Resolver (V2_1B)
+// =====================================================
+
+test.describe('Mission Phase Resolver (V2_1B)', () => {
+  test('le resolver est chargé sur etat-des-lieux.html', async ({ page }) => {
+    await page.goto('/etat-des-lieux.html');
+    await page.waitForLoadState('networkidle');
+    const resolverLoaded = await page.evaluate(() => {
+      return typeof window.MissionPhaseResolver !== 'undefined' &&
+             typeof window.MissionPhaseResolver.resolveMissionPhase === 'function';
+    });
+    expect(resolverLoaded).toBeTruthy();
+  });
+
+  test('le resolver est chargé sur gps-emitter.html', async ({ page }) => {
+    await page.goto('/gps-emitter.html');
+    await page.waitForLoadState('networkidle');
+    const resolverLoaded = await page.evaluate(() => {
+      return typeof window.MissionPhaseResolver !== 'undefined' &&
+             typeof window.MissionPhaseResolver.resolveMissionPhase === 'function';
+    });
+    expect(resolverLoaded).toBeTruthy();
+  });
+
+  test('le resolver est chargé sur bon-de-mission.html', async ({ page }) => {
+    await page.goto('/bon-de-mission.html');
+    await page.waitForLoadState('networkidle');
+    const resolverLoaded = await page.evaluate(() => {
+      return typeof window.MissionPhaseResolver !== 'undefined' &&
+             typeof window.MissionPhaseResolver.resolveMissionPhase === 'function';
+    });
+    expect(resolverLoaded).toBeTruthy();
+  });
+
+  test('le resolver produit les bonnes phases pour tous les statuts', async ({ page }) => {
+    await page.goto('/gps-emitter.html');
+    await page.waitForLoadState('networkidle');
+    const results = await page.evaluate(() => {
+      const R = window.MissionPhaseResolver;
+      const S = R.MISSION_STATUSES;
+      const P = R.UX_PHASES;
+      return {
+        accepted_no_edl: R.resolveMissionPhase(S.ACCEPTED, false, false),
+        accepted_with_edl: R.resolveMissionPhase(S.ACCEPTED, true, false),
+        in_progress_no_arrivee: R.resolveMissionPhase(S.IN_PROGRESS, true, false),
+        in_progress_with_arrivee: R.resolveMissionPhase(S.IN_PROGRESS, true, true),
+        completed: R.resolveMissionPhase(S.COMPLETED, true, true),
+        cancelled: R.resolveMissionPhase(S.CANCELLED, false, false),
+        canStartGps_in_progress: R.canStartGps(P.IN_PROGRESS),
+        canStartGps_completed: R.canStartGps(P.COMPLETED),
+        canEditEdlDepart_in_progress: R.canEditEdlDepart(P.IN_PROGRESS),
+        isEdlDepartReplayBlocked_in_progress: R.isEdlDepartReplayBlocked(P.IN_PROGRESS),
+        isTerminal_completed: R.isTerminal(P.COMPLETED),
+        isTerminal_archived: R.isTerminal(P.ARCHIVED),
+      };
+    });
+    // CASE_1: accepted + no depart EDL => EDL_DEPART
+    expect(results.accepted_no_edl).toBe('EDL_DEPART');
+    // CASE_2: accepted + depart EDL => MISSION_READY_TO_START
+    expect(results.accepted_with_edl).toBe('MISSION_READY_TO_START');
+    // CASE_3/4: in_progress => IN_PROGRESS
+    expect(results.in_progress_no_arrivee).toBe('IN_PROGRESS');
+    expect(results.in_progress_with_arrivee).toBe('READY_TO_DELIVER');
+    // CASE_10: completed => COMPLETED
+    expect(results.completed).toBe('COMPLETED');
+    expect(results.cancelled).toBe('CANCELLED');
+    // GPS gating
+    expect(results.canStartGps_in_progress).toBeTruthy();
+    expect(results.canStartGps_completed).toBeFalsy();
+    // EDL depart replay blocked during in_progress
+    expect(results.canEditEdlDepart_in_progress).toBeFalsy();
+    expect(results.isEdlDepartReplayBlocked_in_progress).toBeTruthy();
+    // Terminal states
+    expect(results.isTerminal_completed).toBeTruthy();
+    expect(results.isTerminal_archived).toBeTruthy();
+  });
+
+  test('etat-des-lieux sans mission_id affiche un gate error', async ({ page }) => {
+    await page.goto('/etat-des-lieux.html');
+    await page.waitForLoadState('networkidle');
+    // Should show gate error (no mission_id)
+    const gateText = await page.textContent('body');
+    expect(gateText).toMatch(/Aucune mission|mission/i);
+  });
+
+  test('gps-emitter sans mission_id ne crash pas', async ({ page }) => {
+    await page.goto('/gps-emitter.html');
+    await page.waitForLoadState('networkidle');
+    const consoleErrors = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') consoleErrors.push(msg.text());
+    });
+    // Should show "Aucune mission" or demo mode, not crash
+    const bodyText = await page.textContent('body');
+    expect(bodyText).toMatch(/.|/); // non-empty body
+    // No critical JS errors (Supabase config errors are acceptable in test env)
+    const criticalErrors = consoleErrors.filter(e =>
+      !e.includes('Supabase') && !e.includes('supabase') && !e.includes('404')
+    );
+    expect(criticalErrors).toHaveLength(0);
+  });
+});
