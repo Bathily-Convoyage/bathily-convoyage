@@ -23,6 +23,7 @@
   <script src="/supabase-config.js"></script>
   <script>/* firebase-config.js charge dynamiquement (optionnel) */</script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/js/mission-phase-resolver.js"></script>
   <style>
     * {
       margin: 0;
@@ -534,7 +535,7 @@
       <div class="card">
         <div class="card-title"><i class="fas fa-chart-line"></i> Statistiques</div>
         <div class="stats-row">
-          <div class="stat-item"><div class="num" id="statUpdates">0</div><div class="lbl">Envois</div></div>
+          <div class="stat-item"><div class="num" id="statUpdates">0</div><div class="lbl">Points enregistrés</div></div>
           <div class="stat-item"><div class="num" id="statDuration">0s</div><div class="lbl">Durée</div></div>
           <div class="stat-item"><div class="num" id="statSpeed">—</div><div class="lbl">Vitesse</div></div>
         </div>
@@ -576,7 +577,8 @@
     let routeLine = null;
     let watchId = null;
     let isRunning = false;
-    let updateCount = 0;
+    let updateCount = 0;          // watchPosition callbacks (technical)
+    let persistedCount = 0;       // V2_1B: successful RPC record_gps_position count (displayed)
     let startTime = null;
     let timerInterval = null;
     let _missionRef = null;
@@ -586,6 +588,15 @@
 
     // Supabase GPS
     let _gpsAuthorized = false;
+
+    // V2_1B: Wake Lock
+    let _wakeLock = null;
+
+    // V2_1B: Final stats (preserved after stop)
+    let _finalDurationText = null;
+    let _finalPersistedCount = 0;
+    let _lastPositionTime = null;
+    let _missionPhase = 'UNKNOWN';
 
     // ============================================================
     // PARTIE 2 : INITIALISATION
@@ -635,27 +646,70 @@
       document.getElementById('missionRoute').textContent = route || '—';
       document.getElementById('missionId').textContent = _missionId;
 
-      // Charger le statut de la mission depuis Supabase
-      loadMissionStatus();
-
       // Initialiser la carte
       initMap();
 
-      // Vérifier si une session GPS est déjà en cours (reprise)
-      const saved = localStorage.getItem('bathily_gps_session');
-      if (saved) {
-        try {
-          const data = JSON.parse(saved);
-          if (data.missionId === _missionId && data.isRunning) {
-            // Reprise automatique
-            addLog('🔄 Reprise de la session GPS précédente...', 'info');
-            startGPS();
-          }
-        } catch (e) {}
-      }
+      // V2_1B: Server-state-based resume.
+      // localStorage is only a HINT. The server mission status is the AUTHORITY.
+      // We must check the server status before auto-resuming GPS.
+      checkServerStateAndResume();
+
+      // V2_1B: visibilitychange — resume tracking when tab becomes visible again
+      document.addEventListener('visibilitychange', handleVisibilityChange);
 
       addLog('✅ Émetteur GPS prêt.', 'success');
     });
+
+    // ============================================================
+    // V2_1B: SERVER-STATE-BASED RESUME
+    // ============================================================
+    async function checkServerStateAndResume() {
+      // Always load mission status from server
+      await loadMissionStatus();
+
+      const saved = localStorage.getItem('bathily_gps_session');
+      if (!saved) return;
+
+      try {
+        const data = JSON.parse(saved);
+        if (data.missionId !== _missionId || !data.isRunning) return;
+
+        // localStorage says GPS was active. But server is the authority.
+        // If mission is not in_progress, do NOT resume GPS.
+        if (_missionPhase !== 'IN_PROGRESS') {
+          addLog('⚠️ Session GPS locale détectée mais la mission n\'est plus en cours côté serveur (' + _missionPhase + '). Reprise annulée.', 'warning');
+          localStorage.removeItem('bathily_gps_session');
+          // Show mission status screen instead of GPS
+          showMissionNotInProgressNotice();
+          return;
+        }
+
+        // Server confirms in_progress → safe to resume
+        addLog('🔄 Reprise de la session GPS (statut serveur : en cours)...', 'info');
+        // Restore persisted count from session if available
+        if (typeof data.persistedCount === 'number') {
+          persistedCount = data.persistedCount;
+          document.getElementById('statUpdates').textContent = persistedCount;
+        }
+        if (typeof data.startTime === 'number') {
+          startTime = data.startTime;
+        }
+        startGPS();
+      } catch (e) {
+        console.warn('Session resume check failed:', e);
+      }
+    }
+
+    function showMissionNotInProgressNotice() {
+      var alertEl = document.getElementById('alertContainer');
+      if (alertEl) {
+        alertEl.innerHTML = '<div class="alert alert-warn"><i class="fas fa-info-circle"></i><p>La mission n\'est plus en cours. Le partage GPS n\'est pas disponible.</p></div>';
+      }
+      var startBtn = document.getElementById('startBtn');
+      if (startBtn) { startBtn.disabled = true; }
+      var stopBtn = document.getElementById('stopBtn');
+      if (stopBtn) { stopBtn.disabled = true; }
+    }
 
     // ============================================================
     // PARTIE 3 : CARTE
@@ -758,6 +812,12 @@
         return;
       }
 
+      // V2_1B: Request Wake Lock to prevent screen from turning off during GPS tracking.
+      // This is defensive — if the API is not supported, we simply continue without it.
+      // Wake Lock does NOT guarantee background GPS when the tab is killed or Android
+      // aggressively background-kills the app. It only keeps the screen awake.
+      await requestWakeLock();
+
       // Demander la permission
       addLog('📡 Demande d\'accès à la géolocalisation...', 'info');
 
@@ -780,7 +840,7 @@
 
       // Mettre à jour l'état
       isRunning = true;
-      startTime = Date.now();
+      if (!startTime) startTime = Date.now();
       updateCount = 0;
 
       // UI
@@ -802,15 +862,82 @@
         }
       }, 1000);
 
-      // Sauvegarder la session
+      // Sauvegarder la session (with persistedCount for resume)
       localStorage.setItem('bathily_gps_session', JSON.stringify({
         missionId: _missionId,
         isRunning: true,
-        startTime: startTime
+        startTime: startTime,
+        persistedCount: persistedCount
       }));
 
       addLog('✅ Partage GPS démarré. En attente de la première position...', 'success');
       showAlert('success', 'Partage GPS démarré. La position est envoyée en temps réel.');
+    }
+
+    // ============================================================
+    // V2_1B: WAKE LOCK
+    // ============================================================
+    async function requestWakeLock() {
+      try {
+        if (!('wakeLock' in navigator)) {
+          // Wake Lock API not supported — continue without it. No crash.
+          addLog('ℹ️ Wake Lock non supporté par ce navigateur. L\'écran peut s\'éteindre.', 'info');
+          return;
+        }
+        _wakeLock = await navigator.wakeLock.request('screen');
+        addLog('🔒 Wake Lock activé (écran maintenu allumé).', 'success');
+
+        // Release handler — wake lock can be released by the system
+        if (_wakeLock && _wakeLock.addEventListener) {
+          _wakeLock.addEventListener('release', function () {
+            addLog('🔓 Wake Lock relâché par le système.', 'info');
+            _wakeLock = null;
+          });
+        }
+      } catch (err) {
+        // Wake Lock request failed (e.g. permission denied, or document not focused)
+        // This is NOT fatal — GPS tracking continues without wake lock.
+        addLog('ℹ️ Wake Lock indisponible : ' + (err.message || err.name) + '. GPS continue.', 'info');
+        _wakeLock = null;
+      }
+    }
+
+    async function releaseWakeLock() {
+      try {
+        if (_wakeLock) {
+          await _wakeLock.release();
+          _wakeLock = null;
+        }
+      } catch (e) {
+        // Ignore release errors
+      }
+    }
+
+    // ============================================================
+    // V2_1B: VISIBILITY CHANGE — resume tracking when tab visible again
+    // ============================================================
+    async function handleVisibilityChange() {
+      if (document.visibilityState !== 'visible') return;
+
+      // Tab became visible again (e.g. user switched back, screen unlocked)
+      if (!isRunning) return;
+
+      // Refetch server status to confirm mission is still in_progress
+      await loadMissionStatus();
+
+      if (_missionPhase !== 'IN_PROGRESS') {
+        addLog('⚠️ Mission n\'est plus en cours côté serveur. Arrêt du tracking.', 'warning');
+        stopGPS();
+        showMissionNotInProgressNotice();
+        return;
+      }
+
+      // Re-acquire wake lock if it was released during hidden state
+      if (!_wakeLock) {
+        await requestWakeLock();
+      }
+
+      addLog('🔄 Onglet visible — tracking repris.', 'info');
     }
 
     function handlePosition(position) {
@@ -825,14 +952,16 @@
       document.getElementById('accuracyDisplay').textContent = `Précision : ±${Math.round(accuracy)} m`;
       document.getElementById('statSpeed').textContent = speedKmh > 0 ? `${speedKmh} km/h` : '—';
 
+      // V2_1B: Track last position time for stop display
+      _lastPositionTime = new Date().toLocaleTimeString('fr-FR');
+
       // Carte
       updateMap(lat, lng);
 
-      // Incrémenter le compteur
+      // Incrémenter le compteur technique (watchPosition callbacks)
       updateCount++;
-      document.getElementById('statUpdates').textContent = updateCount;
 
-      // Envoyer vers Supabase
+      // V2_1B: Envoyer vers Supabase et incrémenter persistedCount ONLY on success
       if (_gpsAuthorized && _supabaseClient) {
         try {
           _supabaseClient.rpc('record_gps_position', {
@@ -842,8 +971,15 @@
             p_accuracy: accuracy,
             p_speed: speed
           }).then(({ error }) => {
-            if (error) {
-              addLog('⚠️ Erreur envoi GPS : ' + error.message, 'error');
+            // V2_1B: Strict success check — only increment on confirmed null error.
+            // Using explicit `error === null` instead of truthy `if (error)` to avoid
+            // any ambiguity with undefined values from unexpected client behavior.
+            if (error !== null && error !== undefined) {
+              addLog('⚠️ Erreur envoi GPS : ' + (error.message || error), 'error');
+            } else {
+              // V2_1B: Only increment displayed counter on successful persistence
+              persistedCount++;
+              document.getElementById('statUpdates').textContent = persistedCount;
             }
           });
         } catch (err) {
@@ -853,7 +989,7 @@
 
       // Log toutes les 10 mises à jour
       if (updateCount % 10 === 0) {
-        addLog(`📍 Position mise à jour (${updateCount} envois) : ${lat.toFixed(4)}, ${lng.toFixed(4)}`, 'info');
+        addLog(`📍 Position mise à jour (${persistedCount} points enregistrés) : ${lat.toFixed(4)}, ${lng.toFixed(4)}`, 'info');
       }
 
       // Centrer la carte sur la position pour la première mise à jour
@@ -893,13 +1029,28 @@
         timerInterval = null;
       }
 
+      // V2_1B: Preserve final duration — do NOT reset to "0s".
+      // Freeze the duration at the value it had when tracking stopped.
+      var durationEl = document.getElementById('statDuration');
+      if (durationEl) {
+        _finalDurationText = durationEl.textContent;
+        // Keep the displayed value as-is (frozen)
+      }
+      _finalPersistedCount = persistedCount;
+
+      // V2_1B: Clear current speed — after stop, there is no "current speed".
+      // The last raw speed is preserved in the log but not displayed as current.
+      document.getElementById('statSpeed').textContent = '—';
+
       // UI
       document.getElementById('startBtn').disabled = false;
       document.getElementById('startBtn').innerHTML = '<i class="fas fa-play"></i> Démarrer le partage';
       document.getElementById('stopBtn').disabled = true;
       document.getElementById('gpsStatus').className = 'status-badge inactive';
       document.getElementById('gpsStatus').innerHTML = '<span class="status-dot inactive"></span> Arrêté';
-      document.getElementById('statDuration').textContent = '0s';
+
+      // V2_1B: Release Wake Lock
+      releaseWakeLock();
 
       // Supprimer la session sauvegardée
       localStorage.removeItem('bathily_gps_session');
@@ -907,8 +1058,8 @@
       // Marquer l'arrêt côté client
       _gpsAuthorized = false;
 
-      addLog('⏹️ Partage GPS arrêté.', 'info');
-      showAlert('info', 'Le partage GPS a été arrêté.');
+      addLog('⏹️ Partage GPS arrêté. ' + _finalPersistedCount + ' points enregistrés. Durée : ' + (_finalDurationText || '—') + '.', 'info');
+      showAlert('info', 'Le partage GPS a été arrêté. ' + _finalPersistedCount + ' points enregistrés.');
     }
 
     // ============================================================
@@ -945,8 +1096,11 @@
     async function loadMissionStatus() {
       if (!_missionId) return;
       try {
-        const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-        const { data, error } = await client
+        if (!_supabaseClient) {
+          if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return;
+          _supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        }
+        const { data, error } = await _supabaseClient
           .from('missions')
           .select('status, paiement_statut')
           .eq('id', _missionId)
@@ -966,6 +1120,17 @@
           'cancelled': 'Annulée'
         };
         document.getElementById('missionStatus').textContent = `${statusMap[status] || status}`;
+
+        // V2_1B: Derive canonical phase from server status.
+        // For GPS, we only need to know if the mission is in_progress.
+        // EDL checks are not needed here — GPS is only allowed during in_progress.
+        if (window.MissionPhaseResolver) {
+          // GPS only cares about in_progress vs not. EDL existence doesn't affect GPS gating.
+          _missionPhase = window.MissionPhaseResolver.resolveMissionPhase(status, false, false);
+          // Override: for GPS purposes, any status that resolves to IN_PROGRESS is valid.
+          // The actual EDL checks are done by the backend authorize_gps_session RPC.
+        }
+
         if (data.paiement_statut === 'pending') {
           addLog('⚠️ Attention : la mission n\'est pas encore payée.', 'warning');
         }
@@ -983,7 +1148,13 @@
         if (watchId) {
           navigator.geolocation.clearWatch(watchId);
         }
-        localStorage.removeItem('bathily_gps_session');
+        // V2_1B: Release wake lock on unload
+        releaseWakeLock();
+        // V2_1B: Keep session in localStorage for potential resume on reload.
+        // The session is only a HINT — server status will be checked on reload.
+        // Previously this removed the session, preventing resume. Now we keep it
+        // so that checkServerStateAndResume() can restore tracking if server
+        // confirms the mission is still in_progress.
       }
     });
 

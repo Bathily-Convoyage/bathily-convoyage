@@ -20,6 +20,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/js/mission-phase-resolver.js"></script>
   <style>
     /* ========== STYLES (inchangés, identiques à l'original) ========== */
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -609,7 +610,29 @@
     }
 
     function goToEdl() {
-      window.location.href = `etat-des-lieux.html?mission_id=${_missionId || ''}&type=depart`;
+      // V2_1B: Route to the correct EDL based on the canonical phase.
+      // If EDL départ already exists, do NOT allow replay — route to EDL arrivée
+      // if mission is in_progress, or stay on bon de mission if ready to start.
+      var phase = _missionPhase || 'UNKNOWN';
+      if (phase === 'EDL_DEPART') {
+        window.location.href = `etat-des-lieux.html?mission_id=${_missionId || ''}&type=depart`;
+      } else if (phase === 'IN_PROGRESS' || phase === 'READY_TO_DELIVER') {
+        // EDL départ already done. If EDL arrivée not done yet, route to arrivée.
+        if (phase === 'IN_PROGRESS') {
+          window.location.href = `etat-des-lieux.html?mission_id=${_missionId || ''}&type=arrivee`;
+        } else {
+          // Mission not started yet — show info that EDL départ is done
+          Swal.fire({
+            title: 'EDL départ déjà validé',
+            text: 'L\'état des lieux de départ a déjà été validé. Vous pouvez désormais démarrer la mission.',
+            icon: 'info',
+            confirmButtonColor: 'var(--bordeaux)'
+          });
+        }
+      } else {
+        // Default to départ (the etat-des-lieux page will also gate server-side)
+        window.location.href = `etat-des-lieux.html?mission_id=${_missionId || ''}&type=depart`;
+      }
     }
 
     // ========== CURSOR ==========
@@ -639,6 +662,7 @@
     let _route = '… → …';
     let _missionStatus = 'assigned';
     let _missionData = null;
+    let _missionPhase = 'UNKNOWN'; // V2_1B: canonical phase from server state
 
     // ========== LOAD FROM SUPABASE ==========
     document.addEventListener('DOMContentLoaded', async () => {
@@ -741,6 +765,28 @@
       _route = (m.depart || '…') + ' → ' + (m.arrivee || '…');
       _missionStatus = m.status || 'assigned';
 
+      // V2_1B: Check existing EDLs and derive canonical phase from server state.
+      // The phase determines which actions are available on this screen.
+      let _edlDepartExists = false;
+      let _edlArriveeExists = false;
+      try {
+        const { data: existingEdls } = await client
+          .from('edls')
+          .select('id, type')
+          .eq('mission_id', missionId);
+        if (existingEdls && existingEdls.length > 0) {
+          _edlDepartExists = existingEdls.some(function (e) { return e.type === 'depart'; });
+          _edlArriveeExists = existingEdls.some(function (e) { return e.type === 'arrivee'; });
+        }
+      } catch (edlErr) {
+        console.warn('EDL existence check failed:', edlErr);
+      }
+      if (window.MissionPhaseResolver) {
+        _missionPhase = window.MissionPhaseResolver.resolveMissionPhase(
+          _missionStatus, _edlDepartExists, _edlArriveeExists
+        );
+      }
+
       // ---- Remplir les données ----
       // Topbar
       document.getElementById('topRef').textContent = `${m.reference || '…'} · ${m.depart || '…'} → ${m.arrivee || '…'}`;
@@ -822,9 +868,27 @@
       if (sm) {
         statusEl.className = `sb-status ${sm.cls}`;
         statusEl.innerHTML = `<span class="ss-dot"></span> ${sm.label}`;
-        const hideStart = ['in_progress', 'delivered', 'completed'].includes(_missionStatus);
-        document.getElementById('startBtn').style.display = hideStart ? 'none' : '';
-        document.getElementById('startMissionBtn').style.display = hideStart ? 'none' : '';
+        // V2_1B: Use canonical phase to determine which actions to show.
+        // Start button only visible in MISSION_READY_TO_START phase.
+        // EDL button label adapts to phase.
+        var resolver = window.MissionPhaseResolver;
+        var showStart = resolver && resolver.canStartMission(_missionPhase);
+        document.getElementById('startBtn').style.display = showStart ? '' : 'none';
+        document.getElementById('startMissionBtn').style.display = showStart ? '' : 'none';
+
+        // V2_1B: Adapt EDL button label based on phase
+        var edlBtn = document.querySelector('.tb-btn[onclick="goToEdl()"]');
+        if (edlBtn) {
+          if (_missionPhase === 'IN_PROGRESS') {
+            edlBtn.innerHTML = '<i class="fas fa-clipboard-list"></i> EDL Arrivée';
+          } else if (_missionPhase === 'EDL_DEPART') {
+            edlBtn.innerHTML = '<i class="fas fa-clipboard-list"></i> EDL Départ';
+          } else if (_missionPhase === 'MISSION_READY_TO_START') {
+            edlBtn.innerHTML = '<i class="fas fa-check-circle"></i> EDL Départ ✓';
+          } else if (resolver && resolver.isTerminal(_missionPhase)) {
+            edlBtn.style.display = 'none';
+          }
+        }
       }
 
       // Si paiement non payé, on bloque le démarrage (le bouton sera désactivé via la logique)
@@ -904,6 +968,20 @@
       if(!requiredDone){
         Swal.fire('Checklist incomplète', 'Veuillez compléter les 7 étapes obligatoires avant de démarrer.', 'warning');
         document.getElementById('checklist').scrollIntoView({behavior:'smooth',block:'center'});
+        return;
+      }
+
+      // V2_1B: Check canonical phase — mission can only be started from MISSION_READY_TO_START
+      // (status=accepted AND EDL départ exists). The backend will also guard this.
+      if (window.MissionPhaseResolver && !window.MissionPhaseResolver.canStartMission(_missionPhase)) {
+        Swal.fire({
+          title: 'Démarrage non disponible',
+          html: _missionPhase === 'EDL_DEPART'
+            ? 'L\'état des lieux de départ doit être validé avant de démarrer la mission.'
+            : 'Le démarrage n\'est pas disponible pour cette mission dans son état actuel.',
+          icon: 'warning',
+          confirmButtonColor: 'var(--bordeaux)'
+        });
         return;
       }
 

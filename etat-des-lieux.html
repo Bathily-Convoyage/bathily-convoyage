@@ -334,6 +334,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/js/mission-phase-resolver.js"></script>
 </head>
 <body>
 
@@ -693,6 +694,7 @@ const STATE = {
 // ========== DATA_READY GATE (WAVE 2B.3A) ==========
 let _edlReady = false;
 let _edlUserId = null;
+let _edlMissionPhase = 'UNKNOWN'; // V2_1B: canonical phase from server state
 
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1478,7 +1480,120 @@ async function initSupabaseEdl() {
     updRecap();
 
     // =========================================================
-    // DRAFT LOAD (WAVE 2B.3A — after auth + mission load)
+    // PHASE GATING (V2_1B — server state is source of truth)
+    // Check existing EDLs and derive canonical phase before allowing edit.
+    // A historical URL like ?type=depart must NEVER override the server-derived phase.
+    // =========================================================
+    let _edlDepartExists = false;
+    let _edlArriveeExists = false;
+    try {
+      const { data: existingEdls } = await client
+        .from('edls')
+        .select('id, type')
+        .eq('mission_id', missionId);
+      if (existingEdls && existingEdls.length > 0) {
+        _edlDepartExists = existingEdls.some(function (e) { return e.type === 'depart'; });
+        _edlArriveeExists = existingEdls.some(function (e) { return e.type === 'arrivee'; });
+      }
+    } catch (edlErr) {
+      // If we can't check EDLs, fail-closed for depart (don't allow replay risk)
+      // but continue for arrivee since the backend will also guard.
+      console.warn('EDL existence check failed:', edlErr);
+    }
+
+    var _missionPhase = 'UNKNOWN';
+    if (window.MissionPhaseResolver) {
+      _missionPhase = window.MissionPhaseResolver.resolveMissionPhase(
+        mission.status, _edlDepartExists, _edlArriveeExists
+      );
+    }
+
+    // Determine the EDL type the convoyeur is trying to do
+    var _requestedType = (typeParam === 'arrivee') ? 'arrivee' : 'depart';
+    var _resolver = window.MissionPhaseResolver;
+
+    if (_requestedType === 'depart') {
+      // EDL départ can only be created in EDL_DEPART phase (status=accepted, no depart EDL)
+      if (_resolver && !_resolver.canEditEdlDepart(_missionPhase)) {
+        // Depart replay is forbidden. Redirect to the appropriate screen.
+        if (_missionPhase === 'IN_PROGRESS' || _missionPhase === 'READY_TO_DELIVER') {
+          // Mission is in progress → redirect to GPS emitter / mission tracking
+          var gpsUrl = 'gps-emitter.html?id=' + encodeURIComponent(missionId) +
+            '&ref=' + encodeURIComponent(mission.reference || '') +
+            '&route=' + encodeURIComponent((mission.depart || '') + ' → ' + (mission.arrivee || '')) +
+            '&vehicle=' + encodeURIComponent(mission.vehicule || '');
+          showGateError(
+            'EDL départ déjà validé',
+            'L\'état des lieux de départ a déjà été validé pour cette mission. La mission est en cours.',
+            gpsUrl,
+            '<i class="fas fa-satellite"></i> Suivre la mission'
+          );
+        } else if (_missionPhase === 'MISSION_READY_TO_START') {
+          // EDL départ done but mission not started yet → redirect to bon de mission
+          showGateError(
+            'EDL départ déjà validé',
+            'L\'état des lieux de départ a déjà été validé. Vous pouvez désormais démarrer la mission.',
+            'bon-de-mission.html?id=' + encodeURIComponent(missionId),
+            '<i class="fas fa-play"></i> Bon de mission'
+          );
+        } else if (_resolver && _resolver.isTerminal(_missionPhase)) {
+          showGateError(
+            'Mission terminée',
+            'Cette mission est terminée. Aucun nouvel état des lieux de départ n\'est possible.',
+            'dashboard-convoyeur.html',
+            'Espace convoyeur'
+          );
+        } else {
+          showGateError(
+            'Action non disponible',
+            'L\'état des lieux de départ n\'est pas disponible pour cette mission dans son état actuel.',
+            'dashboard-convoyeur.html',
+            'Espace convoyeur'
+          );
+        }
+        return;
+      }
+    } else if (_requestedType === 'arrivee') {
+      // EDL arrivée can only be created during IN_PROGRESS (mission active, no arrivée EDL yet)
+      if (_resolver && !_resolver.canEditEdlArrivee(_missionPhase)) {
+        if (_missionPhase === 'EDL_DEPART' || _missionPhase === 'MISSION_READY_TO_START') {
+          showGateError(
+            'Mission non démarrée',
+            'L\'état des lieux d\'arrivée n\'est disponible qu\'une fois la mission démarrée.',
+            'bon-de-mission.html?id=' + encodeURIComponent(missionId),
+            '<i class="fas fa-play"></i> Bon de mission'
+          );
+        } else if (_missionPhase === 'READY_TO_DELIVER') {
+          showGateError(
+            'EDL arrivée déjà validé',
+            'L\'état des lieux d\'arrivée a déjà été validé pour cette mission.',
+            'dashboard-convoyeur.html',
+            'Espace convoyeur'
+          );
+        } else if (_resolver && _resolver.isTerminal(_missionPhase)) {
+          showGateError(
+            'Mission terminée',
+            'Cette mission est terminée. Aucun nouvel état des lieux d\'arrivée n\'est possible.',
+            'dashboard-convoyeur.html',
+            'Espace convoyeur'
+          );
+        } else {
+          showGateError(
+            'Action non disponible',
+            'L\'état des lieux d\'arrivée n\'est pas disponible pour cette mission dans son état actuel.',
+            'dashboard-convoyeur.html',
+            'Espace convoyeur'
+          );
+        }
+        return;
+      }
+    }
+
+    // Store phase for downstream use
+    _edlMissionPhase = _missionPhase;
+
+    // =========================================================
+    // DRAFT LOAD (WAVE 2B.3A — after auth + mission load + phase gate)
     // =========================================================
     _edlUserId = _sessionUserId;
     loadDraft();
