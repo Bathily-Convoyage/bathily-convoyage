@@ -981,9 +981,9 @@ function handlePhotoUpload(div, file, type, idx) {
     check.className = 'ps-check';
     check.innerHTML = '<i class="fas fa-check"></i>';
     div.appendChild(check);
-    if (type === 'ext') { STATE.photoExt++; if(!STATE.extPhotos) STATE.extPhotos=[]; STATE.extPhotos[idx]=e.target.result; document.getElementById('photoExtCount').innerText = STATE.photoExt; document.getElementById('photoExtBar').style.width = (STATE.photoExt/5*100)+'%'; }
-    if (type === 'int') { STATE.photoInt++; if(!STATE.intPhotos) STATE.intPhotos=[]; STATE.intPhotos[idx]=e.target.result; document.getElementById('photoIntCount').innerText = STATE.photoInt; document.getElementById('photoIntBar').style.width = (STATE.photoInt/5*100)+'%'; }
-    if (type === 'sup') { if(!STATE.supPhotos) STATE.supPhotos=[]; STATE.supPhotos[idx]=e.target.result; }
+    if (type === 'ext') { STATE.photoExt++; if(!STATE.extPhotos) STATE.extPhotos=[]; STATE.extPhotos[idx]={file:file,dataURL:e.target.result}; document.getElementById('photoExtCount').innerText = STATE.photoExt; document.getElementById('photoExtBar').style.width = (STATE.photoExt/5*100)+'%'; }
+    if (type === 'int') { STATE.photoInt++; if(!STATE.intPhotos) STATE.intPhotos=[]; STATE.intPhotos[idx]={file:file,dataURL:e.target.result}; document.getElementById('photoIntCount').innerText = STATE.photoInt; document.getElementById('photoIntBar').style.width = (STATE.photoInt/5*100)+'%'; }
+    if (type === 'sup') { if(!STATE.supPhotos) STATE.supPhotos=[]; STATE.supPhotos[idx]={file:file,dataURL:e.target.result}; }
     showToast('Photo ajoutée');
   };
   reader.readAsDataURL(file);
@@ -1642,8 +1642,27 @@ function dataURLtoBlob(dataURL){
   return new Blob([ab], { type: mimeString });
 }
 
-async function uploadFile(client, bucket, path, file){
-  const { error } = await client.storage.from(bucket).upload(path, file);
+const EXT_TO_MIME = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+  webp: 'image/webp', heic: 'image/heic', heif: 'image/heif', gif: 'image/gif', bmp: 'image/bmp'
+};
+const ALLOWED_IMAGE_MIMES = ['image/jpeg','image/png','image/webp','image/heic','image/heif','image/gif','image/bmp'];
+
+function resolveImageMimeType(file, extOrName){
+  // 1. Use file.type if it's a valid image MIME
+  if (file && file.type && ALLOWED_IMAGE_MIMES.includes(file.type.split(';')[0].trim().toLowerCase())) {
+    return file.type.split(';')[0].trim().toLowerCase();
+  }
+  // 2. Derive from extension
+  const ext = (extOrName || '').split('.').pop().toLowerCase().replace(/[^a-z]/g, '');
+  if (ext && EXT_TO_MIME[ext]) return EXT_TO_MIME[ext];
+  // 3. Fallback: image/jpeg for photo contexts
+  return 'image/jpeg';
+}
+
+async function uploadFile(client, bucket, path, file, contentType){
+  const opts = contentType ? { contentType } : {};
+  const { error } = await client.storage.from(bucket).upload(path, file, opts);
   if (error) throw new Error('Upload échoué pour ' + path + ' : ' + error.message);
   return path;
 }
@@ -1692,18 +1711,22 @@ async function validateEdl(){
     // Upload exterior photos
     for (let i = 0; i < (STATE.extPhotos || []).length && i < 5; i++) {
       const f = STATE.extPhotos[i];
-      const ext = (f.name || 'jpg').split('.').pop().toLowerCase() || 'jpg';
+      if (!f || !f.file) continue;
+      const ext = (f.file.name || 'jpg').split('.').pop().toLowerCase() || 'jpg';
       const path = prefix + `ext_${ts}_${i}.${ext}`;
-      await uploadFile(client, 'convoyeur-media', path, f);
+      const contentType = resolveImageMimeType(f.file, ext);
+      await uploadFile(client, 'convoyeur-media', path, f.file, contentType);
       evidence.push({ type: 'exterior_photo', bucket: 'convoyeur-media', path });
     }
 
     // Upload interior photos
     for (let i = 0; i < (STATE.intPhotos || []).length && i < 5; i++) {
       const f = STATE.intPhotos[i];
-      const ext = (f.name || 'jpg').split('.').pop().toLowerCase() || 'jpg';
+      if (!f || !f.file) continue;
+      const ext = (f.file.name || 'jpg').split('.').pop().toLowerCase() || 'jpg';
       const path = prefix + `int_${ts}_${i}.${ext}`;
-      await uploadFile(client, 'convoyeur-media', path, f);
+      const contentType = resolveImageMimeType(f.file, ext);
+      await uploadFile(client, 'convoyeur-media', path, f.file, contentType);
       evidence.push({ type: 'interior_photo', bucket: 'convoyeur-media', path });
     }
 
@@ -1712,7 +1735,7 @@ async function validateEdl(){
     if (sigConvCanvas) {
       const blob = dataURLtoBlob(sigConvCanvas.toDataURL());
       const path = prefix + `sig_conv_${ts}.png`;
-      await uploadFile(client, 'convoyeur-media', path, blob);
+      await uploadFile(client, 'convoyeur-media', path, blob, 'image/png');
       evidence.push({ type: 'convoyeur_signature', bucket: 'convoyeur-media', path });
     }
 
@@ -1721,7 +1744,7 @@ async function validateEdl(){
     if (sigCliCanvas) {
       const blob = dataURLtoBlob(sigCliCanvas.toDataURL());
       const path = prefix + `sig_client_${ts}.png`;
-      await uploadFile(client, 'convoyeur-media', path, blob);
+      await uploadFile(client, 'convoyeur-media', path, blob, 'image/png');
       evidence.push({ type: 'client_signature', bucket: 'convoyeur-media', path });
     }
 
@@ -1729,7 +1752,8 @@ async function validateEdl(){
     if (STATE.edlType === 'arrivee' && STATE.finMissionSelfie) {
       const ext = STATE.finMissionSelfie.name.split('.').pop().toLowerCase();
       const path = prefix + `selfie_${ts}.${ext}`;
-      await uploadFile(client, 'convoyeur-media', path, STATE.finMissionSelfie);
+      const contentType = resolveImageMimeType(STATE.finMissionSelfie, ext);
+      await uploadFile(client, 'convoyeur-media', path, STATE.finMissionSelfie, contentType);
       evidence.push({ type: 'delivery_selfie', bucket: 'convoyeur-media', path });
     }
 
