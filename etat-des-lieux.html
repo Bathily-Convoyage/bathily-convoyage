@@ -270,6 +270,144 @@
       .pb-lbl { display: none; }
     }
 
+    /* ====== WAVE2: GUIDED PHOTO SEQUENCE ====== */
+    .photo-sequence { display: flex; flex-direction: column; gap: 16px; }
+    .ps-current {
+      background: white; border: 2px solid var(--border-light); border-radius: 20px;
+      padding: 20px; text-align: center; position: relative; overflow: hidden;
+    }
+    .ps-current.taken { border-color: var(--success); background: rgba(74,124,107,0.05); }
+    .ps-counter {
+      font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 800;
+      color: var(--bordeaux); margin-bottom: 4px;
+    }
+    .ps-view-name {
+      font-size: 0.85rem; font-weight: 700; text-transform: uppercase;
+      color: var(--gray-dark); margin-bottom: 12px;
+    }
+    .ps-preview-area {
+      width: 100%; min-height: 200px; border: 2px dashed var(--border-light);
+      border-radius: 16px; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px; overflow: hidden; background: var(--beige); position: relative;
+    }
+    .ps-preview-area.has-image { border-style: solid; border-color: var(--success); }
+    .ps-preview-area img { width: 100%; height: 100%; max-height: 300px; object-fit: cover; }
+    .ps-preview-placeholder { font-size: 0.75rem; color: var(--gray-mid); text-align: center; }
+    .ps-preview-placeholder i { font-size: 2rem; display: block; margin-bottom: 8px; color: var(--bordeaux); }
+    .ps-camera-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--bordeaux); color: white; border: none;
+      border-radius: 40px; padding: 14px 32px; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; min-height: 44px;
+    }
+    .ps-camera-btn:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
+    .ps-retake-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: transparent; color: var(--bordeaux); border: 1px solid var(--bordeaux);
+      border-radius: 40px; padding: 12px 24px; font-size: 0.8rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; min-height: 44px; margin-left: 8px;
+    }
+    .ps-retake-btn:hover { background: var(--bordeaux-light); }
+    .ps-nav-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .ps-thumbnails { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+    .ps-thumb {
+      width: 48px; height: 48px; border-radius: 8px; border: 2px solid var(--border-light);
+      overflow: hidden; cursor: pointer; position: relative; flex-shrink: 0;
+    }
+    .ps-thumb.taken { border-color: var(--success); }
+    .ps-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .ps-thumb .ps-thumb-num {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; color: var(--gray-mid); background: var(--beige);
+    }
+    .ps-thumb.taken .ps-thumb-num { display: none; }
+    .ps-thumb.current { border-color: var(--bordeaux); border-width: 3px; }
+    .ps-section-label {
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+      color: var(--bordeaux); margin-bottom: 8px; padding-bottom: 4px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    /* ====== WAVE2: DOMMAGES FLOW ====== */
+    .dommage-flow { display: flex; flex-direction: column; gap: 12px; }
+    .dommage-empty {
+      text-align: center; padding: 24px; background: rgba(74,124,107,0.05);
+      border-radius: 16px; border: 1px dashed var(--success);
+    }
+    .dommage-empty i { font-size: 2rem; color: var(--success); margin-bottom: 8px; }
+    .dommage-empty-text { font-size: 0.8rem; font-weight: 600; color: var(--success); }
+    .dommage-add-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--bordeaux); color: white; border: none;
+      border-radius: 40px; padding: 14px 28px; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; min-height: 44px; margin-top: 12px;
+    }
+    .dommage-add-btn:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
+    .dommage-card {
+      background: var(--beige); border: 1px solid var(--border-light);
+      border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .dommage-card-header {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .dommage-card-title { font-weight: 700; font-size: 0.8rem; color: var(--bordeaux); }
+    .dommage-card-del {
+      background: none; border: none; color: var(--gray-mid); cursor: pointer;
+      font-size: 1.1rem; padding: 4px 8px; min-width: 44px; min-height: 44px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dommage-card-del:hover { color: var(--bordeaux); }
+    .dommage-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .dommage-field label {
+      display: block; font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      color: var(--gray-mid); margin-bottom: 4px;
+    }
+    .dommage-field select, .dommage-field input, .dommage-field textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border-light);
+      border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 0.85rem;
+      background: white; min-height: 44px;
+    }
+    .dommage-photo-zone {
+      border: 2px dashed var(--border-light); border-radius: 12px; padding: 12px;
+      text-align: center; cursor: pointer; position: relative; min-height: 80px;
+      display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px;
+    }
+    .dommage-photo-zone.has-photo { border-style: solid; border-color: var(--success); padding: 0; overflow: hidden; }
+    .dommage-photo-zone img { width: 100%; max-height: 120px; object-fit: cover; border-radius: 10px; }
+    .dommage-photo-zone .dpz-label { font-size: 0.7rem; font-weight: 600; color: var(--gray-mid); }
+    .dommage-photo-zone .dpz-ico { font-size: 1.5rem; color: var(--bordeaux); }
+    .dommage-photo-required { color: #c0392b; font-size: 0.6rem; font-weight: 700; }
+
+    /* ====== WAVE2: MOBILE UX ====== */
+    @media (max-width: 480px) {
+      .edl-main { padding: 16px 12px; }
+      .topbar { padding: 0 16px; }
+      .progress-bar { padding: 0 8px; }
+      .pb-inner { height: 50px; gap: 2px; }
+      .pb-num { width: 24px; height: 24px; font-size: 0.6rem; }
+      .pb-lbl { font-size: 0.55rem; }
+      .pb-line { margin: 0 4px; }
+      .card { padding: 16px; border-radius: 16px; }
+      .step-title { font-size: 1.3rem; }
+      .f-row, .f-row3, .f-row4 { grid-template-columns: 1fr; }
+      .dommage-fields { grid-template-columns: 1fr; }
+      .recap-grid { grid-template-columns: 1fr; }
+      .ps-camera-btn, .ps-retake-btn, .dommage-add-btn, .btn-nav, .btn-sig { min-height: 44px; font-size: 0.8rem; }
+      .topbar-mid { display: none; }
+      .pb-lbl { display: none; }
+      .ps-thumbnails { gap: 4px; }
+      .ps-thumb { width: 40px; height: 40px; }
+      .step-nav { flex-direction: column; gap: 8px; }
+      .step-nav .btn-nav { width: 100%; text-align: center; }
+      .topbar-right .topbar-btn { padding: 8px 12px; }
+    }
+    @media (max-width: 360px) {
+      .edl-main { padding: 12px 8px; }
+      .card { padding: 12px; }
+      .ps-camera-btn, .ps-retake-btn, .dommage-add-btn { padding: 12px 20px; font-size: 0.75rem; }
+    }
+
     /* ====== STYLES D'IMPRESSION ====== */
     #printable-edl {
       display: none; background: white;
@@ -335,6 +473,7 @@
   <script src="/supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/js/mission-phase-resolver.js"></script>
+  <script src="/js/edl-photo-draft.js"></script>
 </head>
 <body>
 
@@ -382,10 +521,10 @@
 <div class="progress-bar">
   <div class="pb-inner">
     <div class="pb-step" onclick="goStep(1)"><div class="pb-num active" id="pn1">1</div><div class="pb-lbl active" id="pl1">Mission</div><div class="pb-line" id="pline1"></div></div>
-    <div class="pb-step" onclick="goStep(2)"><div class="pb-num" id="pn2">2</div><div class="pb-lbl" id="pl2">Véhicule</div><div class="pb-line" id="pline2"></div></div>
+    <div class="pb-step" onclick="goStep(2)"><div class="pb-num" id="pn2">2</div><div class="pb-lbl" id="pl2">Relevés</div><div class="pb-line" id="pline2"></div></div>
     <div class="pb-step" onclick="goStep(3)"><div class="pb-num" id="pn3">3</div><div class="pb-lbl" id="pl3">Photos</div><div class="pb-line" id="pline3"></div></div>
-    <div class="pb-step" onclick="goStep(4)"><div class="pb-num" id="pn4">4</div><div class="pb-lbl" id="pl4">Zones</div><div class="pb-line" id="pline4"></div></div>
-    <div class="pb-step" onclick="goStep(5)"><div class="pb-num" id="pn5">5</div><div class="pb-lbl" id="pl5">Conformité</div><div class="pb-line" id="pline5"></div></div>
+    <div class="pb-step" onclick="goStep(4)"><div class="pb-num" id="pn4">4</div><div class="pb-lbl" id="pl4">Dommages</div><div class="pb-line" id="pline4"></div></div>
+    <div class="pb-step" onclick="goStep(5)"><div class="pb-num" id="pn5">5</div><div class="pb-lbl" id="pl5">Obs.</div><div class="pb-line" id="pline5"></div></div>
     <div class="pb-step" onclick="goStep(6)"><div class="pb-num" id="pn6">6</div><div class="pb-lbl" id="pl6">Signatures</div><div class="pb-line" id="pline6"></div></div>
     <div class="pb-step" onclick="goStep(7)"><div class="pb-num" id="pn7">7</div><div class="pb-lbl" id="pl7">Validation</div></div>
   </div>
@@ -432,26 +571,31 @@
     <div class="pe-row"><span class="pe-label">Carburant :</span><span class="pe-value" id="pFuel">_______________ %</span></div>
   </div>
 
-  <!-- ZONES DE CARROSSERIE (incluant les photos des dommages) -->
+  <!-- WAVE2: DOMMAGES DÉCLARÉS (remplace l'ancien tableau 16 zones) -->
+  <!-- LEGACY_UNCHECKED_DATA_DOES_NOT_FAKE_VALIDATION -->
   <div class="pe-section">
-    <div class="pe-title">3. État des zones de carrosserie</div>
+    <div class="pe-title">3. Dommages déclarés</div>
+    <div style="font-size:9pt; color:#666; margin-bottom:6px; font-style:italic;">
+      Véhicule réputé en bon état sauf dommages explicitement déclarés ci-dessous.
+      Les zones non listées n'ont pas fait l'objet d'un contrôle individuel exhaustif.
+    </div>
     <table class="pe-table">
-      <thead><tr><th>Zone</th><th style="width:12%;">✅ Bon</th><th style="width:12%;">~ Rayure</th><th style="width:12%;">↕ Enfoncement</th><th style="width:12%;">✗ Cassé</th><th style="width:20%;">Photo</th></tr></thead>
-      <tbody id="printZonesBody">
+      <thead><tr><th>Zone</th><th>Type</th><th>Commentaire</th><th>Photo</th></tr></thead>
+      <tbody id="printDommagesBody">
         <!-- Rempli par JavaScript -->
       </tbody>
     </table>
   </div>
 
-  <!-- DOCUMENTS & ÉQUIPEMENTS -->
+  <!-- WAVE2: Photos de preuve (10 photos guidées) -->
   <div class="pe-section">
-    <div class="pe-title">4. Documents & équipements</div>
-    <table class="pe-table">
-      <thead><tr><th>Élément</th><th style="width:15%;">✅ OK</th><th style="width:15%;">✗ NOK</th></tr></thead>
-      <tbody id="printDocsBody">
-        <!-- Rempli par JavaScript -->
-      </tbody>
-    </table>
+    <div class="pe-title">4. Photos de preuve</div>
+    <div style="font-size:9pt; color:#666; margin-bottom:6px;">
+      10 photos obligatoires (5 extérieur + 5 intérieur) + photos de dommages le cas échéant.
+    </div>
+    <div id="printPhotosSummary" style="font-size:9pt;">
+      <!-- Rempli par JavaScript -->
+    </div>
   </div>
 
   <!-- OBSERVATIONS -->
@@ -512,75 +656,83 @@
     <div class="step-nav"><button class="btn-nav btn-prev" disabled><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
 
-  <!-- ÉTAPE 2 : VÉHICULE -->
+  <!-- ÉTAPE 2 : RELEVÉS (WAVE2 — Fast Flow: kilométrage + carburant) -->
   <div class="edl-step" data-step="2">
-    <div class="step-header"><div class="step-tag">Étape 2 / 7</div><h2 class="step-title">Identification <em>véhicule</em></h2><p class="step-sub">Vérifiez les informations.</p></div>
-    <div class="card"><div class="card-title"><i class="fas fa-search"></i> Données</div>
+    <div class="step-header"><div class="step-tag">Étape 2 / 7</div><h2 class="step-title">Relevés <em>véhicule</em></h2><p class="step-sub">Kilométrage, carburant et identification complémentaire.</p></div>
+    <div class="card"><div class="card-title"><i class="fas fa-search"></i> Identification véhicule</div>
       <div class="f-row"><div class="f-grp"><label>Plaque d'immatriculation *</label><div style="display:flex; gap:8px;"><input type="text" id="vPlaque" value="" oninput="fmtPlaque(this)" style="flex:1;"><button type="button" class="btn-sig" style="padding:0 15px; margin:0;" onclick="lookupLicensePlate()" title="Rechercher avec le"><i class="fas fa-search"></i></button></div></div><div class="f-grp"><label>Type</label><select id="vType"><option value="berline">Berline</option><option value="suv">SUV</option><option value="break">Break</option><option value="utilitaire">Utilitaire</option><option value="moto">Moto</option></select></div></div>
       <div class="f-row3"><div class="f-grp"><label>Marque *</label><input type="text" id="vMarque" value=""></div><div class="f-grp"><label>Modèle *</label><input type="text" id="vModele" value=""></div><div class="f-grp"><label>Année</label><input type="number" id="vAnnee" value=""></div></div>
       <div class="f-row3"><div class="f-grp"><label>Couleur *</label><input type="text" id="vCouleur" value=""></div><div class="f-grp"><label>Énergie</label><select id="vEnergie"><option value="">—</option><option>Essence</option><option>Hybride</option><option>Diesel</option><option>Électrique</option></select></div><div class="f-grp"><label>Transmission</label><select id="vTransmission"><option value="">—</option><option>Manuelle</option><option>Automatique</option></select></div></div>
     </div>
-    <div class="card"><div class="card-title"><i class="fas fa-tachometer-alt"></i> Relevés au départ</div>
-      <div class="f-row4"><div class="f-grp"><label>Kilométrage *</label><input type="number" id="vKm" placeholder="Ex: 24500"></div><div class="f-grp"><label>VIN</label><input type="text" id="vVin" placeholder="17 caractères"></div><div class="f-grp"><label>Prochain CT</label><input type="month" id="vCt"></div><div class="f-grp"><label>Assurance</label><input type="date" id="vAssurance"></div></div>
+    <div class="card"><div class="card-title"><i class="fas fa-tachometer-alt"></i> Relevés</div>
+      <div class="f-row"><div class="f-grp"><label>Kilométrage *</label><input type="number" id="vKm" placeholder="Ex: 24500"></div><div class="f-grp"><label>VIN</label><input type="text" id="vVin" placeholder="17 caractères"></div></div>
+      <div class="f-row"><div class="f-grp"><label>Prochain CT</label><input type="month" id="vCt"></div><div class="f-grp"><label>Assurance</label><input type="date" id="vAssurance"></div></div>
       <div class="f-grp"><label>Niveau carburant / charge</label><div class="fuel-gauge"><div class="fuel-marks" style="display:flex; justify-content:space-between;"><span>0</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div><input type="range" class="fuel-slider" id="fuelSlider" min="0" max="100" value="0" step="5" oninput="updFuel(this.value)"><div class="fuel-val" id="fuelVal">0%</div></div></div>
-    </div>
-    <div class="card"><div class="card-title"><i class="fas fa-clipboard-check"></i> Documents & accessoires</div>
-      <div class="doc-grid" id="docGrid"></div>
       <div class="f-grp"><label>Objets personnels</label><textarea id="vObjets" rows="2" placeholder="Bagages, effets personnels..."></textarea></div>
     </div>
     <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
 
-  <!-- ÉTAPE 3 : PHOTOS -->
+  <!-- ÉTAPE 3 : PHOTOS GUIDÉES (WAVE2 — Fast Flow: séquence guidée une par une) -->
   <div class="edl-step" data-step="3">
-    <div class="step-header"><div class="step-tag">Étape 3 / 7</div><h2 class="step-title">Photos <em>obligatoires</em></h2><p class="step-sub">10 photos minimum (5 extérieur + 5 intérieur).</p></div>
-    <div class="card"><div class="card-title"><i class="fas fa-car"></i> Extérieur - 5 photos requises</div>
-      <div class="photo-count">Photos prises : <span id="photoExtCount">0</span> / 5</div>
-      <div class="photo-progress"><div class="photo-progress-bar" id="photoExtBar"></div></div>
-      <div class="photos-grid" id="photoExtGrid"></div>
-    </div>
-    <div class="card"><div class="card-title"><i class="fas fa-chair"></i> Intérieur - 5 photos requises</div>
-      <div class="photo-count">Photos prises : <span id="photoIntCount">0</span> / 5</div>
-      <div class="photo-progress"><div class="photo-progress-bar" id="photoIntBar"></div></div>
-      <div class="photos-grid" id="photoIntGrid"></div>
-    </div>
-    <div class="card"><div class="card-title"><i class="fas fa-plus-circle"></i> Photos supplémentaires (optionnel)</div>
-      <div class="photos-grid" id="photoSupGrid"></div>
+    <div class="step-header"><div class="step-tag">Étape 3 / 7</div><h2 class="step-title">Photos <em>guidées</em></h2><p class="step-sub">10 photos obligatoires : 5 extérieur + 5 intérieur. Suivez la séquence.</p></div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-camera"></i> Séquence photo</div>
+      <div class="photo-count">Progression : <span id="photoSeqCount">0</span> / 10</div>
+      <div class="photo-progress"><div class="photo-progress-bar" id="photoSeqBar"></div></div>
+      <div class="photo-sequence" id="photoSequence">
+        <!-- Current photo view -->
+        <div class="ps-current" id="psCurrent">
+          <div class="ps-counter" id="psCounter">PHOTO 1 / 10</div>
+          <div class="ps-view-name" id="psViewName">Avant gauche</div>
+          <div class="ps-section-label" id="psSectionLabel">Extérieur</div>
+          <div class="ps-preview-area" id="psPreviewArea">
+            <div class="ps-preview-placeholder" id="psPlaceholder">
+              <i class="fas fa-camera"></i>
+              <span>Cliquez pour prendre la photo</span>
+            </div>
+          </div>
+          <div class="ps-nav-btns">
+            <button class="ps-camera-btn" id="psCameraBtn" onclick="triggerSeqPhoto()"><i class="fas fa-camera"></i> Prendre la photo</button>
+            <button class="ps-retake-btn" id="psRetakeBtn" style="display:none;" onclick="triggerSeqPhoto()"><i class="fas fa-redo"></i> Reprendre</button>
+          </div>
+          <input type="file" accept="image/*" capture="environment" id="psFileInput" style="display:none" onchange="handleSeqPhoto(event)">
+        </div>
+        <!-- Thumbnails -->
+        <div class="ps-thumbnails" id="psThumbnails"></div>
+        <!-- Navigation between photos -->
+        <div class="step-nav" style="border:none; padding-top:12px;">
+          <button class="btn-nav btn-prev" id="psPrevBtn" onclick="prevSeqPhoto()"><i class="fas fa-arrow-left"></i> Précédente</button>
+          <button class="btn-nav btn-next" id="psNextBtn" onclick="nextSeqPhoto()">Suivante <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
     </div>
     <div class="alert-required" id="photoAlert" style="display:none; background:rgba(224,163,67,0.1); border-radius:16px; padding:12px; margin-bottom:16px;"><i class="fas fa-exclamation-circle"></i> Veuillez prendre les 10 photos obligatoires.</div>
     <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
 
-  <!-- ÉTAPE 4 : ZONES & DOMMAGES (avec photos intégrées) -->
+  <!-- ÉTAPE 4 : DOMMAGES À DÉCLARER (WAVE2 — Fast Flow: VEHICLE_ASSUMED_OK_EXCEPT_DECLARED_DAMAGE) -->
   <div class="edl-step" data-step="4">
-    <div class="step-header"><div class="step-tag">Étape 4 / 7</div><h2 class="step-title">Zones & <em>dommages</em></h2><p class="step-sub">Sélectionnez l'état de chaque zone. Si un dommage est signalé, ajoutez une photo.</p></div>
-    <div class="card"><div class="card-title"><i class="fas fa-layer-group"></i> État par zone</div>
-      <div class="legend-row" style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
-        <div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:var(--success)"></div> Bon</div>
-        <div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:var(--warning)"></div> Rayure</div>
-        <div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:var(--bordeaux)"></div> Enfoncement/Cassé</div>
-        <div class="legend-item"><i class="fas fa-camera" style="color:var(--gray-mid)"></i> Photo</div>
+    <div class="step-header"><div class="step-tag">Étape 4 / 7</div><h2 class="step-title">Dommages à <em>déclarer</em></h2><p class="step-sub">Le véhicule est réputé en bon état sauf dommages déclarés ci-dessous.</p></div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-exclamation-triangle"></i> Dommages constatés</div>
+      <div class="dommage-flow" id="dommageFlow">
+        <div class="dommage-empty" id="dommageEmpty">
+          <i class="fas fa-check-circle"></i>
+          <div class="dommage-empty-text">AUCUN DOMMAGE CONSTATÉ</div>
+          <div style="font-size:0.7rem; color:var(--gray-mid); margin-top:4px;">Le véhicule est réputé en bon état.</div>
+        </div>
+        <div id="dommageCards"></div>
+        <button class="dommage-add-btn" onclick="addDommage()"><i class="fas fa-plus"></i> AJOUTER UN DOMMAGE</button>
       </div>
-      <div class="zones-grid" id="zonesGrid"></div>
     </div>
-    <!-- Récapitulatif des dommages -->
-    <div class="card"><div class="card-title"><i class="fas fa-exclamation-triangle"></i> Récapitulatif des dommages</div>
-      <div class="dommage-list" id="dommageList"><div style="font-size:0.7rem; color:var(--gray-mid)">Aucun dommage signalé.</div></div>
-    </div>
-    <div class="card"><div class="card-title"><i class="fas fa-sticky-note"></i> Observations générales</div><textarea id="obsGenerales" rows="3" placeholder="État général, odeurs, bruits..."></textarea></div>
     <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
 
-  <!-- ÉTAPE 5 : CONFORMITÉ (équipements) -->
+  <!-- ÉTAPE 5 : OBSERVATIONS (WAVE2 — Fast Flow: simplified, no piece-by-piece checklists) -->
   <div class="edl-step" data-step="5">
-    <div class="step-header"><div class="step-tag">Étape 5 / 7</div><h2 class="step-title">Contrôle de <em>conformité</em></h2><p class="step-sub">Vérification technique.</p></div>
-    <div class="card"><div class="card-title"><i class="fas fa-shield-alt"></i> Équipements de sécurité</div>
-      <div class="doc-grid" id="equipGrid"></div>
-    </div>
-    <div class="card"><div class="card-title"><i class="fas fa-cog"></i> État mécanique visuel</div>
-      <div class="doc-grid" id="mecaGrid"></div>
-      <div class="f-grp"><label>Remarques techniques</label><textarea id="remTech" rows="2"></textarea></div>
-    </div>
+    <div class="step-header"><div class="step-tag">Étape 5 / 7</div><h2 class="step-title">Observations <em>générales</em></h2><p class="step-sub">Notes libres sur l'état du véhicule.</p></div>
+    <div class="card"><div class="card-title"><i class="fas fa-sticky-note"></i> Observations</div><textarea id="obsGenerales" rows="4" placeholder="État général, odeurs, bruits, remarques techniques..."></textarea></div>
     <div class="step-nav"><button class="btn-nav btn-prev" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Précédent</button><button class="btn-nav btn-next" onclick="nextStep()">Suivant <i class="fas fa-arrow-right"></i></button></div>
   </div>
 
@@ -682,19 +834,58 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-// ========== ÉTAT GLOBAL ==========
+// ========== ÉTAT GLOBAL (WAVE2 — Fast Flow) ==========
 const STATE = {
-  step:1, edlType:'depart', photoExt:0, photoInt:0, dommages:[], sigConvDone:false, sigCliDone:false, fuelValue:0,
-  photosExt:[], photosInt:[], photosSup:[],
-  zoneStates: {}, // { zoneName: 'bon'|'raye'|'enfonce'|'casse' }
-  zonePhotos: {},  // { zoneName: 'data:image/...' }
-  finMissionSelfie: null // File object for end-of-mission selfie (arrival only)
+  step:1, edlType:'depart', dommages:[], sigConvDone:false, sigCliDone:false, fuelValue:0,
+  // WAVE2: Guided photo sequence — 10 photos (5 ext + 5 int)
+  seqPhotos: [],      // [{ blob, mime, size, viewName, category, objectUrl }]
+  seqCurrentIdx: 0,   // current photo index in sequence (0-9)
+  finMissionSelfie: null, // File/Blob object for end-of-mission selfie (arrival only)
+  finMissionSelfieUrl: null, // ObjectURL for selfie preview
+  // WAVE2B: Signature resilience — persist PNG Blobs + signed snapshot hash
+  sigConvBlob: null,       // PNG Blob of convoyeur signature
+  sigConvUrl: null,        // ObjectURL for preview
+  sigConvSignedAt: null,   // timestamp when signed
+  sigConvSnapshotHash: null, // SHA-256 hash of material EDL state at sign time
+  sigCliBlob: null,        // PNG Blob of client signature
+  sigCliUrl: null,         // ObjectURL for preview
+  sigCliSignedAt: null,    // timestamp when signed
+  sigCliSnapshotHash: null, // SHA-256 hash of material EDL state at sign time
+  sigInvalidatedNotice: null, // message shown when signature invalidated by material change
 };
+
+// WAVE2: Photo sequence definition — 5 exterior + 5 interior
+const PHOTO_SEQUENCE = [
+  { category:'exterior', viewName:'Avant gauche' },
+  { category:'exterior', viewName:'Face avant' },
+  { category:'exterior', viewName:'Avant droit' },
+  { category:'exterior', viewName:'Arrière droit' },
+  { category:'exterior', viewName:'Arrière gauche' },
+  { category:'interior', viewName:'Poste conducteur' },
+  { category:'interior', viewName:'Tableau de bord + kilométrage' },
+  { category:'interior', viewName:'Habitacle avant' },
+  { category:'interior', viewName:'Banquette / habitacle arrière' },
+  { category:'interior', viewName:'Coffre / espace chargement' }
+];
+
+// WAVE2: Dommage zones and types
+const DOMMAGE_ZONES = [
+  'Pare-chocs avant','Capot','Aile AVG','Aile AVD','Porte AVG','Porte AVD',
+  'Porte ARG','Porte ARD','Toit','Pare-brise','Coffre','Pare-chocs arrière',
+  'Aile ARG','Aile ARD','Intérieur','Autre'
+];
+const DOMMAGE_TYPES = ['Rayure','Enfoncement','Casse','Impact','Déchirure','Tache','Autre'];
+
+// Keep ZONES for PDF backward compatibility (print template still references it)
+const ZONES = ['Pare-choc AV','Pare-choc AR','Capot','Toit','Aile AV G','Aile AV D','Aile AR G','Aile AR D',
+  'Porte AV G','Porte AV D','Porte AR G','Porte AR D','Pare-brise','Coffre','Sièges','Tableau de bord'];
 
 // ========== DATA_READY GATE (WAVE 2B.3A) ==========
 let _edlReady = false;
 let _edlUserId = null;
 let _edlMissionPhase = 'UNKNOWN'; // V2_1B: canonical phase from server state
+let _edlMissionId = null; // WAVE2: cached mission_id for IndexedDB
+let _draftRestored = false; // WAVE2: track if IndexedDB draft was restored
 
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded',()=>{
@@ -702,101 +893,246 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('mDate').value=now.toISOString().slice(0,16);
   document.getElementById('sigConvDate').value='';
   document.getElementById('sigCliDate').value='';
-  buildDocGrid();
-  buildEquipGrid();
-  buildMecaGrid();
-  buildZonesGrid();
-  initPhotoSlots();
+  // WAVE2: No more buildDocGrid/buildEquipGrid/buildMecaGrid/buildZonesGrid/initPhotoSlots
+  initPhotoSequence();
   updRecap();
   // WAVE 2B.3A: loadDraft() moved AFTER auth in initSupabaseEdl()
   initSupabaseEdl();
   setInterval(autoSave, 30000);
   window.addEventListener('beforeunload', (e) => { if (hasUnsavedChanges()) e.preventDefault(); });
+  // WAVE2: Save draft to IndexedDB on visibility change (photo resilience)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') { saveDraft(); }
+  });
   // Initialiser les signatures (avec les nouveaux gestionnaires)
   initSignatures();
 });
 
 let _lastSavedDraft = null;
 function hasUnsavedChanges() {
-  const draft = JSON.stringify(collectDraft());
-  return _lastSavedDraft !== null && draft !== _lastSavedDraft;
+  // WAVE2: simplified — if we have photos or dommages, consider unsaved
+  return STATE.seqPhotos.some(p => p) || STATE.dommages.length > 0;
 }
-function autoSave() { saveDraft(); showToast('Brouillon sauvegardé'); }
-function collectDraft() {
+function autoSave() { saveDraft(); }
+function collectFormState() {
   return {
-    mission_id: new URLSearchParams(window.location.search).get('mission_id') || '',
-    user_id: _edlUserId || '',
-    step:STATE.step, edlType:STATE.edlType, photoExt:STATE.photoExt, photoInt:STATE.photoInt, dommages:STATE.dommages,
-    sigConvDone:STATE.sigConvDone, sigCliDone:STATE.sigCliDone, fuelValue:STATE.fuelValue,
-    zoneStates:STATE.zoneStates, zonePhotos:STATE.zonePhotos,
-    mRef:document.getElementById('mRef')?.value, mDate:document.getElementById('mDate')?.value,
-    mConvoyeur:document.getElementById('mConvoyeur')?.value, mPermis:document.getElementById('mPermis')?.value,
-    mDepart:document.getElementById('mDepart')?.value, mArrivee:document.getElementById('mArrivee')?.value,
-    cNom:document.getElementById('cNom')?.value, cTel:document.getElementById('cTel')?.value, cEmail:document.getElementById('cEmail')?.value,
-    vPlaque:document.getElementById('vPlaque')?.value, vMarque:document.getElementById('vMarque')?.value, vModele:document.getElementById('vModele')?.value,
-    vAnnee:document.getElementById('vAnnee')?.value, vCouleur:document.getElementById('vCouleur')?.value,
-    vKm:document.getElementById('vKm')?.value, vVin:document.getElementById('vVin')?.value, vCt:document.getElementById('vCt')?.value,
-    vAssurance:document.getElementById('vAssurance')?.value, vObjets:document.getElementById('vObjets')?.value,
-    obsGenerales:document.getElementById('obsGenerales')?.value, remTech:document.getElementById('remTech')?.value,
-    emailCli:document.getElementById('emailCli')?.value, emailConv:document.getElementById('emailConv')?.value
+    step: STATE.step,
+    edlType: STATE.edlType,
+    fuelValue: STATE.fuelValue,
+    mPermis: document.getElementById('mPermis')?.value,
+    vCouleur: document.getElementById('vCouleur')?.value,
+    vKm: document.getElementById('vKm')?.value,
+    vVin: document.getElementById('vVin')?.value,
+    vCt: document.getElementById('vCt')?.value,
+    vAssurance: document.getElementById('vAssurance')?.value,
+    vObjets: document.getElementById('vObjets')?.value,
+    obsGenerales: document.getElementById('obsGenerales')?.value,
+    emailConv: document.getElementById('emailConv')?.value
   };
 }
-function saveDraft() {
-  const draft = collectDraft();
-  const draftStr = JSON.stringify(draft);
-  localStorage.setItem('bathily_edl_draft', draftStr);
-  _lastSavedDraft = draftStr;
-}
-function loadDraft() {
-  const saved = localStorage.getItem('bathily_edl_draft');
-  if (!saved) return;
+
+// WAVE2: IndexedDB-based draft save (replaces localStorage)
+async function saveDraft() {
+  if (!_edlMissionId || !_edlUserId) return;
   try {
-    const d = JSON.parse(saved);
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlMissionId = urlParams.get('mission_id');
-    // WAVE 2B.3A: draft must match both mission_id AND user_id
-    if (!urlMissionId || d.mission_id !== urlMissionId) {
-      localStorage.removeItem('bathily_edl_draft');
-      return;
+    // Build photos array for IndexedDB
+    var photos = [];
+    for (var i = 0; i < STATE.seqPhotos.length; i++) {
+      var p = STATE.seqPhotos[i];
+      if (p && p.blob) {
+        photos.push({
+          order: i,
+          category: PHOTO_SEQUENCE[i].category,
+          viewName: PHOTO_SEQUENCE[i].viewName,
+          blob: p.blob,
+          mime: p.mime,
+          size: p.size
+        });
+      }
     }
-    if (!_edlUserId || d.user_id !== _edlUserId) {
-      localStorage.removeItem('bathily_edl_draft');
-      return;
+    // Build dommages array for IndexedDB
+    var dommages = [];
+    for (var j = 0; j < STATE.dommages.length; j++) {
+      var d = STATE.dommages[j];
+      dommages.push({
+        zone: d.zone,
+        type: d.type,
+        desc: d.desc || '',
+        photoBlob: d.photoBlob || null,
+        photoMime: d.photoMime || null
+      });
     }
-    if (d.edlType) setEdlType(d.edlType);
-    // WAVE 2B.3A FINAL: Only restore EDL-measured/observation fields from draft.
-    // MISSION_AUTHORITATIVE fields (populated from mission.* in initSupabaseEdl)
-    // are NEVER restored from draft — Supabase remains source of truth.
-    const RESTORABLE_FIELDS = [
-      'mPermis',      // EDL_FIELD_MEASURED_ON_SITE — permit number entered during EDL
-      'vCouleur',     // EDL_FIELD_MEASURED_ON_SITE — color observed on site or via lookup
-      'vKm',          // EDL_FIELD_MEASURED_ON_SITE — kilométrage relevé on site
-      'vVin',         // EDL_FIELD_MEASURED_ON_SITE — VIN observed on site or via lookup
-      'vCt',          // EDL_FIELD_MEASURED_ON_SITE — prochain CT date
-      'vAssurance',   // EDL_FIELD_MEASURED_ON_SITE — assurance date
-      'vObjets',      // USER_OBSERVATION — objets personnels
-      'obsGenerales', // USER_OBSERVATION — observations générales
-      'remTech',      // USER_OBSERVATION — remarques techniques
-      'emailConv'     // DERIVED_UI_STATE — convoyeur email (not from mission)
-    ];
-    RESTORABLE_FIELDS.forEach(key => {
-      if (d[key] === undefined) return;
-      const el = document.getElementById(key);
-      if (el && el.value !== undefined) el.value = d[key];
+    await window.EdlPhotoDraft.saveDraft({
+      missionId: _edlMissionId,
+      userId: _edlUserId,
+      edlType: STATE.edlType,
+      photos: photos,
+      dommages: dommages,
+      formState: collectFormState(),
+      sigConv: STATE.sigConvBlob ? {
+        blob: STATE.sigConvBlob,
+        signedAt: STATE.sigConvSignedAt,
+        signedSnapshotHash: STATE.sigConvSnapshotHash
+      } : null,
+      sigCli: STATE.sigCliBlob ? {
+        blob: STATE.sigCliBlob,
+        signedAt: STATE.sigCliSignedAt,
+        signedSnapshotHash: STATE.sigCliSnapshotHash
+      } : null,
+      finMissionSelfieBlob: STATE.finMissionSelfie || null
     });
-    if (d.fuelValue !== undefined) { STATE.fuelValue = d.fuelValue; document.getElementById('fuelSlider').value = d.fuelValue; document.getElementById('fuelVal').innerHTML = d.fuelValue+'%'; }
-    if (d.zoneStates) { STATE.zoneStates = d.zoneStates; }
-    if (d.zonePhotos) { STATE.zonePhotos = d.zonePhotos; }
-    // WAVE 2B.3A: Do NOT restore signature flags or photo counters from draft
-    // Signatures must be re-done after reload; photos must be re-taken (files not persistable)
-    if (d.dommages) { STATE.dommages = d.dommages; refreshDommageList(); }
-    // WAVE 2B.3A: sigConvDone/sigCliDone NOT restored — must re-sign
-    // WAVE 2B.3A: photoExt/photoInt NOT restored — must re-take photos
-    if (d.step && d.step <= 7) goStep(d.step);
-    // Rebuild zones grid to reflect loaded states
-    buildZonesGrid();
-    _lastSavedDraft = saved;
-  } catch(e) {}
+  } catch(e) {
+    console.warn('saveDraft failed:', e);
+  }
+}
+
+// WAVE2: IndexedDB-based draft load (replaces localStorage)
+// Caller MUST verify server phase before calling this.
+async function loadDraft() {
+  if (!_edlMissionId || !_edlUserId) return;
+  try {
+    // Purge obsolete drafts first
+    if (window.EdlPhotoDraft) {
+      await window.EdlPhotoDraft.purgeObsoleteDrafts();
+    }
+
+    var draft = await window.EdlPhotoDraft.loadDraft(_edlMissionId, _edlUserId, STATE.edlType);
+    if (!draft) return;
+
+    // WAVE2: SERVER_STATE_ALWAYS_WINS — verify phase is still valid for this draft
+    // The phase check was already done in initSupabaseEdl before calling loadDraft.
+    // If we got here, the phase is valid for the requested EDL type.
+
+    // Restore form state
+    if (draft.formState) {
+      var fs = draft.formState;
+      var RESTORABLE_FIELDS = ['mPermis','vCouleur','vKm','vVin','vCt','vAssurance','vObjets','obsGenerales','emailConv'];
+      RESTORABLE_FIELDS.forEach(function(key) {
+        if (fs[key] === undefined) return;
+        var el = document.getElementById(key);
+        if (el && el.value !== undefined) el.value = fs[key];
+      });
+      if (fs.fuelValue !== undefined) {
+        STATE.fuelValue = fs.fuelValue;
+        var slider = document.getElementById('fuelSlider');
+        var fuelVal = document.getElementById('fuelVal');
+        if (slider) slider.value = fs.fuelValue;
+        if (fuelVal) fuelVal.innerHTML = fs.fuelValue + '%';
+      }
+    }
+
+    // Restore photos from IndexedDB blobs
+    if (draft.photos && draft.photos.length > 0) {
+      for (var i = 0; i < draft.photos.length; i++) {
+        var dp = draft.photos[i];
+        if (dp.blob && dp.order < PHOTO_SEQUENCE.length) {
+          var objectUrl = URL.createObjectURL(dp.blob);
+          STATE.seqPhotos[dp.order] = {
+            blob: dp.blob,
+            mime: dp.mime,
+            size: dp.size,
+            viewName: dp.viewName,
+            category: dp.category,
+            objectUrl: objectUrl
+          };
+        }
+      }
+      renderPhotoSequence();
+    }
+
+    // Restore dommages from IndexedDB
+    if (draft.dommages && draft.dommages.length > 0) {
+      STATE.dommages = [];
+      for (var j = 0; j < draft.dommages.length; j++) {
+        var dd = draft.dommages[j];
+        var dmgPhotoUrl = dd.photoBlob ? URL.createObjectURL(dd.photoBlob) : null;
+        STATE.dommages.push({
+          zone: dd.zone,
+          type: dd.type,
+          desc: dd.desc,
+          photoBlob: dd.photoBlob,
+          photoMime: dd.photoMime,
+          photoUrl: dmgPhotoUrl
+        });
+      }
+      renderDommageCards();
+    }
+
+    // Restore selfie
+    if (draft.finMissionSelfieBlob) {
+      STATE.finMissionSelfie = draft.finMissionSelfieBlob;
+      STATE.finMissionSelfieUrl = URL.createObjectURL(draft.finMissionSelfieBlob);
+      var selfieZone = document.getElementById('zone-fin-mission-selfie');
+      var selfiePreview = document.getElementById('preview-fin-mission-selfie');
+      var selfieFn = document.getElementById('fn-fin-mission-selfie');
+      if (selfieZone) selfieZone.classList.add('has-file');
+      if (selfieFn) selfieFn.textContent = 'Selfie restauré (brouillon)';
+      if (selfiePreview) {
+        selfiePreview.classList.add('active');
+        selfiePreview.innerHTML = '<img src="' + STATE.finMissionSelfieUrl + '" alt="Selfie fin de mission">';
+      }
+    }
+
+    // WAVE2B: Restore signatures from IndexedDB (PNG Blobs)
+    if (draft.sigConv && draft.sigConv.blob) {
+      STATE.sigConvBlob = draft.sigConv.blob;
+      STATE.sigConvUrl = URL.createObjectURL(draft.sigConv.blob);
+      STATE.sigConvSignedAt = draft.sigConv.signedAt;
+      STATE.sigConvSnapshotHash = draft.sigConv.signedSnapshotHash;
+      STATE.sigConvDone = true;
+      // Redraw signature on canvas from restored Blob
+      var sigConvCanvas = document.getElementById('sigConv');
+      if (sigConvCanvas) {
+        var img = new Image();
+        img.onload = function() {
+          var ctx = sigConvCanvas.getContext('2d');
+          ctx.clearRect(0, 0, sigConvCanvas.width, sigConvCanvas.height);
+          ctx.drawImage(img, 0, 0, sigConvCanvas.width, sigConvCanvas.height);
+        };
+        img.src = STATE.sigConvUrl;
+      }
+      var sigConvDoneEl = document.getElementById('sigConvDone');
+      var sigConvDateEl = document.getElementById('sigConvDate');
+      if (sigConvDoneEl) sigConvDoneEl.classList.add('show');
+      if (sigConvDateEl) sigConvDateEl.value = new Date(draft.sigConv.signedAt).toLocaleString('fr-FR');
+    }
+    if (draft.sigCli && draft.sigCli.blob) {
+      STATE.sigCliBlob = draft.sigCli.blob;
+      STATE.sigCliUrl = URL.createObjectURL(draft.sigCli.blob);
+      STATE.sigCliSignedAt = draft.sigCli.signedAt;
+      STATE.sigCliSnapshotHash = draft.sigCli.signedSnapshotHash;
+      STATE.sigCliDone = true;
+      var sigCliCanvas = document.getElementById('sigCli');
+      if (sigCliCanvas) {
+        var cliImg = new Image();
+        cliImg.onload = function() {
+          var cliCtx = sigCliCanvas.getContext('2d');
+          cliCtx.clearRect(0, 0, sigCliCanvas.width, sigCliCanvas.height);
+          cliCtx.drawImage(cliImg, 0, 0, sigCliCanvas.width, sigCliCanvas.height);
+        };
+        cliImg.src = STATE.sigCliUrl;
+      }
+      var sigCliDoneEl = document.getElementById('sigCliDone');
+      var sigCliDateEl = document.getElementById('sigCliDate');
+      if (sigCliDoneEl) sigCliDoneEl.classList.add('show');
+      if (sigCliDateEl) sigCliDateEl.value = new Date(draft.sigCli.signedAt).toLocaleString('fr-FR');
+    }
+
+    // WAVE2B: After restoring signatures, check if they're still valid
+    // (material content may have changed externally — though in normal reload
+    // it shouldn't, this is a safety check)
+    setTimeout(function() { checkSignatureValidity(); }, 500);
+
+    if (draft.formState && draft.formState.step && draft.formState.step <= 7) {
+      goStep(draft.formState.step);
+    }
+
+    _draftRestored = true;
+    var restoredCount = draft.photos.length + (draft.sigConv ? 1 : 0) + (draft.sigCli ? 1 : 0);
+    showToast('Brouillon restauré (' + draft.photos.length + ' photos' + (draft.sigConv || draft.sigCli ? ' + signatures' : '') + ')');
+  } catch(e) {
+    console.warn('loadDraft failed:', e);
+  }
 }
 function showToast(msg, type='success') {
   const toast = document.createElement('div');
@@ -834,14 +1170,35 @@ function goStep(n) {
   }
 }
 function nextStep(){
-  // WAVE 2B.3A: check actual photo files, not just counters
-  const extFiles = (STATE.extPhotos || []).filter(p => p).length;
-  const intFiles = (STATE.intPhotos || []).filter(p => p).length;
-  if(STATE.step===3 && (extFiles<5 || intFiles<5)){
-    document.getElementById('photoAlert').style.display='flex';
-    setTimeout(()=>document.getElementById('photoAlert').style.display='none',3000);
-    showToast('Veuillez prendre les 10 photos obligatoires', 'error');
-    return;
+  // WAVE2: check photo sequence — 5 exterior + 5 interior required
+  if(STATE.step===3){
+    var extCount = 0, intCount = 0;
+    for (var i = 0; i < STATE.seqPhotos.length; i++) {
+      if (STATE.seqPhotos[i]) {
+        if (PHOTO_SEQUENCE[i].category === 'exterior') extCount++;
+        else intCount++;
+      }
+    }
+    if(extCount<5 || intCount<5){
+      document.getElementById('photoAlert').style.display='flex';
+      setTimeout(()=>document.getElementById('photoAlert').style.display='none',3000);
+      showToast('Veuillez prendre les 10 photos obligatoires (5 extérieur + 5 intérieur)', 'error');
+      return;
+    }
+  }
+  if(STATE.step===4){
+    // WAVE2: Validate dommages — each must have zone, type, and photo
+    for (var j = 0; j < STATE.dommages.length; j++) {
+      var d = STATE.dommages[j];
+      if (!d.zone || !d.type) {
+        showToast('Dommage #' + (j+1) + ' : zone et type obligatoires', 'error');
+        return;
+      }
+      if (!d.photoBlob) {
+        showToast('Dommage #' + (j+1) + ' : photo obligatoire', 'error');
+        return;
+      }
+    }
   }
   if(STATE.step===6 && (!STATE.sigConvDone || !STATE.sigCliDone)){
     document.getElementById('sigAlert').style.display='flex';
@@ -849,7 +1206,10 @@ function nextStep(){
     showToast('Les deux signatures sont requises', 'error');
     return;
   }
-  if(STATE.step<7) goStep(STATE.step+1);
+  if(STATE.step<7) {
+    goStep(STATE.step+1);
+    saveDraft(); // WAVE2: persist on step change
+  }
 }
 function prevStep(){ if(STATE.step>1) goStep(STATE.step-1); }
 
@@ -883,7 +1243,13 @@ function handleFinMissionSelfie(input) {
     return;
   }
 
+  // WAVE2: Cleanup old ObjectURL
+  if (STATE.finMissionSelfieUrl) {
+    URL.revokeObjectURL(STATE.finMissionSelfieUrl);
+  }
+
   STATE.finMissionSelfie = file;
+  STATE.finMissionSelfieUrl = URL.createObjectURL(file);
   const zone = document.getElementById('zone-fin-mission-selfie');
   const fnEl = document.getElementById('fn-fin-mission-selfie');
   const previewEl = document.getElementById('preview-fin-mission-selfie');
@@ -892,241 +1258,171 @@ function handleFinMissionSelfie(input) {
   if (fnEl) fnEl.textContent = file.name;
 
   if (previewEl) {
-    const url = URL.createObjectURL(file);
     previewEl.classList.add('active');
-    previewEl.innerHTML = `<img src="${url}" alt="Selfie fin de mission">`;
+    previewEl.innerHTML = `<img src="${STATE.finMissionSelfieUrl}" alt="Selfie fin de mission">`;
   }
+
+  // WAVE2: Persist to IndexedDB
+  saveDraft();
 }
 
-// ========== GRILLES DOCUMENTS ==========
-function buildDocGrid() {
-  const docs = [
-    {label:'Carte grise'}, {label:'Assurance'}, {label:'Clé principale'}, {label:'Clé de secours'},
-    {label:'Manuel du propriétaire'}, {label:'Roue de secours / Kit'}, {label:'Triangle'}, {label:'Gilet de sécurité'},
-    {label:'Câble de recharge EV'}, {label:'Vignette Crit\'Air'}
-  ];
-  const container = document.getElementById('docGrid');
-  container.innerHTML = '';
-  docs.forEach(doc => {
-    const div = document.createElement('div');
-    div.className = 'doc-item';
-    div.innerHTML = `<span class="doc-lbl">${doc.label}</span><div class="doc-toggle"><button class="doc-btn" onclick="confToggle(this,'ok')">✓</button><button class="doc-btn" onclick="confToggle(this,'nok')">✗</button>${doc.label === 'Câble de recharge EV' ? `<button class="doc-btn" onclick="confToggle(this,'na')">N/A</button>` : ''}</div>`;
-    container.appendChild(div);
-  });
-}
-function buildEquipGrid() {
-  const equips = ['Feux avant', 'Feux arrière', 'Clignotants', 'Klaxon', 'Essuie-glaces', 'Rétroviseurs', 'Ceintures de sécurité'];
-  const container = document.getElementById('equipGrid');
-  container.innerHTML = '';
-  equips.forEach(equip => {
-    const div = document.createElement('div');
-    div.className = 'doc-item';
-    div.innerHTML = `<span class="doc-lbl">${equip}</span><div class="doc-toggle"><button class="doc-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="doc-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div>`;
-    container.appendChild(div);
-  });
-}
-function buildMecaGrid() {
-  const mecas = ['Voyants tableau de bord', 'Pression des pneus (visuel)', 'Usure des pneus', 'Liquide refroidissement', 'Huile moteur (jauge)', 'Démarrage moteur'];
-  const container = document.getElementById('mecaGrid');
-  container.innerHTML = '';
-  mecas.forEach(meca => {
-    const div = document.createElement('div');
-    div.className = 'doc-item';
-    div.innerHTML = `<span class="doc-lbl">${meca}</span><div class="doc-toggle"><button class="doc-btn" onclick="confToggle(this,'ok')">✓ OK</button><button class="doc-btn" onclick="confToggle(this,'nok')">✗ NOK</button></div>`;
-    container.appendChild(div);
-  });
-}
-function confToggle(btn, state){
-  const parent = btn.closest('.doc-toggle');
-  parent.querySelectorAll('.doc-btn').forEach(b=>b.classList.remove('ok','nok','na'));
-  btn.classList.add(state);
+// ========== WAVE2: GUIDED PHOTO SEQUENCE ==========
+function initPhotoSequence() {
+  // Initialize empty photo slots
+  STATE.seqPhotos = new Array(PHOTO_SEQUENCE.length).fill(null);
+  STATE.seqCurrentIdx = 0;
+  renderPhotoSequence();
 }
 
-// ========== PHOTOS UPLOAD ==========
-function initPhotoSlots() {
-  const extSlots = [{label:'Avant'},{label:'Arrière'},{label:'Côté Gauche'},{label:'Côté Droit'},{label:'Toit'}];
-  const intSlots = [{label:'Tableau de bord'},{label:'Siège AV G'},{label:'Siège AV D'},{label:'Sièges AR'},{label:'Coffre'}];
-  const supSlots = [{label:'Dommage 1'},{label:'Dommage 2'},{label:'Dommage 3'},{label:'Détail 4'},{label:'Détail 5'}];
-  function buildGrid(containerId, slots, type) {
-    const grid = document.getElementById(containerId);
-    grid.innerHTML = '';
-    slots.forEach((slot, idx) => {
-      const div = document.createElement('div');
-      div.className = 'photo-slot';
-      div.setAttribute('data-type', type);
-      div.setAttribute('data-idx', idx);
-      div.innerHTML = `<i class="fas fa-camera ps-ico"></i><span class="ps-lbl">${slot.label}</span><div class="ps-check"><i class="fas fa-check"></i></div><input type="file" accept="image/*" capture="environment" style="display:none">`;
-      div.addEventListener('click', (e) => { e.stopPropagation(); const fileInput = div.querySelector('input'); fileInput.click(); });
-      const fileInput = div.querySelector('input');
-      fileInput.addEventListener('change', (e) => { if(e.target.files.length) handlePhotoUpload(div, e.target.files[0], type, idx); });
-      grid.appendChild(div);
-    });
-  }
-  buildGrid('photoExtGrid', extSlots, 'ext');
-  buildGrid('photoIntGrid', intSlots, 'int');
-  buildGrid('photoSupGrid', supSlots, 'sup');
-}
-function handlePhotoUpload(div, file, type, idx) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    div.classList.add('taken');
-    div.classList.add('has-image');
-    const img = document.createElement('img');
-    img.src = e.target.result;
-    img.className = 'photo-preview';
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.objectFit = 'cover';
-    div.innerHTML = '';
-    div.appendChild(img);
-    const check = document.createElement('div');
-    check.className = 'ps-check';
-    check.innerHTML = '<i class="fas fa-check"></i>';
-    div.appendChild(check);
-    if (type === 'ext') { STATE.photoExt++; if(!STATE.extPhotos) STATE.extPhotos=[]; STATE.extPhotos[idx]={file:file,dataURL:e.target.result}; document.getElementById('photoExtCount').innerText = STATE.photoExt; document.getElementById('photoExtBar').style.width = (STATE.photoExt/5*100)+'%'; }
-    if (type === 'int') { STATE.photoInt++; if(!STATE.intPhotos) STATE.intPhotos=[]; STATE.intPhotos[idx]={file:file,dataURL:e.target.result}; document.getElementById('photoIntCount').innerText = STATE.photoInt; document.getElementById('photoIntBar').style.width = (STATE.photoInt/5*100)+'%'; }
-    if (type === 'sup') { if(!STATE.supPhotos) STATE.supPhotos=[]; STATE.supPhotos[idx]={file:file,dataURL:e.target.result}; }
-    showToast('Photo ajoutée');
-  };
-  reader.readAsDataURL(file);
-}
+function renderPhotoSequence() {
+  var idx = STATE.seqCurrentIdx;
+  var seq = PHOTO_SEQUENCE[idx];
+  var photo = STATE.seqPhotos[idx];
 
-// ========== ZONES AVEC PHOTOS INTÉGRÉES ==========
-const ZONES = ['Pare-choc AV','Pare-choc AR','Capot','Toit','Aile AV G','Aile AV D','Aile AR G','Aile AR D',
-  'Porte AV G','Porte AV D','Porte AR G','Porte AR D','Pare-brise','Coffre','Sièges','Tableau de bord'];
+  // Update counter and view name
+  var counter = document.getElementById('psCounter');
+  var viewName = document.getElementById('psViewName');
+  var sectionLabel = document.getElementById('psSectionLabel');
+  if (counter) counter.textContent = 'PHOTO ' + (idx + 1) + ' / 10';
+  if (viewName) viewName.textContent = seq.viewName;
+  if (sectionLabel) sectionLabel.textContent = seq.category === 'exterior' ? 'Extérieur' : 'Intérieur';
 
-function buildZonesGrid() {
-  const grid = document.getElementById('zonesGrid');
-  grid.innerHTML = '';
-  ZONES.forEach(zone => {
-    const div = document.createElement('div');
-    div.className = 'zone-card';
-    const savedState = STATE.zoneStates[zone] || '';
-    if (savedState) div.classList.add('etat-'+savedState);
-    const photoUrl = STATE.zonePhotos[zone] || null;
+  // Update preview area
+  var previewArea = document.getElementById('psPreviewArea');
+  var placeholder = document.getElementById('psPlaceholder');
+  var cameraBtn = document.getElementById('psCameraBtn');
+  var retakeBtn = document.getElementById('psRetakeBtn');
+  var current = document.getElementById('psCurrent');
 
-    div.innerHTML = `
-      <i class="fas fa-car-side zone-ico"></i>
-      <div class="zone-name">${zone}</div>
-      <select class="zone-selector" data-zone="${zone}" onchange="updateZoneState(this, '${zone}')">
-        <option value="" ${!savedState ? 'selected' : ''}>-</option>
-        <option value="bon" ${savedState === 'bon' ? 'selected' : ''}>✓ Bon</option>
-        <option value="raye" ${savedState === 'raye' ? 'selected' : ''}>~ Rayure</option>
-        <option value="enfonce" ${savedState === 'enfonce' ? 'selected' : ''}>↕ Enfoncement</option>
-        <option value="casse" ${savedState === 'casse' ? 'selected' : ''}>✗ Cassé</option>
-      </select>
-      <div class="zone-photo-area ${savedState && savedState !== 'bon' ? 'show' : ''}" id="zone-photo-${zone.replace(/\s/g,'')}">
-        <div class="zone-photo-preview-wrap"></div>
-        <div class="zone-photo-btns" style="display:flex; gap:4px; align-items:center; flex-wrap:wrap; justify-content:center;">
-          <button class="zone-photo-btn" onclick="triggerZonePhoto('${zone}')">
-            <i class="fas fa-camera"></i> <span class="zone-photo-btn-text">Ajouter photo</span>
-          </button>
-          <input type="file" class="zone-photo-input" id="zone-input-${zone.replace(/\s/g,'')}" accept="image/*" capture="environment" onchange="handleZonePhoto(event, '${zone}')">
-        </div>
-      </div>
-    `;
-    const photoArea = div.querySelector('.zone-photo-area');
-    const photoWrap = photoArea.querySelector('.zone-photo-preview-wrap');
-    const btnText = photoArea.querySelector('.zone-photo-btn-text');
-    const btnContainer = photoArea.querySelector('.zone-photo-btns');
-    if (photoUrl) {
-      const img = document.createElement('img');
-      img.className = 'zone-photo-preview';
-      img.src = photoUrl;
-      img.alt = 'Photo de ' + zone;
-      img.addEventListener('click', () => viewPhoto(photoUrl));
-      photoWrap.appendChild(img);
-      btnText.textContent = 'Changer photo';
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'zone-remove-photo';
-      removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-      removeBtn.addEventListener('click', () => removeZonePhoto(zone));
-      btnContainer.appendChild(removeBtn);
-    }
-    grid.appendChild(div);
-  });
-}
-
-function updateZoneState(sel, zone) {
-  const card = sel.closest('.zone-card');
-  const state = sel.value;
-  STATE.zoneStates[zone] = state;
-  const photoArea = document.getElementById(`zone-photo-${zone.replace(/\s/g,'')}`);
-  if (state && state !== 'bon') {
-    photoArea.classList.add('show');
+  if (photo && photo.objectUrl) {
+    previewArea.classList.add('has-image');
+    previewArea.innerHTML = '<img src="' + photo.objectUrl + '" alt="' + seq.viewName + '">';
+    if (current) current.classList.add('taken');
+    if (cameraBtn) cameraBtn.style.display = 'none';
+    if (retakeBtn) retakeBtn.style.display = 'inline-flex';
   } else {
-    photoArea.classList.remove('show');
-    if (state === 'bon' && STATE.zonePhotos[zone]) {
-      delete STATE.zonePhotos[zone];
-    }
+    previewArea.classList.remove('has-image');
+    previewArea.innerHTML = '<div class="ps-preview-placeholder"><i class="fas fa-camera"></i><span>Cliquez pour prendre la photo</span></div>';
+    if (current) current.classList.remove('taken');
+    if (cameraBtn) cameraBtn.style.display = 'inline-flex';
+    if (retakeBtn) retakeBtn.style.display = 'none';
   }
-  card.className = 'zone-card';
-  if (state) card.classList.add('etat-'+state);
-  refreshDommageList();
-  saveDraft();
-  updRecap();
+
+  // Update thumbnails
+  renderThumbnails();
+
+  // Update nav buttons
+  var prevBtn = document.getElementById('psPrevBtn');
+  var nextBtn = document.getElementById('psNextBtn');
+  if (prevBtn) prevBtn.disabled = (idx === 0);
+  if (nextBtn) nextBtn.disabled = (idx === PHOTO_SEQUENCE.length - 1);
+
+  // Update progress
+  updatePhotoProgress();
 }
 
-function triggerZonePhoto(zone) {
-  const input = document.getElementById(`zone-input-${zone.replace(/\s/g,'')}`);
-  if (input) input.click();
-}
-
-function handleZonePhoto(event, zone) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const photoData = e.target.result;
-    STATE.zonePhotos[zone] = photoData;
-    const photoArea = document.getElementById(`zone-photo-${zone.replace(/\s/g,'')}`);
-    const previewDiv = photoArea.querySelector('.zone-photo-preview');
-    const btn = photoArea.querySelector('.zone-photo-btn');
-    const removeBtn = photoArea.querySelector('.zone-remove-photo');
-    if (previewDiv) {
-      previewDiv.src = photoData;
+function renderThumbnails() {
+  var container = document.getElementById('psThumbnails');
+  if (!container) return;
+  container.innerHTML = '';
+  for (var i = 0; i < PHOTO_SEQUENCE.length; i++) {
+    var thumb = document.createElement('div');
+    thumb.className = 'ps-thumb';
+    if (STATE.seqPhotos[i]) thumb.classList.add('taken');
+    if (i === STATE.seqCurrentIdx) thumb.classList.add('current');
+    var photo = STATE.seqPhotos[i];
+    if (photo && photo.objectUrl) {
+      thumb.innerHTML = '<img src="' + photo.objectUrl + '" alt="' + PHOTO_SEQUENCE[i].viewName + '">';
     } else {
-      const img = document.createElement('img');
-      img.className = 'zone-photo-preview';
-      img.src = photoData;
-      img.onclick = function() { viewPhoto(photoData); };
-      photoArea.insertBefore(img, photoArea.querySelector('div'));
+      thumb.innerHTML = '<div class="ps-thumb-num">' + (i + 1) + '</div>';
     }
-    if (btn) btn.innerHTML = '<i class="fas fa-camera"></i> Changer photo';
-    if (!removeBtn) {
-      const newRemove = document.createElement('button');
-      newRemove.className = 'zone-remove-photo';
-      newRemove.innerHTML = '<i class="fas fa-times"></i>';
-      newRemove.onclick = function() { removeZonePhoto(zone); };
-      photoArea.querySelector('div').appendChild(newRemove);
-    }
-    refreshDommageList();
-    saveDraft();
-    updRecap();
-    showToast('Photo ajoutée pour ' + zone);
-  };
-  reader.readAsDataURL(file);
+    thumb.setAttribute('onclick', 'goSeqPhoto(' + i + ')');
+    container.appendChild(thumb);
+  }
 }
 
-function removeZonePhoto(zone) {
-  delete STATE.zonePhotos[zone];
-  const photoArea = document.getElementById(`zone-photo-${zone.replace(/\s/g,'')}`);
-  const preview = photoArea.querySelector('.zone-photo-preview');
-  if (preview) preview.remove();
-  const btn = photoArea.querySelector('.zone-photo-btn');
-  if (btn) btn.innerHTML = '<i class="fas fa-camera"></i> Ajouter photo';
-  const removeBtn = photoArea.querySelector('.zone-remove-photo');
-  if (removeBtn) removeBtn.remove();
-  refreshDommageList();
-  saveDraft();
+function updatePhotoProgress() {
+  var count = 0;
+  for (var i = 0; i < STATE.seqPhotos.length; i++) {
+    if (STATE.seqPhotos[i]) count++;
+  }
+  var countEl = document.getElementById('photoSeqCount');
+  var barEl = document.getElementById('photoSeqBar');
+  if (countEl) countEl.textContent = count;
+  if (barEl) barEl.style.width = (count / 10 * 100) + '%';
+}
+
+function triggerSeqPhoto() {
+  var input = document.getElementById('psFileInput');
+  if (input) {
+    input.value = ''; // reset to allow re-taking same photo
+    input.click();
+  }
+}
+
+function handleSeqPhoto(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var idx = STATE.seqCurrentIdx;
+
+  // WAVE2: Use ObjectURL instead of dataURL for memory efficiency
+  // Cleanup old ObjectURL if replacing
+  var oldPhoto = STATE.seqPhotos[idx];
+  if (oldPhoto && oldPhoto.objectUrl) {
+    URL.revokeObjectURL(oldPhoto.objectUrl);
+  }
+
+  var mime = resolveImageMimeType(file, (file.name || 'jpg').split('.').pop().toLowerCase());
+  var objectUrl = URL.createObjectURL(file);
+
+  STATE.seqPhotos[idx] = {
+    blob: file,
+    mime: mime,
+    size: file.size,
+    viewName: PHOTO_SEQUENCE[idx].viewName,
+    category: PHOTO_SEQUENCE[idx].category,
+    objectUrl: objectUrl
+  };
+
+  renderPhotoSequence();
+  saveDraft(); // WAVE2: persist to IndexedDB immediately
   updRecap();
-  showToast('Photo supprimée pour ' + zone);
+  showToast('Photo ' + (idx + 1) + '/10 ajoutée');
+
+  // WAVE2B: Check if signatures need invalidation after photo change
+  checkSignatureValidity();
+
+  // Auto-advance to next photo if not last
+  if (idx < PHOTO_SEQUENCE.length - 1) {
+    setTimeout(function() { nextSeqPhoto(); }, 500);
+  }
+}
+
+function nextSeqPhoto() {
+  if (STATE.seqCurrentIdx < PHOTO_SEQUENCE.length - 1) {
+    STATE.seqCurrentIdx++;
+    renderPhotoSequence();
+  }
+}
+
+function prevSeqPhoto() {
+  if (STATE.seqCurrentIdx > 0) {
+    STATE.seqCurrentIdx--;
+    renderPhotoSequence();
+  }
+}
+
+function goSeqPhoto(idx) {
+  if (idx >= 0 && idx < PHOTO_SEQUENCE.length) {
+    STATE.seqCurrentIdx = idx;
+    renderPhotoSequence();
+  }
 }
 
 function viewPhoto(src) {
   Swal.fire({
     imageUrl: src,
-    imageAlt: 'Photo du dommage',
+    imageAlt: 'Photo',
     showCloseButton: true,
     confirmButtonColor: 'var(--bordeaux)',
     confirmButtonText: 'Fermer',
@@ -1137,56 +1433,122 @@ function viewPhoto(src) {
   });
 }
 
-// ========== DOMMAGES (pour le récapitulatif) ==========
-function refreshDommageList() {
-  const newDommages = [];
-  ZONES.forEach(zone => {
-    const state = STATE.zoneStates[zone];
-    if (state && state !== 'bon') {
-      const typeMap = { raye: 'Rayure', enfonce: 'Enfoncement', casse: 'Cassé' };
-      newDommages.push({
-        zone: zone,
-        type: typeMap[state] || state,
-        desc: state === 'raye' ? 'Rayure constatée' : (state === 'enfonce' ? 'Enfoncement constaté' : 'Cassure constatée'),
-        photo: STATE.zonePhotos[zone] || null
-      });
-    }
+// ========== WAVE2: DOMMAGES FLOW (VEHICLE_ASSUMED_OK_EXCEPT_DECLARED_DAMAGE) ==========
+function addDommage() {
+  STATE.dommages.push({
+    zone: '',
+    type: '',
+    desc: '',
+    photoBlob: null,
+    photoMime: null,
+    photoUrl: null
   });
-  STATE.dommages = newDommages;
+  renderDommageCards();
+  saveDraft();
+  updRecap();
+}
 
-  const list = document.getElementById('dommageList');
+function removeDommage(idx) {
+  // Cleanup ObjectURL
+  if (STATE.dommages[idx] && STATE.dommages[idx].photoUrl) {
+    URL.revokeObjectURL(STATE.dommages[idx].photoUrl);
+  }
+  STATE.dommages.splice(idx, 1);
+  renderDommageCards();
+  saveDraft();
+  updRecap();
+}
+
+function updateDommageField(idx, field, value) {
+  if (!STATE.dommages[idx]) return;
+  STATE.dommages[idx][field] = value;
+  saveDraft();
+  updRecap();
+  // WAVE2B: Material change — check signature validity
+  checkSignatureValidity();
+}
+
+function triggerDommagePhoto(idx) {
+  var input = document.getElementById('dommage-photo-input-' + idx);
+  if (input) {
+    input.value = '';
+    input.click();
+  }
+}
+
+function handleDommagePhoto(event, idx) {
+  var file = event.target.files[0];
+  if (!file) return;
+  if (!STATE.dommages[idx]) return;
+
+  // Cleanup old ObjectURL
+  if (STATE.dommages[idx].photoUrl) {
+    URL.revokeObjectURL(STATE.dommages[idx].photoUrl);
+  }
+
+  var mime = resolveImageMimeType(file, (file.name || 'jpg').split('.').pop().toLowerCase());
+  var objectUrl = URL.createObjectURL(file);
+
+  STATE.dommages[idx].photoBlob = file;
+  STATE.dommages[idx].photoMime = mime;
+  STATE.dommages[idx].photoUrl = objectUrl;
+
+  // Update the photo zone UI
+  var zone = document.getElementById('dommage-photo-zone-' + idx);
+  if (zone) {
+    zone.classList.add('has-photo');
+    zone.innerHTML = '<img src="' + objectUrl + '" alt="Photo du dommage">';
+  }
+  saveDraft();
+  showToast('Photo du dommage ajoutée');
+}
+
+function renderDommageCards() {
+  var container = document.getElementById('dommageCards');
+  var empty = document.getElementById('dommageEmpty');
+  if (!container) return;
+
   if (STATE.dommages.length === 0) {
-    list.innerHTML = '<div style="font-size:0.7rem; color:var(--gray-mid)">Aucun dommage signalé.</div>';
+    container.innerHTML = '';
+    if (empty) empty.style.display = 'block';
     return;
   }
-  list.innerHTML = '';
-  STATE.dommages.forEach((d, i) => {
-    const div = document.createElement('div');
-    div.className = 'dommage-item';
-    if (d.photo) {
-      const img = document.createElement('img');
-      img.src = d.photo;
-      img.className = 'dommage-photo';
-      img.alt = 'Photo du dommage';
-      img.addEventListener('click', () => viewPhoto(d.photo));
-      div.appendChild(img);
+  if (empty) empty.style.display = 'none';
+
+  container.innerHTML = '';
+  STATE.dommages.forEach(function(d, i) {
+    var card = document.createElement('div');
+    card.className = 'dommage-card';
+
+    var zoneOptions = DOMMAGE_ZONES.map(function(z) {
+      return '<option value="' + escapeHtml(z) + '"' + (d.zone === z ? ' selected' : '') + '>' + escapeHtml(z) + '</option>';
+    }).join('');
+
+    var typeOptions = DOMMAGE_TYPES.map(function(t) {
+      return '<option value="' + escapeHtml(t) + '"' + (d.type === t ? ' selected' : '') + '>' + escapeHtml(t) + '</option>';
+    }).join('');
+
+    var photoHtml = '';
+    if (d.photoUrl) {
+      photoHtml = '<div class="dommage-photo-zone has-photo" id="dommage-photo-zone-' + i + '" onclick="triggerDommagePhoto(' + i + ')"><img src="' + d.photoUrl + '" alt="Photo du dommage"></div>';
     } else {
-      const ico = document.createElement('i');
-      ico.className = 'fas fa-exclamation-triangle dommage-item-ico';
-      div.appendChild(ico);
+      photoHtml = '<div class="dommage-photo-zone" id="dommage-photo-zone-' + i + '" onclick="triggerDommagePhoto(' + i + ')"><i class="fas fa-camera dpz-ico"></i><span class="dpz-label">Photo obligatoire</span><span class="dommage-photo-required">* Requis</span></div>';
     }
-    const info = document.createElement('div');
-    info.className = 'dommage-info';
-    const zone = document.createElement('div');
-    zone.className = 'dommage-zone';
-    zone.textContent = `${d.zone} - ${d.type}`;
-    const desc = document.createElement('div');
-    desc.className = 'dommage-desc';
-    desc.textContent = d.desc;
-    info.appendChild(zone);
-    info.appendChild(desc);
-    div.appendChild(info);
-    list.appendChild(div);
+
+    card.innerHTML =
+      '<div class="dommage-card-header">' +
+        '<div class="dommage-card-title">Dommage #' + (i + 1) + '</div>' +
+        '<button class="dommage-card-del" onclick="removeDommage(' + i + ')"><i class="fas fa-times"></i></button>' +
+      '</div>' +
+      '<div class="dommage-fields">' +
+        '<div class="dommage-field"><label>Zone</label><select onchange="updateDommageField(' + i + ', \'zone\', this.value)"><option value="">— Sélectionner —</option>' + zoneOptions + '</select></div>' +
+        '<div class="dommage-field"><label>Type</label><select onchange="updateDommageField(' + i + ', \'type\', this.value)"><option value="">— Sélectionner —</option>' + typeOptions + '</select></div>' +
+      '</div>' +
+      '<div class="dommage-field"><label>Commentaire (optionnel)</label><textarea rows="2" placeholder="Description du dommage..." oninput="updateDommageField(' + i + ', \'desc\', this.value)">' + escapeHtml(d.desc || '') + '</textarea></div>' +
+      '<input type="file" accept="image/*" capture="environment" id="dommage-photo-input-' + i + '" style="display:none" onchange="handleDommagePhoto(event, ' + i + ')">' +
+      photoHtml;
+
+    container.appendChild(card);
   });
 }
 
@@ -1281,21 +1643,33 @@ function clearSig(id) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (id === 'sigConv') {
     STATE.sigConvDone = false;
+    if (STATE.sigConvUrl) URL.revokeObjectURL(STATE.sigConvUrl);
+    STATE.sigConvBlob = null;
+    STATE.sigConvUrl = null;
+    STATE.sigConvSignedAt = null;
+    STATE.sigConvSnapshotHash = null;
     const doneEl = document.getElementById('sigConvDone');
     const dateEl = document.getElementById('sigConvDate');
     if (doneEl) doneEl.classList.remove('show');
     if (dateEl) dateEl.value = '';
   } else if (id === 'sigCli') {
     STATE.sigCliDone = false;
+    if (STATE.sigCliUrl) URL.revokeObjectURL(STATE.sigCliUrl);
+    STATE.sigCliBlob = null;
+    STATE.sigCliUrl = null;
+    STATE.sigCliSignedAt = null;
+    STATE.sigCliSnapshotHash = null;
     const doneEl = document.getElementById('sigCliDone');
     const dateEl = document.getElementById('sigCliDate');
     if (doneEl) doneEl.classList.remove('show');
     if (dateEl) dateEl.value = '';
   }
   showToast('Signature effacée');
+  saveDraft();
 }
 
-function saveSig(canvasId, doneId, dateId) {
+// WAVE2B: saveSig now persists PNG Blob to IndexedDB + computes signedSnapshotHash
+async function saveSig(canvasId, doneId, dateId) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) {
     showToast('Canvas introuvable', 'error');
@@ -1315,6 +1689,14 @@ function saveSig(canvasId, doneId, dateId) {
     return;
   }
 
+  // WAVE2B: Convert canvas to PNG Blob (preserves MIME fix)
+  var dataURL = canvas.toDataURL('image/png');
+  var blob = dataURLtoBlob(dataURL);
+
+  // WAVE2B: Compute signed snapshot hash at sign time
+  var snapshotHash = await computeEdlSnapshotHash();
+  var signedAt = Date.now();
+
   const now = new Date().toLocaleString('fr-FR', {
     day: 'numeric',
     month: 'long',
@@ -1327,13 +1709,31 @@ function saveSig(canvasId, doneId, dateId) {
   if (dateEl) dateEl.value = now;
   if (doneEl) doneEl.classList.add('show');
 
-  if (canvasId === 'sigConv') STATE.sigConvDone = true;
-  if (canvasId === 'sigCli') STATE.sigCliDone = true;
+  if (canvasId === 'sigConv') {
+    // Cleanup old ObjectURL if replacing
+    if (STATE.sigConvUrl) URL.revokeObjectURL(STATE.sigConvUrl);
+    STATE.sigConvBlob = blob;
+    STATE.sigConvUrl = URL.createObjectURL(blob);
+    STATE.sigConvSignedAt = signedAt;
+    STATE.sigConvSnapshotHash = snapshotHash;
+    STATE.sigConvDone = true;
+  }
+  if (canvasId === 'sigCli') {
+    if (STATE.sigCliUrl) URL.revokeObjectURL(STATE.sigCliUrl);
+    STATE.sigCliBlob = blob;
+    STATE.sigCliUrl = URL.createObjectURL(blob);
+    STATE.sigCliSignedAt = signedAt;
+    STATE.sigCliSnapshotHash = snapshotHash;
+    STATE.sigCliDone = true;
+  }
+  STATE.sigInvalidatedNotice = null;
   showToast('Signature enregistrée');
+  updRecap();
+  saveDraft(); // WAVE2B: persist signature Blob + hash to IndexedDB
 }
 
 // ========== AUTRES FONCTIONS ==========
-function updFuel(v){ STATE.fuelValue = v; document.getElementById('fuelVal').innerHTML = v+'%'; }
+function updFuel(v){ STATE.fuelValue = v; document.getElementById('fuelVal').innerHTML = v+'%'; checkSignatureValidity(); }
 function fmtPlaque(inp){ let v=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,''); if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2); if(v.length>6)v=v.slice(0,6)+'-'+v.slice(6); inp.value=v; }
 
 // ========== SUPABASE ==========
@@ -1593,9 +1993,28 @@ async function initSupabaseEdl() {
     _edlMissionPhase = _missionPhase;
 
     // =========================================================
-    // DRAFT LOAD (WAVE 2B.3A — after auth + mission load + phase gate)
+    // DRAFT LOAD (WAVE2 — IndexedDB, after auth + mission load + phase gate)
+    // SERVER_STATE_ALWAYS_WINS: phase gate already passed above.
+    // If the server phase has moved forward (e.g. in_progress), we already
+    // returned with a gate error. If we reach here, the draft is valid.
+    // Additionally, clean up stale drafts for the OTHER edl type if phase
+    // has moved forward.
     // =========================================================
     _edlUserId = _sessionUserId;
+    _edlMissionId = missionId;
+
+    // WAVE2: Clean up stale drafts for the opposite edl type if phase moved
+    // e.g. if we're doing arrivee (in_progress), delete any depart draft
+    if (window.EdlPhotoDraft && _edlMissionId && _edlUserId) {
+      try {
+        if (_requestedType === 'arrivee') {
+          // Mission is in_progress → any depart draft is stale
+          await window.EdlPhotoDraft.deleteDraftByType(_edlMissionId, _edlUserId, 'depart');
+        }
+      } catch (e) { console.warn('Stale draft cleanup failed:', e); }
+    }
+
+    // WAVE2: Load IndexedDB draft (async)
     loadDraft();
 
     // =========================================================
@@ -1741,8 +2160,16 @@ function updRecap(){
   document.getElementById('recPlaque').textContent = document.getElementById('vPlaque')?.value || '-';
   document.getElementById('recVehicule').textContent = (document.getElementById('vMarque')?.value||'')+' '+(document.getElementById('vModele')?.value||'');
   document.getElementById('recFuel').textContent = STATE.fuelValue+'%';
-  document.getElementById('recPhotoExt').textContent = STATE.photoExt+'/5';
-  document.getElementById('recPhotoInt').textContent = STATE.photoInt+'/5';
+  // WAVE2: count from seqPhotos
+  var extCount = 0, intCount = 0;
+  for (var i = 0; i < STATE.seqPhotos.length; i++) {
+    if (STATE.seqPhotos[i]) {
+      if (PHOTO_SEQUENCE[i].category === 'exterior') extCount++;
+      else intCount++;
+    }
+  }
+  document.getElementById('recPhotoExt').textContent = extCount+'/5';
+  document.getElementById('recPhotoInt').textContent = intCount+'/5';
   document.getElementById('recDommages').textContent = STATE.dommages.length;
   document.getElementById('recSigConv').textContent = STATE.sigConvDone ? 'Signée' : 'En attente';
   document.getElementById('recSigCli').textContent = STATE.sigCliDone ? 'Signée' : 'En attente';
@@ -1775,6 +2202,137 @@ function resolveImageMimeType(file, extOrName){
   return 'image/jpeg';
 }
 
+// ========== WAVE2B: SIGNED SNAPSHOT HASH ==========
+// Computes a SHA-256 hash of the material EDL state that a signature covers.
+// If this hash changes after signing, the signature is invalidated.
+// SIGN_ONCE_UNLESS_SIGNED_CONTENT_CHANGES
+// What is hashed (stable/canonical data only — NOT ObjectURLs):
+//   - mission_id
+//   - edl_type
+//   - vehicle plaque/marque/modele
+//   - kilométrage
+//   - carburant/batterie
+//   - photo count (exterior + interior) + photo sizes (not URLs)
+//   - dommages (zone, type, desc, hasPhoto)
+//   - observations
+async function computeEdlSnapshotHash() {
+  var snapshot = {
+    mission_id: _edlMissionId || '',
+    edl_type: STATE.edlType,
+    vPlaque: document.getElementById('vPlaque')?.value || '',
+    vMarque: document.getElementById('vMarque')?.value || '',
+    vModele: document.getElementById('vModele')?.value || '',
+    vKm: document.getElementById('vKm')?.value || '',
+    fuelValue: STATE.fuelValue,
+    photos: [],
+    dommages: [],
+    obsGenerales: document.getElementById('obsGenerales')?.value || ''
+  };
+  // Photo references — stable data only (size + viewName, NOT ObjectURLs)
+  for (var i = 0; i < STATE.seqPhotos.length; i++) {
+    if (STATE.seqPhotos[i]) {
+      snapshot.photos.push({
+        order: i,
+        viewName: PHOTO_SEQUENCE[i].viewName,
+        category: PHOTO_SEQUENCE[i].category,
+        size: STATE.seqPhotos[i].size || 0,
+        mime: STATE.seqPhotos[i].mime || ''
+      });
+    }
+  }
+  // Dommages — stable data only
+  for (var j = 0; j < STATE.dommages.length; j++) {
+    var d = STATE.dommages[j];
+    snapshot.dommages.push({
+      zone: d.zone || '',
+      type: d.type || '',
+      desc: d.desc || '',
+      hasPhoto: !!d.photoBlob
+    });
+  }
+  var canonical = JSON.stringify(snapshot, Object.keys(snapshot).sort());
+  // Use Web Crypto API SHA-256
+  if (window.crypto && window.crypto.subtle) {
+    try {
+      var enc = new TextEncoder();
+      var buf = await window.crypto.subtle.digest('SHA-256', enc.encode(canonical));
+      var hashHex = '';
+      var bytes = new Uint8Array(buf);
+      for (var k = 0; k < bytes.length; k++) {
+        hashHex += bytes[k].toString(16).padStart(2, '0');
+      }
+      return hashHex;
+    } catch (e) {
+      // Fallback: simple hash if Web Crypto fails
+      return simpleHash(canonical);
+    }
+  }
+  return simpleHash(canonical);
+}
+
+// Fallback hash if Web Crypto is not available
+function simpleHash(str) {
+  var hash = 0;
+  for (var i = 0; i < str.length; i++) {
+    var char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return 'fallback_' + Math.abs(hash).toString(16);
+}
+
+// Check if a signature's snapshot hash is still valid
+async function isSignatureStillValid(storedHash) {
+  if (!storedHash) return false;
+  var currentHash = await computeEdlSnapshotHash();
+  return currentHash === storedHash;
+}
+
+// Invalidate signatures if material content changed since signing
+async function checkSignatureValidity() {
+  if (STATE.sigConvSnapshotHash) {
+    var convValid = await isSignatureStillValid(STATE.sigConvSnapshotHash);
+    if (!convValid) {
+      invalidateSignature('convoyeur');
+    }
+  }
+  if (STATE.sigCliSnapshotHash) {
+    var cliValid = await isSignatureStillValid(STATE.sigCliSnapshotHash);
+    if (!cliValid) {
+      invalidateSignature('client');
+    }
+  }
+}
+
+// Invalidate a specific signature and notify the user
+function invalidateSignature(role) {
+  if (role === 'convoyeur') {
+    if (STATE.sigConvUrl) URL.revokeObjectURL(STATE.sigConvUrl);
+    STATE.sigConvBlob = null;
+    STATE.sigConvUrl = null;
+    STATE.sigConvSignedAt = null;
+    STATE.sigConvSnapshotHash = null;
+    STATE.sigConvDone = false;
+  } else if (role === 'client') {
+    if (STATE.sigCliUrl) URL.revokeObjectURL(STATE.sigCliUrl);
+    STATE.sigCliBlob = null;
+    STATE.sigCliUrl = null;
+    STATE.sigCliSignedAt = null;
+    STATE.sigCliSnapshotHash = null;
+    STATE.sigCliDone = false;
+  }
+  // Clear the canvas
+  var canvas = document.getElementById(role === 'convoyeur' ? 'sigConv' : 'sigCli');
+  if (canvas) {
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  STATE.sigInvalidatedNotice = 'L\'état des lieux a été modifié depuis la signature. La signature ' + (role === 'convoyeur' ? 'convoyeur' : 'client') + ' doit être renouvelée.';
+  showToast(STATE.sigInvalidatedNotice, 'error');
+  updRecap();
+  saveDraft();
+}
+
 async function uploadFile(client, bucket, path, file, contentType){
   const opts = contentType ? { contentType } : {};
   const { error } = await client.storage.from(bucket).upload(path, file, opts);
@@ -1786,10 +2344,15 @@ async function validateEdl(){
   // WAVE 2B.3A: frontend gate
   if (!_edlReady) { showToast('État des lieux non initialisé', 'error'); return; }
   if(!STATE.sigConvDone || !STATE.sigCliDone){ showToast('Les deux signatures sont requises', 'error'); return; }
-  // WAVE 2B.3A: check actual photo files, not just counters
-  const extFiles = (STATE.extPhotos || []).filter(p => p).length;
-  const intFiles = (STATE.intPhotos || []).filter(p => p).length;
-  if(extFiles<5 || intFiles<5){ showToast('10 photos obligatoires (5 extérieur + 5 intérieur)', 'error'); return; }
+  // WAVE2: check photo sequence — 5 exterior + 5 interior
+  var extCount = 0, intCount = 0;
+  for (var i = 0; i < STATE.seqPhotos.length; i++) {
+    if (STATE.seqPhotos[i]) {
+      if (PHOTO_SEQUENCE[i].category === 'exterior') extCount++;
+      else intCount++;
+    }
+  }
+  if(extCount<5 || intCount<5){ showToast('10 photos obligatoires (5 extérieur + 5 intérieur)', 'error'); return; }
   if(STATE.edlType === 'arrivee' && !STATE.finMissionSelfie){ showToast('La photo de fin de mission est obligatoire pour valider l\'arrivée', 'error'); return; }
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -1823,49 +2386,68 @@ async function validateEdl(){
     const edlType = STATE.edlType === 'depart' ? 'departure' : 'arrival';
     const prefix = `missions/${missionId}/edl/${edlType}/`;
 
-    // Upload exterior photos
-    for (let i = 0; i < (STATE.extPhotos || []).length && i < 5; i++) {
-      const f = STATE.extPhotos[i];
-      if (!f || !f.file) continue;
-      const ext = (f.file.name || 'jpg').split('.').pop().toLowerCase() || 'jpg';
-      const path = prefix + `ext_${ts}_${i}.${ext}`;
-      const contentType = resolveImageMimeType(f.file, ext);
-      await uploadFile(client, 'convoyeur-media', path, f.file, contentType);
+    // WAVE2: Upload exterior photos from guided sequence
+    var extIdx = 0;
+    for (var i = 0; i < STATE.seqPhotos.length; i++) {
+      if (!STATE.seqPhotos[i]) continue;
+      if (PHOTO_SEQUENCE[i].category !== 'exterior') continue;
+      var p = STATE.seqPhotos[i];
+      var ext = (p.blob.name || 'jpg').split('.').pop().toLowerCase() || 'jpg';
+      var path = prefix + `ext_${ts}_${extIdx}.${ext}`;
+      var contentType = resolveImageMimeType(p.blob, ext);
+      await uploadFile(client, 'convoyeur-media', path, p.blob, contentType);
       evidence.push({ type: 'exterior_photo', bucket: 'convoyeur-media', path });
+      extIdx++;
     }
 
-    // Upload interior photos
-    for (let i = 0; i < (STATE.intPhotos || []).length && i < 5; i++) {
-      const f = STATE.intPhotos[i];
-      if (!f || !f.file) continue;
-      const ext = (f.file.name || 'jpg').split('.').pop().toLowerCase() || 'jpg';
-      const path = prefix + `int_${ts}_${i}.${ext}`;
-      const contentType = resolveImageMimeType(f.file, ext);
-      await uploadFile(client, 'convoyeur-media', path, f.file, contentType);
-      evidence.push({ type: 'interior_photo', bucket: 'convoyeur-media', path });
+    // WAVE2: Upload interior photos from guided sequence
+    var intIdx = 0;
+    for (var j = 0; j < STATE.seqPhotos.length; j++) {
+      if (!STATE.seqPhotos[j]) continue;
+      if (PHOTO_SEQUENCE[j].category !== 'interior') continue;
+      var ip = STATE.seqPhotos[j];
+      var iext = (ip.blob.name || 'jpg').split('.').pop().toLowerCase() || 'jpg';
+      var ipath = prefix + `int_${ts}_${intIdx}.${iext}`;
+      var icontentType = resolveImageMimeType(ip.blob, iext);
+      await uploadFile(client, 'convoyeur-media', ipath, ip.blob, icontentType);
+      evidence.push({ type: 'interior_photo', bucket: 'convoyeur-media', path: ipath });
+      intIdx++;
     }
 
-    // Upload convoyeur signature
-    const sigConvCanvas = document.getElementById('sigConv');
-    if (sigConvCanvas) {
-      const blob = dataURLtoBlob(sigConvCanvas.toDataURL());
+    // WAVE2B: Upload convoyeur signature (PNG Blob from STATE — preserves MIME fix)
+    if (STATE.sigConvBlob) {
       const path = prefix + `sig_conv_${ts}.png`;
-      await uploadFile(client, 'convoyeur-media', path, blob, 'image/png');
+      await uploadFile(client, 'convoyeur-media', path, STATE.sigConvBlob, 'image/png');
       evidence.push({ type: 'convoyeur_signature', bucket: 'convoyeur-media', path });
+    } else {
+      // Fallback: try canvas directly (shouldn't happen with Wave2B persistence)
+      const sigConvCanvas = document.getElementById('sigConv');
+      if (sigConvCanvas) {
+        const blob = dataURLtoBlob(sigConvCanvas.toDataURL('image/png'));
+        const path = prefix + `sig_conv_${ts}.png`;
+        await uploadFile(client, 'convoyeur-media', path, blob, 'image/png');
+        evidence.push({ type: 'convoyeur_signature', bucket: 'convoyeur-media', path });
+      }
     }
 
-    // Upload client signature
-    const sigCliCanvas = document.getElementById('sigCli');
-    if (sigCliCanvas) {
-      const blob = dataURLtoBlob(sigCliCanvas.toDataURL());
+    // WAVE2B: Upload client signature (PNG Blob from STATE — preserves MIME fix)
+    if (STATE.sigCliBlob) {
       const path = prefix + `sig_client_${ts}.png`;
-      await uploadFile(client, 'convoyeur-media', path, blob, 'image/png');
+      await uploadFile(client, 'convoyeur-media', path, STATE.sigCliBlob, 'image/png');
       evidence.push({ type: 'client_signature', bucket: 'convoyeur-media', path });
+    } else {
+      const sigCliCanvas = document.getElementById('sigCli');
+      if (sigCliCanvas) {
+        const blob = dataURLtoBlob(sigCliCanvas.toDataURL('image/png'));
+        const path = prefix + `sig_client_${ts}.png`;
+        await uploadFile(client, 'convoyeur-media', path, blob, 'image/png');
+        evidence.push({ type: 'client_signature', bucket: 'convoyeur-media', path });
+      }
     }
 
-    // Upload arrival selfie
+    // Upload arrival selfie (File/Blob + explicit MIME)
     if (STATE.edlType === 'arrivee' && STATE.finMissionSelfie) {
-      const ext = STATE.finMissionSelfie.name.split('.').pop().toLowerCase();
+      const ext = (STATE.finMissionSelfie.name || 'jpg').split('.').pop().toLowerCase();
       const path = prefix + `selfie_${ts}.${ext}`;
       const contentType = resolveImageMimeType(STATE.finMissionSelfie, ext);
       await uploadFile(client, 'convoyeur-media', path, STATE.finMissionSelfie, contentType);
@@ -1896,6 +2478,18 @@ async function validateEdl(){
       console.warn("Email non envoyé, mais EDL enregistré:", emailErr);
     }
 
+    // WAVE2: Clear IndexedDB draft ONLY after confirmed success
+    // DRAFT_CLEARED_ON_SUCCESS — uploads + backend validation both succeeded
+    try {
+      if (window.EdlPhotoDraft && _edlMissionId && _edlUserId) {
+        await window.EdlPhotoDraft.clearDraft(_edlMissionId, _edlUserId, STATE.edlType);
+      }
+    } catch (clearErr) {
+      console.warn('Draft cleanup failed (non-blocking):', clearErr);
+    }
+    // Also clear legacy localStorage draft
+    localStorage.removeItem('bathily_edl_draft');
+
     Swal.fire({
       title: 'État des lieux validé !',
       text: 'L\'EDL a été validé côté serveur. Référence : ' + data,
@@ -1906,10 +2500,12 @@ async function validateEdl(){
       document.getElementById('successFinal').classList.add('show');
       document.getElementById('finalNav').style.display = 'none';
       window.scrollTo({top:document.getElementById('successFinal').offsetTop-80,behavior:'smooth'});
-      localStorage.removeItem('bathily_edl_draft');
     });
+    // WAVE2: If validation fails, the catch block below runs.
+    // DRAFT_PRESERVED_ON_FAILURE — IndexedDB draft is NOT cleared.
 
   } catch (err) {
+    // WAVE2: DRAFT_PRESERVED=YES — draft is kept in IndexedDB for retry
     Swal.fire({
       title: 'Erreur',
       text: 'Impossible d\'enregistrer l\'État des lieux : ' + err.message,
@@ -1943,36 +2539,38 @@ function printEdl() {
   document.getElementById('pSigConvNom').textContent = document.getElementById('sigConvNom')?.value || '_______________';
   document.getElementById('pSigCliNom').textContent = document.getElementById('sigCliNom')?.value || '_______________';
 
-  // Remplir le tableau des zones (avec photos)
-  const zonesBody = document.getElementById('printZonesBody');
-  zonesBody.innerHTML = '';
-  ZONES.forEach(zone => {
-    const state = STATE.zoneStates[zone] || '';
-    const photo = STATE.zonePhotos[zone] || '';
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${zone}</td>
-      <td style="text-align:center;">${state === 'bon' ? '✓' : ''}</td>
-      <td style="text-align:center;">${state === 'raye' ? '✓' : ''}</td>
-      <td style="text-align:center;">${state === 'enfonce' ? '✓' : ''}</td>
-      <td style="text-align:center;">${state === 'casse' ? '✓' : ''}</td>
-      <td style="text-align:center; font-size:8pt;">${photo ? '📷 Photo' : ''}</td>
-    `;
-    zonesBody.appendChild(tr);
-  });
+  // WAVE2: Remplir le tableau des dommages déclarés
+  // LEGACY_UNCHECKED_DATA_DOES_NOT_FAKE_VALIDATION
+  // Ne pas afficher "Bon" pour les zones non vérifiées individuellement.
+  const dommagesBody = document.getElementById('printDommagesBody');
+  dommagesBody.innerHTML = '';
+  if (STATE.dommages.length === 0) {
+    dommagesBody.innerHTML = '<tr><td colspan="4" style="font-style:italic; color:#999;">Aucun dommage déclaré. Véhicule réputé en bon état.</td></tr>';
+  } else {
+    STATE.dommages.forEach(function(d) {
+      var hasPhoto = !!d.photoBlob;
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + escapeHtml(d.zone || '—') + '</td>' +
+        '<td>' + escapeHtml(d.type || '—') + '</td>' +
+        '<td style="font-size:8pt;">' + escapeHtml(d.desc || '') + '</td>' +
+        '<td style="text-align:center; font-size:8pt;">' + (hasPhoto ? '📷 Photo' : '') + '</td>';
+      dommagesBody.appendChild(tr);
+    });
+  }
 
-  // Remplir le tableau des documents
-  const docsBody = document.getElementById('printDocsBody');
-  docsBody.innerHTML = '';
-  const docs = ['Carte grise','Assurance','Clé principale','Clé de secours','Manuel du propriétaire',
-    'Roue de secours / Kit','Triangle','Gilet de sécurité','Câble de recharge EV','Vignette Crit\'Air'];
-  docs.forEach(doc => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${doc}</td>
-      <td style="text-align:center;"><span class="pe-checkbox"></span></td>
-      <td style="text-align:center;"><span class="pe-checkbox"></span></td>`;
-    docsBody.appendChild(tr);
-  });
+  // WAVE2: Photos summary
+  const photosSummary = document.getElementById('printPhotosSummary');
+  if (photosSummary) {
+    var extCount = 0, intCount = 0;
+    for (var i = 0; i < STATE.seqPhotos.length; i++) {
+      if (STATE.seqPhotos[i]) {
+        if (PHOTO_SEQUENCE[i].category === 'exterior') extCount++;
+        else intCount++;
+      }
+    }
+    photosSummary.innerHTML = 'Photos extérieur : ' + extCount + '/5 — Photos intérieur : ' + intCount + '/5' +
+      (STATE.dommages.length > 0 ? ' — Photos dommages : ' + STATE.dommages.filter(function(d) { return d.photoBlob; }).length : '');
+  }
 
   // Observations
   const obsVal = document.getElementById('obsGenerales')?.value || '';
@@ -1989,7 +2587,14 @@ function printEdl() {
 
 function openModal(id){ const el=document.getElementById(id); if(el) el.style.display='flex'; }
 function closeModal(id){ const el=document.getElementById(id); if(el) el.style.display='none'; }
-function newEdl(){ localStorage.removeItem('bathily_edl_draft'); window.location.reload(); }
+function newEdl(){
+  localStorage.removeItem('bathily_edl_draft');
+  // WAVE2: Also clear IndexedDB draft
+  if (window.EdlPhotoDraft && _edlMissionId && _edlUserId) {
+    window.EdlPhotoDraft.clearDraft(_edlMissionId, _edlUserId, STATE.edlType).catch(function(){});
+  }
+  window.location.reload();
+}
 
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.style.display='none';}));
 document.querySelectorAll('.pb-step').forEach(step=>{step.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const onclick=step.getAttribute('onclick');if(!onclick)return;const stepNum=onclick.match(/\d+/)[0];goStep(parseInt(stepNum));}});});

@@ -5105,6 +5105,9 @@ Cadeau premium personnalisé</textarea>
         })()}
         ${photoFinMissionUrl ? `<hr style="margin:10px 0;border-color:#eee;"><div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-camera"></i> Photo de fin de mission</div><div style="border:1px solid var(--border-light); border-radius:10px; overflow:hidden; background:var(--beige); max-width:320px;"><img src="${escapeHtml(photoFinMissionUrl)}" style="width:100%; max-height:220px; object-fit:cover; cursor:pointer;" onclick="window.open('${escapeHtml(photoFinMissionUrl)}')" alt="Photo fin de mission"></div>` : ''}
         <hr style="margin:10px 0;border-color:#eee;">
+        <div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-clipboard-check"></i> États des lieux</div>
+        <div id="adminMissionEdl"><div class="inc-empty">Chargement…</div></div>
+        <hr style="margin:10px 0;border-color:#eee;">
         <div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-exclamation-triangle"></i> Incidents</div>
         <div id="adminMissionIncidents"><div class="inc-empty">Chargement…</div></div>
         <hr style="margin:10px 0;border-color:#eee;">
@@ -5118,6 +5121,7 @@ Cadeau premium personnalisé</textarea>
       showConfirmButton: false,
       showCancelButton: false,
       didOpen: () => {
+        loadAdminMissionEdl(mission.id);
         loadAdminMissionIncidents(mission.id);
         loadAdminMissionExpenses(mission.id);
       }
@@ -6398,6 +6402,192 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
   function admIncStatusBadge(st) {
     return `<span class="inc-badge st-${escapeHtml(st)}">${escapeHtml(admIncStatusLabel(st))}</span>`;
   }
+
+  // =========================================================
+  // WAVE2B: ADMIN EDL EVIDENCE GALLERY
+  // Displays EDL departure + arrival evidence (photos, signatures,
+  // dommages, selfie) using Signed URLs from convoyeur-media bucket.
+  // SIGNED_URLS_ONLY — no public bucket exposure.
+  // =========================================================
+  async function loadAdminMissionEdl(missionId) {
+    const sb = getSupabase();
+    if (!sb) return;
+    const container = document.getElementById('adminMissionEdl');
+    if (!container) return;
+
+    try {
+      // Query EDLs for this mission
+      const { data: edls, error: edlErr } = await sb
+        .from('edls')
+        .select('id, type, convoyeur_nom, date_heure, kilometrage, niveau_carburant, observations, dommages, conforme, validated_at, created_at')
+        .eq('mission_id', missionId)
+        .order('created_at', { ascending: true });
+
+      if (edlErr) {
+        container.innerHTML = '<div class="inc-empty">Erreur chargement EDL.</div>';
+        return;
+      }
+
+      if (!edls || edls.length === 0) {
+        container.innerHTML = '<div class="inc-empty">Aucun état des lieux validé.</div>';
+        return;
+      }
+
+      // Query mission_evidence for this mission
+      const { data: evidence, error: evErr } = await sb
+        .from('mission_evidence')
+        .select('id, edl_id, evidence_type, storage_bucket, storage_path, mime_type, created_at')
+        .eq('mission_id', missionId)
+        .order('created_at', { ascending: true });
+
+      if (evErr) {
+        container.innerHTML = '<div class="inc-empty">Erreur chargement preuves.</div>';
+        return;
+      }
+
+      // Group evidence by edl_id
+      const evidenceByEdl = {};
+      if (evidence) {
+        evidence.forEach(ev => {
+          if (!evidenceByEdl[ev.edl_id]) evidenceByEdl[ev.edl_id] = [];
+          evidenceByEdl[ev.edl_id].push(ev);
+        });
+      }
+
+      // Render EDL sections
+      let html = '';
+      const edlDepart = edls.find(e => e.type === 'depart');
+      const edlArrivee = edls.find(e => e.type === 'arrivee');
+
+      if (edlDepart) {
+        html += await renderEdlSection('EDL DÉPART', edlDepart, evidenceByEdl[edlDepart.id] || []);
+      } else {
+        html += '<div style="font-size:0.8rem;color:var(--gray-mid);margin-bottom:8px;"><b>EDL Départ :</b> Non validé</div>';
+      }
+
+      if (edlArrivee) {
+        html += await renderEdlSection('EDL ARRIVÉE', edlArrivee, evidenceByEdl[edlArrivee.id] || []);
+      } else {
+        html += '<div style="font-size:0.8rem;color:var(--gray-mid);margin-bottom:8px;"><b>EDL Arrivée :</b> Non validé</div>';
+      }
+
+      container.innerHTML = html;
+    } catch (e) {
+      console.error('loadAdminMissionEdl error:', e);
+      container.innerHTML = '<div class="inc-empty">Erreur chargement EDL.</div>';
+    }
+  }
+
+  async function renderEdlSection(title, edl, evidenceItems) {
+    const sb = getSupabase();
+    let html = '<div style="background:rgba(10,77,104,0.04);border:1px solid rgba(10,77,104,0.12);border-radius:10px;padding:10px;margin-bottom:10px;">';
+    html += '<div style="font-weight:700;font-size:0.85rem;color:var(--primary);margin-bottom:6px;"><i class="fas fa-clipboard-check"></i> ' + escapeHtml(title) + '</div>';
+
+    // Résumé
+    html += '<div style="font-size:0.75rem;color:var(--gray-mid);margin-bottom:6px;">';
+    if (edl.date_heure) html += 'Date : ' + escapeHtml(new Date(edl.date_heure).toLocaleString('fr-FR')) + '<br>';
+    if (edl.convoyeur_nom) html += 'Convoyeur : ' + escapeHtml(edl.convoyeur_nom) + '<br>';
+    if (edl.kilometrage != null) html += 'Kilométrage : ' + edl.kilometrage + ' km<br>';
+    if (edl.niveau_carburant != null) html += 'Carburant : ' + edl.niveau_carburant + '%<br>';
+    if (edl.valide_at) html += 'Validé le : ' + escapeHtml(new Date(edl.valide_at).toLocaleString('fr-FR')) + '<br>';
+    html += '</div>';
+
+    // Dommages
+    if (edl.dommages && Array.isArray(edl.dommages) && edl.dommages.length > 0) {
+      html += '<div style="font-weight:600;font-size:0.75rem;margin-top:6px;margin-bottom:4px;"><i class="fas fa-exclamation-triangle"></i> Dommages (' + edl.dommages.length + ')</div>';
+      html += '<div style="font-size:0.7rem;margin-bottom:6px;">';
+      edl.dommages.forEach((d, i) => {
+        html += '<div style="padding:3px 6px;background:rgba(192,57,43,0.06);border-radius:4px;margin-bottom:2px;">';
+        html += '<b>' + escapeHtml(d.zone || '—') + '</b> — ' + escapeHtml(d.type || '—');
+        if (d.desc) html += ' <span style="color:var(--gray-mid);">' + escapeHtml(d.desc) + '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div style="font-size:0.7rem;color:var(--gray-mid);margin-bottom:6px;font-style:italic;">Aucun dommage déclaré. Véhicule réputé en bon état.</div>';
+    }
+
+    // Observations
+    if (edl.observations) {
+      html += '<div style="font-size:0.7rem;margin-bottom:6px;"><b>Observations :</b> ' + escapeHtml(edl.observations) + '</div>';
+    }
+
+    // Photos — generate Signed URLs (SIGNED_URLS_ONLY, TTL=300s)
+    const photos = evidenceItems.filter(e => e.evidence_type === 'exterior_photo' || e.evidence_type === 'interior_photo');
+    const sigConv = evidenceItems.find(e => e.evidence_type === 'convoyeur_signature');
+    const sigCli = evidenceItems.find(e => e.evidence_type === 'client_signature');
+    const selfie = evidenceItems.find(e => e.evidence_type === 'delivery_selfie');
+
+    if (photos.length > 0) {
+      html += '<div style="font-weight:600;font-size:0.75rem;margin-top:6px;margin-bottom:4px;"><i class="fas fa-camera"></i> Photos (' + photos.length + ')</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">';
+      // Generate signed URLs in parallel
+      const photoUrls = await Promise.all(photos.map(async (ev) => {
+        if (!ev.storage_path) return null;
+        const { data, error: signErr } = await sb.storage.from('convoyeur-media').createSignedUrl(ev.storage_path, 300);
+        if (signErr || !data) return null;
+        return { url: data.signedUrl, type: ev.evidence_type, idx: photos.indexOf(ev) };
+      }));
+      photoUrls.filter(u => u).forEach((pu, i) => {
+        const label = pu.type === 'exterior_photo' ? 'Ext ' + (photoUrls.filter(x => x && x.type === 'exterior_photo').indexOf(pu) + 1) : 'Int ' + (photoUrls.filter(x => x && x.type === 'interior_photo').indexOf(pu) + 1);
+        html += '<div style="width:60px;height:60px;border-radius:6px;overflow:hidden;cursor:pointer;border:1px solid var(--border-light);" onclick="admOpenEdlPhoto(\'' + escapeHtml(pu.url) + '\', \'' + escapeHtml(label) + '\')">';
+        html += '<img src="' + escapeHtml(pu.url) + '" style="width:100%;height:100%;object-fit:cover;" alt="' + escapeHtml(label) + '">';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Signatures — Signed URLs
+    if (sigConv || sigCli) {
+      html += '<div style="font-weight:600;font-size:0.75rem;margin-top:6px;margin-bottom:4px;"><i class="fas fa-signature"></i> Signatures</div>';
+      html += '<div style="display:flex;gap:8px;margin-bottom:6px;">';
+      if (sigConv && sigConv.storage_path) {
+        const { data: sigData } = await sb.storage.from('convoyeur-media').createSignedUrl(sigConv.storage_path, 300);
+        if (sigData && sigData.signedUrl) {
+          html += '<div style="flex:1;"><div style="font-size:0.65rem;color:var(--gray-mid);">Convoyeur</div>';
+          html += '<div style="border:1px solid var(--border-light);border-radius:6px;overflow:hidden;cursor:pointer;max-width:180px;" onclick="admOpenEdlPhoto(\'' + escapeHtml(sigData.signedUrl) + '\', \'Signature convoyeur\')">';
+          html += '<img src="' + escapeHtml(sigData.signedUrl) + '" style="width:100%;height:auto;" alt="Signature convoyeur">';
+          html += '</div></div>';
+        }
+      }
+      if (sigCli && sigCli.storage_path) {
+        const { data: cliData } = await sb.storage.from('convoyeur-media').createSignedUrl(sigCli.storage_path, 300);
+        if (cliData && cliData.signedUrl) {
+          html += '<div style="flex:1;"><div style="font-size:0.65rem;color:var(--gray-mid);">Client</div>';
+          html += '<div style="border:1px solid var(--border-light);border-radius:6px;overflow:hidden;cursor:pointer;max-width:180px;" onclick="admOpenEdlPhoto(\'' + escapeHtml(cliData.signedUrl) + '\', \'Signature client\')">';
+          html += '<img src="' + escapeHtml(cliData.signedUrl) + '" style="width:100%;height:auto;" alt="Signature client">';
+          html += '</div></div>';
+        }
+      }
+      html += '</div>';
+    }
+
+    // Delivery selfie — Signed URL (arrival only)
+    if (selfie && selfie.storage_path) {
+      const { data: selfieData } = await sb.storage.from('convoyeur-media').createSignedUrl(selfie.storage_path, 300);
+      if (selfieData && selfieData.signedUrl) {
+        html += '<div style="font-weight:600;font-size:0.75rem;margin-top:6px;margin-bottom:4px;"><i class="fas fa-user-check"></i> Selfie de livraison</div>';
+        html += '<div style="border:1px solid var(--border-light);border-radius:8px;overflow:hidden;cursor:pointer;max-width:200px;" onclick="admOpenEdlPhoto(\'' + escapeHtml(selfieData.signedUrl) + '\', \'Selfie de livraison\')">';
+        html += '<img src="' + escapeHtml(selfieData.signedUrl) + '" style="width:100%;max-height:180px;object-fit:cover;" alt="Selfie de livraison">';
+        html += '</div>';
+      }
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  // Open EDL photo in large view
+  window.admOpenEdlPhoto = function(url, label) {
+    Swal.fire({
+      title: escapeHtml(label || 'Photo'),
+      html: '<img src="' + escapeHtml(url) + '" style="max-width:100%;max-height:70vh;border-radius:8px;" alt="' + escapeHtml(label || 'Photo') + '">',
+      showCloseButton: true,
+      showConfirmButton: false,
+      width: 'auto',
+      padding: 16
+    });
+  };
 
   async function loadAdminMissionIncidents(missionId) {
     const sb = getSupabase();
