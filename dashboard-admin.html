@@ -2306,17 +2306,19 @@ Cadeau premium personnalisé</textarea>
         </select></div>
       </div>
 
-      <!-- ADRESSES AVEC AUTOCOMPLÉTION -->
+      <!-- ADRESSES AVEC AUTOCOMPLÉTION — WAVE ADMIN-MISSION-CREATION-V2 -->
       <div class="f-row">
         <div class="f-grp search-wrapper">
-          <label>Ville de départ</label>
-          <input type="text" id="manual-depart" placeholder="Paris" autocomplete="off">
+          <label>Adresse de départ *</label>
+          <input type="text" id="manual-depart" placeholder="Ex: 70 Boulevard Pierre Semard, 34070 Montpellier" autocomplete="off">
           <div class="suggest-box" id="departSuggests"></div>
+          <div class="field-err" id="errDepartAddr" style="display:none; color:var(--danger); font-size:0.75rem; margin-top:4px;">Veuillez sélectionner une adresse proposée.</div>
         </div>
         <div class="f-grp search-wrapper">
-          <label>Ville d'arrivée</label>
-          <input type="text" id="manual-arrivee" placeholder="Lyon" autocomplete="off">
+          <label>Adresse d'arrivée *</label>
+          <input type="text" id="manual-arrivee" placeholder="Ex: 16 Avenue Lavoisier, 63170 Aubière" autocomplete="off">
           <div class="suggest-box" id="arriveeSuggests"></div>
+          <div class="field-err" id="errArriveeAddr" style="display:none; color:var(--danger); font-size:0.75rem; margin-top:4px;">Veuillez sélectionner une adresse proposée.</div>
         </div>
       </div>
 
@@ -2364,9 +2366,19 @@ Cadeau premium personnalisé</textarea>
         <input type="text" id="adminVehiculeManuel" placeholder="Ex: Dodge RAM 1500">
       </div>
 
+      <!-- PLANNING MISSION — WAVE ADMIN-MISSION-CREATION-V2 -->
       <div class="f-row">
         <div class="f-grp"><label>Pack</label><select id="manual-pack"><option value="starter">Starter</option><option value="serenite">Sérénité</option><option value="excellence">Excellence</option></select></div>
-        <div class="f-grp"><label>Date souhaitée</label><input type="date" id="manual-date"></div>
+      </div>
+      <div style="margin-bottom:10px; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--gray-mid);">DÉPART</div>
+      <div class="f-row">
+        <div class="f-grp"><label>Date de départ *</label><input type="date" id="manual-date-depart"></div>
+        <div class="f-grp"><label>Heure de départ *</label><input type="time" id="manual-heure-depart"></div>
+      </div>
+      <div style="margin-bottom:10px; font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--gray-mid);">ARRIVÉE PRÉVUE</div>
+      <div class="f-row">
+        <div class="f-grp"><label>Date d'arrivée prévue *</label><input type="date" id="manual-date-arrivee"></div>
+        <div class="f-grp"><label>Heure d'arrivée prévue *</label><input type="time" id="manual-heure-arrivee"></div>
       </div>
       <div class="f-row">
         <div class="f-grp"><label>Montant Client (€)</label><input type="number" id="manual-price" placeholder="Calcul auto" readonly style="background:#f5f5f5;"></div>
@@ -3224,7 +3236,7 @@ Cadeau premium personnalisé</textarea>
   function populateConvoyeursSelect() {
     const select = document.getElementById('manual-convoyeur');
     if (!select) return;
-    select.innerHTML = '<option value="">Marché (aucun convoyeur assigné)</option>' + _convoyeursList.map(c => `<option value="${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}">${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}</option>`).join('');
+    select.innerHTML = '<option value="">Marché (aucun convoyeur assigné)</option>' + _convoyeursList.map(c => `<option value="${c.id}">${escapeHtml(c.prenom)} ${escapeHtml(c.nom)}</option>`).join('');
   }
 
   async function addConvoyeurDB() {
@@ -4479,6 +4491,21 @@ Cadeau premium personnalisé</textarea>
         }
 
         const ref = 'BC-' + new Date().getFullYear() + '-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase());
+        // === DEVIS → MISSION: schedule mapping ===
+        // If date_livraison + heure_livraison exist: populate departure_at
+        // If heure_livraison missing: departure_at = NULL, heure_depart = NULL
+        // expected_arrival_at = always NULL (devis has no arrival info)
+        // NO invented 09:00 default.
+        var devisDateMission = devis.date_livraison || new Date().toISOString().split('T')[0];
+        var devisHeureDepart = devis.heure_livraison || null;
+        var devisDepartureAt = null;
+        if (devis.date_livraison && devis.heure_livraison) {
+          try {
+            var depRes = ParisTZ.parisToUtc(devis.date_livraison, devis.heure_livraison);
+            if (depRes.utcIso) devisDepartureAt = depRes.utcIso;
+          } catch(e) { /* leave NULL — fail safe */ }
+        }
+
         const missionData = {
           reference: ref,
           client_nom: `${devis.client_prenom || ''} ${devis.client_nom || ''}`.trim() || 'Client',
@@ -4491,7 +4518,10 @@ Cadeau premium personnalisé</textarea>
           montant_ht: devis.total_ht || 0,
           status: 'available',
           paiement_statut: 'pending',
-          date_mission: devis.date_livraison || new Date().toISOString().split('T')[0],
+          date_mission: devisDateMission,
+          heure_depart: devisHeureDepart,
+          departure_at: devisDepartureAt,
+          expected_arrival_at: null,
           client_id: matchedClientId,
           marge: (devis.total_ht || 0) - (devis.details?.remuneration_convoyeur || 0),
           remuneration_convoyeur: devis.details?.remuneration_convoyeur || null
@@ -4500,11 +4530,20 @@ Cadeau premium personnalisé</textarea>
         const { data: newMission, error: missionErr } = await sb.from('missions').insert([missionData]).select().single();
         if (missionErr) throw new Error("Erreur création mission: " + missionErr.message);
 
+        // Warn if departure schedule is incomplete (non-blocking)
+        if (!devisDepartureAt) {
+          console.warn('Mission créée sans planning complet. Pensez à renseigner la date et l\'heure de départ.');
+        }
+
         // En local (sans Netlify Functions), skip Stripe + email
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         if (isLocal) {
           console.warn('Mode local: Stripe et email ignorés. Mission créée avec succès.');
-          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Devis accepté (mode local - sans paiement/email)', timer: 4000 });
+          var localMsg = 'Devis accepté (mode local - sans paiement/email)';
+          if (!devisDepartureAt) {
+            localMsg += '. Pensez à renseigner la date et l\'heure de départ.';
+          }
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: localMsg, timer: 5000 });
           loadDevis();
           return;
         }
@@ -5360,8 +5399,55 @@ Cadeau premium personnalisé</textarea>
       }
     });
 
-    // ---- Créer la mission ----
+    // ---- PHASE S: PAYLOAD BUILDER ----
+    // buildAdminMissionPayload — pure function that constructs a mission
+    // insert payload containing ONLY valid public.missions columns.
+    // NO quote_details (column doesn't exist in DB schema).
+    // Schema reference: 41 columns in public.missions (see audit).
+    window.buildAdminMissionPayload = function(fields) {
+      // Whitelist of allowed columns for INSERT
+      var ALLOWED = [
+        'reference', 'client_nom', 'client_email', 'client_address', 'client_telephone',
+        'depart', 'arrivee', 'depart_ville', 'arrivee_ville',
+        'vehicule', 'type_vehicule', 'immatriculation', 'mode', 'mode_transport',
+        'pack', 'montant_ht', 'remuneration_convoyeur', 'marge', 'distance_km',
+        'status', 'paiement_statut', 'date_mission', 'heure_depart',
+        'departure_at', 'expected_arrival_at',
+        'notes', 'trajet', 'client_id', 'convoyeur_nom', 'convoyeur_id',
+        'stripe_session_id', 'rappel_envoye', 'annee', 'carburant', 'puissance',
+        'client_telephone_livraison', 'convoyeur_telephone', 'zone_convoyeur',
+        'photo_fin_mission', 'fin_mission_selfie_uploaded_at'
+      ];
+      var payload = {};
+      for (var i = 0; i < ALLOWED.length; i++) {
+        var key = ALLOWED[i];
+        if (fields.hasOwnProperty(key) && fields[key] !== undefined) {
+          payload[key] = fields[key];
+        }
+      }
+      return payload;
+    };
+
+    // ---- Créer la mission ---- WAVE ADMIN-MISSION-CREATION-V2
     document.getElementById('createMissionManualBtn')?.addEventListener('click', async function() {
+      // === DUPLICATE CREATE GUARD ===
+      if (typeof _isCreatingMission !== 'undefined' && _isCreatingMission) return;
+      _isCreatingMission = true;
+      var createBtn = document.getElementById('createMissionManualBtn');
+      if (createBtn) createBtn.disabled = true;
+
+      try {
+        await _doCreateMission();
+      } catch (e) {
+        console.error('Create mission unexpected error:', e);
+        Swal.fire('Erreur', 'Une erreur inattendue est survenue: ' + (e.message || ''), 'error');
+      } finally {
+        _isCreatingMission = false;
+        if (createBtn) createBtn.disabled = false;
+      }
+    });
+
+    async function _doCreateMission() {
       const clientNom = document.getElementById('manual-client').value.trim();
       const clientEmail = document.getElementById('manual-client-email').value.trim();
       const clientPhone = document.getElementById('manual-client-phone').value.trim();
@@ -5374,15 +5460,97 @@ Cadeau premium personnalisé</textarea>
       const modele = document.getElementById('adminModeleInput').value.trim();
       const vehiculeManuel = document.getElementById('adminVehiculeManuel').value.trim();
       const pack = document.getElementById('manual-pack').value;
-      const date = document.getElementById('manual-date').value;
-      const convoyeur = document.getElementById('manual-convoyeur').value;
+      const dateDepart = document.getElementById('manual-date-depart')?.value || '';
+      const heureDepart = document.getElementById('manual-heure-depart')?.value || '';
+      const dateArrivee = document.getElementById('manual-date-arrivee')?.value || '';
+      const heureArrivee = document.getElementById('manual-heure-arrivee')?.value || '';
+      const convoyeurId = document.getElementById('manual-convoyeur').value; // now c.id (or empty)
 
-      if (!clientNom || !depart || !arrivee) {
-        Swal.fire('Champs requis', 'Veuillez renseigner le client, le départ et l\'arrivée.', 'warning');
+      // === VALIDATION: client ===
+      if (!clientNom) {
+        Swal.fire('Champs requis', 'Veuillez renseigner le nom du client.', 'warning');
+        return;
+      }
+      if (!depart || !arrivee) {
+        Swal.fire('Champs requis', 'Veuillez renseigner l\'adresse de départ et l\'adresse d\'arrivée.', 'warning');
+        return;
+      }
+      // Address selection required
+      if (!_adminDepartSelected) {
+        _showAddrErr('errDepartAddr');
+        Swal.fire('Adresse invalide', 'Veuillez sélectionner une adresse de départ proposée par l\'autocomplétion.', 'warning');
+        return;
+      }
+      if (!_adminArriveeSelected) {
+        _showAddrErr('errArriveeAddr');
+        Swal.fire('Adresse invalide', 'Veuillez sélectionner une adresse d\'arrivée proposée par l\'autocomplétion.', 'warning');
         return;
       }
 
-      // Tarif authoritative : recalcul serveur à la sauvegarde
+      // === SCHEDULE VALIDATION with parisToUtc ===
+      if (!dateDepart || !heureDepart) {
+        Swal.fire('Planning incomplet', 'Veuillez renseigner la date et l\'heure de départ.', 'warning');
+        return;
+      }
+      if (!dateArrivee || !heureArrivee) {
+        Swal.fire('Planning incomplet', 'Veuillez renseigner la date et l\'heure d\'arrivée prévue.', 'warning');
+        return;
+      }
+
+      // Convert Paris local → UTC using fail-closed temporal helper
+      var depResult, arrResult;
+      try {
+        depResult = ParisTZ.parisToUtc(dateDepart, heureDepart);
+        arrResult = ParisTZ.parisToUtc(dateArrivee, heureArrivee);
+      } catch (e) {
+        Swal.fire('Erreur timezone', 'Impossible de convertir les dates/heures: ' + (e.message || ''), 'error');
+        return;
+      }
+
+      // Handle conversion errors
+      if (depResult.error === 'TIMEZONE_RESOLUTION_UNAVAILABLE') {
+        Swal.fire('Erreur timezone', 'Résolution du fuseau horaire Europe/Paris impossible. Contactez le support.', 'error');
+        return;
+      }
+      if (arrResult.error === 'TIMEZONE_RESOLUTION_UNAVAILABLE') {
+        Swal.fire('Erreur timezone', 'Résolution du fuseau horaire Europe/Paris impossible. Contactez le support.', 'error');
+        return;
+      }
+      if (depResult.error === 'INVALID_INPUT' || arrResult.error === 'INVALID_INPUT') {
+        Swal.fire('Planning invalide', 'Les dates ou heures saisies ne sont pas valides.', 'error');
+        return;
+      }
+      if (depResult.error === 'NONEXISTENT_TIME') {
+        Swal.fire('Heure inexistante',
+          'L\'heure de départ saisie n\'existe pas en France (changement d\'heure d\'été). Veuillez choisir une autre heure.',
+          'warning');
+        return;
+      }
+      if (arrResult.error === 'NONEXISTENT_TIME') {
+        Swal.fire('Heure inexistante',
+          'L\'heure d\'arrivée saisie n\'existe pas en France (changement d\'heure d\'été). Veuillez choisir une autre heure.',
+          'warning');
+        return;
+      }
+
+      // Compare UTC instants (not browser-local Date objects)
+      var depUtcMs = new Date(depResult.utcIso).getTime();
+      var arrUtcMs = new Date(arrResult.utcIso).getTime();
+      if (arrUtcMs <= depUtcMs) {
+        Swal.fire('Planning invalide', 'La date/heure d\'arrivée doit être postérieure à la date/heure de départ.', 'warning');
+        return;
+      }
+
+      // Ambiguous time warning (non-blocking, FIRST_OCCURRENCE policy)
+      var ambiguousWarning = '';
+      if (depResult.warning === 'AMBIGUOUS_FIRST_OCCURRENCE') {
+        ambiguousWarning += ' L\'heure de départ est ambiguë (changement d\'heure d\'hiver) — la première occurrence a été utilisée.';
+      }
+      if (arrResult.warning === 'AMBIGUOUS_FIRST_OCCURRENCE') {
+        ambiguousWarning += ' L\'heure d\'arrivée est ambiguë (changement d\'heure d\'hiver) — la première occurrence a été utilisée.';
+      }
+
+      // === PRICING ===
       const selectedOptions = Array.from(document.querySelectorAll('#manual-options input:checked')).map(cb => cb.value);
       let quote;
       try {
@@ -5399,7 +5567,7 @@ Cadeau premium personnalisé</textarea>
             isGardiennage: selectedOptions.includes('gardiennage'),
             vehicleCondition: 'working',
             isPro: false,
-            dateLivraison: date
+            dateLivraison: dateDepart
           })
         });
         quote = await quoteResp.json();
@@ -5407,6 +5575,25 @@ Cadeau premium personnalisé</textarea>
       } catch (e) {
         Swal.fire('Erreur', 'Impossible de calculer le tarif sécurisé : ' + (e.message || 'Erreur serveur'), 'error');
         return;
+      }
+
+      // === DISTANCE VALIDATION ===
+      var distanceKm = null;
+      if (quote.distance != null && quote.distance !== undefined) {
+        var d = Number(quote.distance);
+        if (isNaN(d) || !isFinite(d)) {
+          Swal.fire('Erreur', 'Distance calculée invalide (NaN ou Infinity).', 'error');
+          return;
+        }
+        if (d < 0) {
+          Swal.fire('Erreur', 'Distance calculée négative — erreur de géocodage.', 'error');
+          return;
+        }
+        if (d === 0) {
+          Swal.fire('Erreur', 'Distance nulle — échec de géocodage probable. Vérifiez les adresses.', 'error');
+          return;
+        }
+        distanceKm = Math.round(d);
       }
 
       const sb = getSupabase();
@@ -5418,38 +5605,109 @@ Cadeau premium personnalisé</textarea>
         if (existing) clientId = existing.id;
       }
 
-      // Déterminer le nom du véhicule
       let vehicleName = vehiculeManuel || `${marque} ${modele}`.trim() || vehiculeType;
 
-      const missionStatus = convoyeur ? 'assigned' : 'available';
+      // === LEGACY PROJECTION from departure_at ===
+      // date_mission and heure_depart are projected from the Paris parts
+      // of the authoritative departure_at UTC instant.
+      var depParisParts = ParisTZ.getParisParts(new Date(depResult.utcIso));
+      function _pad2(n) { return String(n).padStart(2, '0'); }
+      var legacyDateMission = depParisParts.year + '-' + _pad2(depParisParts.month) + '-' + _pad2(depParisParts.day);
+      var legacyHeureDepart = _pad2(depParisParts.hour) + ':' + _pad2(depParisParts.minute);
 
-      const missionData = {
+      // === PAYLOAD: always INSERT as 'available' ===
+      // Assignment is done via admin_assign_mission() RPC after INSERT.
+      // notes is NOT used for arrival storage — it remains a free-text business field.
+      const missionData = buildAdminMissionPayload({
         reference: ref,
         client_nom: clientNom,
         client_email: clientEmail || null,
         client_address: clientAddress || null,
+        client_telephone: clientPhone || null,
         depart: depart,
         arrivee: arrivee,
+        depart_ville: _adminDepartData?.city || '',
+        arrivee_ville: _adminArriveeData?.city || '',
         vehicule: vehicleName,
+        type_vehicule: vehiculeType,
+        immatriculation: plaque || null,
         mode: 'route',
         pack: quote.details?.pack || pack,
         montant_ht: quote.total_ht,
         remuneration_convoyeur: quote.remuneration_convoyeur,
-        status: missionStatus,
-        paiement_statut: 'pending',
-        date_mission: date || new Date().toISOString().split('T')[0],
-        client_id: clientId,
-        convoyeur_nom: convoyeur || null,
         marge: quote.marge,
-        quote_details: quote.details
-      };
+        distance_km: distanceKm,
+        status: 'available',
+        paiement_statut: 'pending',
+        date_mission: legacyDateMission,
+        heure_depart: legacyHeureDepart,
+        departure_at: depResult.utcIso,
+        expected_arrival_at: arrResult.utcIso,
+        client_id: clientId
+      });
 
-      const { error } = await sb.from('missions').insert([missionData]);
-      if (error) { Swal.fire('Erreur', error.message, 'error'); return; }
+      const { data: insertedMission, error: insertError } = await sb.from('missions').insert([missionData]).select().single();
+      if (insertError) {
+        console.error('Admin mission creation error:', insertError);
+        Swal.fire({
+          title: 'Impossible de créer la mission',
+          html: 'Une erreur technique est survenue lors de la création.<br><br><details style="font-size:0.75rem; color:var(--gray-mid);"><summary>Détail technique</summary>' + escapeHtml(insertError.message) + '</details>',
+          icon: 'error'
+        });
+        return;
+      }
 
+      // === ASSIGNMENT via canonical RPC ===
+      if (convoyeurId) {
+        var assignedConvoyeur = _convoyeursList.find(function(c) { return c.id === convoyeurId; });
+        var rpcRes = await sb.rpc('admin_assign_mission', {
+          p_mission_id: insertedMission.id,
+          p_convoyeur_id: convoyeurId
+        });
+        if (rpcRes.error) {
+          // PARTIAL SUCCESS: mission created as 'available', assignment failed
+          console.error('Assignment RPC failed:', rpcRes.error);
+          closeModal('modalMission');
+          Swal.fire({
+            title: 'Mission créée — attribution échouée',
+            html: 'La mission ' + ref + ' a été créée mais l\'attribution du convoyeur a échoué.<br><br>' +
+                  'La mission est sur le marché. Vous pouvez attribuer un convoyeur depuis la liste.<br><br>' +
+                  '<details style="font-size:0.75rem; color:var(--gray-mid);"><summary>Détail technique</summary>' +
+                  escapeHtml(rpcRes.error.message) + '</details>',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+          });
+          loadMissions();
+          _resetMissionForm();
+          return;
+        }
+        // Full success with assignment
+        closeModal('modalMission');
+        var successTitle = 'Mission ' + ref + ' créée et attribuée à ' +
+          (assignedConvoyeur ? escapeHtml(assignedConvoyeur.prenom + ' ' + assignedConvoyeur.nom) : 'un convoyeur') + '.';
+        if (ambiguousWarning) {
+          Swal.fire({ icon: 'success', title: successTitle, html: ambiguousWarning, timer: 5000 });
+        } else {
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: successTitle, timer: 3000 });
+        }
+        loadMissions();
+        _resetMissionForm();
+        return;
+      }
+
+      // Success: no convoyeur (market)
       closeModal('modalMission');
-      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `Mission ${ref} créée !`, timer: 3000 });
+      var marketTitle = 'Mission ' + ref + ' créée sur le marché.';
+      if (ambiguousWarning) {
+        Swal.fire({ icon: 'success', title: marketTitle, html: ambiguousWarning, timer: 5000 });
+      } else {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: marketTitle, timer: 3000 });
+      }
       loadMissions();
+      _resetMissionForm();
+    }
+
+    function _resetMissionForm() {
       clearSelectedClient();
       document.getElementById('manual-client').value = '';
       document.getElementById('manual-client-email').value = '';
@@ -5465,7 +5723,13 @@ Cadeau premium personnalisé</textarea>
       document.getElementById('adminVehiculeManuel').value = '';
       document.getElementById('adminSivResult').style.display = 'none';
       _selectedAdminMarque = '';
-    });
+      var dd = document.getElementById('manual-date-depart'); if (dd) dd.value = '';
+      var hd = document.getElementById('manual-heure-depart'); if (hd) hd.value = '';
+      var da = document.getElementById('manual-date-arrivee'); if (da) da.value = '';
+      var ha = document.getElementById('manual-heure-arrivee'); if (ha) ha.value = '';
+      _adminDepartSelected = false; _adminDepartData = null;
+      _adminArriveeSelected = false; _adminArriveeData = null;
+    }
   });
 
   // ============================================================
@@ -5564,6 +5828,43 @@ Cadeau premium personnalisé</textarea>
 // et met à jour le champ "Montant Client" en direct
 let _lastManualQuote = null;
 
+// WAVE ADMIN-MISSION-CREATION-V2: Address selection state
+// Tracks whether user selected an address from autocomplete suggestions
+// vs just typing free text. Free text without selection = invalid.
+let _adminDepartSelected = false;
+let _adminDepartData = null;   // { label, city, postcode, latitude, longitude, ... }
+let _adminArriveeSelected = false;
+let _isCreatingMission = false; // duplicate create guard
+let _adminArriveeData = null;
+
+function _clearAddrErr(errId) {
+  var el = document.getElementById(errId);
+  if (el) el.style.display = 'none';
+}
+
+function _showAddrErr(errId) {
+  var el = document.getElementById(errId);
+  if (el) el.style.display = 'block';
+}
+
+// Reset address selection state when user types (must re-select)
+function _initAddrChangeTracking() {
+  var depInput = document.getElementById('manual-depart');
+  var arrInput = document.getElementById('manual-arrivee');
+  if (depInput) {
+    depInput.addEventListener('input', function() {
+      _adminDepartSelected = false;
+      _adminDepartData = null;
+    });
+  }
+  if (arrInput) {
+    arrInput.addEventListener('input', function() {
+      _adminArriveeSelected = false;
+      _adminArriveeData = null;
+    });
+  }
+}
+
 async function calculateAdminPrice() {
   const depart = document.getElementById('manual-depart')?.value.trim();
   const arrivee = document.getElementById('manual-arrivee')?.value.trim();
@@ -5580,7 +5881,7 @@ async function calculateAdminPrice() {
 
   const vehType = document.getElementById('adminVehType')?.value || 'Automobile';
   const pack = document.getElementById('manual-pack')?.value || 'starter';
-  const date = document.getElementById('manual-date')?.value;
+  const date = document.getElementById('manual-date-depart')?.value;
   const selectedOptions = Array.from(document.querySelectorAll('#manual-options input:checked')).map(cb => cb.value);
   const isUrgence = selectedOptions.includes('urgence');
   const isGardiennage = selectedOptions.includes('gardiennage');
@@ -7055,6 +7356,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="js/address-autocomplete.js"></script>
+<script src="js/paris-tz.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     if (window.AddressAutocomplete) {
@@ -7066,9 +7368,21 @@ if ("serviceWorker" in navigator) {
       // Modal convoyeur — adresse + ville (remplit CP auto)
       AddressAutocomplete.setupAddressWithCity('convEditAdresse', 'convEditAdresseSuggests', 'convEditCp', 'convEditVille');
       AddressAutocomplete.setupCity('convEditVille', 'convEditVilleSuggests');
-      // Mission départ/arrivée (manual creation)
-      AddressAutocomplete.setupCity('manual-depart', 'departSuggests', function() { if(typeof calculateAdminPrice === 'function') calculateAdminPrice(); });
-      AddressAutocomplete.setupCity('manual-arrivee', 'arriveeSuggests', function() { if(typeof calculateAdminPrice === 'function') calculateAdminPrice(); });
+      // Mission départ/arrivée (manual creation) — WAVE ADMIN-MISSION-CREATION-V2: full address autocomplete
+      AddressAutocomplete.setupAddress('manual-depart', 'departSuggests', function(item) {
+        _adminDepartSelected = !!item;
+        _adminDepartData = item || null;
+        _clearAddrErr('errDepartAddr');
+        if(typeof calculateAdminPrice === 'function') calculateAdminPrice();
+      });
+      AddressAutocomplete.setupAddress('manual-arrivee', 'arriveeSuggests', function(item) {
+        _adminArriveeSelected = !!item;
+        _adminArriveeData = item || null;
+        _clearAddrErr('errArriveeAddr');
+        if(typeof calculateAdminPrice === 'function') calculateAdminPrice();
+      });
+      // Track typing to invalidate selection state
+      _initAddrChangeTracking();
       // Mission detail view — départ/arrivée
       AddressAutocomplete.setupCity('md-depart', 'mdDepartSuggests');
       AddressAutocomplete.setupCity('md-arrivee', 'mdArriveeSuggests');
