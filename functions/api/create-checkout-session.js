@@ -64,6 +64,30 @@ export function canReuseExistingSession(existingSession, mission, env) {
   return { reusable: true, url: existingSession.url };
 }
 
+/**
+ * An expired session may be replaced only when it still belongs to the
+ * requested mission and matches every immutable payment attribute.
+ */
+export function canRenewExistingSession(existingSession, mission, env) {
+  if (!existingSession || typeof existingSession !== 'object') return false;
+  if (existingSession.status !== 'expired' || existingSession.payment_status !== 'unpaid') return false;
+
+  const key = env.STRIPE_SECRET_KEY || '';
+  const expectedLivemode = /^(sk|rk)_live_/.test(key);
+  if (existingSession.livemode !== expectedLivemode) return false;
+  if (existingSession.mode !== 'payment' || existingSession.currency !== 'eur') return false;
+
+  const amountCents = Math.round(parseFloat(mission.montant_ht) * 100);
+  if ((existingSession.amount_total || 0) !== amountCents) return false;
+
+  const metadata = existingSession.metadata || {};
+  return metadata.mission_id === mission.id && metadata.reference === mission.reference;
+}
+
+export function buildCheckoutIdempotencyKey(missionId, expectedSessionId = null) {
+  return `bc-checkout-v2:${missionId}:${expectedSessionId || 'none'}`;
+}
+
 function isExpectedLivemode(key) {
   return /^(sk|rk)_live_/.test(key || '');
 }
@@ -148,7 +172,10 @@ export async function onRequest(context) {
 
     const amountCents = Math.round(priceHt * 100);
 
-    // If the mission already has a Stripe Checkout Session, attempt to reuse it.
+    let expectedSessionId = null;
+
+    // If the mission already has a Stripe Checkout Session, reuse it when open
+    // or replace it through an atomic compare-and-swap when it has expired.
     if (mission.stripe_session_id) {
       let existingSession = null;
       try {
@@ -163,7 +190,11 @@ export async function onRequest(context) {
         return jsonResponse({ url: reuse.url, reused: true }, 200, getCorsHeaders(request));
       }
 
-      return jsonResponse({ error: reuse.reason }, 409, getCorsHeaders(request));
+      if (!canRenewExistingSession(existingSession, mission, env)) {
+        return jsonResponse({ error: reuse.reason }, 409, getCorsHeaders(request));
+      }
+
+      expectedSessionId = mission.stripe_session_id;
     }
 
     const baseUrl = env.URL || 'https://www.bathily-convoyage.fr';
@@ -174,6 +205,7 @@ export async function onRequest(context) {
     const arr = (mission.arrivee || '').split('(')[0].trim();
     const description = `Convoyage ${mission.vehicule || 'Véhicule'} : ${dep} ➔ ${arr} · Réf: ${mission.reference}`;
 
+    const idempotencyKey = buildCheckoutIdempotencyKey(missionId, expectedSessionId);
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{
@@ -184,26 +216,25 @@ export async function onRequest(context) {
       success_url: successUrlFinal,
       cancel_url: cancelUrlFinal,
       metadata: { mission_id: missionId, reference: mission.reference, client_id: user.id }
-    });
+    }, { idempotencyKey });
 
-    const { data: rpcResult, error: rpcError } = await supabase.rpc('record_stripe_checkout_session', {
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('replace_stripe_checkout_session', {
       p_mission_id: missionId,
-      p_session_id: session.id
+      p_expected_session_id: expectedSessionId,
+      p_new_session_id: session.id
     });
 
     if (rpcError) {
-      console.error("Erreur liaison session Stripe (RPC):", rpcError.message);
-      // The Checkout Session was created in Stripe but DB link failed.
-      // Attempt to expire the orphan session so it cannot be used.
-      try {
-        await stripe.checkout.sessions.expire(session.id);
-      } catch (expireErr) {
-        console.error("Echec expiration session orpheline:", expireErr.message);
-      }
-      return jsonResponse({ error: 'Erreur lors de la liaison de la session de paiement.' }, 500, getCorsHeaders(request));
+      console.error("Erreur remplacement session Stripe (RPC):", rpcError.message);
+      const status = rpcError.code === '55006' ? 409 : 503;
+      return jsonResponse({ error: 'La session de paiement a été modifiée simultanément. Veuillez réessayer.' }, status, getCorsHeaders(request));
     }
 
-    return jsonResponse({ url: session.url }, 200, getCorsHeaders(request));
+    return jsonResponse({
+      url: session.url,
+      renewed: expectedSessionId !== null,
+      linked: rpcResult === 'linked' || rpcResult === 'replaced' || rpcResult === 'already_linked'
+    }, 200, getCorsHeaders(request));
 
   } catch (error) {
     console.error("Erreur create-checkout-session:", error);

@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { onRequest } from '../functions/api/create-checkout-session.js';
+import { buildCheckoutIdempotencyKey, onRequest } from '../functions/api/create-checkout-session.js';
 
 let passed = 0;
 let failed = 0;
@@ -97,7 +97,7 @@ function makeSupabase({ mission = baseMission, rpcResult = 'linked', rpcError = 
       }),
     }),
     rpc: async (name, args) => {
-      if (name === 'record_stripe_checkout_session') {
+      if (name === 'replace_stripe_checkout_session') {
         return { data: rpcResult, error: rpcError };
       }
       return { data: null, error: null };
@@ -111,7 +111,7 @@ function makeStripe(stripeOverrides = {}) {
     checkout: {
       sessions: {
         retrieve: async (id) => { calls.retrieve++; return stripeOverrides.retrieve ? stripeOverrides.retrieve(id) : null; },
-        create: async (params) => { calls.create++; return stripeOverrides.create ? stripeOverrides.create(params) : { id: 'cs_test_new', url: 'https://checkout.stripe.com/pay/cs_test_new' }; },
+        create: async (params, options) => { calls.create++; return stripeOverrides.create ? stripeOverrides.create(params, options) : { id: 'cs_test_new', url: 'https://checkout.stripe.com/pay/cs_test_new' }; },
         expire: async (id) => { calls.expire++; return {}; },
       },
     },
@@ -232,9 +232,10 @@ testExistingFail('E. livemode mismatch', {
   metadata: { mission_id: missionId, reference: 'BC-2026-A40540CA' },
 });
 
-testExistingFail('F. expired', {
+test('F. expired coherent session -> one idempotent replacement + CAS', async () => {
+  const expiredSession = {
   id: 'cs_live_existing',
-  url: 'https://checkout.stripe.com/pay/cs_live_existing',
+  url: null,
   livemode: true,
   status: 'expired',
   payment_status: 'unpaid',
@@ -242,6 +243,29 @@ testExistingFail('F. expired', {
   currency: 'eur',
   amount_total: 104200,
   metadata: { mission_id: missionId, reference: 'BC-2026-A40540CA' },
+  };
+  let createOptions = null;
+  let rpcArgs = null;
+  const { stub: stripe, calls } = makeStripe({
+    retrieve: async () => expiredSession,
+    create: async (_params, options) => {
+      createOptions = options;
+      return { id: 'cs_live_replacement', url: 'https://checkout.stripe.com/pay/cs_live_replacement' };
+    },
+  });
+  const mission = { ...baseMission, stripe_session_id: 'cs_live_existing' };
+  const supabase = makeSupabase({ mission, rpcResult: 'replaced' });
+  const originalRpc = supabase.rpc;
+  supabase.rpc = async (name, args) => { rpcArgs = args; return originalRpc(name, args); };
+  const request = makeRequest({ missionId, successUrl: 'http://s', cancelUrl: 'http://c' });
+  const res = await onRequest(makeContext({ request, supabase, supabaseAnon: makeSupabaseAnon(), stripe }));
+  assert.strictEqual(res.status, 200);
+  const body = await res.json();
+  assert.strictEqual(body.renewed, true);
+  assert.strictEqual(calls.create, 1);
+  assert.strictEqual(createOptions.idempotencyKey, buildCheckoutIdempotencyKey(missionId, 'cs_live_existing'));
+  assert.strictEqual(rpcArgs.p_expected_session_id, 'cs_live_existing');
+  assert.strictEqual(rpcArgs.p_new_session_id, 'cs_live_replacement');
 });
 
 testExistingFail('G. complete + paid', {
@@ -310,7 +334,7 @@ test('NULL_SESSION: nominal -> create 1, record 1, URL returned', async () => {
   assert.strictEqual(calls.create, 1);
 });
 
-test('NULL_SESSION: RPC failure -> create 1, record 1, expire 1', async () => {
+test('NULL_SESSION: transient RPC failure -> create 1, no destructive expire, retryable 503', async () => {
   const { stub: stripe, calls } = makeStripe({
     create: async () => ({ id: 'cs_test_new', url: 'https://checkout.stripe.com/pay/cs_test_new' }),
   });
@@ -318,9 +342,56 @@ test('NULL_SESSION: RPC failure -> create 1, record 1, expire 1', async () => {
   const supabase = makeSupabase({ mission: baseMission, rpcError: { message: 'already linked' } });
   const context = makeContext({ request, supabase, supabaseAnon: makeSupabaseAnon(), stripe });
   const res = await onRequest(context);
-  assert.strictEqual(res.status, 500);
+  assert.strictEqual(res.status, 503);
   assert.strictEqual(calls.create, 1);
-  assert.strictEqual(calls.expire, 1);
+  assert.strictEqual(calls.expire, 0);
+});
+
+test('CONCURRENCY: same mission state -> one Stripe object and idempotent CAS result', async () => {
+  const sessionsByKey = new Map();
+  let createdObjects = 0;
+  let linkedSessionId = null;
+
+  const stripe = {
+    checkout: { sessions: {
+      retrieve: async () => null,
+      create: async (_params, options) => {
+        if (!sessionsByKey.has(options.idempotencyKey)) {
+          createdObjects++;
+          sessionsByKey.set(options.idempotencyKey, {
+            id: 'cs_live_atomic',
+            url: 'https://checkout.stripe.com/pay/cs_live_atomic'
+          });
+        }
+        return sessionsByKey.get(options.idempotencyKey);
+      },
+      expire: async () => { throw new Error('must not expire'); },
+    } }
+  };
+
+  const supabase = {
+    from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: { ...baseMission }, error: null }) }) }) }),
+    rpc: async (name, args) => {
+      assert.strictEqual(name, 'replace_stripe_checkout_session');
+      if (linkedSessionId === null) {
+        linkedSessionId = args.p_new_session_id;
+        return { data: 'linked', error: null };
+      }
+      assert.strictEqual(linkedSessionId, args.p_new_session_id);
+      return { data: 'already_linked', error: null };
+    },
+  };
+
+  const contexts = [1, 2].map(() => makeContext({
+    request: makeRequest({ missionId, successUrl: 'http://s', cancelUrl: 'http://c' }),
+    supabase,
+    supabaseAnon: makeSupabaseAnon(),
+    stripe,
+  }));
+  const responses = await Promise.all(contexts.map(onRequest));
+  assert.deepStrictEqual(responses.map(r => r.status), [200, 200]);
+  assert.strictEqual(createdObjects, 1);
+  assert.strictEqual(linkedSessionId, 'cs_live_atomic');
 });
 
 // =====================================================
