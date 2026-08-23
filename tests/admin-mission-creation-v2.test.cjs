@@ -591,6 +591,48 @@ function validateDistance(distance) {
     assert.ok(!optionHtml.includes('value="Jean Dupont"'), 'Value is NOT name');
   });
 
+  // === HOTFIX D3A: MODAL RUNTIME ===
+
+  await test('D3A_1: no stale manual-date id in dashboard-admin.html', () => {
+    var dash = fs.readFileSync(path.join(__dirname, '..', 'dashboard-admin.html'), 'utf8');
+    assert.ok(!dash.includes("id=\"manual-date\""), 'manual-date id must not exist');
+    assert.ok(!dash.includes("getElementById('manual-date')"), 'manual-date must not be queried');
+  });
+
+  await test('D3A_2: _initAddrChangeTracking defined before call in dashboard-admin.html', () => {
+    var dash = fs.readFileSync(path.join(__dirname, '..', 'dashboard-admin.html'), 'utf8');
+    assert.ok(dash.includes('function _initAddrChangeTracking'), 'function must be defined');
+    assert.ok(dash.includes('_initAddrChangeTracking();'), 'function must be called');
+    var callIndex = dash.indexOf('_initAddrChangeTracking();');
+    var defIndex = dash.lastIndexOf('function _initAddrChangeTracking', callIndex);
+    assert.ok(defIndex >= 0 && defIndex < callIndex, 'function defined before call');
+  });
+
+  await test('D3A_3: createMissionBtn click handler reaches openModal', () => {
+    var dash = fs.readFileSync(path.join(__dirname, '..', 'dashboard-admin.html'), 'utf8');
+    var handler = dash.substring(dash.indexOf("createMissionBtn'"), dash.indexOf('openModal(\'modalMission\')'));
+    assert.ok(dash.includes("createMissionBtn"));
+    assert.ok(dash.includes("openModal('modalMission')"), 'handler must open modalMission');
+  });
+
+  await test('D3A_4: typing after departure selection invalidates state', () => {
+    var dash = fs.readFileSync(path.join(__dirname, '..', 'dashboard-admin.html'), 'utf8');
+    assert.ok(dash.includes("_adminDepartSelected = false"), 'depart selection invalidated on input');
+    assert.ok(dash.includes("_adminDepartData = null"), 'depart data cleared on input');
+  });
+
+  await test('D3A_5: typing after arrival selection invalidates state', () => {
+    var dash = fs.readFileSync(path.join(__dirname, '..', 'dashboard-admin.html'), 'utf8');
+    assert.ok(dash.includes("_adminArriveeSelected = false"), 'arrivee selection invalidated on input');
+    assert.ok(dash.includes("_adminArriveeData = null"), 'arrivee data cleared on input');
+  });
+
+  await test('D3A_6: autocomplete onSelect preserves selected state', () => {
+    var dash = fs.readFileSync(path.join(__dirname, '..', 'dashboard-admin.html'), 'utf8');
+    assert.ok(dash.includes("_adminDepartSelected = !!item"), 'depart selected restored by onSelect');
+    assert.ok(dash.includes("_adminArriveeSelected = !!item"), 'arrivee selected restored by onSelect');
+  });
+
   // Summary
   setTimeout(() => {
     console.log(`\n=== Results: ${passed} passed, ${failed} failed ===\n`);
