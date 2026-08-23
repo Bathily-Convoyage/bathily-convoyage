@@ -5847,24 +5847,6 @@ function _showAddrErr(errId) {
   if (el) el.style.display = 'block';
 }
 
-// Reset address selection state when user types (must re-select)
-function _initAddrChangeTracking() {
-  var depInput = document.getElementById('manual-depart');
-  var arrInput = document.getElementById('manual-arrivee');
-  if (depInput) {
-    depInput.addEventListener('input', function() {
-      _adminDepartSelected = false;
-      _adminDepartData = null;
-    });
-  }
-  if (arrInput) {
-    arrInput.addEventListener('input', function() {
-      _adminArriveeSelected = false;
-      _adminArriveeData = null;
-    });
-  }
-}
-
 async function calculateAdminPrice() {
   const depart = document.getElementById('manual-depart')?.value.trim();
   const arrivee = document.getElementById('manual-arrivee')?.value.trim();
@@ -6088,7 +6070,8 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
 
     // Create mission button
     document.getElementById('createMissionBtn')?.addEventListener('click', function() {
-      document.getElementById('manual-date').value = new Date().toISOString().split('T')[0];
+      var dd = document.getElementById('manual-date-depart');
+      if (dd) dd.value = new Date().toISOString().split('T')[0];
       clearSelectedClient();
       document.getElementById('manual-client').value = '';
       document.getElementById('manual-client-email').value = '';
@@ -7382,6 +7365,24 @@ if ("serviceWorker" in navigator) {
         if(typeof calculateAdminPrice === 'function') calculateAdminPrice();
       });
       // Track typing to invalidate selection state
+      function _initAddrChangeTracking() {
+        var depInput = document.getElementById('manual-depart');
+        var arrInput = document.getElementById('manual-arrivee');
+        if (depInput && !depInput._addrTrackingSet) {
+          depInput._addrTrackingSet = true;
+          depInput.addEventListener('input', function() {
+            _adminDepartSelected = false;
+            _adminDepartData = null;
+          });
+        }
+        if (arrInput && !arrInput._addrTrackingSet) {
+          arrInput._addrTrackingSet = true;
+          arrInput.addEventListener('input', function() {
+            _adminArriveeSelected = false;
+            _adminArriveeData = null;
+          });
+        }
+      }
       _initAddrChangeTracking();
       // Mission detail view — départ/arrivée
       AddressAutocomplete.setupCity('md-depart', 'mdDepartSuggests');
