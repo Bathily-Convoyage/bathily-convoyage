@@ -2,6 +2,72 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody } from '../_utils.js';
 
+/**
+ * Determine whether an existing Stripe Checkout Session is safe to reuse.
+ * This is a pure local validation used before creating a new session.
+ */
+export function canReuseExistingSession(existingSession, mission, env) {
+  if (!existingSession || typeof existingSession !== 'object') {
+    return { reusable: false, reason: 'Session Stripe introuvable.' };
+  }
+
+  if (existingSession.url === undefined || existingSession.url === null || existingSession.url === '') {
+    return { reusable: false, reason: 'URL de session invalide.' };
+  }
+
+  const key = env.STRIPE_SECRET_KEY || '';
+  const expectedLivemode = /^(sk|rk)_live_/.test(key);
+  if (existingSession.livemode !== expectedLivemode) {
+    return { reusable: false, reason: 'Mode de session Stripe incohérent.' };
+  }
+
+  if (existingSession.status !== 'open') {
+    if (existingSession.status === 'complete') {
+      if (existingSession.payment_status === 'paid') {
+        return { reusable: false, reason: 'Le paiement semble déjà effectué. Actualisez la page ou contactez le support.' };
+      }
+      return { reusable: false, reason: 'La session de paiement est complète mais non réglée. Synchronisation requise.' };
+    }
+    if (existingSession.status === 'expired') {
+      return { reusable: false, reason: 'La session de paiement a expiré. Un renouvellement est nécessaire.' };
+    }
+    return { reusable: false, reason: 'La session de paiement n\'est pas réutilisable.' };
+  }
+
+  if (existingSession.payment_status !== 'unpaid') {
+    return { reusable: false, reason: 'La session de paiement n\'est pas en attente.' };
+  }
+
+  if (existingSession.mode !== 'payment') {
+    return { reusable: false, reason: 'Type de session Stripe incohérent.' };
+  }
+
+  if (existingSession.currency !== 'eur') {
+    return { reusable: false, reason: 'Devise de session Stripe incohérente.' };
+  }
+
+  const priceHt = parseFloat(mission.montant_ht);
+  const amountCents = Math.round(priceHt * 100);
+  if ((existingSession.amount_total || 0) !== amountCents) {
+    return { reusable: false, reason: 'Montant de session Stripe incohérent.' };
+  }
+
+  const metadata = existingSession.metadata || {};
+  if (metadata.mission_id !== mission.id) {
+    return { reusable: false, reason: 'Métadonnées de session incohérentes.' };
+  }
+
+  if (metadata.reference !== mission.reference) {
+    return { reusable: false, reason: 'Référence de session incohérente.' };
+  }
+
+  return { reusable: true, url: existingSession.url };
+}
+
+function isExpectedLivemode(key) {
+  return /^(sk|rk)_live_/.test(key || '');
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -19,8 +85,8 @@ export async function onRequest(context) {
     if (!env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY manquante.");
     if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) throw new Error("Variables Supabase manquantes.");
 
-    const stripe = Stripe(env.STRIPE_SECRET_KEY);
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const stripe = context.stripe || Stripe(env.STRIPE_SECRET_KEY);
+    const supabase = context.supabase || createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
     const { missionId, successUrl, cancelUrl } = await parseBody(request);
     const authHeader = request.headers.get('authorization') || '';
@@ -33,7 +99,7 @@ export async function onRequest(context) {
     if (!env.SUPABASE_ANON_KEY) {
       throw new Error("SUPABASE_ANON_KEY manquante.");
     }
-    const supabaseAnon = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+    const supabaseAnon = context.supabaseAnon || createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
     const { data: { user }, error: userError } = await supabaseAnon.auth.getUser(token);
 
     if (userError || !user) {
@@ -45,7 +111,7 @@ export async function onRequest(context) {
     }
 
     const { data: mission, error: selectError } = await supabase.from('missions')
-      .select('id, reference, depart, arrivee, vehicule, mode, pack, montant_ht, paiement_statut, status, client_id, client_email, client_nom, convoyeur_nom')
+      .select('id, reference, depart, arrivee, vehicule, mode, pack, montant_ht, paiement_statut, status, client_id, client_email, client_nom, convoyeur_nom, stripe_session_id')
       .eq('id', missionId).single();
 
     if (selectError || !mission) {
@@ -81,6 +147,25 @@ export async function onRequest(context) {
     }
 
     const amountCents = Math.round(priceHt * 100);
+
+    // If the mission already has a Stripe Checkout Session, attempt to reuse it.
+    if (mission.stripe_session_id) {
+      let existingSession = null;
+      try {
+        existingSession = await stripe.checkout.sessions.retrieve(mission.stripe_session_id);
+      } catch (retrieveErr) {
+        console.error("Erreur récupération session Stripe existante:", retrieveErr.message);
+        return jsonResponse({ error: 'Impossible de réutiliser cette session de paiement.' }, 409, getCorsHeaders(request));
+      }
+
+      const reuse = canReuseExistingSession(existingSession, mission, env);
+      if (reuse.reusable) {
+        return jsonResponse({ url: reuse.url, reused: true }, 200, getCorsHeaders(request));
+      }
+
+      return jsonResponse({ error: reuse.reason }, 409, getCorsHeaders(request));
+    }
+
     const baseUrl = env.URL || 'https://www.bathily-convoyage.fr';
     const successUrlFinal = `${baseUrl}/dashboard-client.html?payment_status=success&mission_id=${missionId}`;
     const cancelUrlFinal = `${baseUrl}/dashboard-client.html?payment_status=cancel&mission_id=${missionId}`;
