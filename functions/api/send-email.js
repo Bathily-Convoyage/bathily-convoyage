@@ -3,6 +3,7 @@ import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody,
 
 export async function onRequest(context) {
   const { request, env } = context;
+  const fetchImpl = context.fetchImpl || fetch;
 
   const optionsRes = handleOptions(request);
   if (optionsRes) return optionsRes;
@@ -16,7 +17,7 @@ export async function onRequest(context) {
 
   try {
     const parsedBody = await parseBody(request);
-    const { trigger, id, notes, payment_url, temp_password, prenom, email: directEmail, nom: directNom, convoyeur_nom, convoyeur_email, client_email, depart, arrivee, date_mission, reference } = parsedBody;
+    const { trigger, id, notes, payment_url, temp_password, stripe_event_id, prenom, email: directEmail, nom: directNom, convoyeur_nom, convoyeur_email, client_email, depart, arrivee, date_mission, reference } = parsedBody;
 
     const PUBLIC_TRIGGERS = ['devis_created', 'candidature_submitted'];
     const AUTHENTICATED_TRIGGERS = [];
@@ -62,19 +63,21 @@ export async function onRequest(context) {
     if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("Variables de configuration Supabase manquantes dans l'environnement.");
     }
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = context.supabase || createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
     const resendApiKey = env.RESEND_API_KEY;
     const FROM_EMAIL = env.EMAIL_FROM || 'onboarding@resend.dev';
     const ADMIN_EMAIL = env.EMAIL_ADMIN || 'contact@bathily-convoyage.fr';
 
-    async function sendEmail({ to, subject, html }) {
+    async function sendEmail({ to, subject, html, idempotencyKey }) {
       if (!resendApiKey) {
         throw new Error('RESEND_API_KEY manquante');
       }
-      const response = await fetch('https://api.resend.com/emails', {
+      const headers = { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' };
+      if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
+      const response = await fetchImpl('https://api.resend.com/emails', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ from: `Bathily Convoyage <${FROM_EMAIL}>`, to: Array.isArray(to) ? to : [to], subject, html })
       });
       const data = await response.json();
@@ -228,7 +231,10 @@ export async function onRequest(context) {
         .select('id, reference, client_nom, client_email, client_telephone, depart, arrivee, vehicule, mode, pack, montant_ht, paiement_statut, status, convoyeur_nom, convoyeur_id, date_mission')
         .eq('id', id).single();
       if (error || !mission) throw new Error(`Mission introuvable: ${error?.message}`);
-      const emailTo = mission.client_email || 'client@email.fr';
+      const emailTo = mission.client_email || null;
+      const eventKey = typeof stripe_event_id === 'string' && /^evt_[A-Za-z0-9_]+$/.test(stripe_event_id)
+        ? `stripe/${stripe_event_id}`
+        : null;
       const priceAmount = parseFloat(mission.montant_ht) || 0;
       const clientHtml = wrapEmailLayout("Votre paiement a été validé ! 🎉",
         `<p>Bonjour ${mission.client_nom.split(' ')[0] || ''},</p><p>Nous vous remercions pour votre règlement. Votre paiement a bien été traité avec succès et votre mission est désormais confirmée.</p>
@@ -244,8 +250,20 @@ export async function onRequest(context) {
          <div class="highlight-box"><strong>Référence :</strong> ${mission.reference}<br><strong>Client :</strong> ${mission.client_nom}<br>
          <strong>Montant :</strong> ${priceAmount.toFixed(2)} €<br><strong>Convoyeur :</strong> ${mission.convoyeur_nom || 'Non assigné'}</div>
          <p style="text-align:center"><a href="https://bathily-convoyage.fr/dashboard-admin.html" class="btn">Accéder au panel Admin</a></p>`);
-      await sendEmail({ to: emailTo, subject: `Bathily Convoyage - Confirmation de paiement ${mission.reference}`, html: clientHtml });
-      await sendEmail({ to: ADMIN_EMAIL, subject: `[ADMIN] Paiement reçu pour la mission ${mission.reference}`, html: adminHtml });
+      if (emailTo) {
+        await sendEmail({
+          to: emailTo,
+          subject: `Bathily Convoyage - Confirmation de paiement ${mission.reference}`,
+          html: clientHtml,
+          idempotencyKey: eventKey ? `${eventKey}/client` : undefined
+        });
+      }
+      await sendEmail({
+        to: ADMIN_EMAIL,
+        subject: `[ADMIN] Paiement reçu pour la mission ${mission.reference}`,
+        html: adminHtml,
+        idempotencyKey: eventKey ? `${eventKey}/admin` : undefined
+      });
       resultData = { success: true, message: 'Emails paiement validé envoyés.' };
     }
     else if (trigger === 'devis_confirmed') {
