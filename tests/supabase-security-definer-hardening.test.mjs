@@ -9,7 +9,7 @@ const migrationPath = path.join(
   '..',
   'supabase',
   'migrations',
-  '20260824083044_security_definer_least_privilege.sql',
+  '20260824063918_security_definer_least_privilege.sql',
 );
 const sql = fs.readFileSync(migrationPath, 'utf8');
 const dashboard = fs.readFileSync(path.join(here, '..', 'dashboard-convoyeur.html'), 'utf8');

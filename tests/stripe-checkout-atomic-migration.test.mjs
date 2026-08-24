@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const migrationUrl = new URL('../supabase/migrations/20260823210155_stripe_checkout_atomic_renewal.sql', import.meta.url);
+const migrationUrl = new URL('../supabase/migrations/20260824055850_stripe_checkout_atomic_renewal.sql', import.meta.url);
 const sql = await readFile(migrationUrl, 'utf8');
 
 const checks = [
