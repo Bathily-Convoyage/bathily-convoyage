@@ -138,7 +138,7 @@ test.describe('Pages SEO', () => {
 test.describe('Page Formation', () => {
   test('charge la page formation', async ({ page }) => {
     await page.goto('/formation-convoyeur.html');
-    await expect(page).toHaveTitle(/Devenir convoyeur/i);
+    await expect(page).toHaveTitle(/Formation convoyeur/i);
   });
 
   test('affiche les modules de formation', async ({ page }) => {

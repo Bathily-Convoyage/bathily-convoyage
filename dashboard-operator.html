@@ -717,6 +717,7 @@
         <div class="f-grp">
           <label>Mot de passe</label>
           <input id="opLoginPassword" type="password" required placeholder="••••••••" autocomplete="current-password">
+          <button type="button" id="opForgotPassword" style="display:block;margin:8px 0 0 auto;background:none;border:0;color:#0A4D68;font-size:.72rem;font-weight:600;text-decoration:underline;cursor:pointer;">Mot de passe oublié ?</button>
         </div>
         <button type="submit" class="login-btn"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
       </form>
@@ -913,6 +914,37 @@
       }
       window.operatorLogout = operatorLogout;
 
+      async function handleOperatorForgotPassword() {
+        const currentEmail = document.getElementById('opLoginEmail').value.trim().toLowerCase();
+        const { value: email } = await Swal.fire({
+          title: 'Mot de passe oublié ?',
+          text: 'Entrez l’adresse e-mail de votre compte opérateur.',
+          input: 'email',
+          inputValue: currentEmail,
+          inputPlaceholder: 'operateur@bathily-convoyage.fr',
+          showCancelButton: true,
+          confirmButtonText: 'Envoyer',
+          cancelButtonText: 'Annuler',
+          confirmButtonColor: 'var(--bordeaux)',
+          inputValidator: value => value ? undefined : 'Email requis'
+        });
+        if (!email) return;
+
+        Swal.fire({ title: 'Envoi…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+        try {
+          const response = await fetch('/api/operator-reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email.trim().toLowerCase() })
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || 'Impossible d’envoyer l’e-mail.');
+          Swal.fire('Demande prise en compte', 'Si cette adresse correspond à un opérateur actif, un e-mail de réinitialisation vient d’être envoyé.', 'success');
+        } catch (error) {
+          Swal.fire('Erreur', error.message || 'Service momentanément indisponible.', 'error');
+        }
+      }
+
       // =========================================================
       // AUTH : LOGIN
       // =========================================================
@@ -951,7 +983,7 @@
           Swal.close();
           Swal.fire({
             title: 'Connexion impossible',
-            text: 'Email ou mot de passe incorrect. Si votre compte n\'est pas encore migré, utilisez "Mot de passe oublié" depuis la page publique.',
+            text: 'Email ou mot de passe incorrect. Utilisez « Mot de passe oublié ? » pour définir un nouveau mot de passe.',
             icon: 'error',
             confirmButtonColor: 'var(--bordeaux)'
           });
@@ -1764,6 +1796,7 @@
       // =========================================================
       document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('operatorLoginForm').addEventListener('submit', handleOperatorLogin);
+        document.getElementById('opForgotPassword').addEventListener('click', handleOperatorForgotPassword);
         checkSessionOnLoad();
       });
 
