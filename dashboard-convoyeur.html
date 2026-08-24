@@ -2395,17 +2395,28 @@
         return;
       }
       
-      let current = parseInt(span.textContent) || 0;
-      span.textContent = current + 1;
-      btnEl.style.color = '#e74c3c';
       btnEl.disabled = true;
-      localStorage.setItem(likedKey, '1');
-      
-      const { data } = await client.from('reseau_posts').select('likes_count').eq('id', postId).single();
-      if(data) {
-        const { error: rpcErr } = await client.rpc('like_reseau_post', { post_id: postId });
-        if(rpcErr) console.warn('Erreur like RPC:', rpcErr.message);
+
+      const { error: rpcErr } = await client.rpc('like_reseau_post', { post_id: postId });
+      if (rpcErr) {
+        btnEl.disabled = false;
+        return Swal.fire('Erreur', rpcErr.message, 'error');
       }
+
+      const { data, error: refreshErr } = await client
+        .from('reseau_posts')
+        .select('likes_count')
+        .eq('id', postId)
+        .single();
+
+      if (refreshErr) {
+        btnEl.disabled = false;
+        return Swal.fire('Erreur', refreshErr.message, 'error');
+      }
+
+      span.textContent = data.likes_count || 0;
+      btnEl.style.color = '#e74c3c';
+      localStorage.setItem(likedKey, '1');
     }
 
     // ========== MOBILE NAV ==========
@@ -2590,4 +2601,3 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 </html>
-
