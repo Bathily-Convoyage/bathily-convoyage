@@ -9,7 +9,7 @@ const migrationPath = path.join(
   projectRoot,
   "supabase",
   "migrations",
-  "20260825142531_optimize_rls_auth_initplan_p4_1b.sql"
+  "20260825151634_optimize_rls_auth_initplan_p4_1b.sql"
 );
 const sql = fs.readFileSync(migrationPath, "utf8");
 
