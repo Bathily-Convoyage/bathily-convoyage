@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
+  <script src="/js/auth-password-errors.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -2637,7 +2638,7 @@ Cadeau premium personnalisé</textarea>
       console.error(err);
       const errDiv = document.getElementById('authError');
       errDiv.style.display = 'block';
-      errDiv.textContent = err.message || "Identifiants incorrects.";
+      errDiv.textContent = window.BathilyAuthErrors.getPasswordRejectionMessage(err) || err.message || "Identifiants incorrects.";
       setTimeout(() => errDiv.style.display = 'none', 3000);
       return false;
     }
@@ -7395,4 +7396,3 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 </html>
-
