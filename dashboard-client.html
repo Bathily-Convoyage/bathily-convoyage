@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/supabase-config.js"></script>
+  <script src="/js/auth-password-errors.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -1598,9 +1599,10 @@
       const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
 
       if (authError) {
+        const passwordMessage = window.BathilyAuthErrors.getPasswordRejectionMessage(authError);
         Swal.fire({
           title: 'Connexion impossible',
-          text: 'Votre compte n\'est pas encore migré vers le nouveau système d\'authentification. Cliquez sur "Mot de passe oublié" pour réinitialiser votre mot de passe et activer votre compte.',
+          text: passwordMessage || 'Votre compte n\'est pas encore migré vers le nouveau système d\'authentification. Cliquez sur "Mot de passe oublié" pour réinitialiser votre mot de passe et activer votre compte.',
           icon: 'warning',
           showCancelButton: true,
           confirmButtonText: 'Réinitialiser mon mot de passe',
@@ -1741,6 +1743,11 @@
                 .then(res => { if (res.isConfirmed) { switchAuthTab('login'); document.getElementById('loginEmail').value = email; } });
               return;
             }
+            const passwordMessage = window.BathilyAuthErrors.getPasswordRejectionMessage(signUpErr);
+            if (passwordMessage) {
+              Swal.fire('Mot de passe refusé', passwordMessage, 'warning');
+              return;
+            }
             throw new Error(signUpErr.message);
           }
 
@@ -1783,6 +1790,12 @@
         if (result.error === 'already_registered') {
           Swal.fire({ title: 'Compte existant', text: 'Cet email est déjà utilisé. Souhaitez-vous vous connecter ?', showCancelButton: true, confirmButtonText: 'Se connecter' })
             .then(res => { if (res.isConfirmed) { switchAuthTab('login'); document.getElementById('loginEmail').value = email; } });
+          return;
+        }
+
+        const passwordMessage = window.BathilyAuthErrors.getPasswordRejectionMessage(result);
+        if (passwordMessage) {
+          Swal.fire('Mot de passe refusé', passwordMessage, 'warning');
           return;
         }
 
@@ -2595,4 +2608,3 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 </html>
-

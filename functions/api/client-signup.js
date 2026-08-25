@@ -1,6 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody } from '../_utils.js';
 
+function weakPasswordReasons(error) {
+  if (!error || !Array.isArray(error.reasons)) return [];
+  return error.reasons.filter(reason => ['length', 'characters', 'pwned'].includes(reason));
+}
+
+function isWeakPasswordError(error) {
+  return Boolean(error) && (
+    error.code === 'weak_password' ||
+    error.name === 'AuthWeakPasswordError'
+  );
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -24,7 +36,7 @@ export async function onRequest(context) {
       throw new Error('Configuration Supabase manquante.');
     }
 
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    const supabase = context.supabase || createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
@@ -38,6 +50,12 @@ export async function onRequest(context) {
     if (createError) {
       if (createError.message.includes('already') || createError.message.includes('registered')) {
         return jsonResponse({ error: 'already_registered' }, 409, getCorsHeaders(request));
+      }
+      if (isWeakPasswordError(createError)) {
+        return jsonResponse({
+          error: 'weak_password',
+          reasons: weakPasswordReasons(createError)
+        }, 400, getCorsHeaders(request));
       }
       return jsonResponse({ error: createError.message }, 400, getCorsHeaders(request));
     }
