@@ -9,7 +9,7 @@ const migrationPath = path.join(
   '..',
   'supabase',
   'migrations',
-  '20260825072420_rpc_acl_hardening_p3_5.sql',
+  '20260825075444_rpc_acl_hardening_p3_5.sql',
 );
 
 const sql = fs.readFileSync(migrationPath, 'utf8');
