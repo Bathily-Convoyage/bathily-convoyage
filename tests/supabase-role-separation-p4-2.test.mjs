@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const migrationUrl = new URL(
-  '../supabase/migrations/20260825204354_enforce_auth_role_separation_p4_2.sql',
+  '../supabase/migrations/20260826053700_enforce_auth_role_separation_p4_2.sql',
   import.meta.url,
 );
 const sql = await readFile(migrationUrl, 'utf8');
