@@ -106,6 +106,14 @@ test('uses Supabase recovery email with the dedicated redirect when Resend is ab
   assert.equal(calls.redirectTo, 'https://www.bathily-convoyage.fr/reset-password.html');
 });
 
+test('operator recovery no longer requires a convoyeur profile after P4.2', async () => {
+  const { stub, calls } = supabaseStub({ executor: false });
+  const response = await onRequest(context({ supabase: stub }));
+  assert.equal(response.status, 200);
+  assert.equal(calls.reset, 1);
+  assert.equal(calls.resetEmail, operatorEmail);
+});
+
 test('uses a generated recovery link when Resend is configured', async () => {
   const { stub, calls, env } = supabaseStub({ resend: true });
   const sent = [];

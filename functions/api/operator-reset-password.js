@@ -40,20 +40,17 @@ export async function onRequest(context) {
       return jsonResponse({ success: true, message: GENERIC_SUCCESS }, 200, getCorsHeaders(request));
     }
 
-    const [roleResult, operatorResult, executorResult] = await Promise.all([
+    const [roleResult, operatorResult] = await Promise.all([
       supabase.from('user_roles').select('role').eq('user_id', authUser.id).eq('role', 'operator').maybeSingle(),
-      supabase.from('internal_operators').select('active').eq('user_id', authUser.id).maybeSingle(),
-      supabase.from('convoyeurs').select('id, prenom, banned').eq('auth_user_id', authUser.id).maybeSingle()
+      supabase.from('internal_operators').select('active, display_name').eq('user_id', authUser.id).maybeSingle()
     ]);
     if (roleResult.error) throw roleResult.error;
     if (operatorResult.error) throw operatorResult.error;
-    if (executorResult.error) throw executorResult.error;
 
     const role = roleResult.data;
     const operator = operatorResult.data;
-    const executor = executorResult.data;
 
-    if (!role || operator?.active !== true || !executor || executor.banned === true) {
+    if (!role || operator?.active !== true) {
       return jsonResponse({ success: true, message: GENERIC_SUCCESS }, 200, getCorsHeaders(request));
     }
 
@@ -80,7 +77,7 @@ export async function onRequest(context) {
         from: `Bathily Convoyage <${fromEmail}>`,
         to: [cleanEmail],
         subject: 'Réinitialisation de votre accès Opérateur - Bathily Convoyage',
-        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:32px"><h1 style="color:#0A4D68">Bathily-Convoyage</h1><p>Bonjour ${escapeHtml(executor.prenom || 'Opérateur')},</p><p>Utilisez le bouton ci-dessous pour définir un nouveau mot de passe.</p><p style="margin:28px 0"><a href="${resetUrl}" style="background:#0A4D68;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">Définir mon mot de passe</a></p><p>Ce lien est temporaire. Ignorez cet e-mail si vous n’êtes pas à l’origine de la demande.</p></div>`
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:32px"><h1 style="color:#0A4D68">Bathily-Convoyage</h1><p>Bonjour ${escapeHtml(operator.display_name || 'Opérateur')},</p><p>Utilisez le bouton ci-dessous pour définir un nouveau mot de passe.</p><p style="margin:28px 0"><a href="${resetUrl}" style="background:#0A4D68;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">Définir mon mot de passe</a></p><p>Ce lien est temporaire. Ignorez cet e-mail si vous n’êtes pas à l’origine de la demande.</p></div>`
       })
     });
 
