@@ -4,6 +4,8 @@ dist/
 *.log
 .env
 .env.*
+.dev.vars
+.dev.vars.*
 .vscode/
 .idea/
 test-results/
