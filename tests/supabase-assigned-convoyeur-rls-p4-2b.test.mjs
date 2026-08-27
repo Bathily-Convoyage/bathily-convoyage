@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const migrationUrl = new URL(
-  '../supabase/migrations/20260827160216_allow_assigned_convoyeur_execution_p4_2b.sql',
+  '../supabase/migrations/20260827162552_allow_assigned_convoyeur_execution_p4_2b.sql',
   import.meta.url,
 );
 const sql = await readFile(migrationUrl, 'utf8');
