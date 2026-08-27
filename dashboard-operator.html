@@ -735,7 +735,7 @@
           <i class="fas fa-home"></i> Tableau de bord
         </div>
         <div class="nav-item" onclick="showOpTab('mes-missions',this)" role="button" tabindex="0">
-          <i class="fas fa-briefcase"></i> Mes missions
+          <i class="fas fa-briefcase"></i> Toutes les missions
         </div>
       </div>
       <div class="nav-section">
@@ -792,13 +792,13 @@
         </div>
       </div>
 
-      <!-- MES MISSIONS -->
+      <!-- TOUTES LES MISSIONS -->
       <div class="tab-content" id="op-tab-mes-missions">
         <div class="dash-header">
-          <h1 class="dash-hello">Mes <em>missions</em></h1>
+          <h1 class="dash-hello">Toutes les <em>missions</em></h1>
         </div>
         <div class="sec-title">
-          <h2 class="sec-h">Missions <em>attribuées</em></h2>
+          <h2 class="sec-h">Suivi <em>opérationnel</em></h2>
           <div class="filter-row">
             <button class="filter-btn active" onclick="filterOpMissions('all',this)">Toutes</button>
             <button class="filter-btn" onclick="filterOpMissions('assigned',this)">À confirmer</button>
@@ -888,9 +888,9 @@
       // =========================================================
       // GLOBALES INTERNES
       // =========================================================
-      // _operatorUser : profil exécutant (ligne convoyeurs) de l'operator
+      // _operatorUser : identité Auth minimale de l'operator (jamais un profil convoyeur)
       // _operatorName : nom affiché
-      // _myMissions   : missions assignées à cet exécutant (convoyeur_id === _operatorUser.id)
+      // _myMissions   : missions visibles par l'operator via la RLS de gestion globale
       let _operatorUser = null;
       let _operatorName = '';
       let _myMissions = [];
@@ -952,13 +952,11 @@
       // Étapes :
       //   1. signInWithPassword (Supabase Auth)
       //   2. RPC is_operator() → doit retourner true
-      //   3. Lecture ligne convoyeurs par auth_user_id = session.user.id
-      //      (RLS convoyeurs_select_own_or_admin autorise auth_user_id = auth.uid())
-      //   4. Si pas de ligne convoyeurs → erreur "profil exécutant non configuré"
-      //   5. Chargement des missions assignées à cet exécutant
+      //   3. Initialisation d'une identité operator minimale depuis la session Auth
+      //   4. Chargement des missions autorisées par la RLS
       //
       // Aucune lecture directe de user_roles / internal_operators.
-      // Aucune identification par email si auth_user_id est disponible.
+      // Aucune dépendance à la table convoyeurs : P4.2 impose la séparation des rôles.
       async function handleOperatorLogin(e) {
         e.preventDefault();
         const email = document.getElementById('opLoginEmail').value.trim().toLowerCase();
@@ -1017,65 +1015,17 @@
           return;
         }
 
-        // 3. Récupérer le profil exécutant (convoyeurs) par auth_user_id
-        const userId = authData.user.id;
-        const { data: profile, error: profileErr } = await sb.from('convoyeurs')
-          .select('id, email, prenom, nom, telephone, ville, auth_user_id, banned')
-          .eq('auth_user_id', userId)
-          .maybeSingle();
-
-        if (profileErr) {
-          console.error('convoyeurs read error:', profileErr);
-          await sb.auth.signOut();
-          Swal.close();
-          Swal.fire({
-            title: 'Erreur',
-            text: 'Impossible de récupérer votre profil exécutant. Contactez l\'administration.',
-            icon: 'error',
-            confirmButtonColor: 'var(--bordeaux)'
-          });
-          return;
-        }
-
-        if (!profile) {
-          // Pas de ligne convoyeurs → profil exécutant non configuré
-          // On ne crée rien automatiquement, on ne contourne aucune RPC.
-          await sb.auth.signOut();
-          Swal.close();
-          Swal.fire({
-            title: 'Profil exécutant interne non configuré',
-            html: 'Votre rôle <strong>operator</strong> est actif, mais aucun profil exécutant (table <code>convoyeurs</code>) n\'est lié à votre compte.<br><br>Contactez l\'administration pour configurer votre identité d\'exécution avant d\'accéder aux missions.',
-            icon: 'warning',
-            confirmButtonColor: 'var(--bordeaux)',
-            confirmButtonText: 'Compris',
-            allowOutsideClick: false
-          });
-          return;
-        }
-
-        if (profile.banned === true) {
-          await sb.auth.signOut();
-          Swal.close();
-          Swal.fire({
-            title: 'Accès restreint',
-            text: 'Votre compte exécutant a été suspendu par l\'administration.',
-            icon: 'error',
-            allowOutsideClick: false
-          });
-          return;
-        }
-
-        // 4. Succès
-        _operatorUser = profile;
-        _operatorName = `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 'Opérateur';
-        sessionStorage.setItem('operator_user', JSON.stringify(profile));
+        // 3. Succès : is_operator() valide déjà le rôle et l'état active.
+        _operatorUser = { authUserId: authData.user.id };
+        _operatorName = 'Opérateur';
+        sessionStorage.removeItem('operator_user');
         sessionStorage.setItem('operator_name', _operatorName);
         document.getElementById('operatorLoginOverlay').style.display = 'none';
         Swal.close();
         Swal.fire({
           toast: true, position: 'top-end',
           icon: 'success',
-          title: `Bienvenue, ${profile.prenom || 'Opérateur'}`,
+          title: 'Bienvenue, Opérateur',
           timer: 2000, showConfirmButton: false
         });
         await loadOperatorData();
@@ -1084,18 +1034,17 @@
       // =========================================================
       // CHARGEMENT DES MISSIONS
       // =========================================================
-      // RLS missions_select_b3 autorise is_operator() à lire toutes les missions,
-      // MAIS l'Espace Missions est une interface personnelle d'exécution :
-      // on n'affiche QUE les missions où convoyeur_id === _operatorUser.id.
+      // RLS missions_select_b3 autorise is_operator() à lire toutes les missions.
+      // Depuis P4.2, l'operator est un gestionnaire interne distinct du convoyeur.
       // Aucune requête vers candidatures, reseau_posts, reseau_comments,
       // badges, convoyeur_badges, ou missions disponibles externes.
       async function loadOperatorData() {
-        if (!_operatorUser || !_operatorUser.id) return;
+        if (!_operatorUser || !_operatorUser.authUserId) return;
         const sb = getSBC();
         if (!sb) return;
 
         const { data: missions, error: missionsErr } = await sb.from('missions')
-          .select('id,reference,depart,arrivee,trajet,vehicule,mode,mode_transport,pack,date_mission,heure_depart,immatriculation,annee,carburant,puissance,type_vehicule,photo_fin_mission,depart_ville,arrivee_ville,distance_km,remuneration_convoyeur,client_nom,convoyeur_nom,convoyeur_id,convoyeur_telephone,status,notes,created_at,updated_at')
+          .select('id,reference,depart,arrivee,trajet,vehicule,mode,mode_transport,pack,date_mission,heure_depart,immatriculation,annee,carburant,puissance,type_vehicule,photo_fin_mission,depart_ville,arrivee_ville,distance_km,client_nom,convoyeur_nom,convoyeur_id,status,notes,created_at,updated_at')
           .order('date_mission', { ascending: true });
 
         if (missionsErr) {
@@ -1106,8 +1055,7 @@
           return;
         }
 
-        // Filtre strict : uniquement les missions assignées à cet exécutant
-        _myMissions = (missions || []).filter(m => m.convoyeur_id === _operatorUser.id);
+        _myMissions = missions || [];
         initOperatorDashboard();
       }
 
@@ -1186,7 +1134,7 @@
           container.innerHTML =
             '<div style="text-align:center;color:var(--gray-mid);padding:30px;">' +
             '<i class="fas fa-briefcase" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>' +
-            'Aucune mission assignée pour le moment.' +
+            'Aucune mission à afficher pour le moment.' +
             '</div>';
           return;
         }
@@ -1205,19 +1153,8 @@
           const dep = m.depart || (m.trajet ? m.trajet.split('→')[0] : '').trim() || '-';
           const arr = m.arrivee || (m.trajet ? m.trajet.split('→')[1] : '').trim() || '-';
 
-          // Actions selon statut — C-2.2A : ajout Démarrer/Livrer/Finaliser/Voir détails
+          // Actions de gestion compatibles avec un operator séparé du convoyeur.
           let actions = '';
-          // Bouton principal selon statut
-          if (m.status === 'assigned') {
-            actions += `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation();respondToAssignment('${m.id}', true)"><i class="fas fa-check"></i> Accepter</button>`;
-            actions += `<button class="btn-sm btn-sm-danger" onclick="event.stopPropagation();respondToAssignment('${m.id}', false)"><i class="fas fa-times"></i> Refuser</button>`;
-          }
-          if (m.status === 'accepted') {
-            actions += `<button class="btn-sm btn-sm-red" onclick="event.stopPropagation();transitionMission('${m.id}','in_progress','Démarrer la mission')"><i class="fas fa-play"></i> Démarrer</button>`;
-          }
-          if (m.status === 'in_progress') {
-            actions += `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation();transitionMission('${m.id}','delivered','Livrer le véhicule')"><i class="fas fa-flag-checkered"></i> Livrer</button>`;
-          }
           if (m.status === 'delivered') {
             actions += `<button class="btn-sm btn-sm-red" onclick="event.stopPropagation();transitionMission('${m.id}','completed','Finaliser la mission')"><i class="fas fa-check-double"></i> Finaliser</button>`;
           }
@@ -1226,9 +1163,6 @@
           // Outils terrain
           actions += `<a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-file-alt"></i> Bon de mission</a>`;
           actions += `<a href="etat-des-lieux.html?mission_id=${m.id}&type=depart" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-clipboard-list"></i> EDL</a>`;
-          if (m.status === 'in_progress') {
-            actions += `<a href="gps-emitter.html?id=${m.id}&ref=${encodeURIComponent(m.reference || '')}&route=${encodeURIComponent(dep + ' → ' + arr)}&vehicle=${encodeURIComponent(m.vehicule || '')}" class="btn-sm btn-sm-red" target="_blank" rel="noopener"><i class="fas fa-satellite-dish"></i> GPS</a>`;
-          }
 
           const heureStr = m.heure_depart ? escapeHtml(m.heure_depart) : '';
           const clientStr = m.client_nom ? escapeHtml(m.client_nom) : '';
@@ -1250,47 +1184,18 @@
       }
 
       // =========================================================
-      // RESPOND TO ASSIGNMENT (via RPC existante)
-      // =========================================================
-      async function respondToAssignment(missionId, accepted) {
-        if (!_operatorUser) return Swal.fire('Erreur', 'Vous devez être connecté.', 'error');
-        const sb = getSBC();
-        const { error } = await sb.rpc('respond_mission_assignment', {
-          p_mission_id: missionId,
-          p_accepted: accepted
-        });
-        if (error) {
-          console.error('Erreur réponse mission:', error);
-          Swal.fire('Erreur', 'Action impossible. Vérifiez que la mission vous est bien assignée.', 'error');
-        } else {
-          Swal.fire({
-            toast: true, position: 'top-end',
-            icon: 'success',
-            title: accepted ? 'Mission acceptée' : 'Mission refusée',
-            timer: 2500, showConfirmButton: false
-          });
-          await loadOperatorData();
-        }
-      }
-      window.respondToAssignment = respondToAssignment;
-
-      // =========================================================
       // C-2.2A — TRANSITION DE STATUT (Démarrer / Livrer / Finaliser)
       // =========================================================
       // Utilise exclusivement la RPC existante transition_mission_status.
       // Aucun .update() direct sur missions.status.
-      // Vérifie que la mission appartient bien à l'operator avant action.
+      // La RPC serveur reste l'autorité pour les transitions de gestion.
       async function transitionMission(missionId, targetStatus, actionLabel) {
         if (!_operatorUser) return Swal.fire('Erreur', 'Vous devez être connecté.', 'error');
 
         // Vérifier que la mission est bien dans _myMissions
         const mission = _myMissions.find(m => m.id === missionId);
         if (!mission) {
-          Swal.fire('Erreur', 'Mission introuvable dans vos missions assignées.', 'error');
-          return;
-        }
-        if (mission.convoyeur_id !== _operatorUser.id) {
-          Swal.fire('Erreur', 'Cette mission ne vous est pas assignée.', 'error');
+          Swal.fire('Erreur', 'Mission introuvable.', 'error');
           return;
         }
 
@@ -1503,69 +1408,17 @@
             </div>
           </div>
 
-          ${mission.remuneration_convoyeur != null ? `
-          <div class="modal-section">
-            <div class="modal-section-title">Rémunération</div>
-            <div class="modal-field-row">
-              <div class="modal-field">
-                <div class="modal-field-label">Votre rémunération</div>
-                <div class="modal-field-value">${escapeHtml(String(mission.remuneration_convoyeur))} €</div>
-              </div>
-            </div>
-          </div>` : ''}
-
-          <div class="modal-section">
-            <div class="modal-section-title">Incidents terrain</div>
-            <div id="modalIncidents">
-              <div class="incident-empty"><i class="fas fa-spinner fa-spin"></i> Chargement…</div>
-            </div>
-          </div>
-
-          <div class="modal-section">
-            <div class="modal-section-title">Frais de mission</div>
-            <div id="modalExpenses">
-              <div class="expense-empty"><i class="fas fa-spinner fa-spin"></i> Chargement…</div>
-            </div>
-          </div>
-
-          <div class="modal-section">
-            <div class="modal-section-title">Historique (timeline)</div>
-            <div id="modalTimeline">
-              <div class="timeline-empty"><i class="fas fa-spinner fa-spin"></i> Chargement…</div>
-            </div>
-          </div>
         `;
 
         // Actions de la modale selon le statut
         const actionsContainer = document.getElementById('modalActions');
         let modalActionsHtml = '';
-        if (mission.status === 'assigned') {
-          modalActionsHtml += `<button class="btn-sm btn-sm-green" onclick="respondToAssignment('${mission.id}', true)"><i class="fas fa-check"></i> Accepter</button>`;
-          modalActionsHtml += `<button class="btn-sm btn-sm-danger" onclick="respondToAssignment('${mission.id}', false)"><i class="fas fa-times"></i> Refuser</button>`;
-        }
-        if (mission.status === 'accepted') {
-          modalActionsHtml += `<button class="btn-sm btn-sm-red" onclick="transitionMission('${mission.id}','in_progress','Démarrer la mission')"><i class="fas fa-play"></i> Démarrer</button>`;
-        }
-        if (mission.status === 'in_progress') {
-          modalActionsHtml += `<button class="btn-sm btn-sm-green" onclick="transitionMission('${mission.id}','delivered','Livrer le véhicule')"><i class="fas fa-flag-checkered"></i> Livrer</button>`;
-        }
         if (mission.status === 'delivered') {
           modalActionsHtml += `<button class="btn-sm btn-sm-red" onclick="transitionMission('${mission.id}','completed','Finaliser la mission')"><i class="fas fa-check-double"></i> Finaliser</button>`;
-        }
-        // Contact client — uniquement pendant les phases d'exécution actives
-        if (['assigned', 'accepted', 'in_progress'].includes(mission.status)) {
-          modalActionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="contactClient('${mission.id}')" id="btnContactClient"><i class="fas fa-phone"></i> Contacter le client</button>`;
         }
         // Outils terrain
         modalActionsHtml += `<a href="bon-de-mission.html?id=${mission.id}" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-file-alt"></i> Bon de mission</a>`;
         modalActionsHtml += `<a href="etat-des-lieux.html?mission_id=${mission.id}&type=depart" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-clipboard-list"></i> EDL</a>`;
-        if (mission.status === 'in_progress') {
-          modalActionsHtml += `<a href="gps-emitter.html?id=${mission.id}&ref=${encodeURIComponent(mission.reference || '')}&route=${encodeURIComponent(dep + ' → ' + arr)}&vehicle=${encodeURIComponent(mission.vehicule || '')}" class="btn-sm btn-sm-red" target="_blank" rel="noopener"><i class="fas fa-satellite-dish"></i> GPS</a>`;
-        }
-        // C-2.2C2 — Signaler un incident (uniquement si statut compatible backend)
-        if (['accepted', 'in_progress', 'delivered'].includes(mission.status)) {
-          modalActionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="showReportIncidentForm('${mission.id}')"><i class="fas fa-exclamation-triangle"></i> Signaler un incident</button>`;
-        }
         actionsContainer.innerHTML = modalActionsHtml;
 
         // Afficher la modale
@@ -1577,12 +1430,6 @@
           if (e.target === modal) closeMissionModal();
         };
 
-        // Charger la timeline
-        loadMissionTimeline(missionId);
-        // C-2.2C2 — Charger les incidents
-        loadMissionIncidents(missionId);
-        // C-2.2C4 — Charger les frais
-        loadMissionExpenses(missionId);
       }
       window.openMissionModal = openMissionModal;
 
@@ -1750,44 +1597,9 @@
           return;
         }
 
-        // Récupérer le profil exécutant par auth_user_id
-        const userId = session.user.id;
-        const { data: profile, error: profileErr } = await sb.from('convoyeurs')
-          .select('id, email, prenom, nom, telephone, ville, auth_user_id, banned')
-          .eq('auth_user_id', userId)
-          .maybeSingle();
-
-        if (profileErr || !profile) {
-          sessionStorage.removeItem('operator_user');
-          sessionStorage.removeItem('operator_name');
-          document.getElementById('operatorLoginOverlay').style.display = 'flex';
-          if (profileErr) {
-            console.warn('convoyeurs read error on load:', profileErr.message);
-          }
-          Swal.fire({
-            title: 'Profil exécutant interne non configuré',
-            html: 'Votre rôle <strong>operator</strong> est actif, mais aucun profil exécutant n\'est lié à votre compte.<br>Contactez l\'administration.',
-            icon: 'warning',
-            confirmButtonColor: 'var(--bordeaux)'
-          });
-          return;
-        }
-
-        if (profile.banned === true) {
-          sessionStorage.removeItem('operator_user');
-          sessionStorage.removeItem('operator_name');
-          document.getElementById('operatorLoginOverlay').style.display = 'flex';
-          Swal.fire({
-            title: 'Accès restreint',
-            text: 'Votre compte exécutant a été suspendu.',
-            icon: 'error'
-          });
-          return;
-        }
-
-        _operatorUser = profile;
-        _operatorName = `${profile.prenom || ''} ${profile.nom || ''}`.trim() || 'Opérateur';
-        sessionStorage.setItem('operator_user', JSON.stringify(profile));
+        _operatorUser = { authUserId: session.user.id };
+        _operatorName = 'Opérateur';
+        sessionStorage.removeItem('operator_user');
         sessionStorage.setItem('operator_name', _operatorName);
         document.getElementById('operatorLoginOverlay').style.display = 'none';
         await loadOperatorData();
