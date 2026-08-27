@@ -1,6 +1,6 @@
-import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { getCorsHeaders, jsonResponse, handleOptions, checkRateLimit, parseBody } from '../_utils.js';
+import { createStripeClient } from '../_stripe.js';
 
 /**
  * Determine whether an existing Stripe Checkout Session is safe to reuse.
@@ -109,7 +109,7 @@ export async function onRequest(context) {
     if (!env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY manquante.");
     if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) throw new Error("Variables Supabase manquantes.");
 
-    const stripe = context.stripe || Stripe(env.STRIPE_SECRET_KEY);
+    const stripe = context.stripe || createStripeClient(env.STRIPE_SECRET_KEY);
     const supabase = context.supabase || createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
     const { missionId, successUrl, cancelUrl } = await parseBody(request);
@@ -207,7 +207,6 @@ export async function onRequest(context) {
 
     const idempotencyKey = buildCheckoutIdempotencyKey(missionId, expectedSessionId);
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       line_items: [{
         price_data: { currency: 'eur', product_data: { name: `Bathily Convoyage - Réf: ${mission.reference}`, description }, unit_amount: amountCents },
         quantity: 1,
