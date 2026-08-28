@@ -1,6 +1,6 @@
-import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { randomHex } from '../_utils.js';
+import { createStripeClient } from '../_stripe.js';
 
 const PAID_CHECKOUT_EVENTS = new Set([
   'checkout.session.completed',
@@ -106,7 +106,7 @@ export async function onRequest(context) {
     if (!env.SUPABASE_URL) throw new Error('SUPABASE_URL manquante.');
     if (!env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('SUPABASE_SERVICE_ROLE_KEY manquante.');
 
-    const stripe = context.stripe || Stripe(env.STRIPE_SECRET_KEY);
+    const stripe = context.stripe || createStripeClient(env.STRIPE_SECRET_KEY);
     const supabase = context.supabase || createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
