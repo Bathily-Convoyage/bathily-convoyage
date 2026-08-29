@@ -34,7 +34,7 @@
     }
 
     try {
-      var query = sb.from('avis').select('*').eq('statut', 'approuve').order('created_at', { ascending: false });
+      var query = sb.from('avis').select('auteur_nom,note,titre,commentaire,ville,created_at').eq('statut', 'approuve').order('created_at', { ascending: false });
       if (limit) query = query.limit(limit);
 
       var _ref = await query;
@@ -49,7 +49,7 @@
 
       renderAvis(container, data, limit);
     } catch (err) {
-      console.error('Erreur loadAvis:', err);
+      console.error('Erreur loadAvis:', err && err.message ? err.message : JSON.stringify(err));
       renderAvis(container, [], limit);
     }
   }
@@ -251,14 +251,12 @@
         auteur_type: data.type,
         auteur_nom: data.nom,
         auteur_email: data.email || null,
-        user_id: userId,
         note: data.note,
         titre: data.titre || null,
         commentaire: data.commentaire,
-        ville: data.ville || null,
-        statut: 'en_attente',
-        source: 'site'
+        ville: data.ville || null
       };
+      if (userId) row.user_id = userId;
 
       var _res = await sb.from('avis').insert(row);
       if (_res.error) throw _res.error;
@@ -274,7 +272,7 @@
       var container = document.getElementById('avisContainer');
       if (container) loadAvis(container);
     } catch (err) {
-      console.error('Erreur submitAvis:', err);
+      console.error('Erreur submitAvis:', err && err.message ? err.message : JSON.stringify(err));
       Swal.fire('Erreur', 'Une erreur est survenue lors de la publication de votre avis.', 'error');
     }
   }
