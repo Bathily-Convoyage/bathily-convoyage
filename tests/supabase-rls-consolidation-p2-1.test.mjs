@@ -9,7 +9,7 @@ const migrationPath = path.join(
   projectRoot,
   "supabase",
   "migrations",
-  "20260828073053_consolidate_redundant_rls_p2_1.sql"
+  "20260828080834_consolidate_redundant_rls_p2_1.sql"
 );
 const sql = fs.readFileSync(migrationPath, "utf8");
 const normalized = sql.replace(/\s+/g, " ").trim();
