@@ -88,9 +88,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 
-  <script src="/supabase-config.js"></script>
+  <script src="/supabase-config.js" defer></script>
 
   <style>
 
@@ -3451,7 +3451,7 @@
         bar.innerHTML = '<span>⭐ ' + escapeHtml(p.texte_affiche) + ' : <strong>-' + escapeHtml(p.remise_pourcent) + '%</strong> sur votre convoyage avec le code : <strong>' + escapeHtml(p.code) + '</strong></span>';
       } catch(e) { console.warn('Promo bar: fallback to default', e); }
     }
-    loadPromoBar();
+    document.addEventListener('DOMContentLoaded', function() { loadPromoBar(); });
   })();
   </script>
 
@@ -5180,7 +5180,7 @@
 
     }
 
-    loadPacksConfig();
+    document.addEventListener('DOMContentLoaded', function() { loadPacksConfig(); });
 
   </script>
 
