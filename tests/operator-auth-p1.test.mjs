@@ -140,7 +140,7 @@ test('operator login exposes a local forgot-password action', async () => {
 
 test('homepage forwards invite and recovery tokens before Supabase consumes them', async () => {
   const index = await readFile(new URL('../index.html', import.meta.url), 'utf8');
-  const redirect = await readFile(new URL('../js/auth-entry-redirect.js', import.meta.url), 'utf8');
+  const redirect = await readFile(new URL('../public/js/auth-entry-redirect.js', import.meta.url), 'utf8');
   assert.match(index, /auth-entry-redirect\.js/);
   assert.match(redirect, /authType !== 'invite'/);
   assert.match(redirect, /reset-password\.html/);
