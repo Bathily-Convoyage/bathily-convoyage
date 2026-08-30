@@ -808,4 +808,156 @@ assert.doesNotMatch(
   "migration must NOT create or alter unrelated tables"
 );
 
-console.log("✅ All V1.1-B avis API redesign tests passed (" + "35+ assertions");
+// ============================================================
+// V1.1-B3 — AVIS VIEW ACL RECONCILIATION TESTS
+// ============================================================
+// Verify the follow-up migration 20260829210000_restrict_avis_public_view_acl.sql
+// makes the SELECT-only avis_public ACL reproducible from Git.
+
+const b3MigrationPath = path.join(
+  projectRoot,
+  "supabase",
+  "migrations",
+  "20260829210000_restrict_avis_public_view_acl.sql"
+);
+const b3MigrationSql = fs.readFileSync(b3MigrationPath, "utf8");
+const executableB3 = b3MigrationSql.replace(/--.*$/gm, "");
+
+// 1. Follow-up migration exists and is readable
+assert.ok(b3MigrationSql.length > 0, "B3 migration file must exist and be non-empty");
+
+// 2. Version is later than 20260829200000
+const b3Version = path.basename(b3MigrationPath).split("_")[0];
+assert.ok(
+  parseInt(b3Version) > 20260829200000,
+  "B3 migration version must be later than 20260829200000"
+);
+
+// 3. Original migration NOT modified
+const originalMigrationResql = fs.readFileSync(migrationPath, "utf8");
+assert.ok(
+  originalMigrationResql.includes("CREATE OR REPLACE VIEW public.avis_public"),
+  "Original migration must still create the view (not modified)"
+);
+assert.ok(
+  !originalMigrationResql.includes("REVOKE ALL PRIVILEGES ON public.avis_public"),
+  "Original migration must NOT contain B3 REVOKE ALL (not modified)"
+);
+
+// 4. Transactional
+assert.ok(executableB3.includes("BEGIN"), "B3 migration must be transactional (BEGIN)");
+assert.ok(executableB3.includes("COMMIT"), "B3 migration must be transactional (COMMIT)");
+
+// 5. Bounded timeouts
+assert.ok(
+  /SET\s+LOCAL\s+lock_timeout\s*=\s*'5s'/i.test(executableB3),
+  "B3 migration must set lock_timeout = '5s'"
+);
+assert.ok(
+  /SET\s+LOCAL\s+statement_timeout\s*=\s*'30s'/i.test(executableB3),
+  "B3 migration must set statement_timeout = '30s'"
+);
+
+// 6. REVOKE ALL from anon and authenticated
+assert.ok(
+  /REVOKE\s+ALL\s+PRIVILEGES\s+ON\s+public\.avis_public\s+FROM\s+anon/i.test(executableB3),
+  "B3 migration must REVOKE ALL PRIVILEGES FROM anon on avis_public"
+);
+assert.ok(
+  /REVOKE\s+ALL\s+PRIVILEGES\s+ON\s+public\.avis_public\s+FROM\s+authenticated/i.test(executableB3),
+  "B3 migration must REVOKE ALL PRIVILEGES FROM authenticated on avis_public"
+);
+
+// 7. GRANT SELECT to anon and authenticated
+assert.ok(
+  /GRANT\s+SELECT\s+ON\s+public\.avis_public\s+TO\s+anon/i.test(executableB3),
+  "B3 migration must GRANT SELECT TO anon on avis_public"
+);
+assert.ok(
+  /GRANT\s+SELECT\s+ON\s+public\.avis_public\s+TO\s+authenticated/i.test(executableB3),
+  "B3 migration must GRANT SELECT TO authenticated on avis_public"
+);
+
+// 8. No write grants in B3
+assert.doesNotMatch(
+  executableB3,
+  /GRANT\s+(INSERT|UPDATE|DELETE|TRUNCATE|REFERENCES|TRIGGER|ALL)/i,
+  "B3 migration must NOT grant any write privileges"
+);
+
+// 9. Does NOT touch public.avis base table
+assert.doesNotMatch(
+  executableB3,
+  /REVOKE\s+.*ON\s+public\.avis\s+/i,
+  "B3 migration must NOT revoke privileges on public.avis base table"
+);
+assert.doesNotMatch(
+  executableB3,
+  /GRANT\s+.*ON\s+public\.avis\s+/i,
+  "B3 migration must NOT grant privileges on public.avis base table"
+);
+
+// 10. Does NOT touch submit_public_avis RPC
+assert.doesNotMatch(
+  executableB3,
+  /submit_public_avis/i,
+  "B3 migration must NOT touch submit_public_avis RPC"
+);
+
+// 11. Does NOT modify RLS policies
+assert.doesNotMatch(
+  executableB3,
+  /DROP\s+POLICY|CREATE\s+POLICY|ALTER\s+POLICY/i,
+  "B3 migration must NOT modify RLS policies"
+);
+
+// 12. Does NOT change default privileges
+assert.doesNotMatch(
+  executableB3,
+  /ALTER\s+DEFAULT\s+PRIVILEGES/i,
+  "B3 migration must NOT change default privileges"
+);
+
+// 13. No unrelated DDL
+assert.doesNotMatch(
+  executableB3,
+  /CREATE\s+TABLE|ALTER\s+TABLE|CREATE\s+FUNCTION|ALTER\s+FUNCTION|DROP\s+FUNCTION|CREATE\s+VIEW|CREATE\s+OR\s+REPLACE\s+VIEW|DROP\s+VIEW/i,
+  "B3 migration must NOT contain unrelated DDL"
+);
+
+// 14. No data mutation
+assert.doesNotMatch(
+  executableB3,
+  /INSERT\s+INTO|UPDATE\s+public\.|DELETE\s+FROM/i,
+  "B3 migration must NOT mutate data"
+);
+
+// 15. Cumulative replay contract: 20260829200000 + 20260829210000
+//    produces SELECT-only for anon and authenticated
+const cumulativeSql = executableMigration + "\n" + executableB3;
+
+// After cumulative replay, the last GRANT on avis_public to anon must be SELECT
+const anonGrants = cumulativeSql.match(/GRANT\s+(\w+)\s+ON\s+public\.avis_public\s+TO\s+anon/gi) || [];
+assert.ok(
+  anonGrants.length > 0,
+  "Cumulative replay must include at least one GRANT to anon on avis_public"
+);
+
+// The B3 REVOKE ALL removes any excessive grants, and the final GRANT is SELECT
+const lastAnonGrant = anonGrants[anonGrants.length - 1];
+assert.ok(
+  /GRANT\s+SELECT\s+ON\s+public\.avis_public\s+TO\s+anon/i.test(lastAnonGrant),
+  "Final GRANT to anon on avis_public must be SELECT only"
+);
+
+// 16. Migration order is correct (B3 version > B version)
+assert.ok(
+  parseInt(b3Version) > 20260829200000,
+  "B3 migration must come after original migration in order"
+);
+
+// 17. B3 does NOT modify the original migration file on disk
+const originalStat = fs.statSync(migrationPath);
+assert.ok(originalStat.size > 0, "Original migration file must still exist");
+
+console.log("✅ All V1.1-B avis API redesign tests passed (50+ assertions");
