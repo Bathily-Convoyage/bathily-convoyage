@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bathily-convoyage-v4';
+const CACHE_NAME = 'bathily-convoyage-v5';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -39,7 +39,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: network-first for HTML, cache-first for static assets
+// Fetch: network-first for HTML and JS, cache-first for other static assets
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
@@ -67,7 +67,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets: cache-first
+  // Same-origin JavaScript: network-first (always fresh JS, fallback to cache)
+  if (url.pathname.endsWith('.js') || req.destination === 'script') {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req).then((cached) => cached || Response.error()))
+    );
+    return;
+  }
+
+  // Other static assets: cache-first
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
