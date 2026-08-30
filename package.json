@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "postinstall": "node scripts/generate-config.cjs",
     "test": "npx playwright test",
+    "test:local-e2e": "npx playwright test --project=local-e2e --reporter=line",
     "test:ui": "npx playwright test --ui",
     "test:report": "npx playwright show-report",
     "test:buffer": "node scripts/test-buffer-social.mjs"
