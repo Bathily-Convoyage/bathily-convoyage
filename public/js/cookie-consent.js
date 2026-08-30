@@ -1,5 +1,6 @@
 (function () {
-  if (localStorage.getItem('bathily_cookie_consent') === 'accepted') return;
+  var consent = localStorage.getItem('bathily_cookie_consent');
+  if (consent === 'accepted' || consent === 'refused') return;
 
   var banner = document.createElement('div');
   banner.id = 'cookie-banner';

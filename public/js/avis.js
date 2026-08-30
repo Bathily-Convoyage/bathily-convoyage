@@ -34,7 +34,7 @@
     }
 
     try {
-      var query = sb.from('avis').select('*').eq('statut', 'approuve').order('created_at', { ascending: false });
+      var query = sb.from('avis_public').select('auteur_nom,note,titre,commentaire,ville,created_at').order('created_at', { ascending: false });
       if (limit) query = query.limit(limit);
 
       var _ref = await query;
@@ -49,7 +49,7 @@
 
       renderAvis(container, data, limit);
     } catch (err) {
-      console.error('Erreur loadAvis:', err);
+      console.error('Erreur loadAvis:', err && err.message ? err.message : JSON.stringify(err));
       renderAvis(container, [], limit);
     }
   }
@@ -240,27 +240,17 @@
     }
 
     try {
-      // Récupérer l'utilisateur connecté si possible
-      var userId = null;
-      try {
-        var _auth = await sb.auth.getSession();
-        if (_auth.data && _auth.data.session) userId = _auth.data.session.user.id;
-      } catch (e) { /* visiteur non connecté */ }
-
-      var row = {
-        auteur_type: data.type,
-        auteur_nom: data.nom,
-        auteur_email: data.email || null,
-        user_id: userId,
-        note: data.note,
-        titre: data.titre || null,
-        commentaire: data.commentaire,
-        ville: data.ville || null,
-        statut: 'en_attente',
-        source: 'site'
-      };
-
-      var _res = await sb.from('avis').insert(row);
+      // Call the SECURITY DEFINER RPC — user_id is derived server-side
+      // from auth.uid(); the caller cannot inject privileged fields.
+      var _res = await sb.rpc('submit_public_avis', {
+        p_auteur_type: data.type,
+        p_auteur_nom: data.nom,
+        p_auteur_email: data.email || null,
+        p_note: data.note,
+        p_titre: data.titre || null,
+        p_commentaire: data.commentaire,
+        p_ville: data.ville || null
+      });
       if (_res.error) throw _res.error;
 
       Swal.fire({
@@ -274,7 +264,7 @@
       var container = document.getElementById('avisContainer');
       if (container) loadAvis(container);
     } catch (err) {
-      console.error('Erreur submitAvis:', err);
+      console.error('Erreur submitAvis:', err && err.message ? err.message : JSON.stringify(err));
       Swal.fire('Erreur', 'Une erreur est survenue lors de la publication de votre avis.', 'error');
     }
   }
