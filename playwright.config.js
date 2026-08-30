@@ -16,6 +16,12 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: ['**/indy-3b-admin-billing-e2e.test.mjs'],
+    },
+    {
+      name: 'local-e2e',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: ['**/indy-3b-admin-billing-e2e.test.mjs'],
     },
   ],
   webServer: {

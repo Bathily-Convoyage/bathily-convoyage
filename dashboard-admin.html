@@ -1652,7 +1652,7 @@
           <div class="stat-card" data-nav="facturation">
             <div class="stat-ico"><i class="fas fa-euro-sign"></i></div>
             <div class="stat-val" id="statCaVal">—</div>
-            <div class="stat-lbl">CA ce mois (€)</div>
+            <div class="stat-lbl">HT missions du mois (€)</div>
             <div class="stat-trend trend-up">+18%</div>
           </div>
           <div class="stat-card" data-nav="analytics">
@@ -1688,7 +1688,7 @@
             <div class="mini-ico"><i class="fas fa-file-invoice"></i></div>
             <div>
               <div class="mini-val" id="miniFacturesVal">—</div>
-              <div class="mini-lbl">Factures en attente</div>
+              <div class="mini-lbl">À facturer</div>
             </div>
           </div>
           <div class="mini-card" data-nav="clients">
@@ -2088,26 +2088,27 @@ Cadeau premium personnalisé</textarea>
         </div>
       </div>
 
-      <!-- FACTURATION -->
+      <!-- FACTURATION — INDY-3B Admin Billing Workflow -->
       <div class="tab-content" id="tab-facturation">
         <div class="dash-header">
           <h1 class="dash-hello">Gestion <em>facturation</em></h1>
         </div>
+        <div style="background:#fff3cd;border:1px solid #ffeaa7;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:0.85rem;color:#856404;">
+          <i class="fas fa-info-circle"></i> Indy est la source de vérité légale des factures. Bathily prépare et enregistre les numéros de facture Indy. Les factures légales sont créées dans Indy.
+        </div>
         <div class="mini-cards">
-          <div class="mini-card" style="cursor:default;"><div class="mini-ico"><i class="fas fa-euro-sign"></i></div><div><div class="mini-val" id="factureKpiCa">0€</div><div class="mini-lbl">CA ce mois</div></div></div>
-          <div class="mini-card" style="cursor:pointer;" onclick="filterFactures('paid')"><div class="mini-ico"><i class="fas fa-check-circle" style="color:var(--success)"></i></div><div><div class="mini-val" id="factureKpiPaid">0</div><div class="mini-lbl">Factures payées</div></div></div>
-          <div class="mini-card" style="cursor:pointer;" onclick="filterFactures('pending')"><div class="mini-ico"><i class="fas fa-clock" style="color:var(--warning)"></i></div><div><div class="mini-val" id="factureKpiPending">0</div><div class="mini-lbl">En attente</div></div></div>
-          <div class="mini-card" style="cursor:pointer; justify-content:center;" onclick="filterFactures('all')"><div style="text-align:center;font-size:0.7rem;font-weight:700;color:var(--bordeaux);"><i class="fas fa-list"></i> Afficher toutes<br>les factures</div></div>
+          <div class="mini-card" style="cursor:pointer;" onclick="filterBillingView('to_invoice')"><div class="mini-ico"><i class="fas fa-file-invoice" style="color:var(--bordeaux)"></i></div><div><div class="mini-val" id="billingKpiToInvoice">0</div><div class="mini-lbl">À facturer</div></div></div>
+          <div class="mini-card" style="cursor:pointer;" onclick="filterBillingView('prepared')"><div class="mini-ico"><i class="fas fa-clock" style="color:var(--warning)"></i></div><div><div class="mini-val" id="billingKpiPrepared">0</div><div class="mini-lbl">Préparées</div></div></div>
+          <div class="mini-card" style="cursor:pointer;" onclick="filterBillingView('issued')"><div class="mini-ico"><i class="fas fa-check-circle" style="color:var(--success)"></i></div><div><div class="mini-val" id="billingKpiIssued">0</div><div class="mini-lbl">Émises dans Indy</div></div></div>
+          <div class="mini-card" style="cursor:pointer;" onclick="filterBillingView('cancelled')"><div class="mini-ico"><i class="fas fa-times-circle" style="color:#ccc"></i></div><div><div class="mini-val" id="billingKpiCancelled">0</div><div class="mini-lbl">Annulées</div></div></div>
         </div>
         <div class="sec-title">
-          <h2 class="sec-h">Factures <em>récentes</em></h2>
-          <div class="sec-actions"><button class="btn-red"><i class="fas fa-plus"></i> Créer</button><button class="btn-outline"><i class="fas fa-download"></i> Exporter</button></div>
+          <h2 class="sec-h" id="billingSectionTitle">À <em>facturer</em></h2>
+          <div class="sec-actions"><button class="btn-outline" onclick="loadBillingData()"><i class="fas fa-sync"></i> Actualiser</button></div>
         </div>
-        <table class="data-table">
-          <thead>
-            <tr><th>N° Facture</th><th>Client</th><th>Mission</th><th>Montant</th><th>Statut</th><th>Date</th><th>Actions</th></tr>
-          </thead>
-          <tbody id="invoicesTableBody">
+        <table class="data-table" id="billingTable">
+          <thead id="billingTableHead"></thead>
+          <tbody id="billingTableBody">
             <tr><td colspan="7" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Chargement...</td></tr>
           </tbody>
         </table>
@@ -3739,8 +3740,7 @@ Cadeau premium personnalisé</textarea>
     const visibleMissions = _allMissions.filter(m => m.status !== 'archived');
     renderMissionsTable(visibleMissions);
     renderRecentMissionsTable(visibleMissions);
-    renderInvoicesTable(_allMissions);
-    updateFactureKpis(_allMissions);
+    loadBillingData();
     loadAnalytics();
     document.getElementById('statMissionsVal').textContent = _allMissions.filter(m => m.status === 'completed').length;
     const caMonth = _allMissions.filter(m => { const d = new Date(m.date_mission || m.created_at); return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear() && m.montant_ht; }).reduce((s, m) => s + parseFloat(m.montant_ht), 0);
@@ -3846,184 +3846,391 @@ Cadeau premium personnalisé</textarea>
     }).join('');
   }
 
-  let _currentInvoiceFilter = 'all';
+  // ============================================================
+  // INDY-3B — ADMIN BILLING WORKFLOW
+  // Indy is the legal source of truth. Bathily prepares and records.
+  // No legal invoice generation, no PDF, no Factur-X.
+  // All mutations via prepare_billing_record, link_external_invoice,
+  // cancel_billing_record RPCs. No direct table writes.
+  // ============================================================
 
-  function renderInvoicesTable(missions) {
-    const tbody = document.getElementById('invoicesTableBody');
-    if (!tbody) return;
-    let filtered = missions;
-    if (_currentInvoiceFilter === 'paid') filtered = missions.filter(m => m.paiement_statut === 'paid' || m.paiement_statut === 'paye');
-    else if (_currentInvoiceFilter === 'pending') filtered = missions.filter(m => m.paiement_statut !== 'paid' && m.paiement_statut !== 'paye');
-    if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Aucune facture générée.</td></tr>';
-      return;
-    }
-    const invoices = filtered.map(m => ({
-      id: m.id,
-      num: `F-${m.reference || '000'}`,
-      client: m.client_nom || 'Inconnu',
-      client_email: m.client_email || '—',
-      mission: m.reference || '—',
-      depart: m.depart || '—',
-      arrivee: m.arrivee || '—',
-      vehicule: m.vehicule || '—',
-      pack: m.pack || '—',
-      convoyeur: m.convoyeur_nom || '—',
-      montant: parseOptionalAmount(m.montant_ht),
-      status: m.paiement_statut || 'pending',
-      date: formatDate(m.date_mission || m.created_at),
-      dateRaw: m.date_mission || m.created_at
-    }));
-    tbody.innerHTML = invoices.map(inv => {
-      const statusClass = inv.status === 'paid' || inv.status === 'paye' ? 'sp-ok' : 'sp-err';
-      const statusText = inv.status === 'paid' || inv.status === 'paye' ? 'Payée' : 'En attente';
-      return `<tr class="clickable-row" style="cursor:pointer;" onclick="if(!event.target.closest('button')) { viewInvoiceDetails('${inv.id}'); }">
-        <td>${escapeHtml(inv.num)}</td>
-        <td>${escapeHtml(inv.client)}</td>
-        <td>${escapeHtml(inv.mission)}</td>
-        <td>${formatMontant(inv.montant)}</td>
-        <td><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusText}</span></td>
-        <td>${inv.date}</td>
-        <td><button class="btn-sm btn-sm-ghost" onclick="event.stopPropagation(); downloadInvoice('${inv.id}')" title="Télécharger PDF"><i class="fas fa-download"></i></button></td>
-      </tr>`;
-    }).join('');
+  function translateBillingError(err) {
+    const msg = err?.message || String(err || '');
+    if (/duplicate key.*unique_external_number|billing_records_unique_external/i.test(msg))
+      return 'Ce numéro de facture Indy est déjà enregistré.';
+    if (/Une facture active existe déjà/i.test(msg))
+      return 'Une préparation de facturation existe déjà pour cette mission.';
+    if (/permission denied|42501/i.test(msg))
+      return 'Action non autorisée. Vous devez être administrateur.';
+    if (/Enregistrement terminal/i.test(msg))
+      return 'Cette facture a déjà été émise ou annulée et ne peut plus être modifiée.';
+    if (/Transition illégale/i.test(msg))
+      return 'Transition de statut non autorisée.';
+    return escapeHtml(msg) || 'Une erreur est survenue.';
   }
 
-  window.viewInvoiceDetails = function(missionId) {
-    const m = _allMissions.find(x => x.id === missionId);
-    if (!m) return Swal.fire('Erreur', 'Facture introuvable', 'error');
-    const montant = parseOptionalAmount(m.montant_ht);
-    const payStatus = m.paiement_statut || 'pending';
-    const payText = payStatus === 'paid' || payStatus === 'paye' ? 'Payée' : 'En attente';
-    const payClass = payStatus === 'paid' || payStatus === 'paye' ? 'sp-ok' : 'sp-err';
+  let _billingView = 'to_invoice';
+  let _billingRecords = [];
+  let _billingCutoff = null;
+  let _billingFirstEligibleDate = null;
+
+  async function loadBillingData() {
+    const sb = getSupabase();
+    if (!sb) return;
+    try {
+      const { data: cutoffSetting, error: cutoffErr } = await sb
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'billing_workflow_start_at')
+        .maybeSingle();
+      if (!cutoffErr && cutoffSetting && cutoffSetting.value) {
+        const raw = cutoffSetting.value;
+        _billingCutoff = typeof raw === 'string' ? raw : String(raw);
+        _billingFirstEligibleDate = computeFirstEligibleDate(_billingCutoff);
+      }
+    } catch (e) { console.warn('Billing cutoff load failed:', e); }
+
+    try {
+      const { data: records, error: recErr } = await sb
+        .from('billing_records')
+        .select('id, mission_id, client_id, provider, status, invoice_type, external_invoice_number, external_invoice_id, total_ht, total_tva, total_ttc, currency, prepared_payload, issued_at, cancelled_at, created_by, created_at, updated_at, notes')
+        .order('created_at', { ascending: false });
+      if (recErr) throw recErr;
+      _billingRecords = records || [];
+    } catch (e) {
+      console.error('Billing records load failed:', e);
+      _billingRecords = [];
+    }
+    renderBillingView();
+  }
+
+  // Deterministic Level-1 cutoff rule:
+  // The calendar date containing billing_workflow_start_at is historical.
+  // Automatic billing eligibility starts on the NEXT calendar day.
+  // date_mission is a PostgreSQL DATE (no time-of-day), returned as
+  // a YYYY-MM-DD string by Supabase JS. We compare date strings
+  // lexicographically (YYYY-MM-DD is sortable) to avoid any timezone
+  // ambiguity from Date object coercion.
+  function computeFirstEligibleDate(cutoffRaw) {
+    if (!cutoffRaw) return null;
+    const datePart = cutoffRaw.slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return null;
+    const d = new Date(datePart + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function getEligibleMissions() {
+    if (!_allMissions) return [];
+    const firstEligible = _billingFirstEligibleDate;
+    const activeInvoiceMissionIds = new Set(
+      _billingRecords
+        .filter(r => r.invoice_type === 'invoice' && (r.status === 'prepared' || r.status === 'issued'))
+        .map(r => r.mission_id)
+    );
+    return _allMissions.filter(m => {
+      if (m.status !== 'completed') return false;
+      const montant = parseFloat(m.montant_ht);
+      if (!montant || montant <= 0) return false;
+      if (firstEligible) {
+        if (!m.date_mission) return false;
+        if (m.date_mission < firstEligible) return false;
+      }
+      if (activeInvoiceMissionIds.has(m.id)) return false;
+      return true;
+    });
+  }
+
+  function updateBillingKpis() {
+    const eligible = getEligibleMissions();
+    const prepared = _billingRecords.filter(r => r.status === 'prepared');
+    const issued = _billingRecords.filter(r => r.status === 'issued');
+    const cancelled = _billingRecords.filter(r => r.status === 'cancelled');
+    const elToInvoice = document.getElementById('billingKpiToInvoice');
+    const elPrepared = document.getElementById('billingKpiPrepared');
+    const elIssued = document.getElementById('billingKpiIssued');
+    const elCancelled = document.getElementById('billingKpiCancelled');
+    if (elToInvoice) elToInvoice.textContent = eligible.length;
+    if (elPrepared) elPrepared.textContent = prepared.length;
+    if (elIssued) elIssued.textContent = issued.length;
+    if (elCancelled) elCancelled.textContent = cancelled.length;
+  }
+
+  function renderBillingView() {
+    updateBillingKpis();
+    const head = document.getElementById('billingTableHead');
+    const tbody = document.getElementById('billingTableBody');
+    const title = document.getElementById('billingSectionTitle');
+    if (!head || !tbody) return;
+
+    if (_billingView === 'to_invoice') {
+      if (title) title.innerHTML = 'À <em>facturer</em>';
+      head.innerHTML = '<tr><th>Référence mission</th><th>Client</th><th>Trajet</th><th>Montant HT</th><th>Date mission</th><th>Paiement</th><th>Actions</th></tr>';
+      const eligible = getEligibleMissions();
+      if (!eligible.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Aucune mission à facturer.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = eligible.map(m => {
+        const payText = (m.paiement_statut === 'paid' || m.paiement_statut === 'paye') ? 'Payé' : 'En attente';
+        const payClass = (m.paiement_statut === 'paid' || m.paiement_statut === 'paye') ? 'sp-ok' : 'sp-err';
+        return `<tr>
+          <td>${escapeHtml(m.reference || '—')}</td>
+          <td>${escapeHtml(m.client_nom || '—')}</td>
+          <td>${escapeHtml(m.depart || '—')} → ${escapeHtml(m.arrivee || '—')}</td>
+          <td>${formatMontant(parseFloat(m.montant_ht))}</td>
+          <td>${formatDate(m.date_mission || m.created_at)}</td>
+          <td><span class="sp ${payClass}"><span class="sp-dot"></span>${payText}</span></td>
+          <td><button class="btn-sm btn-sm-green" onclick="prepareBilling('${m.id}')" title="Préparer pour Indy"><i class="fas fa-file-export"></i> Préparer pour Indy</button></td>
+        </tr>`;
+      }).join('');
+    } else if (_billingView === 'prepared') {
+      if (title) title.innerHTML = 'Préparations de <em>facturation</em>';
+      head.innerHTML = '<tr><th>Référence mission</th><th>Client</th><th>Montant HT</th><th>Préparé le</th><th>Actions</th></tr>';
+      const prepared = _billingRecords.filter(r => r.status === 'prepared');
+      if (!prepared.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Aucune préparation en cours.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = prepared.map(r => {
+        const payload = r.prepared_payload || {};
+        const missionRef = payload.mission?.reference || '—';
+        const customerName = payload.customer?.name || '—';
+        return `<tr>
+          <td>${escapeHtml(missionRef)}</td>
+          <td>${escapeHtml(customerName)}</td>
+          <td>${formatMontant(r.total_ht)}</td>
+          <td>${formatDate(r.created_at)}</td>
+          <td>
+            <button class="btn-sm btn-sm-ghost" onclick="viewBillingRecord('${r.id}')" title="Détails"><i class="fas fa-eye"></i></button>
+            <button class="btn-sm btn-sm-green" onclick="showIssueDialog('${r.id}')" title="Enregistrer la facture Indy"><i class="fas fa-check"></i> Enregistrer la facture Indy</button>
+            <button class="btn-sm btn-sm-ghost" onclick="showCancelDialog('${r.id}')" title="Annuler la préparation"><i class="fas fa-times"></i> Annuler</button>
+          </td>
+        </tr>`;
+      }).join('');
+    } else if (_billingView === 'issued') {
+      if (title) title.innerHTML = 'Factures <em>émises dans Indy</em>';
+      head.innerHTML = '<tr><th>N° facture Indy</th><th>Référence mission</th><th>Client</th><th>Montant TTC</th><th>Émise le</th><th>Actions</th></tr>';
+      const issued = _billingRecords.filter(r => r.status === 'issued');
+      if (!issued.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Aucune facture émise.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = issued.map(r => {
+        const payload = r.prepared_payload || {};
+        const missionRef = payload.mission?.reference || '—';
+        const customerName = payload.customer?.name || '—';
+        return `<tr>
+          <td><strong>${escapeHtml(r.external_invoice_number || '—')}</strong></td>
+          <td>${escapeHtml(missionRef)}</td>
+          <td>${escapeHtml(customerName)}</td>
+          <td>${formatMontant(r.total_ttc)}</td>
+          <td>${formatDate(r.issued_at)}</td>
+          <td><button class="btn-sm btn-sm-ghost" onclick="viewBillingRecord('${r.id}')" title="Détails"><i class="fas fa-eye"></i></button></td>
+        </tr>`;
+      }).join('');
+    } else if (_billingView === 'cancelled') {
+      if (title) title.innerHTML = 'Préparations <em>annulées</em>';
+      head.innerHTML = '<tr><th>Référence mission</th><th>Client</th><th>Montant HT</th><th>Annulée le</th><th>Actions</th></tr>';
+      const cancelled = _billingRecords.filter(r => r.status === 'cancelled');
+      if (!cancelled.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Aucune préparation annulée.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = cancelled.map(r => {
+        const payload = r.prepared_payload || {};
+        const missionRef = payload.mission?.reference || '—';
+        const customerName = payload.customer?.name || '—';
+        return `<tr>
+          <td>${escapeHtml(missionRef)}</td>
+          <td>${escapeHtml(customerName)}</td>
+          <td>${formatMontant(r.total_ht)}</td>
+          <td>${formatDate(r.cancelled_at)}</td>
+          <td><button class="btn-sm btn-sm-ghost" onclick="viewBillingRecord('${r.id}')" title="Détails"><i class="fas fa-eye"></i></button></td>
+        </tr>`;
+      }).join('');
+    }
+  }
+
+  window.filterBillingView = function(view) {
+    _billingView = view;
+    renderBillingView();
+  };
+
+  window.prepareBilling = async function(missionId) {
+    const confirm = await Swal.fire({
+      title: 'Préparer pour Indy ?',
+      text: 'Une préparation de facturation sera créée. Vous devrez ensuite créer la facture légale dans Indy.',
+      showCancelButton: true,
+      confirmButtonText: 'Préparer',
+      cancelButtonText: 'Annuler'
+    });
+    if (!confirm.isConfirmed) return;
+    const sb = getSupabase();
+    if (!sb) return Swal.fire('Erreur', 'Supabase non initialisé.', 'error');
+    try {
+      const { data, error } = await sb.rpc('prepare_billing_record', { p_mission_id: missionId });
+      if (error) throw error;
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Préparation créée', timer: 2000 });
+      await loadBillingData();
+    } catch (err) {
+      console.error('Prepare billing failed:', err);
+      Swal.fire('Erreur', translateBillingError(err), 'error');
+    }
+  };
+
+  window.viewBillingRecord = function(recordId) {
+    const r = _billingRecords.find(x => x.id === recordId);
+    if (!r) return Swal.fire('Erreur', 'Enregistrement introuvable', 'error');
+    const p = r.prepared_payload || {};
+    const seller = p.seller || {};
+    const customer = p.customer || {};
+    const mission = p.mission || {};
+    const financial = p.financial || {};
+    const statusLabel = r.status === 'issued' ? 'Facture émise dans Indy' : r.status === 'cancelled' ? 'Préparation annulée' : 'Préparation — pas encore émise';
+    const statusClass = r.status === 'issued' ? 'sp-ok' : r.status === 'cancelled' ? 'sp-err' : 'sp-warn';
+    const payInfo = _allMissions?.find(m => m.id === r.mission_id);
+    const payText = payInfo ? ((payInfo.paiement_statut === 'paid' || payInfo.paiement_statut === 'paye') ? 'Payé' : 'En attente') : '—';
+
+    let indyNumberHtml = '';
+    if (r.status === 'issued' && r.external_invoice_number) {
+      indyNumberHtml = `<hr style="margin:10px 0;border-color:#eee;">
+        <b>Numéro de facture Indy :</b> ${escapeHtml(r.external_invoice_number)}<br>
+        <b>Date d'émission :</b> ${formatDate(r.issued_at)}<br>`;
+    }
+    let cancelNoteHtml = '';
+    if (r.status === 'issued') {
+      cancelNoteHtml = `<hr style="margin:10px 0;border-color:#eee;">
+        <div style="font-size:0.85rem;color:#856404;"><i class="fas fa-info-circle"></i> Une facture émise doit être corrigée via un avoir dans Indy.</div>`;
+    }
 
     Swal.fire({
-      title: `Facture F-${escapeHtml(m.reference || '000')}`,
+      title: `Préparation de facturation — ${escapeHtml(mission.reference || '—')}`,
       html: `<div style="text-align:left;font-size:0.9rem;">
-        <div style="display:flex;gap:8px;margin-bottom:12px;"><span class="sp ${payClass}"><span class="sp-dot"></span>${payText}</span></div>
-        <b>N° Facture :</b> F-${escapeHtml(m.reference || '000')}<br>
-        <b>Client :</b> ${escapeHtml(m.client_nom || '—')}<br>
-        <b>Email :</b> ${escapeHtml(m.client_email || '—')}<br>
+        <div style="display:flex;gap:8px;margin-bottom:12px;"><span class="sp ${statusClass}"><span class="sp-dot"></span>${statusLabel}</span></div>
+        ${indyNumberHtml}
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Mission :</b> ${escapeHtml(m.reference || '—')}<br>
-        <b>Trajet :</b> ${escapeHtml(m.depart || '—')} → ${escapeHtml(m.arrivee || '—')}<br>
-        <b>Véhicule :</b> ${escapeHtml(m.vehicule || '—')}<br>
-        <b>Pack :</b> ${escapeHtml(m.pack || '—')}<br>
-        <b>Convoyeur :</b> ${escapeHtml(m.convoyeur_nom || '—')}<br>
-        <b>Date :</b> ${formatDate(m.date_mission || m.created_at)}<br>
+        <b>Vendeur :</b> ${escapeHtml(seller.name || 'Bathily-Convoyage')}<br>
+        <b>SIRET :</b> ${escapeHtml(seller.siret || '—')}<br>
+        <b>Adresse :</b> ${escapeHtml(seller.address || '—')}<br>
+        <b>Email :</b> ${escapeHtml(seller.email || '—')}<br>
+        <b>Régime TVA :</b> ${escapeHtml(seller.tva_regime || '—')}<br>
         <hr style="margin:10px 0;border-color:#eee;">
-        <b>Montant :</b> ${formatMontant(montant)}<br>
-        <span style="font-size:0.8rem;color:#888;">TVA non applicable — franchise en base (art. 293 B CGI)</span><br>
-        <hr style="margin:14px 0;border-color:#eee;">
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          <button class="btn-sm btn-sm-ghost" onclick="Swal.close(); downloadInvoice('${m.id}')" style="margin-right:6px;"><i class="fas fa-download"></i> Télécharger PDF</button>
-          ${payStatus !== 'paid' && payStatus !== 'paye' ? `<button class="btn-sm btn-sm-green" onclick="Swal.close(); markMissionPaid('${m.id}', '${m.reference || ''}')"><i class="fas fa-euro-sign"></i> Marquer payée</button>` : ''}
-        </div>
+        <b>Client :</b> ${escapeHtml(customer.name || '—')}<br>
+        <b>Email :</b> ${escapeHtml(customer.email || '—')}<br>
+        <b>Adresse :</b> ${escapeHtml(customer.address || '—')}<br>
+        ${customer.code_postal ? `<b>Code postal :</b> ${escapeHtml(customer.code_postal)}<br>` : ''}
+        ${customer.ville ? `<b>Ville :</b> ${escapeHtml(customer.ville)}<br>` : ''}
+        ${customer.siret ? `<b>SIRET :</b> ${escapeHtml(customer.siret)}<br>` : ''}
+        ${customer.tva_intra ? `<b>TVA intra :</b> ${escapeHtml(customer.tva_intra)}<br>` : ''}
+        <hr style="margin:10px 0;border-color:#eee;">
+        <b>Référence mission :</b> ${escapeHtml(mission.reference || '—')}<br>
+        <b>Trajet :</b> ${escapeHtml(mission.depart || '—')} → ${escapeHtml(mission.arrivee || '—')}<br>
+        ${mission.vehicule ? `<b>Véhicule :</b> ${escapeHtml(mission.vehicule)}<br>` : ''}
+        ${mission.pack ? `<b>Pack :</b> ${escapeHtml(mission.pack)}<br>` : ''}
+        ${mission.mode ? `<b>Mode :</b> ${escapeHtml(mission.mode)}<br>` : ''}
+        ${mission.date_mission ? `<b>Date mission :</b> ${formatDate(mission.date_mission)}<br>` : ''}
+        <hr style="margin:10px 0;border-color:#eee;">
+        <b>Montant HT :</b> ${formatMontant(financial.total_ht ?? r.total_ht)}<br>
+        <b>TVA :</b> ${formatMontant(financial.total_tva ?? r.total_tva)}<br>
+        <b>Montant TTC :</b> ${formatMontant(financial.total_ttc ?? r.total_ttc)}<br>
+        <b>Devise :</b> ${escapeHtml(financial.currency || r.currency || 'EUR')}<br>
+        <hr style="margin:10px 0;border-color:#eee;">
+        <b>Fournisseur :</b> ${escapeHtml(r.provider || 'indy')}<br>
+        <b>Préparé le :</b> ${formatDate(r.created_at)}<br>
+        <b>Paiement client :</b> ${payText}<br>
+        ${r.notes ? `<b>Notes :</b> ${escapeHtml(r.notes)}<br>` : ''}
+        ${cancelNoteHtml}
       </div>`,
-      width: 600,
+      width: 640,
       showCloseButton: true,
       showConfirmButton: false,
       showCancelButton: false
     });
   };
 
-  window.downloadInvoice = function(missionId) {
-    const m = _allMissions.find(x => x.id === missionId);
-    if (!m) return Swal.fire('Erreur', 'Facture introuvable', 'error');
-    const montant = parseOptionalAmount(m.montant_ht);
-    if (montant === null) return Swal.fire('Facture incomplète', 'Impossible de générer la facture : le montant HT n\'est pas renseigné.', 'warning');
-    const payStatus = m.paiement_statut || 'pending';
-    const payText = payStatus === 'paid' || payStatus === 'paye' ? 'PAYÉE' : 'EN ATTENTE';
-    const dateStr = formatDate(m.date_mission || m.created_at);
-    const invoiceNum = `F-${m.reference || '000'}`;
-
-    try {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      doc.setFontSize(20);
-      doc.setTextColor(10, 77, 104);
-      doc.text('Bathily-Convoyage', 14, 22);
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text('Convoyage automobile professionnel', 14, 28);
-      doc.text('Email: contact@bathily-convoyage.fr', 14, 33);
-
-      doc.setFontSize(16);
-      doc.setTextColor(10, 77, 104);
-      doc.text('FACTURE', 150, 22);
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(invoiceNum, 150, 28);
-      doc.text('Date: ' + dateStr, 150, 33);
-
-      doc.setDrawColor(200);
-      doc.line(14, 38, 196, 38);
-
-      doc.setFontSize(11);
-      doc.setTextColor(40);
-      doc.text('Client:', 14, 48);
-      doc.setFontSize(10);
-      doc.text(m.client_nom || '-', 14, 54);
-      doc.text(m.client_email || '-', 14, 59);
-
-      doc.setFontSize(11);
-      doc.text('Mission:', 110, 48);
-      doc.setFontSize(10);
-      doc.text(m.reference || '-', 110, 54);
-      doc.text((m.depart || '-') + ' vers ' + (m.arrivee || '-'), 110, 59);
-
-      doc.autoTable({
-        startY: 68,
-        head: [['Désignation', 'Détails', 'Montant']],
-        body: [
-          ['Convoyage ' + (m.vehicule || '-'), (m.depart || '-') + ' vers ' + (m.arrivee || '-'), montant.toFixed(2) + ' EUR'],
-          ['Pack', m.pack || '-', ''],
-          ['Mode', m.mode || 'route', '']
-        ],
-        theme: 'striped',
-        headStyles: { fillColor: [10, 77, 104] }
-      });
-
-      const finalY = doc.lastAutoTable.finalY || 90;
-      doc.setFontSize(10);
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('Montant total:', 130, finalY + 14);
-      doc.text(montant.toFixed(2) + ' EUR', 180, finalY + 14, { align: 'right' });
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(120);
-      doc.text('TVA non applicable — franchise en base (art. 293 B CGI)', 130, finalY + 20);
-
-      doc.setFontSize(10);
-      doc.setTextColor(10, 77, 104);
-      doc.setFillColor(230, 240, 244);
-      doc.rect(14, finalY + 36, 182, 10, 'F');
-      doc.text('Statut: ' + payText, 16, finalY + 42);
-
-      doc.setFontSize(8);
-      doc.setTextColor(120);
-      doc.text('Bathily-Convoyage — SIRET: 789 285 376 00032 — Entreprise individuelle (micro-entrepreneur)', 14, 285);
-
-      doc.save(invoiceNum + '.pdf');
-    } catch (err) {
-      console.error('Erreur génération PDF:', err);
-      Swal.fire('Erreur', 'Impossible de générer le PDF: ' + err.message, 'error');
-    }
+  window.showIssueDialog = function(recordId) {
+    const r = _billingRecords.find(x => x.id === recordId);
+    if (!r) return Swal.fire('Erreur', 'Enregistrement introuvable', 'error');
+    if (r.status !== 'prepared') return Swal.fire('Erreur', 'Seul un enregistrement préparé peut être émis.', 'error');
+    Swal.fire({
+      title: 'Enregistrer la facture Indy',
+      html: `<div style="text-align:left;font-size:0.9rem;">
+        <p>1. Ouvrez Indy et créez la facture légale avec les données de préparation.</p>
+        <p>2. Copiez le numéro de facture Indy.</p>
+        <p>3. Saisissez-le ci-dessous.</p>
+        <hr style="margin:10px 0;border-color:#eee;">
+        <label style="font-weight:bold;display:block;margin-bottom:4px;">Numéro de facture Indy *</label>
+        <input id="indyInvoiceNumber" class="swal2-input" placeholder="Ex: 2026-001" style="width:100%;margin:0 0 12px;">
+        <label style="font-weight:bold;display:block;margin-bottom:4px;">ID externe Indy (optionnel)</label>
+        <input id="indyInvoiceId" class="swal2-input" placeholder="Ex: fact-abc123" style="width:100%;margin:0;">
+      </div>`,
+      showCancelButton: true,
+      confirmButtonText: 'Enregistrer',
+      cancelButtonText: 'Annuler',
+      preConfirm: async () => {
+        const number = document.getElementById('indyInvoiceNumber').value.trim();
+        const externalId = document.getElementById('indyInvoiceId').value.trim();
+        if (!number) { Swal.showValidationMessage('Le numéro de facture Indy est requis'); return false; }
+        if (number.length > 100) { Swal.showValidationMessage('Le numéro ne doit pas dépasser 100 caractères'); return false; }
+        const sb = getSupabase();
+        if (!sb) { Swal.showValidationMessage('Supabase non initialisé'); return false; }
+        try {
+          const { error } = await sb.rpc('link_external_invoice', {
+            p_billing_record_id: recordId,
+            p_external_invoice_number: number,
+            p_external_invoice_id: externalId || null
+          });
+          if (error) throw error;
+          return true;
+        } catch (err) {
+          Swal.showValidationMessage(translateBillingError(err));
+          return false;
+        }
+      }
+    }).then(result => {
+      if (result.isConfirmed) {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Facture enregistrée', timer: 2000 });
+        loadBillingData();
+      }
+    });
   };
 
-  function updateFactureKpis(missions) {
-    const paid = missions.filter(m => m.paiement_statut === 'paid' || m.paiement_statut === 'paye');
-    const pending = missions.filter(m => m.paiement_statut !== 'paid' && m.paiement_statut !== 'paye');
-    const caMonth = paid.filter(m => { const d = new Date(m.date_mission || m.created_at); return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear() && m.montant_ht; }).reduce((s, m) => s + parseFloat(m.montant_ht), 0);
-    const elCa = document.getElementById('factureKpiCa');
-    const elPaid = document.getElementById('factureKpiPaid');
-    const elPending = document.getElementById('factureKpiPending');
-    if (elCa) elCa.textContent = caMonth.toFixed(0) + '€';
-    if (elPaid) elPaid.textContent = paid.length;
-    if (elPending) elPending.textContent = pending.length;
-  }
+  window.showCancelDialog = function(recordId) {
+    const r = _billingRecords.find(x => x.id === recordId);
+    if (!r) return Swal.fire('Erreur', 'Enregistrement introuvable', 'error');
+    if (r.status !== 'prepared') return Swal.fire('Erreur', 'Seul un enregistrement préparé peut être annulé.', 'error');
+    Swal.fire({
+      title: 'Annuler la préparation ?',
+      html: `<p>La mission redeviendra éligible à la facturation.</p>
+        <input id="cancelReason" class="swal2-input" placeholder="Raison (optionnel)" style="width:100%;">`,
+      showCancelButton: true,
+      confirmButtonText: 'Annuler la préparation',
+      cancelButtonText: 'Retour',
+      confirmButtonColor: '#d33',
+      preConfirm: async () => {
+        const reason = document.getElementById('cancelReason').value.trim();
+        const sb = getSupabase();
+        if (!sb) { Swal.showValidationMessage('Supabase non initialisé'); return false; }
+        try {
+          const { error } = await sb.rpc('cancel_billing_record', {
+            p_billing_record_id: recordId,
+            p_reason: reason || null
+          });
+          if (error) throw error;
+          return true;
+        } catch (err) {
+          Swal.showValidationMessage(translateBillingError(err));
+          return false;
+        }
+      }
+    }).then(result => {
+      if (result.isConfirmed) {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Préparation annulée', timer: 2000 });
+        loadBillingData();
+      }
+    });
+  };
 
   function loadAnalytics() {
     const missions = _allMissions || [];
@@ -5983,6 +6190,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
         const target = document.getElementById(`tab-${tabId}`);
         if (target) target.classList.add('active');
         if (tabId === 'support') loadSupportTickets();
+        if (tabId === 'facturation') loadBillingData();
         syncAdminMobileNav(tabId);
       });
     });
@@ -6184,10 +6392,9 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
   };
 
   window.filterFactures = function(type) {
-    _currentInvoiceFilter = type;
-    renderInvoicesTable(_allMissions);
-    const labels = { all: 'toutes', paid: 'payées', pending: 'en attente' };
-    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: `Factures ${labels[type] || type}`, timer: 1500 });
+    const mapping = { all: 'to_invoice', paid: 'issued', pending: 'prepared' };
+    const view = mapping[type] || 'to_invoice';
+    filterBillingView(view);
   };
 
   window.toggleComments = function(btn) {
