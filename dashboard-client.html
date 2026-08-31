@@ -21,8 +21,8 @@
   <script src="/supabase-config.js"></script>
   <script src="/js/auth-password-errors.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <!-- jsPDF/autoTable removed in INDY-3C: Bathily does not generate legal invoice PDFs.
+       Indy remains the legal invoice source of truth. -->
   <style>
     /* ===== STYLES (inchangés, identiques à l'original) ===== */
     * {
@@ -1255,10 +1255,10 @@
         </div>
       </div>
 
-      <!-- Factures -->
+      <!-- Facturation -->
       <div class="tab-content" id="tab-factures">
         <div class="dash-header">
-          <h1 class="dash-hello">Mes <em>factures</em></h1>
+          <h1 class="dash-hello">Ma <em>facturation</em></h1>
         </div>
         <div class="sec-title">
           <h2 class="sec-h">Historique <em>facturation</em></h2>
@@ -1267,7 +1267,10 @@
           <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
         </div>
         <div style="text-align:center; padding:20px 0; border-top:1px solid var(--border-light)">
-          <span style="font-size:0.7rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Total cumulé : <span style="color:var(--bordeaux)" id="factTotalHt">0€</span></span>
+          <span style="font-size:0.7rem; font-weight:600; text-transform:uppercase; color:var(--gray-mid)">Total factures émises : <span style="color:var(--bordeaux)" id="factTotalHt">0€</span></span>
+        </div>
+        <div style="text-align:center;padding:8px 16px;font-size:0.75rem;color:var(--gray-mid);">
+          <i class="fas fa-info-circle"></i> Les factures sont émises via Indy, notre système de facturation conforme. Pour obtenir une copie d'une facture, contactez Bathily-Convoyage.
         </div>
       </div>
 
@@ -1373,6 +1376,7 @@
         <div class="f-grp"><label>Véhicule</label><input type="text" id="md-vehicule" readonly style="background:#f5f5f5;cursor:not-allowed;"></div>
         <div class="f-grp"><label>Montant (€)</label><input type="number" id="md-price" readonly style="background:#f5f5f5;cursor:not-allowed;font-weight:bold;color:var(--bordeaux);"></div>
       </div>
+      <div id="md-billing-detail"></div>
       <div class="modal-btns"><button class="btn-outline" onclick="closeModal('modalMissionDetails')">Fermer</button></div>
     </div>
   </div>
@@ -1508,6 +1512,8 @@
     let _clientMissions = [];
     let _activeFilter = 'all';
     let _vehiculesList = [];
+    // INDY-3C: billing_records from DB (read-only). null = query failed.
+    let _clientBillingRecords = [];
 
     // ========== AUTH HELPERS ==========
     function clientLogout() {
@@ -1845,6 +1851,26 @@
       const { data: vehicules } = await client.from('vehicules').select('id, client_id, marque, modele, immatriculation, type_vehicule, annee, carburant, vin, couleur, date_premiere_circulation, numero_carte_grise, created_at').eq('client_id', profile.id).order('created_at', { ascending: false });
       _vehiculesList = vehicules || [];
 
+      // Charger les billing_records (read-only, RLS-filtered to own missions)
+      // INDY-3C: Client billing view is backed by billing_records, not pseudo-invoices.
+      // No billing_events access (admin-only). No mutation RPCs.
+      try {
+        const missionIds = (_clientMissions || []).map(m => m.id);
+        let billingRecords = [];
+        if (missionIds.length > 0) {
+          const { data: br, error: brErr } = await client
+            .from('billing_records')
+            .select('id, mission_id, status, invoice_type, external_invoice_number, total_ht, total_tva, total_ttc, currency, prepared_payload, issued_at, cancelled_at, created_at')
+            .in('mission_id', missionIds)
+            .order('created_at', { ascending: false });
+          if (brErr) throw brErr;
+          billingRecords = br || [];
+        }
+        _clientBillingRecords = billingRecords;
+      } catch (err) {
+        _clientBillingRecords = null;
+      }
+
       initClientDashboard();
     }
 
@@ -1985,46 +2011,146 @@
     }
 
     // ========== RENDER FACTURES ==========
+    // INDY-3C: Client billing view backed by billing_records (read-only).
+    // No pseudo-invoice numbering. No jsPDF. No legal PDF generation.
+    // Indy remains the legal invoice source of truth.
     function renderClientInvoices(missions) {
       const container = document.getElementById('clientFactList');
       if (!container) return;
-      const isPro = _clientUser?.is_pro === true;
-      const priceLabel = '€';
-      const billing = missions.filter(m => m.montant_ht);
-      if (billing.length === 0) {
-        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-file-invoice" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune facture.</div>';
-        document.getElementById('factTotalHt').textContent = '0€ ' + priceLabel;
+
+      // Billing query failed — show error, do NOT fall back to mission-derived invoices
+      if (_clientBillingRecords === null) {
+        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-exclamation-circle" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Informations de facturation temporairement indisponibles.</div>';
+        document.getElementById('factTotalHt').textContent = '0€';
         return;
       }
-      const total = billing.reduce((s, m) => {
-        const ht = parseFloat(m.montant_ht || 0);
-        return s + ht;
-      }, 0);
-      document.getElementById('factTotalHt').textContent = Math.round(total) + '€ ' + priceLabel;
 
-      const unpaid = billing.filter(m => (m.paiement_statut || 'pending') !== 'paid' && (m.paiement_statut || 'pending') !== 'paye' && m.status !== 'available' && m.status !== 'cancelled').length;
+      // Build mission lookup by id
+      const missionMap = {};
+      (missions || []).forEach(m => { missionMap[m.id] = m; });
+
+      // Group billing records by mission_id and select the authoritative record:
+      // - issued > prepared > (cancelled ignored for client view)
+      // - For invoice_type='invoice' only (credit_note handling deferred)
+      const billingByMission = {};
+      (_clientBillingRecords || []).forEach(br => {
+        if (br.invoice_type !== 'invoice') return;
+        if (br.status === 'cancelled') return; // cancelled records are not client invoices
+        const existing = billingByMission[br.mission_id];
+        if (!existing || (br.status === 'issued' && existing.status !== 'issued')) {
+          billingByMission[br.mission_id] = br;
+        }
+      });
+
+      // Build display list: missions with montant_ht, enriched with billing state
+      const billingMissions = (missions || []).filter(m => m.montant_ht);
+      if (billingMissions.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-file-invoice" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucune facture.</div>';
+        document.getElementById('factTotalHt').textContent = '0€';
+        return;
+      }
+
+      // Total HT from issued billing records only (legal invoices)
+      const issuedTotal = Object.values(billingByMission)
+        .filter(br => br.status === 'issued')
+        .reduce((s, br) => s + parseFloat(br.total_ht || 0), 0);
+      document.getElementById('factTotalHt').textContent = Math.round(issuedTotal) + '€';
+
+      // Payment notification badge (unchanged — payment is separate from billing)
+      const unpaid = billingMissions.filter(m => {
+        const ps = m.paiement_statut || 'pending';
+        return ps !== 'paid' && ps !== 'paye' && m.status !== 'available' && m.status !== 'cancelled';
+      }).length;
       const badge = document.getElementById('cliNotifBadge');
-      if (badge) { badge.textContent = unpaid;
-        badge.style.display = unpaid > 0 ? 'flex' : 'none'; }
+      if (badge) {
+        badge.textContent = unpaid;
+        badge.style.display = unpaid > 0 ? 'flex' : 'none';
+      }
 
-      container.innerHTML = billing.map(m => {
+      container.innerHTML = billingMissions.map(m => {
+        const br = billingByMission[m.id] || null;
         const payStatus = m.paiement_statut || 'pending';
-        const statusClass = (payStatus === 'paid' || payStatus === 'paye') ? 'ts-ok' : 'ts-att';
-        const statusLabel = (payStatus === 'paid' || payStatus === 'paye') ? 'Payée' : 'En attente';
+        const payClass = (payStatus === 'paid' || payStatus === 'paye') ? 'ts-ok' : 'ts-att';
+        const payLabel = (payStatus === 'paid' || payStatus === 'paye') ? 'Payé' : 'En attente';
         const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
-        const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-','') : m.id.slice(0,8).toUpperCase()}`;
         const dep = (m.depart || '').split('(')[0].trim() || '-';
         const arr = (m.arrivee || '').split('(')[0].trim() || '-';
+        const missionRef = m.reference || '-';
         const ht = parseFloat(m.montant_ht || 0);
         const displayPrice = Math.round(ht);
-        return `<div class="fact-item">
+
+        // Billing state display
+        let billingBadge, billingDetail;
+        if (!br) {
+          // No billing record — no legal invoice exists
+          billingBadge = '<span class="td-status ts-att" style="background:rgba(224,163,67,0.12);color:var(--gray-mid);">Facture non disponible</span>';
+          billingDetail = '';
+        } else if (br.status === 'issued') {
+          // Issued — legal invoice exists via Indy
+          const invNum = escapeHtml(br.external_invoice_number || '');
+          const issuedDate = br.issued_at ? new Date(br.issued_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+          billingBadge = '<span class="td-status ts-ok" style="background:rgba(74,124,107,0.12);color:var(--success);font-weight:600;">Facture émise</span>';
+          billingDetail = `<div style="font-size:0.75rem;color:var(--gray-mid);margin-top:4px;">
+            <span style="font-weight:600;">Numéro de facture :</span> ${invNum}<br>
+            <span style="font-weight:600;">Date d'émission :</span> ${escapeHtml(issuedDate)}<br>
+            <em style="font-size:0.7rem;">Votre facture a été émise via Indy. Pour obtenir une copie du document, contactez Bathily-Convoyage.</em>
+          </div>`;
+        } else if (br.status === 'prepared') {
+          // Prepared — invoice in preparation, no legal number
+          billingBadge = '<span class="td-status ts-att" style="background:rgba(224,163,67,0.12);color:var(--warning);">Facture en cours de préparation</span>';
+          billingDetail = '';
+        } else {
+          billingBadge = '<span class="td-status ts-att" style="color:var(--gray-mid);">Facture non disponible</span>';
+          billingDetail = '';
+        }
+
+        return `<div class="fact-item" style="flex-wrap:wrap;">
           <div class="fact-ico"><i class="fas fa-file-invoice"></i></div>
-          <div style="flex:1;"><div class="fact-ref">${escapeHtml(invoiceRef)}</div><div class="fact-date">${dateStr} - ${escapeHtml(dep)} → ${escapeHtml(arr)}</div></div>
-          <div class="fact-montant" style="margin-left:20px;font-weight:600;">${displayPrice}€ ${priceLabel}</div>
-          <div class="fact-status" style="margin-left:20px;"><span class="td-status ${statusClass}">${statusLabel}</span></div>
-          <button class="btn-sm btn-sm-ghost" style="margin-left:20px;" onclick="downloadClientInvoicePdf('${m.id}')"><i class="fas fa-download"></i> PDF</button>
+          <div style="flex:1;min-width:200px;">
+            <div class="fact-ref">Référence mission : ${escapeHtml(missionRef)}</div>
+            <div class="fact-date">${dateStr} - ${escapeHtml(dep)} → ${escapeHtml(arr)}</div>
+            ${billingDetail}
+          </div>
+          <div class="fact-montant" style="margin-left:20px;font-weight:600;">${displayPrice}€</div>
+          <div class="fact-status" style="margin-left:20px;display:flex;flex-direction:column;gap:4px;">
+            ${billingBadge}
+            <span class="td-status ${payClass}" style="font-size:0.7rem;">Paiement : ${payLabel}</span>
+          </div>
         </div>`;
       }).join('');
+    }
+
+    // INDY-3C: Show issued billing record details in mission modal
+    function renderBillingDetailInModal(m) {
+      if (!_clientBillingRecords || _clientBillingRecords === null) return '';
+      const brs = _clientBillingRecords.filter(b => b.mission_id === m.id && b.invoice_type === 'invoice' && b.status === 'issued');
+      if (brs.length === 0) return '';
+      const br = brs[0];
+      const p = br.prepared_payload || {};
+      const fin = p.financial || {};
+      const cust = p.customer || {};
+      const mis = p.mission || {};
+      const seller = p.seller || {};
+      const issuedDate = br.issued_at ? new Date(br.issued_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+      const fmtPrice = (v) => parseFloat(v || 0).toFixed(2) + ' ' + (br.currency || 'EUR');
+      return `<div style="margin-top:16px;padding:16px;border:1px solid var(--border-light);border-radius:12px;background:var(--bg-soft,#f9f6f0);">
+        <h3 style="margin:0 0 12px;font-size:1rem;color:var(--bordeaux);"><i class="fas fa-file-invoice"></i> Facture émise via Indy</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem;">
+          <div><strong>Numéro de facture :</strong> ${escapeHtml(br.external_invoice_number || '-')}</div>
+          <div><strong>Date d'émission :</strong> ${escapeHtml(issuedDate)}</div>
+          <div><strong>Référence mission :</strong> ${escapeHtml(mis.reference || '-')}</div>
+          <div><strong>Client :</strong> ${escapeHtml(cust.name || '-')}</div>
+          <div style="grid-column:span 2;"><strong>Adresse de facturation :</strong> ${escapeHtml([cust.address, cust.code_postal, cust.ville, cust.pays].filter(Boolean).join(', ') || '-')}</div>
+          <div style="grid-column:span 2;"><strong>Service :</strong> ${escapeHtml(mis.service_description || '-')}</div>
+          <div><strong>Montant HT :</strong> ${fmtPrice(fin.total_ht || br.total_ht)}</div>
+          <div><strong>TVA :</strong> ${fmtPrice(fin.total_tva || br.total_tva)}</div>
+          <div><strong>Montant TTC :</strong> ${fmtPrice(fin.total_ttc || br.total_ttc)}</div>
+          <div style="grid-column:span 2;font-size:0.75rem;color:var(--gray-mid);">${escapeHtml(seller.tva_regime || 'TVA non applicable — franchise en base (art. 293 B CGI)')}</div>
+        </div>
+        <div style="margin-top:12px;font-size:0.8rem;color:var(--gray-mid);padding:8px;background:rgba(10,77,104,0.05);border-radius:8px;">
+          <i class="fas fa-info-circle"></i> Votre facture a été émise via Indy. Pour obtenir une copie du document, contactez Bathily-Convoyage.
+        </div>
+      </div>`;
     }
 
     // ========== RENDER VEHICULES ==========
@@ -2212,57 +2338,17 @@
         document.getElementById('md-arrivee').value = m.arrivee || m.trajet?.split('→')[1]?.trim() || '-';
         document.getElementById('md-vehicule').value = m.vehicule || 'Automobile';
         document.getElementById('md-price').value = m.montant_ht || 0;
+        // INDY-3C: Inject billing detail if an issued record exists
+        const billingContainer = document.getElementById('md-billing-detail');
+        if (billingContainer) billingContainer.innerHTML = renderBillingDetailInModal(m);
         openModal('modalMissionDetails');
       } catch (e) { console.error(e); }
     }
 
     // ========== DOWNLOAD INVOICE PDF ==========
-    function downloadClientInvoicePdf(missionId) {
-      const m = _clientMissions.find(x => x.id === missionId);
-      if (!m) return;
-      if (typeof window.jspdf === 'undefined') {
-        Swal.fire('Information', 'Le module PDF se charge, réessayez dans quelques secondes.', 'info');
-        return;
-      }
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFontSize(22);
-      doc.setTextColor(10, 77, 104);
-      doc.text('Bathily-Convoyage', 14, 20);
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text('34, rue de Padirac 34070 Montpellier', 14, 28);
-      doc.text('SIRET: 789 285 376 00032 | Entreprise individuelle', 14, 34);
-      const invoiceRef = `FAC-${m.reference ? m.reference.replace('BC-','') : m.id.slice(0,8).toUpperCase()}`;
-      const dateStr = m.date_mission ? new Date(m.date_mission).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Facture N° ${invoiceRef}`, 140, 20);
-      doc.text(`Date : ${dateStr}`, 140, 28);
-      doc.text('Facturé à :', 14, 50);
-      doc.text(_clientName || _clientUser?.email || 'Client', 14, 58);
-      const priceTotal = parseFloat(m.montant_ht) || 0;
-      doc.autoTable({
-        startY: 80,
-        head: [['Description', 'Montant']],
-        body: [[
-          `Mission de convoyage\nRéf: ${m.reference || 'N/A'}\nTrajet: ${(m.depart || '').split('(')[0].trim()} -> ${(m.arrivee || '').split('(')[0].trim()}`,
-          `${priceTotal.toFixed(2)} EUR`
-        ]],
-        theme: 'grid',
-        headStyles: { fillColor: [10, 77, 104], textColor: [255, 255, 255] }
-      });
-      const finalY = doc.lastAutoTable.finalY || 100;
-      doc.setFillColor(249, 246, 240);
-      doc.rect(115, finalY + 10, 80, 27, 'F');
-      doc.setFontSize(12);
-      doc.setTextColor(10, 77, 104);
-      doc.text(`Total : ${priceTotal.toFixed(2)} EUR`, 125, finalY + 20);
-      doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.text('TVA non applicable, art. 293 B du CGI', 125, finalY + 30);
-      doc.save(`Facture_${invoiceRef}.pdf`);
-    }
+    // INDY-3C: Removed. Bathily does not generate legal invoice PDFs.
+    // Indy remains the legal invoice source of truth.
+    // Clients contact Bathily-Convoyage to obtain a copy of issued invoices.
 
     // ========== SHOW TAB SIDEBAR ==========
     function showTab(id, el) {
