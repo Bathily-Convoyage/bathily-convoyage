@@ -5482,8 +5482,8 @@ Cadeau premium personnalisé</textarea>
         if (error) {
           const msg = error.message || '';
           let userMsg;
-          if (msg.includes('paiement')) userMsg = 'Les tarifs ne peuvent pas être modifiés après paiement.';
-          else if (msg.includes('session de paiement')) userMsg = 'Les tarifs ne peuvent pas être modifiés après création d\u2019une session de paiement.';
+          if (msg.includes('session de paiement')) userMsg = 'Les tarifs ne peuvent pas être modifiés après création d\u2019une session de paiement.';
+          else if (msg.includes('paiement')) userMsg = 'Les tarifs ne peuvent pas être modifiés après paiement.';
           else if (msg.includes('facturation')) userMsg = 'Une facturation est en préparation ou déjà émise.';
           else if (msg.includes('remuneration_convoyeur ne peut pas dépasser')) userMsg = 'La rémunération ne peut pas dépasser le montant.';
           else if (msg.includes('strictement positif')) userMsg = 'Le montant doit être strictement positif.';

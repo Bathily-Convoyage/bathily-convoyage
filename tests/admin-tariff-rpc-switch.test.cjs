@@ -149,6 +149,19 @@ async function main() {
       'dashboard-admin.html must not contain process.exit');
   });
 
+  // O: Stripe session error mapping must be evaluated BEFORE generic payment mapping
+  await test('O: Stripe session mapping before generic payment mapping', () => {
+    const editFnMatch = dashboard.match(/window\.editMissionTariffs[\s\S]*?window\.deleteMission/);
+    const editFn = editFnMatch[0];
+    const sessionIdx = editFn.indexOf("session de paiement");
+    const paiementIdx = editFn.indexOf("'paiement'");
+    assert.ok(sessionIdx > -1, 'session de paiement mapping must exist');
+    assert.ok(paiementIdx > -1, 'generic paiement mapping must exist');
+    assert.ok(sessionIdx < paiementIdx,
+      'session de paiement check must come BEFORE generic paiement check ' +
+      '(otherwise generic swallows specific)');
+  });
+
   console.log('\n=== SUMMARY ===');
   console.log(`Passed: ${passed}`);
   console.log(`Failed: ${failed}`);
