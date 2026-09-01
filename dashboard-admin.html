@@ -5451,22 +5451,51 @@ Cadeau premium personnalisé</textarea>
   window.editMissionTariffs = function(id) {
     Swal.fire({
       title: 'Modifier les tarifs',
-     html: `<input id="new-price" class="swal2-input" type="number" step="1" placeholder="Montant (€)">
-             <input id="new-rem" class="swal2-input" type="number" step="1" placeholder="Rémunération convoyeur (€)">`,
+     html: `<input id="new-price" class="swal2-input" type="number" step="0.01" min="0.01" placeholder="Montant (€)">
+             <input id="new-rem" class="swal2-input" type="number" step="0.01" min="0" placeholder="Rémunération convoyeur (€)">
+            <input id="tariff-reason" class="swal2-input" type="text" maxlength="500" placeholder="Raison de la modification (optionnel)">`,
       showCancelButton: true,
       confirmButtonText: 'Mettre à jour',
       preConfirm: () => {
         const price = document.getElementById('new-price').value;
         const rem = document.getElementById('new-rem').value;
+        const reason = document.getElementById('tariff-reason').value;
         if (!price && !rem) { Swal.showValidationMessage('Au moins un champ requis'); return false; }
-        return { montant_ht: price ? parseFloat(price) : undefined, remuneration_convoyeur: rem ? parseFloat(rem) : undefined };
+        if (price && parseFloat(price) <= 0) { Swal.showValidationMessage('Le montant doit être strictement positif'); return false; }
+        if (rem && parseFloat(rem) < 0) { Swal.showValidationMessage('La rémunération ne peut pas être négative'); return false; }
+        if (price && rem && parseFloat(rem) > parseFloat(price)) { Swal.showValidationMessage('La rémunération ne peut pas dépasser le montant'); return false; }
+        return {
+          p_montant_ht: price ? parseFloat(price) : null,
+          p_remuneration_convoyeur: rem ? parseFloat(rem) : null,
+          p_reason: reason ? reason.trim().substring(0, 500) : null
+        };
       }
     }).then(async (result) => {
       if (result.isConfirmed) {
         const sb = getSupabase();
-        const { error } = await sb.from('missions').update(result.value).eq('id', id);
-        if (error) Swal.fire('Erreur', error.message, 'error');
-        else { Swal.fire('Mis à jour', '', 'success'); loadMissions(); }
+        const { error } = await sb.rpc('admin_update_mission_tariffs', {
+          p_mission_id: id,
+          p_montant_ht: result.value.p_montant_ht,
+          p_remuneration_convoyeur: result.value.p_remuneration_convoyeur,
+          p_reason: result.value.p_reason
+        });
+        if (error) {
+          const msg = error.message || '';
+          let userMsg;
+          if (msg.includes('session de paiement')) userMsg = 'Les tarifs ne peuvent pas être modifiés après création d\u2019une session de paiement.';
+          else if (msg.includes('paiement')) userMsg = 'Les tarifs ne peuvent pas être modifiés après paiement.';
+          else if (msg.includes('facturation')) userMsg = 'Une facturation est en préparation ou déjà émise.';
+          else if (msg.includes('remuneration_convoyeur ne peut pas dépasser')) userMsg = 'La rémunération ne peut pas dépasser le montant.';
+          else if (msg.includes('strictement positif')) userMsg = 'Le montant doit être strictement positif.';
+          else if (msg.includes('négative')) userMsg = 'La rémunération ne peut pas être négative.';
+          else if (msg.includes('Réservé') || msg.includes('Authentification')) userMsg = 'Action non autorisée.';
+          else if (msg.includes('500 caractères')) userMsg = 'La raison ne peut pas dépasser 500 caractères.';
+          else userMsg = 'Erreur lors de la modification des tarifs.';
+          Swal.fire('Erreur', userMsg, 'error');
+        } else {
+          Swal.fire('Mis à jour', '', 'success');
+          loadMissions();
+        }
       }
     });
   };
