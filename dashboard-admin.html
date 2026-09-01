@@ -2337,7 +2337,7 @@ Cadeau premium personnalisé</textarea>
       <div class="f-grp">
         <label>Plaque d'immatriculation</label>
         <div style="display:flex; gap:8px; align-items:center;">
-          <input type="text" id="adminPlaqueInput" placeholder="AB-123-CD" maxlength="9" style="flex:1; text-transform:uppercase;" oninput="formatAdminPlaque(this)">
+          <input type="text" id="adminPlaqueInput" placeholder="AB-123-CD" maxlength="9" autocapitalize="characters" inputmode="text" autocomplete="off" spellcheck="false" style="flex:1; text-transform:uppercase;" oninput="formatAdminPlaque(this)">
           <button type="button" onclick="lookupAdminPlaque()" class="btn-siv"><i class="fas fa-search"></i> Identifier</button>
         </div>
         <div class="siv-result" id="adminSivResult" style="display:none;">
@@ -2888,9 +2888,13 @@ Cadeau premium personnalisé</textarea>
   // PARTIE 7 : IDENTIFICATION (ADMIN)
   // ============================================================
   function formatAdminPlaque(input) {
+    // OPS-1A: Normalize to uppercase alphanumeric, then apply SIV hyphens
+    // ONLY when the complete normalized value matches the SIV pattern.
+    // Non-SIV/FNI/foreign plates are kept as normalized alphanumeric (no fake SIV).
     let v = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (v.length > 2 && v.length <= 5) v = v.slice(0, 2) + '-' + v.slice(2);
-    if (v.length > 6) v = v.slice(0, 6) + '-' + v.slice(6);
+    if (/^[A-Z]{2}[0-9]{3}[A-Z]{2}$/.test(v)) {
+      v = v.slice(0, 2) + '-' + v.slice(2, 5) + '-' + v.slice(5);
+    }
     input.value = v.slice(0, 9);
   }
 
