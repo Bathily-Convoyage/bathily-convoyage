@@ -1156,14 +1156,21 @@ async function main() {
     results.filter(r => r.status === 'FAIL').forEach(r => {
       console.log(`  \u2717 ${r.name}: ${r.error}`);
     });
-    process.exit(1);
+    throw new Error(`${failed} test(s) failed`);
   } else {
     console.log('ALL TESTS PASSED');
-    process.exit(0);
   }
 }
 
-main().catch(err => {
-  console.error('Fatal error:', err);
-  process.exit(1);
-});
+// Only run main() when executed directly (node tests/admin-tariff-integrity.test.cjs)
+// Skip when loaded by Playwright (PW_WORKER_ID is set in Playwright workers)
+if (!process.env.PW_WORKER_ID && !process.env.PLAYWRIGHT_WORKER_ID) {
+  main().catch(err => {
+    console.error('Fatal error:', err);
+    throw err;
+  });
+} else {
+  // When loaded by Playwright, export a no-op so the file is discovered
+  // but doesn't interfere with the Playwright test runner.
+  module.exports = {};
+}
