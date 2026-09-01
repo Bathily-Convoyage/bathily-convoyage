@@ -660,7 +660,7 @@
   <div class="edl-step" data-step="2">
     <div class="step-header"><div class="step-tag">Étape 2 / 7</div><h2 class="step-title">Relevés <em>véhicule</em></h2><p class="step-sub">Kilométrage, carburant et identification complémentaire.</p></div>
     <div class="card"><div class="card-title"><i class="fas fa-search"></i> Identification véhicule</div>
-      <div class="f-row"><div class="f-grp"><label>Plaque d'immatriculation *</label><div style="display:flex; gap:8px;"><input type="text" id="vPlaque" value="" oninput="fmtPlaque(this)" style="flex:1;"><button type="button" class="btn-sig" style="padding:0 15px; margin:0;" onclick="lookupLicensePlate()" title="Rechercher avec le"><i class="fas fa-search"></i></button></div></div><div class="f-grp"><label>Type</label><select id="vType"><option value="berline">Berline</option><option value="suv">SUV</option><option value="break">Break</option><option value="utilitaire">Utilitaire</option><option value="moto">Moto</option></select></div></div>
+      <div class="f-row"><div class="f-grp"><label>Plaque d'immatriculation *</label><div style="display:flex; gap:8px;"><input type="text" id="vPlaque" value="" autocapitalize="characters" inputmode="text" autocomplete="off" spellcheck="false" oninput="fmtPlaque(this)" style="flex:1;"><button type="button" class="btn-sig" style="padding:0 15px; margin:0;" onclick="lookupLicensePlate()" title="Rechercher avec le"><i class="fas fa-search"></i></button></div></div><div class="f-grp"><label>Type</label><select id="vType"><option value="berline">Berline</option><option value="suv">SUV</option><option value="break">Break</option><option value="utilitaire">Utilitaire</option><option value="moto">Moto</option></select></div></div>
       <div class="f-row3"><div class="f-grp"><label>Marque *</label><input type="text" id="vMarque" value=""></div><div class="f-grp"><label>Modèle *</label><input type="text" id="vModele" value=""></div><div class="f-grp"><label>Année</label><input type="number" id="vAnnee" value=""></div></div>
       <div class="f-row3"><div class="f-grp"><label>Couleur *</label><input type="text" id="vCouleur" value=""></div><div class="f-grp"><label>Énergie</label><select id="vEnergie"><option value="">—</option><option>Essence</option><option>Hybride</option><option>Diesel</option><option>Électrique</option></select></div><div class="f-grp"><label>Transmission</label><select id="vTransmission"><option value="">—</option><option>Manuelle</option><option>Automatique</option></select></div></div>
     </div>
@@ -1734,7 +1734,7 @@ async function saveSig(canvasId, doneId, dateId) {
 
 // ========== AUTRES FONCTIONS ==========
 function updFuel(v){ STATE.fuelValue = v; document.getElementById('fuelVal').innerHTML = v+'%'; checkSignatureValidity(); }
-function fmtPlaque(inp){ let v=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,''); if(v.length>2)v=v.slice(0,2)+'-'+v.slice(2); if(v.length>6)v=v.slice(0,6)+'-'+v.slice(6); inp.value=v; }
+function fmtPlaque(inp){ let v=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,''); if(/^[A-Z]{2}[0-9]{3}[A-Z]{2}$/.test(v)){v=v.slice(0,2)+'-'+v.slice(2,5)+'-'+v.slice(5);} inp.value=v; }
 
 // ========== SUPABASE ==========
 let _supabaseClient = null;
