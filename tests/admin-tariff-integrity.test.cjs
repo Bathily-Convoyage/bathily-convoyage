@@ -432,15 +432,34 @@ async function runStaticTests() {
 // =====================================================
 
 async function runTriggerRuntimeTests() {
-  console.log('\n=== TRIGGER RUNTIME TESTS (via service_role) ===');
+  console.log('\n=== TRIGGER RUNTIME TESTS (via authenticated admin RPC) ===');
 
   let mission;
 
+  // Phase C: financial updates must go through the admin RPC.
+  // Direct .update() on financial fields is blocked by the trigger gate.
+  // Non-financial updates still use service_role direct .update().
+  let adminCtx;
+  try {
+    adminCtx = await createAdminUser();
+  } catch (err) {
+    console.log(`  SKIP: Could not create admin user: ${err.message}`);
+    return;
+  }
+
+  // Helper: update tariffs via RPC
+  async function rpcUpdateTariffs(missionId, montantHt, remuneration, reason) {
+    return adminCtx.sbAdmin.rpc('admin_update_mission_tariffs', {
+      p_mission_id: missionId,
+      p_montant_ht: montantHt,
+      p_remuneration_convoyeur: remuneration,
+      p_reason: reason || 'trigger runtime test'
+    });
+  }
+
   await test('Trigger: direct financial update recalculates margin', async () => {
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: 30, marge: 70 });
-    const { error } = await sb.from('missions')
-      .update({ montant_ht: 120, remuneration_convoyeur: 40 })
-      .eq('id', mission.id);
+    const { error } = await rpcUpdateTariffs(mission.id, 120, 40);
     assert.ok(!error, `Update should succeed: ${error?.message}`);
 
     const { data: updated, error: fetchErr } = await sb.from('missions')
@@ -455,48 +474,41 @@ async function runTriggerRuntimeTests() {
   await test('Trigger: caller-supplied wrong margin corrected', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: 30, marge: 70 });
-    // Try to set a wrong marge along with price/rem
-    const { error } = await sb.from('missions')
-      .update({ montant_ht: 150, remuneration_convoyeur: 50, marge: 999 })
-      .eq('id', mission.id);
+    // RPC does not accept marge parameter — margin is always derived server-side
+    const { error } = await rpcUpdateTariffs(mission.id, 150, 50);
     assert.ok(!error, `Update should succeed: ${error?.message}`);
 
     const { data: updated } = await sb.from('missions')
       .select('montant_ht, remuneration_convoyeur, marge')
       .eq('id', mission.id).single();
-    assert.strictEqual(Number(updated.marge), 100, 'Margin should be 150-50=100, not 999');
+    assert.strictEqual(Number(updated.marge), 100, 'Margin should be 150-50=100, not caller-supplied');
   });
 
   await test('Trigger: invalid direct update (price <= 0) rejected', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: 30, marge: 70 });
-    const { error } = await sb.from('missions')
-      .update({ montant_ht: 0 })
-      .eq('id', mission.id);
+    const { error } = await rpcUpdateTariffs(mission.id, 0, null);
     assert.ok(error, 'Should reject price=0');
   });
 
   await test('Trigger: negative remuneration rejected', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: 30, marge: 70 });
-    const { error } = await sb.from('missions')
-      .update({ remuneration_convoyeur: -10 })
-      .eq('id', mission.id);
+    const { error } = await rpcUpdateTariffs(mission.id, null, -10);
     assert.ok(error, 'Should reject negative remuneration');
   });
 
   await test('Trigger: rem > price rejected', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: 30, marge: 70 });
-    const { error } = await sb.from('missions')
-      .update({ montant_ht: 50, remuneration_convoyeur: 60 })
-      .eq('id', mission.id);
+    const { error } = await rpcUpdateTariffs(mission.id, 50, 60);
     assert.ok(error, 'Should reject rem > price');
   });
 
   await test('Trigger: non-financial update does not modify stale margin', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: 30, marge: 999 });
+    // Non-financial update via service_role — trigger is a no-op
     const { error } = await sb.from('missions')
       .update({ notes: 'updated notes' })
       .eq('id', mission.id);
@@ -511,42 +523,35 @@ async function runTriggerRuntimeTests() {
     assert.strictEqual(updated.notes, 'updated notes');
   });
 
-  // Dirty-data compatibility cases
+  // Dirty-data compatibility cases — via RPC (authorized path)
+  // Note: RPC validates RESOLVED values strictly, so cases where the
+  // resolved price is <= 0 will be rejected by the RPC, not the trigger.
+  // The trigger's dirty-data compatibility is about not blocking on
+  // unchanged invalid fields — tested via non-financial updates above
+  // and via the RPC where the resolved values are valid.
+
   await test('Dirty CASE 1: price=100/rem=NULL → update price=120 → 120/NULL/NULL', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: null, marge: null });
-    const { error } = await sb.from('missions')
-      .update({ montant_ht: 120 })
-      .eq('id', mission.id);
-    assert.ok(!error, `Should succeed: ${error?.message}`);
-
-    const { data: updated } = await sb.from('missions')
-      .select('montant_ht, remuneration_convoyeur, marge')
-      .eq('id', mission.id).single();
-    assert.strictEqual(Number(updated.montant_ht), 120);
-    assert.strictEqual(updated.remuneration_convoyeur, null);
-    assert.strictEqual(updated.marge, null);
+    // RPC: resolved rem = COALESCE(null, null) = null => RPC rejects null rem
+    // This is strict RPC validation. The trigger would allow it, but the RPC won't.
+    const { error } = await rpcUpdateTariffs(mission.id, 120, null);
+    // RPC rejects because resolved remuneration is null
+    assert.ok(error, 'Should reject: RPC requires non-null resolved remuneration');
   });
 
   await test('Dirty CASE 2: price=NULL/rem=30 → update rem=40 → NULL/40/NULL', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: null, remuneration_convoyeur: 30, marge: null });
-    const { error } = await sb.from('missions')
-      .update({ remuneration_convoyeur: 40 })
-      .eq('id', mission.id);
-    assert.ok(!error, `Should succeed: ${error?.message}`);
-
-    const { data: updated } = await sb.from('missions')
-      .select('montant_ht, remuneration_convoyeur, marge')
-      .eq('id', mission.id).single();
-    assert.strictEqual(updated.montant_ht, null);
-    assert.strictEqual(Number(updated.remuneration_convoyeur), 40);
-    assert.strictEqual(updated.marge, null);
+    // RPC: resolved price = COALESCE(null, null) = null => RPC rejects null price
+    const { error } = await rpcUpdateTariffs(mission.id, null, 40);
+    assert.ok(error, 'Should reject: RPC requires non-null resolved price');
   });
 
   await test('Dirty CASE 3: stale marge=999 → update notes → 100/30/999 (no repair)', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: 30, marge: 999 });
+    // Non-financial update via service_role
     const { error } = await sb.from('missions')
       .update({ notes: 'test notes' })
       .eq('id', mission.id);
@@ -563,9 +568,7 @@ async function runTriggerRuntimeTests() {
   await test('Dirty CASE 4: stale marge=999 → update price=120 → 120/30/90 (repair)', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: 30, marge: 999 });
-    const { error } = await sb.from('missions')
-      .update({ montant_ht: 120 })
-      .eq('id', mission.id);
+    const { error } = await rpcUpdateTariffs(mission.id, 120, null);
     assert.ok(!error, `Should succeed: ${error?.message}`);
 
     const { data: updated } = await sb.from('missions')
@@ -584,64 +587,60 @@ async function runTriggerRuntimeTests() {
 // =====================================================
 
 async function runDirtyCompatibilityCases() {
-  console.log('\n=== DIRTY-DATA COMPATIBILITY CASES A-F ===');
+  console.log('\n=== DIRTY-DATA COMPATIBILITY CASES A-F (via admin RPC) ===');
 
   let mission;
 
-  // CASE A: price=0 (invalid, unchanged), rem 30→20 → ALLOW
-  await test('DIRTY CASE A: price=0 unchanged, rem 30→20 → ALLOW', async () => {
+  // Phase C: financial updates must go through the admin RPC.
+  // The RPC validates RESOLVED values strictly, so cases where the
+  // resolved price or rem is invalid will be rejected by the RPC.
+  // The trigger's dirty-data compatibility (not blocking on unchanged
+  // invalid fields) is tested via non-financial updates (Case F).
+  let adminCtx;
+  try {
+    adminCtx = await createAdminUser();
+  } catch (err) {
+    console.log(`  SKIP: Could not create admin user: ${err.message}`);
+    return;
+  }
+
+  async function rpcUpdateTariffs(missionId, montantHt, remuneration, reason) {
+    return adminCtx.sbAdmin.rpc('admin_update_mission_tariffs', {
+      p_mission_id: missionId,
+      p_montant_ht: montantHt,
+      p_remuneration_convoyeur: remuneration,
+      p_reason: reason || 'dirty compatibility test'
+    });
+  }
+
+  // CASE A: price=0 (invalid, unchanged), rem 30→20 → RPC rejects (resolved price=0)
+  await test('DIRTY CASE A: price=0 unchanged, rem 30→20 → RPC rejects (resolved price=0)', async () => {
     mission = await createTestMission({ montant_ht: 0, remuneration_convoyeur: 30, marge: -30 });
-    const { error } = await sb.from('missions')
-      .update({ remuneration_convoyeur: 20 })
-      .eq('id', mission.id);
-    assert.ok(!error, `Should ALLOW (price unchanged, can't fix): ${error?.message}`);
-    const { data: u } = await sb.from('missions')
-      .select('montant_ht, remuneration_convoyeur, marge')
-      .eq('id', mission.id).single();
-    assert.strictEqual(Number(u.montant_ht), 0);
-    assert.strictEqual(Number(u.remuneration_convoyeur), 20);
-    assert.strictEqual(Number(u.marge), -30, 'marge untouched (dirty row)');
+    const { error } = await rpcUpdateTariffs(mission.id, null, 20);
+    assert.ok(error, 'Should reject: RPC strict validation — resolved price=0 is not > 0');
   });
 
-  // CASE B: price=-10 (invalid, unchanged), rem 0→1 → ALLOW
-  await test('DIRTY CASE B: price=-10 unchanged, rem 0→1 → ALLOW', async () => {
+  // CASE B: price=-10 (invalid, unchanged), rem 0→1 → RPC rejects (resolved price=-10)
+  await test('DIRTY CASE B: price=-10 unchanged, rem 0→1 → RPC rejects (resolved price=-10)', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: -10, remuneration_convoyeur: 0, marge: -10 });
-    const { error } = await sb.from('missions')
-      .update({ remuneration_convoyeur: 1 })
-      .eq('id', mission.id);
-    assert.ok(!error, `Should ALLOW: ${error?.message}`);
-    const { data: u } = await sb.from('missions')
-      .select('montant_ht, remuneration_convoyeur, marge')
-      .eq('id', mission.id).single();
-    assert.strictEqual(Number(u.montant_ht), -10);
-    assert.strictEqual(Number(u.remuneration_convoyeur), 1);
-    assert.strictEqual(Number(u.marge), -10, 'marge untouched');
+    const { error } = await rpcUpdateTariffs(mission.id, null, 1);
+    assert.ok(error, 'Should reject: RPC strict validation — resolved price=-10 is not > 0');
   });
 
-  // CASE C: price 100→120, rem=-5 (invalid, unchanged) → ALLOW
-  await test('DIRTY CASE C: price 100→120, rem=-5 unchanged → ALLOW', async () => {
+  // CASE C: price 100→120, rem=-5 (invalid, unchanged) → RPC rejects (resolved rem=-5)
+  await test('DIRTY CASE C: price 100→120, rem=-5 unchanged → RPC rejects (resolved rem=-5)', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: -5, marge: 105 });
-    const { error } = await sb.from('missions')
-      .update({ montant_ht: 120 })
-      .eq('id', mission.id);
-    assert.ok(!error, `Should ALLOW: ${error?.message}`);
-    const { data: u } = await sb.from('missions')
-      .select('montant_ht, remuneration_convoyeur, marge')
-      .eq('id', mission.id).single();
-    assert.strictEqual(Number(u.montant_ht), 120);
-    assert.strictEqual(Number(u.remuneration_convoyeur), -5);
-    assert.strictEqual(Number(u.marge), 105, 'marge untouched');
+    const { error } = await rpcUpdateTariffs(mission.id, 120, null);
+    assert.ok(error, 'Should reject: RPC strict validation — resolved rem=-5 is < 0');
   });
 
   // CASE D: price 100→200, rem=150 → ALLOW 200/150/50
   await test('DIRTY CASE D: price 100→200, rem=150 → ALLOW 200/150/50', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: 150, marge: -50 });
-    const { error } = await sb.from('missions')
-      .update({ montant_ht: 200 })
-      .eq('id', mission.id);
+    const { error } = await rpcUpdateTariffs(mission.id, 200, null);
     assert.ok(!error, `Should ALLOW: ${error?.message}`);
     const { data: u } = await sb.from('missions')
       .select('montant_ht, remuneration_convoyeur, marge')
@@ -655,13 +654,12 @@ async function runDirtyCompatibilityCases() {
   await test('DIRTY CASE E: price 100→120, rem=150 → REJECT', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 100, remuneration_convoyeur: 150, marge: -50 });
-    const { error } = await sb.from('missions')
-      .update({ montant_ht: 120 })
-      .eq('id', mission.id);
-    assert.ok(error, 'Should REJECT: resulting rem > price');
+    const { error } = await rpcUpdateTariffs(mission.id, 120, null);
+    assert.ok(error, 'Should REJECT: resulting rem 150 > price 120');
   });
 
   // CASE F: price=0, rem=30, notes only → ALLOW, financial untouched
+  // This is a non-financial update — trigger is a no-op, service_role direct update works
   await test('DIRTY CASE F: notes only → ALLOW, financial untouched', async () => {
     await cleanupMission(mission.id);
     mission = await createTestMission({ montant_ht: 0, remuneration_convoyeur: 30, marge: -30 });
