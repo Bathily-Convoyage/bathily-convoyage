@@ -32,6 +32,10 @@ export async function onRequest(context) {
       return jsonResponse({ error: 'Email et mot de passe requis.' }, 400, getCorsHeaders(request));
     }
 
+    if (password.length < 8) {
+      return jsonResponse({ error: 'weak_password', reasons: ['length'] }, 400, getCorsHeaders(request));
+    }
+
     if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Configuration Supabase manquante.');
     }
