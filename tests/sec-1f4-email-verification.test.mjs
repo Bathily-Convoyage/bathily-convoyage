@@ -494,4 +494,16 @@ assert.ok(
 );
 ok("confirmation page has prefetch safety");
 
+// ============================================================
+// SEC-1F4G.1: confirmation page must NOT load mobile-nav.js
+// The confirmation page is a transactional Auth page and does not
+// need the global mobile navigation. Loading mobile-nav.js without
+// its CSS causes unstyled raw HTML injection.
+// ============================================================
+assert.ok(
+  !confirmationPage.includes("js/mobile-nav.js"),
+  "confirmation-success must NOT load js/mobile-nav.js"
+);
+ok("confirmation page does not load mobile-nav.js");
+
 console.log(`\nAll ${passed} SEC-1F4 tests passed.`);
