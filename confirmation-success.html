@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/favicon.png"><link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0A4D68">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Confirmation de votre email — Bathily-Convoyage</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-config.js"></script>
+  <script src="/js/auth-password-errors.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FDFBF7;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      border: 1px solid #E8E1D9;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 460px;
+      text-align: center;
+    }
+    .logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #0A4D68;
+      margin-bottom: 8px;
+    }
+    .logo span { color: #6B625A; font-weight: 500; font-size: 0.8rem; display: block; margin-top: 4px; }
+    h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #0A4D68;
+      margin: 24px 0 12px;
+    }
+    p { color: #2D2A24; font-size: 0.95rem; line-height: 1.6; margin-bottom: 12px; }
+    .btn {
+      display: inline-block;
+      background: #0A4D68;
+      color: white;
+      padding: 14px 32px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: none;
+      cursor: pointer;
+      margin: 16px 0;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #083d54; }
+    .btn:disabled { background: #A0A0A0; cursor: not-allowed; }
+    .btn-secondary {
+      background: white;
+      color: #0A4D68;
+      border: 1px solid #0A4D68;
+    }
+    .btn-secondary:hover { background: #f0f5f7; }
+    .links { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .links a { color: #0A4D68; text-decoration: none; font-size: 0.85rem; font-weight: 500; }
+    .links a:hover { text-decoration: underline; }
+    .status { margin: 16px 0; font-size: 0.9rem; color: #6B625A; }
+    .error { color: #c0392b; font-size: 0.9rem; margin: 12px 0; }
+    .success { color: #27ae60; font-size: 0.9rem; margin: 12px 0; }
+    .resend-form { margin-top: 16px; display: none; }
+    .resend-form input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #E8E1D9;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+    .cooldown { font-size: 0.8rem; color: #6B625A; margin-top: 8px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Bathily-Convoyage<span>Convoyage automobile professionnel</span></div>
+
+    <!-- Initial state: show confirm button -->
+    <div id="initialState">
+      <h1>Confirmez votre adresse email</h1>
+      <p>Cliquez sur le bouton ci-dessous pour confirmer votre adresse email et activer votre compte.</p>
+      <button class="btn" id="confirmBtn" onclick="confirmEmail()">Confirmer mon adresse email</button>
+      <div class="status" id="statusMessage"></div>
+    </div>
+
+    <!-- Success state -->
+    <div id="successState" class="hidden">
+      <h1>Email confirmé !</h1>
+      <p class="success">Votre compte est maintenant actif. Vous allez être redirigé...</p>
+      <div class="links">
+        <a href="/dashboard-client.html">Espace Client</a>
+        <a href="/espace-pro.html">Espace Pro</a>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div id="errorState" class="hidden">
+      <h1 id="errorTitle">Confirmation impossible</h1>
+      <p class="error" id="errorMessage"></p>
+      <div class="links">
+        <a href="#" id="showResendLink" onclick="showResendForm(event)">Renvoyer l'email de confirmation</a>
+        <a href="/dashboard-client.html">Page de connexion client</a>
+        <a href="/espace-pro.html">Page de connexion pro</a>
+        <a href="/#contact">Contacter le support</a>
+      </div>
+    </div>
+
+    <!-- Resend form -->
+    <div id="resendForm" class="resend-form hidden">
+      <h1 style="font-size:1.1rem;">Renvoyer l'email de confirmation</h1>
+      <p style="font-size:0.85rem;">Saisissez votre adresse email pour recevoir un nouveau lien.</p>
+      <input type="email" id="resendEmail" placeholder="Votre adresse email">
+      <button class="btn" id="resendBtn" onclick="resendConfirmation()">Renvoyer</button>
+      <div class="cooldown" id="cooldownMessage"></div>
+      <div class="links">
+        <a href="#" onclick="hideResendForm(event)">Retour</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // SEC-1F4: Confirmation page with TWO-STEP user action.
+    // The token_hash is parsed from the URL on page load, but verifyOtp
+    // is ONLY called when the user clicks the "Confirmer" button.
+    // This ensures email security scanner prefetch does NOT consume the token.
+
+    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+      document.getElementById('statusMessage').textContent = 'Erreur de configuration. supabase-config.js non chargé.';
+      document.getElementById('confirmBtn').disabled = true;
+    }
+
+    const client = window.SUPABASE_URL ? supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY) : null;
+
+    // Parse token_hash and type from URL query string.
+    // Do NOT call verifyOtp here. Only parse and validate.
+    const params = new URLSearchParams(window.location.search);
+    const tokenHash = params.get('token_hash');
+    const tokenType = params.get('type');
+
+    // SEC-1F4 Section 24: Token hygiene.
+    // Do NOT log token_hash, send it to analytics, or include it in external links.
+    // Token is kept in a local variable only for the verifyOtp call.
+
+    // Validate parameters on page load (no verification yet).
+    (function validateParams() {
+      if (!tokenHash || !tokenType) {
+        showError('Paramètres de confirmation manquants.', 'Lien de confirmation incomplet.');
+        return;
+      }
+      if (tokenType !== 'email') {
+        showError('Type de confirmation inattendu.', 'Ce lien n\'est pas un lien de confirmation d\'email valide.');
+        return;
+      }
+      // Parameters are valid. Show the confirm button (already visible by default).
+    })();
+
+    // SEC-1F4: verifyOtp is called ONLY on explicit button click.
+    // type: 'email' is the current non-deprecated type for email confirmation.
+    // Do NOT use type: 'signup' (deprecated).
+    async function confirmEmail() {
+      if (!client) {
+        showError('Erreur de configuration.', 'Supabase non initialisé.');
+        return;
+      }
+      if (!tokenHash || tokenType !== 'email') {
+        showError('Paramètres de confirmation manquants.', 'Lien de confirmation incomplet ou invalide.');
+        return;
+      }
+
+      const btn = document.getElementById('confirmBtn');
+      btn.disabled = true;
+      btn.textContent = 'Confirmation en cours...';
+      document.getElementById('statusMessage').textContent = '';
+
+      try {
+        const { data, error } = await client.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: 'email'
+        });
+
+        if (error) {
+          handleVerifyError(error);
+          return;
+        }
+
+        // Success: email confirmed, session created.
+        document.getElementById('initialState').classList.add('hidden');
+        document.getElementById('successState').classList.remove('hidden');
+
+        // SEC-1F4 Section 24: Remove token_hash from URL for hygiene.
+        // Use history.replaceState to clean the URL without triggering navigation.
+        try {
+          const cleanUrl = window.location.origin + window.location.pathname;
+          history.replaceState(null, '', cleanUrl);
+        } catch (e) {
+          // URL cleanup is best-effort. Do not fail on history API errors.
+        }
+
+        // Auto-redirect after 3 seconds.
+        setTimeout(() => {
+          window.location.href = '/dashboard-client.html';
+        }, 3000);
+
+      } catch (err) {
+        handleVerifyError(err);
+      }
+    }
+
+    function handleVerifyError(error) {
+      const msg = (error && error.message) ? error.message : 'Erreur inconnue';
+      const code = (error && error.code) ? error.code : '';
+
+      // Categorize errors without relying solely on exact English strings.
+      let title = 'Confirmation impossible';
+      let detail = 'Le lien de confirmation est invalide ou a expiré.';
+
+      const lowerMsg = msg.toLowerCase();
+
+      if (code === 'otp_expired' || lowerMsg.includes('expired') || lowerMsg.includes('expir')) {
+        title = 'Lien expiré';
+        detail = 'Ce lien de confirmation a expiré. Vous pouvez renvoyer un email de confirmation.';
+      } else if (lowerMsg.includes('already') && lowerMsg.includes('confirmed')) {
+        title = 'Email déjà confirmé';
+        detail = 'Votre adresse email est déjà confirmée. Vous pouvez vous connecter.';
+      } else if (lowerMsg.includes('invalid') || lowerMsg.includes('not found') || code === 'otp_not_found') {
+        title = 'Lien invalide';
+        detail = 'Ce lien de confirmation est invalide. Veuillez utiliser le lien le plus récent dans votre boîte mail.';
+      } else if (code === 'rate_limit_exceeded' || error && error.status === 429) {
+        title = 'Trop de tentatives';
+        detail = 'Trop de tentatives de confirmation. Réessayez dans quelques minutes.';
+      }
+
+      showError(title, detail);
+    }
+
+    function showError(title, message) {
+      document.getElementById('initialState').classList.add('hidden');
+      document.getElementById('errorTitle').textContent = title;
+      document.getElementById('errorMessage').textContent = message;
+      document.getElementById('errorState').classList.remove('hidden');
+    }
+
+    function showResendForm(e) {
+      if (e) e.preventDefault();
+      document.getElementById('errorState').classList.add('hidden');
+      document.getElementById('resendForm').classList.remove('hidden');
+    }
+
+    function hideResendForm(e) {
+      if (e) e.preventDefault();
+      document.getElementById('resendForm').classList.add('hidden');
+      document.getElementById('errorState').classList.remove('hidden');
+    }
+
+    // SEC-1F4 Section 18: Resend flow.
+    // auth.resend uses type: 'signup' (different enum from verifyOtp).
+    // Generic response — no account enumeration.
+    let resendCooldown = 0;
+    let resendInterval = null;
+
+    async function resendConfirmation() {
+      const email = document.getElementById('resendEmail').value.trim().toLowerCase();
+      if (!email) {
+        document.getElementById('cooldownMessage').textContent = 'Veuillez saisir votre adresse email.';
+        return;
+      }
+
+      const btn = document.getElementById('resendBtn');
+      btn.disabled = true;
+
+      try {
+        // type: 'signup' is correct for auth.resend (NOT 'email').
+        // 'email' is for verifyOtp. These are different APIs with different type enums.
+        const { error } = await client.auth.resend({
+          type: 'signup',
+          email: email,
+          options: {
+            emailRedirectTo: window.location.origin + '/confirmation-success.html'
+          }
+        });
+
+        if (error && error.status === 429) {
+          startResendCooldown(60);
+          document.getElementById('cooldownMessage').textContent = 'Veuillez attendre avant de renvoyer un email.';
+          return;
+        }
+
+        // Generic success message — does not reveal whether the account exists.
+        document.getElementById('cooldownMessage').textContent =
+          'Si un compte nécessite une confirmation pour cette adresse, un nouvel email a été envoyé.';
+        startResendCooldown(60);
+      } catch (err) {
+        document.getElementById('cooldownMessage').textContent =
+          'Si un compte nécessite une confirmation pour cette adresse, un nouvel email a été envoyé.';
+        startResendCooldown(60);
+      }
+    }
+
+    function startResendCooldown(seconds) {
+      resendCooldown = seconds;
+      const btn = document.getElementById('resendBtn');
+      const msg = document.getElementById('cooldownMessage');
+      btn.disabled = true;
+
+      if (resendInterval) clearInterval(resendInterval);
+      resendInterval = setInterval(() => {
+        resendCooldown--;
+        if (resendCooldown <= 0) {
+          clearInterval(resendInterval);
+          btn.disabled = false;
+          btn.textContent = 'Renvoyer';
+          msg.textContent = 'Vous pouvez renvoyer un email de confirmation.';
+        } else {
+          btn.textContent = `Renvoyer (${resendCooldown}s)`;
+        }
+      }, 1000);
+    }
+  </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function() {
+        navigator.serviceWorker.register("/sw.js").catch(function(e) {
+          console.warn("SW registration failed:", e);
+        });
+      });
+    }
+  </script>
+  <script src="js/mobile-nav.js" defer></script>
+  <script src="js/cookie-consent.js" defer></script>
+</body>
+</html>
