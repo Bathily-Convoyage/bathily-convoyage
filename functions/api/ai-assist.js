@@ -1,4 +1,4 @@
-// AI-BOOST-1A.1 — AI Gateway Edge Function (Hardened)
+// AI-BOOST-1B.1 — AI Gateway Edge Function (Contract Hardened)
 //
 // Reusable AI gateway for Bathily-Convoyage.
 // Provides: provider abstraction, model configuration via env,
@@ -9,6 +9,12 @@
 // Currently supports only task = "support_draft".
 // Output is advisory text only — never sends email, never mutates DB,
 // never changes pricing, never changes mission state.
+//
+// OpenAI API contract aligned with gpt-5.6-luna reasoning model docs:
+// - Uses max_completion_tokens (not deprecated max_tokens)
+// - Omits temperature (unsupported by gpt-5.x reasoning models)
+// - Uses reasoning_effort for controlling reasoning depth
+// - Uses response_format json_object for structured output
 
 import {
   getCorsHeaders,
@@ -24,10 +30,10 @@ import {
 
 const SUPPORTED_TASKS = ['support_draft'];
 
-// Input bounds
+// Input bounds — MAX_INPUT_BYTES enforces true UTF-8 byte length
 const MAX_INPUT_BYTES = 4096;
 const MAX_SUMMARY_LEN = 500;
-const MAX_DRAFT_LEN = 2000;
+const MAX_DRAFT_LEN = 200; // Consistent with system prompt "maximum 200 caractères"
 
 // LLM call timeout (ms)
 const LLM_TIMEOUT_MS = 15000;
@@ -39,8 +45,24 @@ const RATE_LIMIT_WINDOW = 60000;
 // Default model — configurable via AI_MODEL_DEFAULT env var
 const DEFAULT_MODEL = 'gpt-5.6-luna';
 
+// Explicitly supported providers — unknown providers are rejected (no fetch)
+const SUPPORTED_PROVIDERS = new Set(['openai', 'openrouter']);
+
 // Providers that support response_format json_object natively
 const PROVIDERS_WITH_JSON_MODE = new Set(['openai']);
+
+// Provider endpoints
+const PROVIDER_ENDPOINTS = {
+  openai: 'https://api.openai.com/v1/chat/completions',
+  openrouter: 'https://openrouter.ai/api/v1/chat/completions',
+};
+
+// TextEncoder for true UTF-8 byte length measurement
+const _encoder = new TextEncoder();
+
+function utf8ByteLength(str) {
+  return _encoder.encode(str).byteLength;
+}
 
 // ============================================================
 // TASK DEFINITIONS
@@ -178,9 +200,9 @@ function validateInput(body) {
     }
   }
 
-  // Check input size
+  // Check input size — true UTF-8 byte length, not JS string length
   const inputJson = JSON.stringify(input);
-  if (inputJson.length > MAX_INPUT_BYTES) {
+  if (utf8ByteLength(inputJson) > MAX_INPUT_BYTES) {
     return { valid: false, error: 'input_too_large' };
   }
 
@@ -221,25 +243,31 @@ async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, time
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    // OpenAI-compatible API (works with OpenAI, OpenRouter, etc.)
-    const endpoint = provider === 'openrouter'
-      ? 'https://openrouter.ai/api/v1/chat/completions'
-      : 'https://api.openai.com/v1/chat/completions';
+    const endpoint = PROVIDER_ENDPOINTS[provider];
 
-    // Build request body — only use response_format for providers that support it
+    // Build request body — provider-specific parameters
     const requestBody = {
       model: model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.3,
-      max_tokens: 300,
     };
 
-    // Only set response_format for providers with native JSON mode support
-    if (PROVIDERS_WITH_JSON_MODE.has(provider)) {
+    if (provider === 'openai') {
+      // gpt-5.6-luna is a reasoning model:
+      // - max_completion_tokens replaces deprecated max_tokens
+      // - temperature is NOT supported by gpt-5.x reasoning models
+      // - reasoning_effort controls reasoning depth (none/low/medium/high/xhigh/max)
+      // - response_format json_object for structured output
+      requestBody.max_completion_tokens = 300;
+      requestBody.reasoning_effort = 'low';
       requestBody.response_format = { type: 'json_object' };
+    } else if (provider === 'openrouter') {
+      // OpenRouter: use standard parameters, omit response_format
+      // (capability varies by underlying model)
+      requestBody.max_tokens = 300;
+      requestBody.temperature = 0.3;
     }
 
     const response = await fetchImpl(endpoint, {
@@ -283,7 +311,7 @@ async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, time
       return { ok: false, error: 'invalid_json_output', status: 200 };
     }
 
-    // Token usage (if available)
+    // Token usage (if available) — OpenAI uses prompt_tokens/completion_tokens
     const usage = data?.usage
       ? { input_tokens: data.usage.prompt_tokens || 0, output_tokens: data.usage.completion_tokens || 0 }
       : null;
@@ -384,6 +412,30 @@ export async function onRequest(context) {
   const provider = env.AI_PROVIDER || 'openai';
   const model = env.AI_MODEL_DEFAULT || DEFAULT_MODEL;
   const apiKey = env.AI_API_KEY;
+
+  // Provider allowlist check — unknown providers get NO fetch call
+  if (!SUPPORTED_PROVIDERS.has(provider)) {
+    const fallback = taskDef.fallback();
+    const latencyMs = Date.now() - startTime;
+    logTelemetry({
+      requestId, task, model, provider,
+      latencyMs, status: 'fallback_unsupported_provider',
+      errorCategory: 'unsupported_provider',
+      injectionRisk: validation.injectionRisk,
+    });
+    return jsonResponse({
+      ok: true,
+      task,
+      output: fallback,
+      meta: {
+        request_id: requestId,
+        model: 'fallback',
+        latency_ms: latencyMs,
+        fallback_used: true,
+        source: 'fallback',
+      },
+    }, 200, getCorsHeaders(request));
+  }
 
   // If no API key configured, return deterministic fallback
   if (!apiKey) {
@@ -535,10 +587,13 @@ export {
   TASK_DEFINITIONS,
   SYSTEM_PROMPT,
   DEFAULT_MODEL,
+  SUPPORTED_PROVIDERS,
   PROVIDERS_WITH_JSON_MODE,
+  PROVIDER_ENDPOINTS,
   LLM_TIMEOUT_MS,
   MAX_INPUT_BYTES,
   MAX_DRAFT_LEN,
+  utf8ByteLength,
   validateInput,
   validateSupportDraftOutput,
   buildSupportDraftPrompt,
