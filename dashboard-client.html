@@ -1810,7 +1810,33 @@
           return;
         }
 
-        // Connexion automatique
+        // SEC-1F4: Handle email verification response.
+        // verification_required=true → user must confirm email before login.
+        // verification_required=false → transition state (mailer_autoconfirm=true),
+        //   preserve backward-compatible auto-login behavior.
+        if (result.verification_required === true) {
+          // Do NOT auto-login unconfirmed user. Show verification-pending UI.
+          Swal.fire({
+            title: 'Vérifiez votre boîte mail',
+            html: `Un email de confirmation a été envoyé à <strong>${escapeHtml(email)}</strong>.<br><br>` +
+                  'Cliquez sur le lien dans l\'email pour activer votre compte.<br><br>' +
+                  'Si vous ne recevez pas l\'email, vérifiez vos spams ou renvoyez-le.<br><br>' +
+                  'Si vous avez déjà un compte, <a href="#" onclick="switchAuthTab(\'login\'); return false;">connectez-vous</a>.',
+            icon: 'info',
+            confirmButtonColor: '#0A4D68',
+            confirmButtonText: 'OK',
+            showCancelButton: true,
+            cancelButtonText: 'Renvoyer l\'email',
+            cancelButtonColor: '#6B625A'
+          }).then(res => {
+            if (res.dismiss === 'cancel') {
+              resendConfirmationEmail(email);
+            }
+          });
+          return;
+        }
+
+        // verification_required=false: backward-compatible auto-login (transition period)
         const client = getSBCli();
         const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
         if (authError) {
@@ -1831,6 +1857,35 @@
         Swal.fire({ title: 'Compte créé !', text: `Bienvenue, ${prenom}.`, icon: 'success', timer: 2500, showConfirmButton: false });
       } catch (err) {
         Swal.fire('Erreur', 'Service indisponible. Veuillez réessayer plus tard.', 'error');
+      }
+    }
+
+    // SEC-1F4: Resend confirmation email.
+    // Uses auth.resend with type: 'signup' (correct for resend, NOT 'email').
+    // Generic response — no account enumeration.
+    async function resendConfirmationEmail(email) {
+      const client = getSBCli();
+      if (!client) {
+        Swal.fire('Erreur', 'Configuration Supabase manquante.', 'error');
+        return;
+      }
+      Swal.fire({ title: 'Envoi en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      try {
+        const { error } = await client.auth.resend({
+          type: 'signup',
+          email: email,
+          options: {
+            emailRedirectTo: window.location.origin + '/confirmation-success.html'
+          }
+        });
+        if (error && error.status === 429) {
+          Swal.fire('Attente requise', 'Veuillez attendre 60 secondes avant de renvoyer un email.', 'info');
+          return;
+        }
+        // Generic message — does not reveal whether the account exists.
+        Swal.fire('Email envoyé', 'Si un compte nécessite une confirmation pour cette adresse, un nouvel email a été envoyé. Vérifiez votre boîte mail et vos spams.', 'info');
+      } catch (err) {
+        Swal.fire('Email envoyé', 'Si un compte nécessite une confirmation pour cette adresse, un nouvel email a été envoyé. Vérifiez votre boîte mail et vos spams.', 'info');
       }
     }
 

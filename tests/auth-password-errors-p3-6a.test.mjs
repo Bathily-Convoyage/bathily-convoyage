@@ -35,20 +35,31 @@ test('does not relabel unrelated authentication failures', () => {
 });
 
 test('client signup returns a stable weak_password payload', async () => {
-  const supabase = {
+  // SEC-1F4A.1: Updated mock to match auth.signUp() architecture.
+  // The new client-signup.js uses an anon client for auth.signUp()
+  // and a service-role admin client for profile lookups.
+  // The weak_password error now comes from auth.signUp, not admin.createUser.
+  const supabaseAnon = {
     auth: {
-      admin: {
-        createUser: async () => ({
-          data: { user: null },
-          error: {
-            code: 'weak_password',
-            name: 'AuthWeakPasswordError',
-            message: 'Password is known to be weak',
-            reasons: ['pwned']
-          }
-        })
-      }
+      signUp: async () => ({
+        data: { user: null, session: null },
+        error: {
+          code: 'weak_password',
+          name: 'AuthWeakPasswordError',
+          message: 'Password is known to be weak',
+          reasons: ['pwned']
+        }
+      })
     }
+  };
+  const supabase = {
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({ data: null, error: null })
+        })
+      })
+    })
   };
   const request = new Request('https://www.bathily-convoyage.fr/api/client-signup', {
     method: 'POST',
@@ -68,9 +79,11 @@ test('client signup returns a stable weak_password payload', async () => {
   const response = await onRequest({
     request,
     supabase,
+    supabaseAnon,
     env: {
       SUPABASE_URL: 'https://project.supabase.co',
-      SUPABASE_SERVICE_ROLE_KEY: 'service-role-local'
+      SUPABASE_SERVICE_ROLE_KEY: 'service-role-local',
+      SUPABASE_ANON_KEY: 'anon-key-local'
     }
   });
   const body = await response.json();

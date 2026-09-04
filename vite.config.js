@@ -12,6 +12,7 @@ const publicHtmlFiles = [
   'blog/convoyage-vehicule-electrique.html',
   'bon-de-mission.html',
   'carte-visite.html',
+  'confirmation-success.html',
   'contact.html',
   'convoyage-amiens.html',
   'convoyage-angers.html',

@@ -629,6 +629,36 @@
           return;
         }
 
+        // SEC-1F4: Handle email verification response.
+        // verification_required=true → user must confirm email before login.
+        // verification_required=false → transition state (mailer_autoconfirm=true),
+        //   show success with admin approval pending.
+        if (result.verification_required === true) {
+          // Do NOT auto-login unconfirmed user. Show verification-pending UI.
+          Swal.fire({
+            title: 'Vérifiez votre adresse email',
+            html: `Bonjour <strong>${escapeHtml(prenom)}</strong>,<br><br>` +
+                  'Un email de confirmation a été envoyé à <strong>' + escapeHtml(email) + '</strong>.<br><br>' +
+                  'Cliquez sur le lien dans l\'email pour confirmer votre adresse.<br><br>' +
+                  'Votre demande de compte professionnel restera en attente jusqu\'à validation par notre équipe après confirmation de votre email.<br><br>' +
+                  'Si vous ne recevez pas l\'email, vérifiez vos spams ou renvoyez-le.',
+            icon: 'info',
+            confirmButtonColor: '#0A4D68',
+            confirmButtonText: 'OK',
+            showCancelButton: true,
+            cancelButtonText: 'Renvoyer l\'email',
+            cancelButtonColor: '#6B625A'
+          }).then(res => {
+            if (res.dismiss === 'cancel') {
+              resendProConfirmationEmail(email);
+            } else {
+              document.getElementById('proSignupForm').reset();
+            }
+          });
+          return;
+        }
+
+        // verification_required=false: transition period (mailer_autoconfirm=true)
         Swal.fire({
           title: 'Demande envoyée !',
          html: `Bonjour <strong>${escapeHtml(prenom)}</strong>,<br><br>Votre demande de compte Pro a bien été enregistrée.<br>Notre équipe examinera votre demande.<br><br>Vous recevrez un email de confirmation à <strong>${escapeHtml(email)}</strong>.`,
@@ -642,6 +672,35 @@
         Swal.fire('Erreur', err.message, 'error');
       }
     });
+
+    // SEC-1F4: Resend confirmation email for Pro signup.
+    // Uses auth.resend with type: 'signup' (correct for resend, NOT 'email').
+    // Generic response — no account enumeration.
+    async function resendProConfirmationEmail(email) {
+      if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY || !window.supabase) {
+        Swal.fire('Erreur', 'Configuration Supabase manquante.', 'error');
+        return;
+      }
+      const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      Swal.fire({ title: 'Envoi en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      try {
+        const { error } = await client.auth.resend({
+          type: 'signup',
+          email: email,
+          options: {
+            emailRedirectTo: window.location.origin + '/confirmation-success.html'
+          }
+        });
+        if (error && error.status === 429) {
+          Swal.fire('Attente requise', 'Veuillez attendre 60 secondes avant de renvoyer un email.', 'info');
+          return;
+        }
+        // Generic message — does not reveal whether the account exists.
+        Swal.fire('Email envoyé', 'Si un compte nécessite une confirmation pour cette adresse, un nouvel email a été envoyé. Vérifiez votre boîte mail et vos spams.', 'info');
+      } catch (err) {
+        Swal.fire('Email envoyé', 'Si un compte nécessite une confirmation pour cette adresse, un nouvel email a été envoyé. Vérifiez votre boîte mail et vos spams.', 'info');
+      }
+    }
   </script>
 
 
