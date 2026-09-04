@@ -1,10 +1,15 @@
-// AI-BOOST-1B.1 — AI Gateway Edge Function (Contract Hardened)
+// AI-BOOST-2A — AI Gateway Edge Function (Admin-Gated)
 //
 // Reusable AI gateway for Bathily-Convoyage.
 // Provides: provider abstraction, model configuration via env,
 // request validation, structured output validation, timeout,
 // rate limiting, sanitized telemetry, graceful failure,
 // no direct business mutation, deterministic fallback support.
+//
+// AI-BOOST-2A: Server-side admin authorization added.
+// Paid provider calls require authenticated admin identity.
+// Unauthenticated or non-admin requests NEVER cause a provider fetch.
+// Uses the canonical is_admin() RPC pattern (same as lookup-vehicle.js).
 //
 // Currently supports only task = "support_draft".
 // Output is advisory text only — never sends email, never mutates DB,
@@ -16,6 +21,7 @@
 // - Uses reasoning_effort for controlling reasoning depth
 // - Uses response_format json_object for structured output
 
+import { createClient } from '@supabase/supabase-js';
 import {
   getCorsHeaders,
   jsonResponse,
@@ -62,6 +68,65 @@ const _encoder = new TextEncoder();
 
 function utf8ByteLength(str) {
   return _encoder.encode(str).byteLength;
+}
+
+// ============================================================
+// ADMIN AUTHORIZATION (AI-BOOST-2A)
+// ============================================================
+// Server-side admin gate — reuses the canonical is_admin() RPC pattern
+// from lookup-vehicle.js. Uses a user-scoped Supabase client (NOT
+// service-role) so auth.uid()-based RPCs work under RLS.
+//
+// Returns:
+//   { authenticated: true, isAdmin: true, userId: "...", email: "..." }
+//   { authenticated: true, isAdmin: false, userId: "...", email: "..." }
+//   { authenticated: false, isAdmin: false, error: "..." }
+
+async function verifyAdminAuth({ request, env, createClientImpl }) {
+  const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { authenticated: false, isAdmin: false, error: 'missing_auth_header' };
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token || token.length < 10) {
+    return { authenticated: false, isAdmin: false, error: 'invalid_token' };
+  }
+
+  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
+    return { authenticated: false, isAdmin: false, error: 'server_config_missing' };
+  }
+
+  const cc = createClientImpl || createClient;
+  const supabaseUser = cc(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+
+  // Verify the token is valid and get user
+  const { data: { user }, error: authError } = await supabaseUser.auth.getUser(token);
+  if (authError || !user) {
+    return { authenticated: false, isAdmin: false, error: 'invalid_session' };
+  }
+
+  // Check admin role via canonical is_admin() RPC
+  // is_admin() checks user_roles.role='admin' OR clients.role='admin' (legacy)
+  // Uses auth.uid() — requires user-scoped client, NOT service-role
+  let isAdmin = false;
+  try {
+    const { data: adminResult, error: adminErr } = await supabaseUser.rpc('is_admin');
+    isAdmin = adminResult === true && !adminErr;
+  } catch {
+    // RPC error — fail closed
+    return { authenticated: true, isAdmin: false, userId: user.id, error: 'admin_check_failed' };
+  }
+
+  return {
+    authenticated: true,
+    isAdmin,
+    userId: user.id,
+    email: user.email,
+  };
 }
 
 // ============================================================
@@ -332,6 +397,7 @@ async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, time
 
 function logTelemetry(meta) {
   // Log only safe metadata — never log PII, API keys, raw prompts, or full responses
+  // admin_user_id is a UUID — safe to log (not PII, not an auth token)
   console.log(JSON.stringify({
     type: 'ai_telemetry',
     request_id: meta.requestId,
@@ -344,6 +410,7 @@ function logTelemetry(meta) {
     injection_risk: meta.injectionRisk || false,
     input_tokens: meta.inputTokens || null,
     output_tokens: meta.outputTokens || null,
+    admin_user_id: meta.adminUserId || null,
   }));
 }
 
@@ -354,6 +421,7 @@ function logTelemetry(meta) {
 export async function onRequest(context) {
   const { request, env } = context;
   const fetchImpl = context.fetchImpl || fetch;
+  const createClientImpl = context.createClientImpl || null;
 
   const optionsRes = handleOptions(request);
   if (optionsRes) return optionsRes;
@@ -362,7 +430,7 @@ export async function onRequest(context) {
     return jsonResponse({ ok: false, code: 'METHOD_NOT_ALLOWED' }, 405, getCorsHeaders(request));
   }
 
-  // Rate limit
+  // IP-based rate limit (pre-auth — protects against brute-force spam)
   const rl = checkRateLimit(request, 'ai-assist', RATE_LIMIT_MAX, RATE_LIMIT_WINDOW);
   if (rl) return rl;
 
@@ -408,6 +476,32 @@ export async function onRequest(context) {
   const { task, input } = body;
   const taskDef = TASK_DEFINITIONS[task];
 
+  // ============================================================
+  // AI-BOOST-2A: SERVER-SIDE ADMIN AUTHORIZATION
+  // Paid provider calls require authenticated admin identity.
+  // This check happens BEFORE any provider call.
+  // Unauthenticated/non-admin users NEVER cause a provider fetch.
+  // ============================================================
+  const authResult = await verifyAdminAuth({ request, env, createClientImpl });
+
+  if (!authResult.authenticated) {
+    logTelemetry({
+      requestId, task, model: null, provider: null,
+      latencyMs: Date.now() - startTime, status: 'rejected_unauthenticated',
+      errorCategory: authResult.error || 'unauthenticated',
+    });
+    return jsonResponse({ ok: false, code: 'UNAUTHORIZED' }, 401, getCorsHeaders(request));
+  }
+
+  if (!authResult.isAdmin) {
+    logTelemetry({
+      requestId, task, model: null, provider: null,
+      latencyMs: Date.now() - startTime, status: 'rejected_non_admin',
+      errorCategory: 'not_admin',
+    });
+    return jsonResponse({ ok: false, code: 'FORBIDDEN' }, 403, getCorsHeaders(request));
+  }
+
   // Determine provider and model from env
   const provider = env.AI_PROVIDER || 'openai';
   const model = env.AI_MODEL_DEFAULT || DEFAULT_MODEL;
@@ -422,6 +516,7 @@ export async function onRequest(context) {
       latencyMs, status: 'fallback_unsupported_provider',
       errorCategory: 'unsupported_provider',
       injectionRisk: validation.injectionRisk,
+      adminUserId: authResult.userId,
     });
     return jsonResponse({
       ok: true,
@@ -445,6 +540,7 @@ export async function onRequest(context) {
       requestId, task, model, provider,
       latencyMs, status: 'fallback_no_key',
       injectionRisk: validation.injectionRisk,
+      adminUserId: authResult.userId,
     });
     return jsonResponse({
       ok: true,
@@ -484,6 +580,7 @@ export async function onRequest(context) {
       latencyMs, status: 'fallback_error',
       errorCategory: llmResult.error,
       injectionRisk: validation.injectionRisk,
+      adminUserId: authResult.userId,
     });
     return jsonResponse({
       ok: true,
@@ -508,6 +605,7 @@ export async function onRequest(context) {
       latencyMs, status: 'fallback_invalid_output',
       errorCategory: outputValidation.error,
       injectionRisk: validation.injectionRisk,
+      adminUserId: authResult.userId,
       inputTokens: llmResult.usage?.input_tokens,
       outputTokens: llmResult.usage?.output_tokens,
     });
@@ -534,6 +632,7 @@ export async function onRequest(context) {
       latencyMs, status: 'fallback_secret_leak',
       errorCategory: 'secret_leak_detected',
       injectionRisk: validation.injectionRisk,
+      adminUserId: authResult.userId,
       inputTokens: llmResult.usage?.input_tokens,
       outputTokens: llmResult.usage?.output_tokens,
     });
@@ -557,6 +656,7 @@ export async function onRequest(context) {
     requestId, task, model, provider,
     latencyMs, status: 'success',
     injectionRisk: validation.injectionRisk,
+    adminUserId: authResult.userId,
     inputTokens: llmResult.usage?.input_tokens,
     outputTokens: llmResult.usage?.output_tokens,
   });
@@ -594,6 +694,7 @@ export {
   MAX_INPUT_BYTES,
   MAX_DRAFT_LEN,
   utf8ByteLength,
+  verifyAdminAuth,
   validateInput,
   validateSupportDraftOutput,
   buildSupportDraftPrompt,
