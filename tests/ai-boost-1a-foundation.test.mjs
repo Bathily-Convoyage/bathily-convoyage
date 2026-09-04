@@ -1,4 +1,4 @@
-// AI-BOOST-1B.1 — Contract Hardening Tests
+// AI-BOOST-2A — Contract Hardening Tests (Admin-Gated)
 //
 // Tests cover all previous assertions plus new contract hardening:
 //  - MAX_DRAFT_LEN = 200 (exactly 200 accepted, 201 rejected)
@@ -7,6 +7,9 @@
 //  - provider allowlist (openai/openrouter only; unknown → no fetch, fallback)
 //  - OpenAI contract: max_completion_tokens, no temperature, reasoning_effort, response_format
 //  - OpenRouter contract: max_tokens, temperature, no response_format
+//
+// AI-BOOST-2A: All gateway tests now include mock admin auth.
+// The gateway requires authenticated admin identity for provider calls.
 
 import assert from 'assert';
 import { readFileSync } from 'fs';
@@ -19,6 +22,34 @@ function ok(label) {
 }
 
 // ============================================================
+// MOCK SUPABASE CLIENT (admin auth)
+// ============================================================
+
+function mockAdminCreateClient() {
+  return function(url, key, options) {
+    return {
+      auth: {
+        getUser: async (token) => {
+          if (!token || token.length < 10) return { data: { user: null }, error: { message: 'invalid token' } };
+          return { data: { user: { id: 'test-admin-id', email: 'admin@test.com' } }, error: null };
+        },
+      },
+      rpc: async (fnName) => {
+        if (fnName === 'is_admin') return { data: true, error: null };
+        return { data: null, error: { message: 'unknown function' } };
+      },
+    };
+  };
+}
+
+const ADMIN_AUTH = 'Bearer test-admin-token-1234567890';
+const ADMIN_CC = mockAdminCreateClient();
+const ADMIN_ENV = {
+  SUPABASE_URL: 'https://test.supabase.co',
+  SUPABASE_ANON_KEY: 'test-anon-key',
+};
+
+// ============================================================
 // HELPERS
 // ============================================================
 
@@ -28,6 +59,7 @@ function makeRequest(body, opts = {}) {
   headers.set('content-type', 'application/json');
   headers.set('origin', 'https://www.bathily-convoyage.fr');
   headers.set('cf-connecting-ip', `203.0.113.${testIpCounter % 200 + 1}`);
+  headers.set('authorization', ADMIN_AUTH);
   if (opts.headers) {
     for (const [k, v] of Object.entries(opts.headers)) {
       headers.set(k.toLowerCase(), v);
@@ -50,8 +82,9 @@ function makeContext({ body, env, fetchImpl, rawText } = {}) {
   }
   return {
     request: req,
-    env: env || {},
+    env: { ...ADMIN_ENV, ...(env || {}) },
     fetchImpl: fetchImpl || null,
+    createClientImpl: ADMIN_CC,
   };
 }
 
@@ -421,7 +454,8 @@ function mockFetch(opts = {}) {
 
 {
   const source = readFileSync(new URL('../functions/api/ai-assist.js', import.meta.url), 'utf8');
-  assert.ok(!source.includes('createClient'));
+  // AI-BOOST-2A: createClient is now imported for admin auth verification (getUser + rpc is_admin)
+  // but NO DB mutation operations are performed — only read-only auth checks
   assert.ok(!source.includes('.insert('));
   assert.ok(!source.includes('.update('));
   assert.ok(!source.includes('.delete('));

@@ -6506,16 +6506,32 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     const ticket = _allTickets.find(t => t.id === ticketId);
     if (!ticket) return;
 
+    // AI-BOOST-2A: Reply modal with AI draft generation button
+    // The AI button is manual-only, generates a draft into the editable textarea,
+    // and never auto-sends or auto-saves.
     const { value: reponse } = await Swal.fire({
       title: 'Répondre au ticket',
-      input: 'textarea',
-      inputLabel: ticket.sujet,
-      inputValue: ticket.reponse || '',
-      inputPlaceholder: 'Saisissez votre réponse...',
+      html: `
+        <div style="text-align:left;margin-bottom:8px;">
+          <strong>${escapeHtml(ticket.sujet || 'Sans sujet')}</strong>
+        </div>
+        <textarea id="swalReplyTextarea" class="swal2-textarea" style="height:180px;resize:vertical;"
+          placeholder="Saisissez votre réponse...">${escapeHtml(ticket.reponse || '')}</textarea>
+        <div id="aiDraftStatus" style="font-size:0.75rem;color:var(--gray-mid);margin-top:6px;min-height:1.2em;"></div>
+        <button type="button" id="aiDraftBtn" class="btn-sm btn-sm-green" style="margin-top:8px;width:100%;"
+          onclick="generateAiDraft('${ticketId}')">
+          <i class="fas fa-magic"></i> Générer un brouillon IA
+        </button>
+      `,
       showCancelButton: true,
       confirmButtonText: 'Envoyer',
       cancelButtonText: 'Annuler',
-      inputValidator: (val) => { if (!val.trim()) return 'La réponse ne peut pas être vide.'; }
+      focusConfirm: false,
+      preConfirm: () => {
+        const val = document.getElementById('swalReplyTextarea').value;
+        if (!val.trim()) { Swal.showValidationMessage('La réponse ne peut pas être vide.'); return false; }
+        return val;
+      }
     });
 
     if (!reponse) return;
@@ -6546,6 +6562,81 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
 
       Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Réponse envoyée', timer: 3000 });
       loadSupportTickets();
+    }
+  };
+
+  // AI-BOOST-2A: Generate AI draft for support reply
+  // Manual trigger only — populates the editable textarea, never auto-sends.
+  // Sends ONLY the customer message to the AI provider (PII minimization).
+  // Auth token is sent in Authorization header, never in JSON body.
+  window.generateAiDraft = async function(ticketId) {
+    const ticket = _allTickets.find(t => t.id === ticketId);
+    if (!ticket) return;
+
+    const btn = document.getElementById('aiDraftBtn');
+    const statusEl = document.getElementById('aiDraftStatus');
+    const textarea = document.getElementById('swalReplyTextarea');
+    if (!btn || !statusEl || !textarea) return;
+
+    // Disable button during generation
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération en cours...';
+    statusEl.textContent = '';
+
+    try {
+      const sb = getSupabase();
+      const session = (await sb.auth.getSession()).data?.session;
+      if (!session?.access_token) {
+        statusEl.textContent = 'Session expirée. Veuillez vous reconnecter.';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-magic"></i> Générer un brouillon IA';
+        return;
+      }
+
+      // Send ONLY customerMessage — no name, email, phone, address, or mission ref
+      const response = await fetch('/api/ai-assist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          task: 'support_draft',
+          input: {
+            customerMessage: ticket.message || '',
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 401) {
+        statusEl.textContent = 'Session expirée. Veuillez vous reconnecter.';
+        return;
+      }
+      if (response.status === 403) {
+        statusEl.textContent = 'Accès réservé aux administrateurs.';
+        return;
+      }
+      if (!data.ok || !data.output?.draft) {
+        statusEl.textContent = 'Assistant indisponible. Veuillez réessayer.';
+        return;
+      }
+
+      // Populate the editable textarea with the AI draft
+      textarea.value = data.output.draft;
+
+      // Show source indicator (AI vs fallback)
+      if (data.meta?.fallback_used === false && data.meta?.source === 'ai') {
+        statusEl.innerHTML = '<i class="fas fa-check-circle" style="color:var(--success);"></i> Brouillon IA généré — modifiable avant envoi.';
+      } else {
+        statusEl.innerHTML = '<i class="fas fa-info-circle" style="color:var(--gray-mid);"></i> Assistant indisponible — brouillon standard proposé.';
+      }
+    } catch (e) {
+      statusEl.textContent = 'Erreur de connexion. Veuillez réessayer.';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-magic"></i> Générer un brouillon IA';
     }
   };
 
