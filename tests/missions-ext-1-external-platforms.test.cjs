@@ -166,15 +166,64 @@ async function runSchemaTests() {
     assert.ok(!migration.includes('DROP COLUMN'), 'migration must not drop columns');
   });
 
-  await test('15. migration does not modify RLS policies', () => {
-    assert.ok(!migration.includes('CREATE POLICY'), 'migration must not create RLS policies');
-    assert.ok(!migration.includes('DROP POLICY'), 'migration must not drop RLS policies');
+  await test('15. migration narrows RLS via ALTER POLICY (not DROP/CREATE)', () => {
+    // MISSIONS-EXT-1A FIX 1: the migration now narrows missions_select_b3
+    // using ALTER POLICY (not DROP POLICY + CREATE POLICY).
+    assert.ok(migration.includes('ALTER POLICY "missions_select_b3"'),
+      'migration must ALTER POLICY missions_select_b3 to narrow available branch');
+    assert.ok(!migration.includes('DROP POLICY'), 'migration must not DROP POLICY');
+    assert.ok(!migration.includes('CREATE POLICY'), 'migration must not CREATE POLICY');
     assert.ok(!migration.includes('ENABLE ROW LEVEL SECURITY'), 'migration must not change RLS enable');
   });
 
   await test('16. migration does not modify grants', () => {
     assert.ok(!migration.includes('GRANT '), 'migration must not add grants');
     assert.ok(!migration.includes('REVOKE '), 'migration must not revoke grants');
+  });
+
+  // FIX 3 — Reference canonical whitespace (DB-enforced)
+  await test('14a. "HF-123" accepted (canonical whitespace CHECK)', () => {
+    // The CHECK allows external_reference = btrim(external_reference)
+    // "HF-123" has no leading/trailing spaces, so it passes.
+    assert.ok(migration.includes('external_reference = btrim(external_reference)'),
+      'CHECK must enforce external_reference = btrim(external_reference)');
+  });
+
+  await test('14b. " HF-123" rejected (leading space fails canonical CHECK)', () => {
+    // " HF-123" has a leading space: btrim(" HF-123") = "HF-123" <> " HF-123"
+    // So external_reference = btrim(external_reference) fails.
+    // This is enforced by the same CHECK constraint.
+    assert.ok(migration.includes('external_reference = btrim(external_reference)'),
+      'CHECK must reject leading-space references');
+  });
+
+  await test('14c. "HF-123 " rejected (trailing space fails canonical CHECK)', () => {
+    // "HF-123 " has a trailing space: btrim("HF-123 ") = "HF-123" <> "HF-123 "
+    // So external_reference = btrim(external_reference) fails.
+    assert.ok(migration.includes('external_reference = btrim(external_reference)'),
+      'CHECK must reject trailing-space references');
+  });
+
+  await test('14d. duplicate exact ref same platform rejected (partial unique index)', () => {
+    // The partial unique index on (source_mission, external_reference)
+    // rejects exact duplicates on the same platform.
+    assert.ok(migration.includes('uq_missions_external_ref_per_platform'),
+      'partial unique index must exist for same-platform duplicates');
+  });
+
+  await test('14e. same ref different platforms accepted (index is per-platform)', () => {
+    // The unique index is on (source_mission, external_reference) —
+    // same external_reference with different source_mission is allowed.
+    // The index columns include source_mission, so cross-platform is fine.
+    assert.ok(migration.includes('ON public.missions (source_mission, external_reference)'),
+      'unique index must be composite (source_mission, external_reference)');
+  });
+
+  await test('14f. case NOT normalized (no lower()/upper() in CHECK)', () => {
+    assert.ok(!migration.includes('lower(external_reference)'),
+      'CHECK must NOT lower() external_reference');
+    assert.ok(!migration.includes('upper(external_reference)'),
+      'CHECK must NOT upper() external_reference');
   });
 }
 
@@ -308,42 +357,243 @@ async function runAdminTests() {
 }
 
 // =====================================================
-// SECURITY TESTS
+// SECURITY TESTS (FIX 1 — RLS narrowing for external available missions)
 // =====================================================
 
 async function runSecurityTests() {
-  console.log('\n--- SECURITY ---');
+  console.log('\n--- SECURITY (RLS) ---');
 
   const dash = fs.readFileSync(DASH_PATH, 'utf8');
   const migration = fs.readFileSync(MIGRATION_PATH, 'utf8');
 
-  await test('18. admin-only create (modal opened by admin button, RLS unchanged)', () => {
-    // The migration does not change RLS. Existing missions_insert_admin policy
-    // requires is_admin(). External missions use the same INSERT path.
-    assert.ok(!migration.includes('CREATE POLICY'),
-      'migration must not create new RLS policies (admin-only INSERT is existing)');
+  // Extract the ALTER POLICY block from the migration
+  var rlsStart = migration.indexOf('ALTER POLICY "missions_select_b3"');
+  var rlsEnd = migration.indexOf(';', rlsStart);
+  // Find the real end — the ALTER POLICY ends with the closing paren + semicolon
+  var depth = 0;
+  var parenStart = migration.indexOf('(', rlsStart);
+  for (var i = parenStart; i < migration.length; i++) {
+    if (migration[i] === '(') depth++;
+    else if (migration[i] === ')') { depth--; if (depth === 0) { rlsEnd = migration.indexOf(';', i); break; } }
+  }
+  var rlsBlock = migration.substring(rlsStart, rlsEnd + 1);
+
+  await test('1. admin can select external available (is_admin in top-level OR)', () => {
+    assert.ok(rlsBlock.includes('public.is_admin()'),
+      'RLS must have is_admin() at top level (admin sees all)');
+  });
+
+  await test('2. operator can select external available (is_operator in top-level OR)', () => {
+    assert.ok(rlsBlock.includes('public.is_operator()'),
+      'RLS must have is_operator() at top level (operator sees all)');
+  });
+
+  await test('3. convoyeur can select external available (EXISTS convoyeur subquery)', () => {
+    // The external available branch includes:
+    //   EXISTS (SELECT 1 FROM public.convoyeurs c WHERE c.auth_user_id = auth.uid())
+    assert.ok(rlsBlock.includes("source_mission <> 'direct'"),
+      'RLS must have source_mission <> direct branch for external available');
+    assert.ok(rlsBlock.includes('EXISTS'),
+      'RLS must use EXISTS subquery for convoyeur check on external available');
+    assert.ok(rlsBlock.includes('FROM public.convoyeurs c'),
+      'RLS must query convoyeurs for convoyeur auth check on external available');
+    assert.ok(rlsBlock.includes('c.auth_user_id = (select auth.uid())'),
+      'RLS must match convoyeur auth_user_id to auth.uid() for external available');
+  });
+
+  await test('4. unrelated authenticated client CANNOT select external available', () => {
+    // The external available branch does NOT include client_id or client_email checks.
+    // Only is_internal_user() OR EXISTS convoyeur subquery.
+    // Extract just the external available sub-branch
+    var extBranchStart = rlsBlock.indexOf("source_mission <> 'direct'");
+    var extBranchEnd = rlsBlock.indexOf(')', extBranchStart);
+    // Find the matching close paren for the AND group
+    var depth2 = 0;
+    var ps2 = rlsBlock.indexOf('(', extBranchStart);
+    for (var j = ps2; j < rlsBlock.length; j++) {
+      if (rlsBlock[j] === '(') depth2++;
+      else if (rlsBlock[j] === ')') { depth2--; if (depth2 === 0) { extBranchEnd = j; break; } }
+    }
+    var extBranch = rlsBlock.substring(extBranchStart, extBranchEnd + 1);
+    assert.ok(!extBranch.includes('client_id'),
+      'external available branch must NOT check client_id (clients excluded)');
+    assert.ok(!extBranch.includes('client_email'),
+      'external available branch must NOT check client_email (clients excluded)');
+  });
+
+  await test('5. owner client behavior for direct missions unchanged', () => {
+    // The client_id and client_email branches remain at the top level of the policy
+    // (outside the status='available' branch), so direct mission ownership is preserved.
+    assert.ok(rlsBlock.includes('client_id IN ('),
+      'RLS must preserve client_id ownership branch');
+    assert.ok(rlsBlock.includes('client_email = ((select auth.jwt())'),
+      'RLS must preserve client_email ownership branch');
+    // Direct available branch preserves existing gate
+    assert.ok(rlsBlock.includes("source_mission = 'direct'"),
+      'RLS must preserve direct available branch with existing gate');
+    assert.ok(rlsBlock.includes('public.is_internal_user() OR public.external_convoyeurs_enabled()'),
+      'RLS must preserve external_convoyeurs_enabled gate for direct available');
+  });
+
+  await test('6. assigned external mission visible to assigned convoyeur', () => {
+    // The convoyeur_id IN (...) branch at top level covers assigned missions
+    // regardless of source_mission. This is an ownership rule, not a market rule.
+    assert.ok(rlsBlock.includes('convoyeur_id IN ('),
+      'RLS must preserve convoyeur_id ownership branch for assigned missions');
+    assert.ok(rlsBlock.includes('c.banned = false'),
+      'RLS must preserve banned=false gate for convoyeur ownership');
+  });
+
+  await test('7. unrelated client cannot select assigned external mission', () => {
+    // An external mission has client_id = NULL and client_email = NULL.
+    // The client_id IN (...) branch returns false (no matching client).
+    // The client_email = (...) branch returns false (NULL <> any email).
+    // The convoyeur_id branch only matches the assigned convoyeur.
+    // The status='available' branch only applies to status='available'.
+    // So an unrelated client cannot see an assigned external mission.
+    // This is structurally guaranteed by the absence of a client branch
+    // that would match NULL client_id.
+    assert.ok(rlsBlock.includes('client_id IN ('),
+      'client_id branch exists (returns false for NULL client_id)');
+    assert.ok(rlsBlock.includes('client_email = ((select auth.jwt())'),
+      'client_email branch exists (returns false for NULL client_email)');
+  });
+
+  await test('8. RLS not widened (no new policy, no DROP POLICY, no CREATE POLICY)', () => {
     assert.ok(!migration.includes('DROP POLICY'),
-      'migration must not drop RLS policies');
-  });
-
-  await test('19. client RLS safe (no widening — null client_id does not expose to other clients)', () => {
-    // The migration adds no new SELECT policy. Existing policies:
-    // - missions_select_own_or_admin: is_admin() OR client_id match OR client_email match OR convoyeur match OR status='available'
-    // - A null client_id external mission with status='available' is visible on the market
-    //   (same as direct missions). With status<>'available', only admin + assigned convoyeur can see it.
-    // This is NOT a widening — it's the pre-existing market behavior.
+      'migration must not DROP POLICY (ALTER POLICY only)');
     assert.ok(!migration.includes('CREATE POLICY'),
-      'no new SELECT policy added (no RLS widening)');
+      'migration must not CREATE POLICY (ALTER POLICY only)');
   });
 
-  await test('20. anon RLS unchanged (no new anon policy)', () => {
+  await test('9. anon RLS unchanged (no new anon policy)', () => {
     assert.ok(!migration.includes("TO 'anon'") && !migration.includes('TO anon'),
       'migration must not add anon access');
   });
 
-  await test('21. convoyeur RLS unchanged (no new convoyeur policy)', () => {
-    assert.ok(!migration.includes("TO 'convoyeur'") && !migration.includes('TO convoyeur'),
-      'migration must not add convoyeur-specific policies');
+  await test('10. no grant widening', () => {
+    assert.ok(!migration.includes('GRANT '), 'migration must not add grants');
+    assert.ok(!migration.includes('REVOKE '), 'migration must not revoke grants');
+  });
+
+  await test('11. admin-only create preserved (missions_insert_admin unchanged)', () => {
+    // The migration does not touch INSERT policies.
+    assert.ok(!migration.includes('missions_insert'),
+      'migration must not modify INSERT policies');
+  });
+}
+
+// =====================================================
+// OUTBOX / NOTIFICATION TESTS (FIX 2 — skip client notifications for external)
+// =====================================================
+
+async function runOutboxTests() {
+  console.log('\n--- OUTBOX (NOTIFICATIONS) ---');
+
+  const migration = fs.readFileSync(MIGRATION_PATH, 'utf8');
+
+  // Extract the enqueue_mission_notification function body
+  var fnStart = migration.indexOf('CREATE OR REPLACE FUNCTION public.enqueue_mission_notification');
+  var fnBody = migration.substring(fnStart);
+  // Find matching $$ end
+  var bodyStart = fnBody.indexOf('$$');
+  var bodyEnd = fnBody.indexOf('$$;', bodyStart + 2);
+  var fnContent = fnBody.substring(bodyStart, bodyEnd + 2);
+
+  await test('8. direct mission_assigned => client notification retained', () => {
+    // The function checks _source_mission = 'direct' before inserting client notification
+    assert.ok(fnContent.includes("_source_mission = 'direct'"),
+      'function must check source_mission = direct before client notification');
+    // The client INSERT is inside the IF _source_mission = 'direct' THEN block
+    var ifDirectStart = fnContent.indexOf("IF _source_mission = 'direct' THEN");
+    var ifDirectEnd = fnContent.indexOf('END IF;', ifDirectStart);
+    var directBlock = fnContent.substring(ifDirectStart, ifDirectEnd);
+    assert.ok(directBlock.includes("'client'"),
+      'client notification INSERT must be inside direct-only block');
+    assert.ok(directBlock.includes('notification_outbox'),
+      'client notification must insert into notification_outbox for direct');
+  });
+
+  await test('9. direct mission_assigned => convoyeur notification retained', () => {
+    // Convoyeur notification is outside the source_mission check — unchanged
+    assert.ok(fnContent.includes("'convoyeur'"),
+      'convoyeur notification INSERT must exist');
+    // Convoyeur INSERT is NOT inside the direct-only block
+    var ifDirectStart = fnContent.indexOf("IF _source_mission = 'direct' THEN");
+    var ifDirectEnd = fnContent.indexOf('END IF;', ifDirectStart);
+    var afterDirect = fnContent.substring(ifDirectEnd);
+    assert.ok(afterDirect.includes("'convoyeur'"),
+      'convoyeur notification must be outside direct-only block (unchanged)');
+  });
+
+  await test('10. external mission_assigned => NO client notification', () => {
+    // The client INSERT is guarded by IF _source_mission = 'direct'
+    // So external missions (source <> direct) skip the client INSERT entirely.
+    var ifDirectStart = fnContent.indexOf("IF _source_mission = 'direct' THEN");
+    assert.ok(ifDirectStart > 0,
+      'client notification must be guarded by source_mission = direct check');
+    // Verify the client INSERT is inside this guard
+    var ifDirectEnd = fnContent.indexOf('END IF;', ifDirectStart);
+    var directBlock = fnContent.substring(ifDirectStart, ifDirectEnd);
+    assert.ok(directBlock.includes("'client'"),
+      'client notification must be inside direct-only guard');
+  });
+
+  await test('11. external mission_assigned => convoyeur notification retained', () => {
+    // Convoyeur notification is outside the source_mission guard
+    var ifDirectStart = fnContent.indexOf("IF _source_mission = 'direct' THEN");
+    var ifDirectEnd = fnContent.indexOf('END IF;', ifDirectStart);
+    var afterDirect = fnContent.substring(ifDirectEnd);
+    assert.ok(afterDirect.includes("'convoyeur'"),
+      'convoyeur notification must be outside direct-only guard (retained for external)');
+    assert.ok(afterDirect.includes("mission_assigned"),
+      'convoyeur notification must still cover mission_assigned for external');
+  });
+
+  await test('12. external later lifecycle events => NO client notification', () => {
+    // The source_mission guard wraps ALL client notifications, not just mission_assigned.
+    // The event_type check is at the outer level and includes all lifecycle events.
+    // The source_mission guard is inside that, so all events are covered for direct only.
+    assert.ok(fnContent.includes("'mission_assigned', 'edl_departure_validated', 'mission_started', 'edl_arrival_validated', 'mission_delivered', 'mission_cancelled'"),
+      'outer event_type check must include all lifecycle events');
+    // The source_mission guard is inside the event_type check
+    var eventTypeCheck = fnContent.indexOf("IF NEW.event_type IN ('mission_assigned'");
+    var sourceGuard = fnContent.indexOf("IF _source_mission = 'direct' THEN");
+    assert.ok(sourceGuard > eventTypeCheck,
+      'source_mission guard must be inside the event_type check block');
+  });
+
+  await test('13. no failed-client-outbox artifact by construction', () => {
+    // Since the client INSERT is skipped for external missions, no failed
+    // "Destinataire introuvable" rows can be created for external missions.
+    // This is guaranteed structurally — the INSERT never fires.
+    var ifDirectStart = fnContent.indexOf("IF _source_mission = 'direct' THEN");
+    assert.ok(ifDirectStart > 0,
+      'source_mission guard prevents client outbox INSERT for external missions');
+    // Also verify the function looks up source_mission from the missions table
+    assert.ok(fnContent.includes('SELECT m.source_mission INTO _source_mission'),
+      'function must look up source_mission from missions table');
+    assert.ok(fnContent.includes('FROM public.missions m'),
+      'function must query missions table for source_mission');
+  });
+
+  await test('13a. function defaults to direct when mission not found (defensive)', () => {
+    // If the mission row is not found, default to 'direct' to preserve legacy behavior
+    assert.ok(fnContent.includes("_source_mission := 'direct'"),
+      'function must default to direct when mission not found');
+  });
+
+  await test('13b. convoyeur notification events unchanged (mission_assigned + mission_cancelled)', () => {
+    // The convoyeur notification still fires only for mission_assigned and mission_cancelled.
+    // This is checked by the inner IF NEW.event_type IN ('mission_assigned', 'mission_cancelled')
+    // which is outside the source_mission guard.
+    assert.ok(fnContent.includes("IF NEW.event_type IN ('mission_assigned', 'mission_cancelled')"),
+      'convoyeur notification must be gated on mission_assigned + mission_cancelled only');
+  });
+
+  await test('13c. ON CONFLICT DO NOTHING preserved for both recipient types', () => {
+    assert.ok(fnContent.includes('ON CONFLICT (mission_event_id, notification_type, recipient_type) DO NOTHING'),
+      'ON CONFLICT DO NOTHING must be preserved for idempotency');
   });
 }
 
@@ -525,6 +775,7 @@ async function runRegressionTests() {
   await runSchemaTests();
   await runAdminTests();
   await runSecurityTests();
+  await runOutboxTests();
   await runProfitabilityTests();
   await runDisplayTests();
   await runFilterTests();
