@@ -6167,6 +6167,40 @@ Cadeau premium personnalisé</textarea>
   };
 
   // ============================================================
+  // SHARED STATE — Address selection, create guards, price cache
+  // ============================================================
+  // HOTFIX MISSIONS-EXT-2B-HF1: These declarations were previously
+  // inside the PARTIE 11 DOMContentLoaded handler, making them
+  // function-scoped and inaccessible from the top-level external
+  // mission click handler (PARTIE 10) and from the address-autocomplete
+  // <script> block. Moved to top level so all scopes can access them.
+  let _lastManualQuote = null;
+
+  // WAVE ADMIN-MISSION-CREATION-V2: Address selection state
+  let _adminDepartSelected = false;
+  let _adminDepartData = null;
+  let _adminArriveeSelected = false;
+  let _isCreatingMission = false;
+  let _adminArriveeData = null;
+
+  // MISSIONS-EXT-1 — External mission address selection state
+  let _extDepartSelected = false;
+  let _extDepartData = null;
+  let _extArriveeSelected = false;
+  let _extArriveeData = null;
+  let _isCreatingExternalMission = false;
+
+  function _clearAddrErr(errId) {
+    var el = document.getElementById(errId);
+    if (el) el.style.display = 'none';
+  }
+
+  function _showAddrErr(errId) {
+    var el = document.getElementById(errId);
+    if (el) el.style.display = 'block';
+  }
+
+  // ============================================================
   // PARTIE 10 : CRÉATION DE MISSION AVEC SUGGESTION
   // ============================================================
   document.addEventListener('DOMContentLoaded', function() {
@@ -6895,33 +6929,7 @@ Cadeau premium personnalisé</textarea>
 
 // Cette fonction calcule la distance entre deux adresses
 // et met à jour le champ "Montant Client" en direct
-let _lastManualQuote = null;
-
-// WAVE ADMIN-MISSION-CREATION-V2: Address selection state
-// Tracks whether user selected an address from autocomplete suggestions
-// vs just typing free text. Free text without selection = invalid.
-let _adminDepartSelected = false;
-let _adminDepartData = null;   // { label, city, postcode, latitude, longitude, ... }
-let _adminArriveeSelected = false;
-let _isCreatingMission = false; // duplicate create guard
-let _adminArriveeData = null;
-
-// MISSIONS-EXT-1 — External mission address selection state
-let _extDepartSelected = false;
-let _extDepartData = null;
-let _extArriveeSelected = false;
-let _extArriveeData = null;
-let _isCreatingExternalMission = false;
-
-function _clearAddrErr(errId) {
-  var el = document.getElementById(errId);
-  if (el) el.style.display = 'none';
-}
-
-function _showAddrErr(errId) {
-  var el = document.getElementById(errId);
-  if (el) el.style.display = 'block';
-}
+// (State declarations moved to top level — see HOTFIX MISSIONS-EXT-2B-HF1)
 
 async function calculateAdminPrice() {
   const depart = document.getElementById('manual-depart')?.value.trim();
