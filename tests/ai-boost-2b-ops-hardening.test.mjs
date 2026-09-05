@@ -824,10 +824,12 @@ const SUCCESS_BODY = {
   ok('34. UI — new status messages present');
 }
 
-// TEST 35: No new AI tasks added
+// TEST 35: No new AI tasks added (baseline check — supports at least the original 2)
 {
   const source = readFileSync(new URL('../functions/api/ai-assist.js', import.meta.url), 'utf8');
-  assert.ok(source.includes("const SUPPORTED_TASKS = ['support_draft', 'devis_structuring']"));
+  assert.ok(source.includes("const SUPPORTED_TASKS = ["));
+  assert.ok(source.includes("'support_draft'"));
+  assert.ok(source.includes("'devis_structuring'"));
   ok('35. SUPPORTED_TASKS includes support_draft and devis_structuring');
 }
 

@@ -4457,6 +4457,206 @@ Cadeau premium personnalisé</textarea>
     }
   };
 
+  // AI-BOOST-5A: Mission Profitability Advisory
+  window.analyzeMissionProfitability = async function(missionId) {
+    const mission = _allMissions.find(m => m.id === missionId);
+    if (!mission) return;
+
+    const client = getSupabase();
+    if (!client) return Swal.fire('Erreur', 'Session expirée. Veuillez vous reconnecter.', 'error');
+
+    const { data: sessionData } = await client.auth.getSession();
+    if (!sessionData?.session?.access_token) {
+      return Swal.fire('Erreur', 'Session expirée. Veuillez vous reconnecter.', 'error');
+    }
+
+    const panel = document.getElementById('profitabilityAdvisoryPanel');
+    const content = document.getElementById('profitabilityAdvisoryContent');
+    if (panel) panel.style.display = 'block';
+    if (content) content.innerHTML = '<div style="color:#888;"><i class="fas fa-spinner fa-spin"></i> Analyse en cours...</div>';
+
+    // FIX 2 — Fetch approved expenses with fail-closed semantics.
+    // A query error means expenses are UNKNOWN, not zero.
+    // We must NOT proceed with AI if we cannot verify expenses.
+    let expenses = null; // null = unknown/error, [] = known empty
+    try {
+      const { data: expData, error: expErr } = await client.from('mission_expenses')
+        .select('expense_type,amount,status')
+        .eq('mission_id', missionId)
+        .eq('status', 'approved');
+      if (expErr) {
+        // Query returned an error — fail closed
+        if (content) content.innerHTML = '<div style="color:var(--danger);font-size:0.85rem;"><i class="fas fa-exclamation-triangle"></i> Impossible de vérifier les frais de la mission. Analyse non lancée.</div>';
+        return;
+      }
+      expenses = expData || []; // successful query, possibly zero rows
+    } catch (e) {
+      // Network/exception error — fail closed
+      if (content) content.innerHTML = '<div style="color:var(--danger);font-size:0.85rem;"><i class="fas fa-exclamation-triangle"></i> Impossible de vérifier les frais de la mission. Analyse non lancée.</div>';
+      return;
+    }
+
+    // Compute deterministic profitability from existing fields
+    // FIX 1 — Never coerce unknown financial input to zero.
+    // null means unknown. 0 is valid only when the system positively knows the value is zero.
+    const revenue = mission.montant_ht != null ? parseFloat(mission.montant_ht) : null;
+    const driverRem = mission.remuneration_convoyeur != null ? parseFloat(mission.remuneration_convoyeur) : null;
+
+    // Aggregate approved expenses by type (expenses is guaranteed non-null here)
+    const expByType = { fuel: 0, charging: 0, toll: 0, parking: 0, return_transport: 0, washing: 0, other: 0 };
+    for (const exp of expenses) {
+      const t = exp.expense_type;
+      const amt = parseFloat(exp.amount) || 0;
+      if (t in expByType) expByType[t] += amt;
+      else expByType.other += amt;
+    }
+
+    const fuelCost = expByType.fuel + expByType.charging;
+    const tollCost = expByType.toll;
+    const transportCost = expByType.return_transport;
+    const parkingCost = expByType.parking;
+    const otherCosts = expByType.washing + expByType.other;
+    const reimbursedCosts = null; // Reimbursements are not currently tracked separately; null means unknown.
+
+    // Total expenses are known (from successful query)
+    const totalExpenses = fuelCost + tollCost + transportCost + parkingCost + otherCosts;
+
+    // FIX 1 — If driver remuneration is unknown, total_costs and margin are unknown
+    let totalCosts, deterministicMargin, deterministicMarginRate;
+    if (driverRem != null) {
+      totalCosts = driverRem + totalExpenses;
+    } else {
+      totalCosts = null;
+    }
+
+    // FIX 1 — If revenue is unknown, margin and rate are unknown
+    if (revenue != null && totalCosts != null) {
+      deterministicMargin = revenue - totalCosts;
+      deterministicMarginRate = revenue > 0
+        ? Math.round((deterministicMargin / revenue) * 10000) / 100
+        : null;
+    } else {
+      deterministicMargin = null;
+      deterministicMarginRate = null;
+    }
+
+    // Identify missing inputs
+    // FIX 2 (AI-BOOST-5A.3) — Disclose untracked dimensions honestly.
+    // hotel_cost_eur and reimbursed_costs_eur are not currently tracked separately.
+    const missingInputs = [];
+    if (revenue == null) missingInputs.push('revenue_ht_eur');
+    if (driverRem == null) missingInputs.push('driver_remuneration_eur');
+    missingInputs.push('hotel_cost_eur');
+    missingInputs.push('reimbursed_costs_eur');
+
+    // FIX 3 (AI-BOOST-5A.2) — Do NOT send route info or exact addresses to the provider.
+    // mission.depart / mission.arrivee may contain exact addresses, not just cities.
+    // No address parsing heuristics. Context payload omitted entirely.
+
+    // FIX 1 (AI-BOOST-5A.3) — After a successful expense query, expense values are KNOWN.
+    // 0 means known zero. null means unknown. Never convert a known zero to null.
+    const profitability = {
+      revenue_ht_eur: revenue,
+      driver_remuneration_eur: driverRem,
+      fuel_cost_eur: fuelCost,
+      toll_cost_eur: tollCost,
+      transport_cost_eur: transportCost,
+      hotel_cost_eur: null, // not tracked separately — unknown
+      parking_cost_eur: parkingCost,
+      other_costs_eur: otherCosts,
+      reimbursed_costs_eur: reimbursedCosts, // null — not tracked separately, unknown
+      total_costs_eur: totalCosts,
+      deterministic_margin_eur: deterministicMargin,
+      deterministic_margin_rate_pct: deterministicMarginRate,
+      missing_inputs: missingInputs,
+    };
+
+    try {
+      const response = await fetch('/api/ai-assist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify({
+          task: 'mission_profitability_advisory',
+          input: {
+            profitability,
+            // context payload intentionally omitted — no exact addresses forwarded
+          },
+        }),
+      });
+
+      if (response.status === 401) {
+        if (content) content.innerHTML = '<span style="color:var(--danger);">Session expirée.</span>';
+        return;
+      }
+      if (response.status === 403) {
+        if (content) content.innerHTML = '<span style="color:var(--danger);">Accès refusé. Réservé aux administrateurs.</span>';
+        return;
+      }
+      if (response.status === 429) {
+        if (content) content.innerHTML = '<span style="color:var(--warning);">Limite IA atteinte. Réessayez dans une minute.</span>';
+        return;
+      }
+
+      const data = await response.json();
+      const o = data.output || {};
+      const meta = data.meta || {};
+
+      if (meta.ai_disabled) {
+        if (content) content.innerHTML = '<div style="color:#888;">IA désactivée. Vérifiez les montants déterministes ci-dessus.</div>';
+        return;
+      }
+      if (meta.circuit_open) {
+        if (content) content.innerHTML = '<div style="color:#856404;">IA temporairement indisponible. Vérifiez les montants déterministes ci-dessus.</div>';
+        return;
+      }
+
+      const sourceLabel = meta.fallback_used
+        ? '<span style="font-size:0.75rem;color:#888;">(résultat de secours)</span>'
+        : '<span style="font-size:0.75rem;color:#28a745;">(généré par IA)</span>';
+
+      const assessmentLabels = {
+        healthy: 'Saine', moderate: 'Modérée', weak: 'Faible',
+        loss: 'En perte', unknown: 'Non déterminé',
+      };
+
+      const arrayToHtml = (arr) => {
+        if (!arr || !arr.length) return '<span style="color:#aaa;">—</span>';
+        return '<ul style="margin:4px 0;padding-left:20px;">' + arr.map(i => `<li>${escapeHtml(i)}</li>`).join('') + '</ul>';
+      };
+
+      // Show deterministic figures separately from AI text
+      const detFigures = `
+        <div style="margin-bottom:8px;padding:8px;border:1px solid #ddd;border-radius:6px;background:#fff;font-size:0.8rem;">
+          <b>Rentabilité basée sur les données financières enregistrées et les frais approuvés :</b><br>
+          CA HT: ${profitability.revenue_ht_eur != null ? profitability.revenue_ht_eur + ' €' : '—'} |
+          Coûts totaux: ${profitability.total_costs_eur != null ? profitability.total_costs_eur + ' €' : '—'} |
+          Marge: ${profitability.deterministic_margin_eur != null ? profitability.deterministic_margin_eur + ' €' : '—'} |
+          Taux: ${profitability.deterministic_margin_rate_pct != null ? profitability.deterministic_margin_rate_pct + ' %' : '—'}
+        </div>
+      `;
+
+      if (content) content.innerHTML = `
+        ${detFigures}
+        <b style="font-size:0.9rem;">Analyse IA ${sourceLabel}</b>
+        <hr style="margin:6px 0;border-color:#eee;">
+        <b>Évaluation :</b> ${escapeHtml(assessmentLabels[o.assessment] || 'Non déterminé')}<br>
+        <b>Résumé :</b> ${escapeHtml(o.summary || '—')}<br>
+        <b>Principaux postes de coût :</b> ${arrayToHtml(o.main_cost_drivers)}<br>
+        <b>Points à vérifier :</b> ${arrayToHtml(o.review_points)}<br>
+        <b>Incertitudes :</b> ${arrayToHtml(o.uncertainties)}<br>
+        <b>Vérifications recommandées :</b> ${arrayToHtml(o.recommended_checks)}<br>
+        <b>Revue humaine requise :</b> ${o.needs_human_review ? '⚠️ Oui' : '✓ Non'}<br>
+        <hr style="margin:6px 0;border-color:#eee;">
+        <span style="font-size:0.75rem;color:#888;">Aperçu en lecture seule. Analyse indicative uniquement. Rentabilité basée sur les données financières enregistrées et les frais approuvés. Aucune modification automatique.</span>
+      `;
+    } catch (err) {
+      if (content) content.innerHTML = '<span style="color:var(--danger);">Erreur de communication. Réessayez.</span>';
+    }
+  };
+
   window.adjustDevisPrice = async function(id) {
     const devis = _allDevisData.find(d => d.id === id);
     if (!devis) return Swal.fire('Erreur', 'Devis introuvable', 'error');
@@ -5433,6 +5633,17 @@ Cadeau premium personnalisé</textarea>
         <b>Montant :</b> ${mission.montant_ht || 0} €<br>
         <b>Rémunération convoyeur :</b> ${mission.remuneration_convoyeur || '—'} €<br>
         <b>Marge :</b> ${mission.marge || '—'} €<br>
+        <div style="margin-top:8px;">
+          <button class="btn-sm btn-sm-ghost" onclick="analyzeMissionProfitability('${mission.id}')" style="font-size:0.75rem;">
+            <i class="fas fa-chart-line"></i> Analyser la rentabilité avec l'IA
+          </button>
+        </div>
+        <div id="profitabilityAdvisoryPanel" style="display:none;margin-top:10px;padding:12px;background:rgba(122,46,26,0.04);border:1px solid rgba(122,46,26,0.12);border-radius:10px;font-size:0.85rem;">
+          <div style="font-weight:700;color:var(--bordeaux);margin-bottom:6px;font-size:0.8rem;">
+            <i class="fas fa-info-circle"></i> Analyse indicative — rentabilité basée sur les données enregistrées et frais approuvés
+          </div>
+          <div id="profitabilityAdvisoryContent"></div>
+        </div>
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Convoyeur :</b> ${escapeHtml(mission.convoyeur_nom || 'Non assigné')}<br>
         <b>Date mission :</b> ${formatDate(mission.date_mission || mission.created_at)}<br>

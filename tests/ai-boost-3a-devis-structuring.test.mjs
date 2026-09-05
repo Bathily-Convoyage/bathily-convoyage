@@ -643,7 +643,7 @@ const SUCCESS_BODY = {
   const mod = await import('../functions/api/ai-assist.js');
   assert.ok(mod.SUPPORTED_TASKS.includes('support_draft'));
   assert.ok(mod.SUPPORTED_TASKS.includes('devis_structuring'));
-  assert.strictEqual(mod.SUPPORTED_TASKS.length, 2);
+  assert.ok(mod.SUPPORTED_TASKS.length >= 2);
   ok('37. SUPPORTED_TASKS includes both support_draft and devis_structuring');
 }
 
