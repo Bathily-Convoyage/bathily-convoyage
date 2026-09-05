@@ -2148,6 +2148,31 @@ Cadeau premium personnalisé</textarea>
           <div class="stat-card"><div class="stat-ico"><i class="fas fa-percentage"></i></div><div class="stat-val" id="kpi-marge">—</div><div class="stat-lbl">Marge brute moy.</div></div>
           <div class="stat-card"><div class="stat-ico"><i class="fas fa-truck"></i></div><div class="stat-val" id="kpi-convoyeurs">—</div><div class="stat-lbl">Convoyeurs actifs</div></div>
         </div>
+
+        <!-- MISSIONS-EXT-2B — Platform Reporting -->
+        <div class="config-card" style="margin-top:28px;">
+          <div class="config-card-header"><span class="config-card-title">Reporting par plateforme <em style="font-size:0.7rem;color:var(--gray-mid);font-style:normal;">(MISSIONS-EXT-2B)</em></span></div>
+          <p style="font-size:0.8rem;color:var(--gray-mid);margin:4px 0 12px;">Marge déterministe = Montant HT − Rémunération convoyeur − Frais approuvés. Les missions sans rémunération connue sont exclues du calcul de marge (indiqué par X/Y).</p>
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="platformReportTable" style="font-size:0.85rem;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">Plateforme</th>
+                  <th style="text-align:right;">Missions</th>
+                  <th style="text-align:right;">CA HT (€)</th>
+                  <th style="text-align:right;">Rémun. convoyeur (€)</th>
+                  <th style="text-align:right;">Frais approuvés (€)</th>
+                  <th style="text-align:right;">Marge déterministe (€)</th>
+                  <th style="text-align:right;">CA moyen / mission (€)</th>
+                  <th style="text-align:right;">Marge moyenne / mission (€)</th>
+                </tr>
+              </thead>
+              <tbody id="platformReportBody">
+                <tr><td colspan="8" style="text-align:center;color:var(--gray-mid);"><i class="fas fa-spinner fa-spin"></i> Chargement…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <!-- ADMINISTRATEURS -->
@@ -4358,6 +4383,139 @@ Cadeau premium personnalisé</textarea>
     if (elCa) elCa.textContent = totalCa.toFixed(0) + '€';
     if (elMarge) elMarge.textContent = avgMarge + '€';
     if (elConvoyeurs) elConvoyeurs.textContent = activeConvoyeurs;
+
+    // MISSIONS-EXT-2B — Platform reporting (all sources, independent of mission-list filter)
+    _renderPlatformReport(missions, _allExpenses || []);
+  }
+
+  // ============================================================
+  // MISSIONS-EXT-2B — Platform Reporting
+  // ============================================================
+  // Authoritative deterministic margin:
+  //   margin = montant_ht - remuneration_convoyeur - approved_expenses
+  // - NULL montant_ht => margin unknown
+  // - NULL remuneration_convoyeur => margin unknown (do NOT treat as 0)
+  // - approved expenses = SUM(mission_expenses.amount WHERE status='approved')
+  // - Margin rate only when margin and montant_ht known and montant_ht > 0
+  // - Partial completeness indicator: X/Y missions with computable margin
+  // - Uses already-loaded _allMissions + _allExpenses (no N+1, no new query)
+  // - Reporting shows ALL platforms independently (not coupled to mission-list filter)
+  // - Read-only: no mutations, no Stripe, no quote calculator, no AI
+  var _PLATFORM_LABELS = {
+    direct: 'Direct',
+    hiflow: 'Hiflow',
+    driiveme: 'Driiveme',
+    alb: 'ALB Convoyage',
+    other: 'Autre'
+  };
+  var _PLATFORM_ORDER = ['direct', 'hiflow', 'driiveme', 'alb', 'other'];
+
+  function _fmtEur(n) {
+    if (n == null || isNaN(n)) return '—';
+    return n.toFixed(2) + ' €';
+  }
+
+  function _renderPlatformReport(missions, expenses) {
+    var tbody = document.getElementById('platformReportBody');
+    if (!tbody) return;
+
+    // Pre-aggregate approved expenses per mission_id (avoid row multiplication)
+    var approvedExpByMission = {};
+    for (var i = 0; i < expenses.length; i++) {
+      var exp = expenses[i];
+      if (exp.status === 'approved') {
+        var mid = exp.mission_id;
+        approvedExpByMission[mid] = (approvedExpByMission[mid] || 0) + (parseFloat(exp.amount) || 0);
+      }
+    }
+
+    // Group missions by source_mission
+    var bySource = {};
+    for (var j = 0; j < missions.length; j++) {
+      var m = missions[j];
+      var src = m.source_mission || 'direct';
+      if (!bySource[src]) bySource[src] = [];
+      bySource[src].push(m);
+    }
+
+    var rowsHtml = '';
+    for (var k = 0; k < _PLATFORM_ORDER.length; k++) {
+      var source = _PLATFORM_ORDER[k];
+      var label = _PLATFORM_LABELS[source] || source;
+      var srcMissions = bySource[source] || [];
+
+      var count = srcMissions.length;
+      var knownRevenue = 0;
+      var knownRemuneration = 0;
+      var approvedExpensesTotal = 0;
+      var marginSum = 0;
+      var marginCount = 0;
+      var knownRevenueCount = 0;
+      var knownRemunerationCount = 0;
+
+      for (var l = 0; l < srcMissions.length; l++) {
+        var mission = srcMissions[l];
+        var rev = mission.montant_ht != null ? parseFloat(mission.montant_ht) : null;
+        var rem = mission.remuneration_convoyeur != null ? parseFloat(mission.remuneration_convoyeur) : null;
+        var exp = approvedExpByMission[mission.id] || 0;
+
+        if (rev != null) {
+          knownRevenue += rev;
+          knownRevenueCount++;
+        }
+        if (rem != null) {
+          knownRemuneration += rem;
+          knownRemunerationCount++;
+        }
+        approvedExpensesTotal += exp;
+
+        // Deterministic margin only when both rev and rem are known
+        if (rev != null && rem != null) {
+          var margin = rev - rem - exp;
+          marginSum += margin;
+          marginCount++;
+        }
+      }
+
+      var avgRevenue = knownRevenueCount > 0 ? knownRevenue / knownRevenueCount : null;
+      var avgMargin = marginCount > 0 ? marginSum / marginCount : null;
+
+      // Completeness indicator: X/Y missions with computable margin
+      var marginCompleteness = count > 0
+        ? '<div style="font-size:0.7rem;color:var(--gray-mid);margin-top:2px;">' + marginCount + '/' + count + ' missions</div>'
+        : '';
+
+      var marginCell = marginCount > 0
+        ? _fmtEur(marginSum) + marginCompleteness
+        : (count > 0
+          ? '<span style="color:var(--gray-mid);">Indisponible</span>' + marginCompleteness
+          : '—');
+
+      var avgMarginCell = avgMargin != null
+        ? _fmtEur(avgMargin)
+        : (count > 0 ? '<span style="color:var(--gray-mid);">—</span>' : '—');
+
+      rowsHtml += '<tr>' +
+        '<td style="text-align:left;font-weight:500;">' + escapeHtml(label) + '</td>' +
+        '<td style="text-align:right;">' + count + '</td>' +
+        '<td style="text-align:right;">' + _fmtEur(knownRevenueCount > 0 ? knownRevenue : null) + '</td>' +
+        '<td style="text-align:right;">' + _fmtEur(knownRemunerationCount > 0 ? knownRemuneration : null) +
+          (knownRemunerationCount > 0 && knownRemunerationCount < count
+            ? '<div style="font-size:0.7rem;color:var(--gray-mid);margin-top:2px;">' + knownRemunerationCount + '/' + count + ' connues</div>'
+            : '') +
+        '</td>' +
+        '<td style="text-align:right;">' + _fmtEur(approvedExpensesTotal) + '</td>' +
+        '<td style="text-align:right;">' + marginCell + '</td>' +
+        '<td style="text-align:right;">' + _fmtEur(avgRevenue) + '</td>' +
+        '<td style="text-align:right;">' + avgMarginCell + '</td>' +
+      '</tr>';
+    }
+
+    if (missions.length === 0) {
+      rowsHtml = '<tr><td colspan="8" style="text-align:center;color:var(--gray-mid);">Aucune mission à analyser.</td></tr>';
+    }
+
+    tbody.innerHTML = rowsHtml;
   }
 
   // DEVIS
@@ -6560,11 +6718,37 @@ Cadeau premium personnalisé</textarea>
     var insertRes = await sb.from('missions').insert([missionData]).select().single();
     if (insertRes.error) {
       console.error('External mission creation error:', insertRes.error);
-      Swal.fire({
-        title: 'Impossible de créer la mission externe',
-        html: 'Une erreur technique est survenue lors de la création.<br><br><details style="font-size:0.75rem; color:var(--gray-mid);"><summary>Détail technique</summary>' + escapeHtml(insertRes.error.message) + '</details>',
-        icon: 'error'
-      });
+      // MISSIONS-EXT-2B.1 — Precise duplicate external-reference detection.
+      // Only classify as external-reference duplicate when 23505 AND the violated
+      // constraint/key is specifically uq_missions_external_ref_per_platform or
+      // explicitly identifies (source_mission, external_reference).
+      // An unrelated 23505 (different unique constraint) must NOT trigger the
+      // friendly duplicate message — it falls through to the generic error path.
+      var errMsg = insertRes.error.message || '';
+      var errCode = insertRes.error.code || '';
+      var errDetails = insertRes.error.details || '';
+      var errHint = insertRes.error.hint || '';
+      var combinedText = (errMsg + ' ' + errDetails + ' ' + errHint).toLowerCase();
+      var TARGET_CONSTRAINT = 'uq_missions_external_ref_per_platform';
+      var targetConstraintNamed = combinedText.indexOf(TARGET_CONSTRAINT) !== -1;
+      var keyIdentified = combinedText.indexOf('source_mission') !== -1 &&
+                          combinedText.indexOf('external_reference') !== -1;
+      var isDuplicateRef = (errCode === '23505') && (targetConstraintNamed || keyIdentified);
+      if (isDuplicateRef) {
+        Swal.fire({
+          title: 'Référence déjà utilisée',
+          html: 'Une mission avec cette référence existe déjà sur cette plateforme.<br><br>' +
+                '<details style="font-size:0.75rem; color:var(--gray-mid);"><summary>Détail technique</summary>' +
+                escapeHtml(errMsg) + '</details>',
+          icon: 'warning'
+        });
+      } else {
+        Swal.fire({
+          title: 'Impossible de créer la mission externe',
+          html: 'Une erreur technique est survenue lors de la création.<br><br><details style="font-size:0.75rem; color:var(--gray-mid);"><summary>Détail technique</summary>' + escapeHtml(errMsg) + '</details>',
+          icon: 'error'
+        });
+      }
       return;
     }
 
