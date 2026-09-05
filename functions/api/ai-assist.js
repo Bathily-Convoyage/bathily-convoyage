@@ -93,13 +93,31 @@ const MAX_OUTPUT_TOKENS_MAX = 500;
 const SUPPORT_DRAFT_MAX_TOKENS = 300;
 // For devis_structuring, effective max must remain <= 300 (small JSON output)
 const DEVIS_STRUCTURING_MAX_TOKENS = 300;
-const PROFITABILITY_ADVISORY_MAX_TOKENS = 400;
+// AI-BOOST-5C: Profitability advisory has a larger JSON schema (7 fields, 4 arrays).
+// gpt-5.x reasoning models share max_completion_tokens between reasoning and output.
+// 400 was insufficient — production smoke fell back due to truncation.
+const PROFITABILITY_ADVISORY_MAX_TOKENS = 1200;
 // Per-task token caps
 const TASK_TOKEN_CAPS = {
   support_draft: SUPPORT_DRAFT_MAX_TOKENS,
   devis_structuring: DEVIS_STRUCTURING_MAX_TOKENS,
   mission_profitability_advisory: PROFITABILITY_ADVISORY_MAX_TOKENS,
 };
+
+// AI-BOOST-5C: Per-task reasoning effort.
+// gpt-5.x reasoning models accept: none / low / medium / high / xhigh / max
+// Profitability advisory is a structured explanation task — deterministic figures
+// are already computed; the model only needs to describe them. 'none' eliminates
+// reasoning token overhead, leaving the full budget for JSON output.
+// Historical tasks remain 'low' (unchanged).
+const TASK_REASONING_EFFORT = {
+  support_draft: 'low',
+  devis_structuring: 'low',
+  mission_profitability_advisory: 'none',
+};
+
+// AI-BOOST-5C: Allowed finish_reason values for safe telemetry logging.
+const ALLOWED_FINISH_REASONS = new Set(['stop', 'length', 'content_filter', 'tool_calls', 'null']);
 
 // Circuit breaker defaults
 const CIRCUIT_FAILURE_THRESHOLD_DEFAULT = 3;
@@ -132,6 +150,7 @@ const ERROR_CATEGORIES = new Set([
   'provider_unauthorized',
   'invalid_provider_response',
   'output_validation_failed',
+  'output_truncated',
   'unknown_task',
   'invalid_input',
   'internal_error',
@@ -157,8 +176,14 @@ function normalizeErrorCategory(rawError) {
     'rate_limited_by_provider': 'provider_rate_limited',
     'network_error': 'provider_network',
     'empty_response': 'invalid_provider_response',
-    'invalid_json_output': 'output_validation_failed',
-    'invalid_json': 'output_validation_failed',
+    'output_truncated': 'output_truncated',
+    // AI-BOOST-5C.1: invalid_json_output = provider returned content that
+    // cannot be parsed as JSON. This is a provider response problem, not a
+    // schema validation failure.
+    'invalid_json_output': 'invalid_provider_response',
+    // AI-BOOST-5C.1: invalid_json = client request body could not be parsed.
+    // This is a client input problem, not a provider output problem.
+    'invalid_json': 'invalid_input',
     'unknown_task': 'unknown_task',
     'missing_task': 'unknown_task',
     'invalid_body': 'invalid_input',
@@ -415,6 +440,11 @@ function parseAiConfig(env) {
     model,
     adminRateLimit: effectiveAdminRateLimit,
     maxOutputTokens: effectiveMaxOutputTokens,
+    // AI-BOOST-5C: raw parsed value (null when AI_MAX_OUTPUT_TOKENS not set).
+    // Used by callLLM to distinguish "not set" from "explicitly set to 300".
+    // When null, callLLM uses the task-specific cap (e.g. 1200 for profitability).
+    // When set, callLLM uses Math.min(value, taskCap) to allow global reduction.
+    rawMaxOutputTokens: maxOutputTokens,
     circuitThreshold: effectiveCircuitThreshold,
     circuitOpenMs: effectiveCircuitOpenMs,
     costInputPer1mUsd,
@@ -1266,9 +1296,16 @@ async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, time
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  // Effective token cap — per-task, never exceed the task-specific maximum
+  // AI-BOOST-5C: Effective token cap — per-task cap is authoritative.
+  // When AI_MAX_OUTPUT_TOKENS is NOT explicitly set (null), use the task cap.
+  // When it IS explicitly set, use Math.min(value, taskCap) to allow global reduction
+  // of individual tasks without affecting tasks that need higher caps.
+  // This allows profitability (1200) to exceed the historical global max (500)
+  // without affecting support_draft (300) or devis_structuring (300).
   const taskCap = TASK_TOKEN_CAPS[task] || SUPPORT_DRAFT_MAX_TOKENS;
-  const effectiveMaxTokens = Math.min(maxOutputTokens || taskCap, taskCap);
+  const effectiveMaxTokens = (maxOutputTokens !== null && maxOutputTokens !== undefined)
+    ? Math.min(maxOutputTokens, taskCap)
+    : taskCap;
 
   try {
     const endpoint = PROVIDER_ENDPOINTS[provider];
@@ -1288,8 +1325,9 @@ async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, time
       // - temperature is NOT supported by gpt-5.x reasoning models
       // - reasoning_effort controls reasoning depth (none/low/medium/high/xhigh/max)
       // - response_format json_object for structured output
+      // AI-BOOST-5C: task-specific reasoning effort — profitability uses 'none'
       requestBody.max_completion_tokens = effectiveMaxTokens;
-      requestBody.reasoning_effort = 'low';
+      requestBody.reasoning_effort = TASK_REASONING_EFFORT[task] || 'low';
       requestBody.response_format = { type: 'json_object' };
     } else if (provider === 'openrouter') {
       // OpenRouter: use standard parameters, omit response_format
@@ -1325,6 +1363,14 @@ async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, time
 
     const data = await response.json();
 
+    // AI-BOOST-5C: Inspect finish_reason before attempting to use content.
+    // If the model was truncated (finish_reason === 'length'), do NOT attempt
+    // to parse partial output. Return a distinct, diagnosable error.
+    const finishReason = data?.choices?.[0]?.finish_reason ?? null;
+    if (finishReason === 'length') {
+      return { ok: false, error: 'output_truncated', status: 200, finishReason: 'length' };
+    }
+
     // Extract content
     const content = data?.choices?.[0]?.message?.content;
     if (!content) {
@@ -1348,7 +1394,8 @@ async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, time
         }
       : null;
 
-    return { ok: true, parsed, usage };
+    // AI-BOOST-5C.1: Return finishReason on success for telemetry completeness.
+    return { ok: true, parsed, usage, finishReason };
   } catch (e) {
     clearTimeout(timeoutId);
     if (e.name === 'AbortError') {
@@ -1380,6 +1427,13 @@ function logTelemetry(meta) {
   // Cost estimation (advisory, null if rates not configured)
   const estimatedCost = meta.estimatedCostUsd ?? null;
 
+  // AI-BOOST-5C: Safe finish_reason logging — only allowlisted values are emitted.
+  // Never log raw content, prompt, or output.
+  const rawFinishReason = meta.finishReason ? String(meta.finishReason) : null;
+  const finishReason = (rawFinishReason && ALLOWED_FINISH_REASONS.has(rawFinishReason))
+    ? rawFinishReason
+    : null;
+
   console.log(JSON.stringify({
     event: 'ai_request',
     request_id: meta.requestId,
@@ -1401,6 +1455,7 @@ function logTelemetry(meta) {
     http_status: meta.httpStatus || null,
     validation_result: meta.validationResult || null,
     injection_risk: meta.injectionRisk || false,
+    finish_reason: finishReason,
   }));
 }
 
@@ -1729,7 +1784,7 @@ export async function onRequest(context) {
     userPrompt,
     timeoutMs: LLM_TIMEOUT_MS,
     fetchImpl,
-    maxOutputTokens: config.maxOutputTokens,
+    maxOutputTokens: config.rawMaxOutputTokens,
     task,
   });
 
@@ -1751,6 +1806,8 @@ export async function onRequest(context) {
       errorCategory: llmResult.error,
       injectionRisk: validation.injectionRisk,
       circuitOpen: circuitIsOpen(),
+      // AI-BOOST-5C: Safe finish_reason logging (allowlisted values only)
+      finishReason: llmResult.finishReason || null,
     });
     recordAggregation(task, {
       status: 'fallback', fallbackUsed: true, latencyMs,
@@ -1861,6 +1918,8 @@ export async function onRequest(context) {
     inputTokens: llmResult.usage?.input_tokens,
     outputTokens: llmResult.usage?.output_tokens,
     estimatedCostUsd,
+    // AI-BOOST-5C.1: Safe finish_reason logging on success (allowlisted values only)
+    finishReason: llmResult.finishReason || null,
   });
 
   // AI-BOOST-4A: Process-local aggregation
@@ -1950,6 +2009,8 @@ export {
   ALLOWED_FINANCIAL_FIELDS,
   ALLOWED_PROFITABILITY_INPUT_FIELDS,
   TASK_TOKEN_CAPS,
+  TASK_REASONING_EFFORT,
+  ALLOWED_FINISH_REASONS,
   callLLM,
   logTelemetry,
   // AI-BOOST-2B exports
