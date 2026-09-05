@@ -135,11 +135,23 @@ export async function onRequest(context) {
     }
 
     const { data: mission, error: selectError } = await supabase.from('missions')
-      .select('id, reference, depart, arrivee, vehicule, mode, pack, montant_ht, paiement_statut, status, client_id, client_email, client_nom, convoyeur_nom, stripe_session_id')
+      .select('id, reference, depart, arrivee, vehicule, mode, pack, montant_ht, paiement_statut, status, client_id, client_email, client_nom, convoyeur_nom, stripe_session_id, source_mission')
       .eq('id', missionId).single();
 
     if (selectError || !mission) {
       return jsonResponse({ error: 'Mission introuvable en base de données.' }, 404, getCorsHeaders(request));
+    }
+
+    // MISSIONS-EXT-1A.1 — External missions are NOT customer-paid Bathily missions.
+    // Payment for Hiflow/Driiveme/ALB/other missions occurs outside Bathily Stripe Checkout.
+    // Reject before any Stripe API call, session retrieval, or payment RPC mutation.
+    // This guard is server-side and cannot be bypassed by UI or admin.
+    if (mission.source_mission && mission.source_mission !== 'direct') {
+      return jsonResponse(
+        { error: 'Le paiement de cette mission est géré par la plateforme externe.' },
+        400,
+        getCorsHeaders(request)
+      );
     }
 
     const { data: profile } = await supabaseAnon.from('clients').select('role, id, email').eq('auth_user_id', user.id).maybeSingle();
