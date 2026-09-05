@@ -1,4 +1,4 @@
-// AI-BOOST-2A — AI Gateway Edge Function (Admin-Gated)
+// AI-BOOST-2B — AI Gateway Edge Function (Operationally Hardened)
 //
 // Reusable AI gateway for Bathily-Convoyage.
 // Provides: provider abstraction, model configuration via env,
@@ -6,10 +6,22 @@
 // rate limiting, sanitized telemetry, graceful failure,
 // no direct business mutation, deterministic fallback support.
 //
-// AI-BOOST-2A: Server-side admin authorization added.
-// Paid provider calls require authenticated admin identity.
-// Unauthenticated or non-admin requests NEVER cause a provider fetch.
-// Uses the canonical is_admin() RPC pattern (same as lookup-vehicle.js).
+// AI-BOOST-2A: Server-side admin authorization.
+// AI-BOOST-2B: Operational hardening — kill switch, per-admin quota,
+//   circuit breaker, config validation, token guard, safe metadata.
+//
+// Paid provider calls require ALL of:
+//   - AI_ENABLED=true
+//   - authenticated admin
+//   - authorized admin (is_admin RPC)
+//   - supported task
+//   - valid provider config
+//   - API key present
+//   - per-admin quota not exceeded
+//   - circuit breaker closed
+//
+// If ANY condition fails, NO provider call is made and a
+// deterministic fallback is returned with appropriate metadata.
 //
 // Currently supports only task = "support_draft".
 // Output is advisory text only — never sends email, never mutates DB,
@@ -44,7 +56,7 @@ const MAX_DRAFT_LEN = 200; // Consistent with system prompt "maximum 200 caract�
 // LLM call timeout (ms)
 const LLM_TIMEOUT_MS = 15000;
 
-// Rate limit: 10 requests per minute per IP
+// IP-based rate limit (pre-auth — protects against brute-force spam)
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW = 60000;
 
@@ -63,12 +75,242 @@ const PROVIDER_ENDPOINTS = {
   openrouter: 'https://openrouter.ai/api/v1/chat/completions',
 };
 
+// ============================================================
+// AI-BOOST-2B: OPERATIONAL HARDENING DEFAULTS
+// ============================================================
+
+// Kill switch — defaults to OFF (safe). Must be explicitly enabled.
+const AI_ENABLED_DEFAULT = false;
+
+// Per-admin rate limit (requests per minute, by authenticated user ID)
+const ADMIN_RATE_LIMIT_DEFAULT = 5;
+
+// Max output tokens — configurable, bounded
+const MAX_OUTPUT_TOKENS_DEFAULT = 300;
+const MAX_OUTPUT_TOKENS_MIN = 50;
+const MAX_OUTPUT_TOKENS_MAX = 500;
+// For support_draft, effective max must remain <= 300
+const SUPPORT_DRAFT_MAX_TOKENS = 300;
+
+// Circuit breaker defaults
+const CIRCUIT_FAILURE_THRESHOLD_DEFAULT = 3;
+const CIRCUIT_OPEN_MS_DEFAULT = 60000;
+const CIRCUIT_FAILURE_THRESHOLD_MIN = 1;
+const CIRCUIT_FAILURE_THRESHOLD_MAX = 10;
+const CIRCUIT_OPEN_MS_MIN = 10000;
+const CIRCUIT_OPEN_MS_MAX = 300000;
+
+// Retry policy — 0 for support_draft (safe default)
+const RETRY_COUNT_DEFAULT = 0;
+
 // TextEncoder for true UTF-8 byte length measurement
 const _encoder = new TextEncoder();
 
 function utf8ByteLength(str) {
   return _encoder.encode(str).byteLength;
 }
+
+// ============================================================
+// CONFIG PARSING + VALIDATION (AI-BOOST-2B Phase 10)
+// ============================================================
+
+function parseBool(val) {
+  if (val === true || val === 'true') return true;
+  if (val === false || val === 'false') return false;
+  return null; // invalid
+}
+
+function parseIntBounded(val, min, max, defaultVal) {
+  const n = parseInt(val, 10);
+  if (isNaN(n) || n < min || n > max) return null;
+  return n;
+}
+
+function parseAiConfig(env) {
+  const errors = [];
+
+  // AI_ENABLED — must be true/false; absent => false (safe default)
+  const aiEnabledRaw = env.AI_ENABLED;
+  let aiEnabled = AI_ENABLED_DEFAULT;
+  if (aiEnabledRaw !== undefined && aiEnabledRaw !== null && aiEnabledRaw !== '') {
+    const parsed = parseBool(aiEnabledRaw);
+    if (parsed === null) {
+      errors.push('invalid_ai_enabled');
+    } else {
+      aiEnabled = parsed;
+    }
+  }
+
+  // AI_PROVIDER — must be in allowlist
+  const provider = env.AI_PROVIDER || 'openai';
+  if (!SUPPORTED_PROVIDERS.has(provider)) {
+    errors.push('invalid_provider');
+  }
+
+  // AI_MODEL_DEFAULT — non-empty bounded string
+  const modelRaw = env.AI_MODEL_DEFAULT;
+  let model = DEFAULT_MODEL;
+  if (modelRaw !== undefined && modelRaw !== null) {
+    if (modelRaw === '' || typeof modelRaw !== 'string' || modelRaw.length > 100) {
+      errors.push('invalid_model');
+    } else {
+      model = modelRaw;
+    }
+  }
+
+  // AI_ADMIN_MAX_REQUESTS_PER_MINUTE — integer 1..30
+  const adminRateLimit = parseIntBounded(
+    env.AI_ADMIN_MAX_REQUESTS_PER_MINUTE,
+    1, 30,
+    ADMIN_RATE_LIMIT_DEFAULT,
+  );
+  if (env.AI_ADMIN_MAX_REQUESTS_PER_MINUTE && adminRateLimit === null) {
+    errors.push('invalid_admin_rate_limit');
+  }
+  const effectiveAdminRateLimit = adminRateLimit || ADMIN_RATE_LIMIT_DEFAULT;
+
+  // AI_MAX_OUTPUT_TOKENS — integer 50..500
+  const maxOutputTokens = parseIntBounded(
+    env.AI_MAX_OUTPUT_TOKENS,
+    MAX_OUTPUT_TOKENS_MIN, MAX_OUTPUT_TOKENS_MAX,
+    MAX_OUTPUT_TOKENS_DEFAULT,
+  );
+  if (env.AI_MAX_OUTPUT_TOKENS && maxOutputTokens === null) {
+    errors.push('invalid_max_output_tokens');
+  }
+  const effectiveMaxOutputTokens = maxOutputTokens || MAX_OUTPUT_TOKENS_DEFAULT;
+
+  // AI_CIRCUIT_FAILURE_THRESHOLD — integer 1..10
+  const circuitThreshold = parseIntBounded(
+    env.AI_CIRCUIT_FAILURE_THRESHOLD,
+    CIRCUIT_FAILURE_THRESHOLD_MIN, CIRCUIT_FAILURE_THRESHOLD_MAX,
+    CIRCUIT_FAILURE_THRESHOLD_DEFAULT,
+  );
+  if (env.AI_CIRCUIT_FAILURE_THRESHOLD && circuitThreshold === null) {
+    errors.push('invalid_circuit_threshold');
+  }
+  const effectiveCircuitThreshold = circuitThreshold || CIRCUIT_FAILURE_THRESHOLD_DEFAULT;
+
+  // AI_CIRCUIT_OPEN_MS — integer 10000..300000
+  const circuitOpenMs = parseIntBounded(
+    env.AI_CIRCUIT_OPEN_MS,
+    CIRCUIT_OPEN_MS_MIN, CIRCUIT_OPEN_MS_MAX,
+    CIRCUIT_OPEN_MS_DEFAULT,
+  );
+  if (env.AI_CIRCUIT_OPEN_MS && circuitOpenMs === null) {
+    errors.push('invalid_circuit_open_ms');
+  }
+  const effectiveCircuitOpenMs = circuitOpenMs || CIRCUIT_OPEN_MS_DEFAULT;
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    aiEnabled,
+    provider,
+    model,
+    adminRateLimit: effectiveAdminRateLimit,
+    maxOutputTokens: effectiveMaxOutputTokens,
+    circuitThreshold: effectiveCircuitThreshold,
+    circuitOpenMs: effectiveCircuitOpenMs,
+  };
+}
+
+// ============================================================
+// PER-ADMIN RATE LIMITER (AI-BOOST-2B Phase 2)
+// ============================================================
+// In-memory, per-edge-isolate. Best-effort across distributed isolates.
+// Keyed by authenticated admin user ID (NOT IP, NOT client-supplied).
+
+const _adminRateMap = new Map();
+
+function checkAdminRateLimit(userId, maxRequests, windowMs) {
+  const key = `admin:${userId}`;
+  const now = Date.now();
+  let entry = _adminRateMap.get(key);
+
+  if (!entry || now > entry.resetTime) {
+    entry = { count: 0, resetTime: now + windowMs };
+    _adminRateMap.set(key, entry);
+  }
+
+  entry.count++;
+
+  if (entry.count > maxRequests) {
+    const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
+    return { limited: true, retryAfter };
+  }
+  return { limited: false };
+}
+
+// ============================================================
+// CIRCUIT BREAKER (AI-BOOST-2B Phase 6)
+// ============================================================
+// Process-local, best-effort across edge isolates.
+// Counts only provider operational failures: timeout, 429, 5xx, network error.
+// Does NOT count: invalid user input, unauthorized, forbidden, validation rejection.
+
+const _circuitState = {
+  failureCount: 0,
+  isOpen: false,
+  openedAt: 0,
+  // Config is set per-request from parsed env
+  threshold: CIRCUIT_FAILURE_THRESHOLD_DEFAULT,
+  openMs: CIRCUIT_OPEN_MS_DEFAULT,
+};
+
+function circuitCheckOpen(threshold, openMs) {
+  _circuitState.threshold = threshold;
+  _circuitState.openMs = openMs;
+
+  if (_circuitState.isOpen) {
+    const now = Date.now();
+    const elapsed = now - _circuitState.openedAt;
+    if (elapsed >= openMs) {
+      // Cooldown elapsed — allow one probe
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+function circuitRecordSuccess() {
+  _circuitState.failureCount = 0;
+  _circuitState.isOpen = false;
+  _circuitState.openedAt = 0;
+}
+
+function circuitRecordFailure() {
+  _circuitState.failureCount++;
+  if (_circuitState.failureCount >= _circuitState.threshold) {
+    _circuitState.isOpen = true;
+    _circuitState.openedAt = Date.now();
+  }
+}
+
+function circuitIsOpen() {
+  return _circuitState.isOpen;
+}
+
+// Test helper — reset circuit breaker state
+function _resetCircuitBreaker() {
+  _circuitState.failureCount = 0;
+  _circuitState.isOpen = false;
+  _circuitState.openedAt = 0;
+}
+
+// Test helper — reset per-admin rate limiter
+function _resetAdminRateLimit() {
+  _adminRateMap.clear();
+}
+
+// Provider errors that count as operational failures for circuit breaker
+const CIRCUIT_QUALIFYING_ERRORS = new Set([
+  'timeout',
+  'rate_limited',
+  'provider_error',
+  'network_error',
+]);
 
 // ============================================================
 // ADMIN AUTHORIZATION (AI-BOOST-2A)
@@ -303,9 +545,12 @@ function validateInput(body) {
 // PROVIDER ABSTRACTION
 // ============================================================
 
-async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, timeoutMs, fetchImpl }) {
+async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, timeoutMs, fetchImpl, maxOutputTokens }) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  // Effective token cap — for support_draft, never exceed 300
+  const effectiveMaxTokens = Math.min(maxOutputTokens || 300, SUPPORT_DRAFT_MAX_TOKENS);
 
   try {
     const endpoint = PROVIDER_ENDPOINTS[provider];
@@ -325,13 +570,13 @@ async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, time
       // - temperature is NOT supported by gpt-5.x reasoning models
       // - reasoning_effort controls reasoning depth (none/low/medium/high/xhigh/max)
       // - response_format json_object for structured output
-      requestBody.max_completion_tokens = 300;
+      requestBody.max_completion_tokens = effectiveMaxTokens;
       requestBody.reasoning_effort = 'low';
       requestBody.response_format = { type: 'json_object' };
     } else if (provider === 'openrouter') {
       // OpenRouter: use standard parameters, omit response_format
       // (capability varies by underlying model)
-      requestBody.max_tokens = 300;
+      requestBody.max_tokens = effectiveMaxTokens;
       requestBody.temperature = 0.3;
     }
 
@@ -411,6 +656,9 @@ function logTelemetry(meta) {
     input_tokens: meta.inputTokens || null,
     output_tokens: meta.outputTokens || null,
     admin_user_id: meta.adminUserId || null,
+    ai_disabled: meta.aiDisabled || false,
+    circuit_open: meta.circuitOpen || false,
+    quota_limited: meta.quotaLimited || false,
   }));
 }
 
@@ -502,12 +750,114 @@ export async function onRequest(context) {
     return jsonResponse({ ok: false, code: 'FORBIDDEN' }, 403, getCorsHeaders(request));
   }
 
-  // Determine provider and model from env
-  const provider = env.AI_PROVIDER || 'openai';
-  const model = env.AI_MODEL_DEFAULT || DEFAULT_MODEL;
+  // ============================================================
+  // AI-BOOST-2B: CONFIG VALIDATION (Phase 10)
+  // Invalid config => fail closed to fallback, NO provider call
+  // ============================================================
+  const config = parseAiConfig(env);
+  if (!config.valid) {
+    const fallback = taskDef.fallback();
+    const latencyMs = Date.now() - startTime;
+    logTelemetry({
+      requestId, task, model: config.model, provider: config.provider,
+      latencyMs, status: 'fallback_invalid_config',
+      errorCategory: 'invalid_ai_config',
+      injectionRisk: validation.injectionRisk,
+      adminUserId: authResult.userId,
+    });
+    return jsonResponse({
+      ok: true,
+      task,
+      output: fallback,
+      meta: {
+        request_id: requestId,
+        model: 'fallback',
+        latency_ms: latencyMs,
+        fallback_used: true,
+        source: 'fallback',
+        ai_disabled: true,
+        circuit_open: false,
+        quota_limited: false,
+      },
+    }, 200, getCorsHeaders(request));
+  }
+
+  // ============================================================
+  // AI-BOOST-2B: GLOBAL KILL SWITCH (Phase 1)
+  // AI_ENABLED absent or false => NO provider call, deterministic fallback
+  // ============================================================
+  if (!config.aiEnabled) {
+    const fallback = taskDef.fallback();
+    const latencyMs = Date.now() - startTime;
+    logTelemetry({
+      requestId, task, model: config.model, provider: config.provider,
+      latencyMs, status: 'fallback_ai_disabled',
+      errorCategory: 'ai_disabled',
+      injectionRisk: validation.injectionRisk,
+      adminUserId: authResult.userId,
+      aiDisabled: true,
+    });
+    return jsonResponse({
+      ok: true,
+      task,
+      output: fallback,
+      meta: {
+        request_id: requestId,
+        model: 'fallback',
+        latency_ms: latencyMs,
+        fallback_used: true,
+        source: 'fallback',
+        ai_disabled: true,
+        circuit_open: false,
+        quota_limited: false,
+      },
+    }, 200, getCorsHeaders(request));
+  }
+
+  // ============================================================
+  // AI-BOOST-2B: PER-ADMIN RATE LIMIT (Phase 2)
+  // Keyed by authenticated admin user ID (NOT IP, NOT client-supplied)
+  // In-memory, per-edge-isolate — best-effort across distributed isolates.
+  // ============================================================
+  const adminRl = checkAdminRateLimit(
+    authResult.userId,
+    config.adminRateLimit,
+    RATE_LIMIT_WINDOW,
+  );
+  if (adminRl.limited) {
+    const latencyMs = Date.now() - startTime;
+    logTelemetry({
+      requestId, task, model: config.model, provider: config.provider,
+      latencyMs, status: 'rejected_quota_limited',
+      errorCategory: 'admin_quota_exceeded',
+      injectionRisk: validation.injectionRisk,
+      adminUserId: authResult.userId,
+      quotaLimited: true,
+    });
+    return jsonResponse({
+      ok: false,
+      code: 'RATE_LIMITED',
+      retry_after: adminRl.retryAfter,
+      meta: {
+        request_id: requestId,
+        model: 'fallback',
+        latency_ms: latencyMs,
+        fallback_used: false,
+        source: 'fallback',
+        ai_disabled: false,
+        circuit_open: false,
+        quota_limited: true,
+      },
+    }, 429, { ...getCorsHeaders(request), 'Retry-After': String(adminRl.retryAfter) });
+  }
+
+  // Determine provider, model, and API key from validated config
+  const provider = config.provider;
+  const model = config.model;
   const apiKey = env.AI_API_KEY;
 
   // Provider allowlist check — unknown providers get NO fetch call
+  // (already validated in parseAiConfig, but double-check for safety)
   if (!SUPPORTED_PROVIDERS.has(provider)) {
     const fallback = taskDef.fallback();
     const latencyMs = Date.now() - startTime;
@@ -528,6 +878,9 @@ export async function onRequest(context) {
         latency_ms: latencyMs,
         fallback_used: true,
         source: 'fallback',
+        ai_disabled: false,
+        circuit_open: false,
+        quota_limited: false,
       },
     }, 200, getCorsHeaders(request));
   }
@@ -552,35 +905,28 @@ export async function onRequest(context) {
         latency_ms: latencyMs,
         fallback_used: true,
         source: 'fallback',
+        ai_disabled: false,
+        circuit_open: false,
+        quota_limited: false,
       },
     }, 200, getCorsHeaders(request));
   }
 
-  // Build prompt (PII-minimized — only customerMessage sent to provider)
-  const userPrompt = taskDef.buildPrompt(input);
-
-  // Call LLM
-  const llmResult = await callLLM({
-    provider,
-    model,
-    apiKey,
-    systemPrompt: SYSTEM_PROMPT,
-    userPrompt,
-    timeoutMs: LLM_TIMEOUT_MS,
-    fetchImpl,
-  });
-
-  const latencyMs = Date.now() - startTime;
-
-  // Handle LLM failure
-  if (!llmResult.ok) {
+  // ============================================================
+  // AI-BOOST-2B: CIRCUIT BREAKER CHECK (Phase 6)
+  // If circuit is open, skip provider call, return fallback
+  // ============================================================
+  const isCircuitOpen = circuitCheckOpen(config.circuitThreshold, config.circuitOpenMs);
+  if (isCircuitOpen) {
     const fallback = taskDef.fallback();
+    const latencyMs = Date.now() - startTime;
     logTelemetry({
       requestId, task, model, provider,
-      latencyMs, status: 'fallback_error',
-      errorCategory: llmResult.error,
+      latencyMs, status: 'fallback_circuit_open',
+      errorCategory: 'circuit_open',
       injectionRisk: validation.injectionRisk,
       adminUserId: authResult.userId,
+      circuitOpen: true,
     });
     return jsonResponse({
       ok: true,
@@ -592,9 +938,66 @@ export async function onRequest(context) {
         latency_ms: latencyMs,
         fallback_used: true,
         source: 'fallback',
+        ai_disabled: false,
+        circuit_open: true,
+        quota_limited: false,
       },
     }, 200, getCorsHeaders(request));
   }
+
+  // Build prompt (PII-minimized — only customerMessage sent to provider)
+  const userPrompt = taskDef.buildPrompt(input);
+
+  // Call LLM with configured token cap
+  const llmResult = await callLLM({
+    provider,
+    model,
+    apiKey,
+    systemPrompt: SYSTEM_PROMPT,
+    userPrompt,
+    timeoutMs: LLM_TIMEOUT_MS,
+    fetchImpl,
+    maxOutputTokens: config.maxOutputTokens,
+  });
+
+  const latencyMs = Date.now() - startTime;
+
+  // Handle LLM failure
+  if (!llmResult.ok) {
+    const fallback = taskDef.fallback();
+
+    // AI-BOOST-2B: Update circuit breaker on qualifying operational failures
+    if (CIRCUIT_QUALIFYING_ERRORS.has(llmResult.error)) {
+      circuitRecordFailure();
+    }
+
+    logTelemetry({
+      requestId, task, model, provider,
+      latencyMs, status: 'fallback_error',
+      errorCategory: llmResult.error,
+      injectionRisk: validation.injectionRisk,
+      adminUserId: authResult.userId,
+      circuitOpen: circuitIsOpen(),
+    });
+    return jsonResponse({
+      ok: true,
+      task,
+      output: fallback,
+      meta: {
+        request_id: requestId,
+        model: 'fallback',
+        latency_ms: latencyMs,
+        fallback_used: true,
+        source: 'fallback',
+        ai_disabled: false,
+        circuit_open: circuitIsOpen(),
+        quota_limited: false,
+      },
+    }, 200, getCorsHeaders(request));
+  }
+
+  // AI-BOOST-2B: Record success — reset circuit breaker
+  circuitRecordSuccess();
 
   // Validate structured output
   const outputValidation = taskDef.validateOutput(llmResult.parsed);
@@ -619,6 +1022,9 @@ export async function onRequest(context) {
         latency_ms: latencyMs,
         fallback_used: true,
         source: 'fallback',
+        ai_disabled: false,
+        circuit_open: false,
+        quota_limited: false,
       },
     }, 200, getCorsHeaders(request));
   }
@@ -646,6 +1052,9 @@ export async function onRequest(context) {
         latency_ms: latencyMs,
         fallback_used: true,
         source: 'fallback',
+        ai_disabled: false,
+        circuit_open: false,
+        quota_limited: false,
       },
     }, 200, getCorsHeaders(request));
   }
@@ -674,6 +1083,9 @@ export async function onRequest(context) {
       latency_ms: latencyMs,
       fallback_used: false,
       source: 'ai',
+      ai_disabled: false,
+      circuit_open: false,
+      quota_limited: false,
     },
   }, 200, getCorsHeaders(request));
 }
@@ -701,4 +1113,23 @@ export {
   fallbackSupportDraft,
   callLLM,
   logTelemetry,
+  // AI-BOOST-2B exports
+  parseAiConfig,
+  checkAdminRateLimit,
+  circuitCheckOpen,
+  circuitRecordSuccess,
+  circuitRecordFailure,
+  circuitIsOpen,
+  _resetCircuitBreaker,
+  _resetAdminRateLimit,
+  CIRCUIT_QUALIFYING_ERRORS,
+  AI_ENABLED_DEFAULT,
+  ADMIN_RATE_LIMIT_DEFAULT,
+  MAX_OUTPUT_TOKENS_DEFAULT,
+  MAX_OUTPUT_TOKENS_MIN,
+  MAX_OUTPUT_TOKENS_MAX,
+  SUPPORT_DRAFT_MAX_TOKENS,
+  CIRCUIT_FAILURE_THRESHOLD_DEFAULT,
+  CIRCUIT_OPEN_MS_DEFAULT,
+  RETRY_COUNT_DEFAULT,
 };

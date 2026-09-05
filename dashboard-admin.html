@@ -6618,6 +6618,10 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
         statusEl.textContent = 'Accès réservé aux administrateurs.';
         return;
       }
+      if (response.status === 429) {
+        statusEl.innerHTML = '<i class="fas fa-clock" style="color:var(--gray-mid);"></i> Limite IA atteinte — réessayez plus tard.';
+        return;
+      }
       if (!data.ok || !data.output?.draft) {
         statusEl.textContent = 'Assistant indisponible. Veuillez réessayer.';
         return;
@@ -6626,11 +6630,18 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       // Populate the editable textarea with the AI draft
       textarea.value = data.output.draft;
 
-      // Show source indicator (AI vs fallback)
-      if (data.meta?.fallback_used === false && data.meta?.source === 'ai') {
+      // Show source indicator based on operational metadata (AI-BOOST-2B)
+      const meta = data.meta || {};
+      if (meta.fallback_used === false && meta.source === 'ai') {
         statusEl.innerHTML = '<i class="fas fa-check-circle" style="color:var(--success);"></i> Brouillon IA généré — modifiable avant envoi.';
+      } else if (meta.ai_disabled) {
+        statusEl.innerHTML = '<i class="fas fa-pause-circle" style="color:var(--gray-mid);"></i> IA désactivée — brouillon standard proposé.';
+      } else if (meta.circuit_open) {
+        statusEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:var(--gray-mid);"></i> IA temporairement indisponible — brouillon standard proposé.';
+      } else if (meta.quota_limited) {
+        statusEl.innerHTML = '<i class="fas fa-clock" style="color:var(--gray-mid);"></i> Limite IA atteinte — réessayez plus tard.';
       } else {
-        statusEl.innerHTML = '<i class="fas fa-info-circle" style="color:var(--gray-mid);"></i> Assistant indisponible — brouillon standard proposé.';
+        statusEl.innerHTML = '<i class="fas fa-info-circle" style="color:var(--gray-mid);"></i> Brouillon standard proposé.';
       }
     } catch (e) {
       statusEl.textContent = 'Erreur de connexion. Veuillez réessayer.';

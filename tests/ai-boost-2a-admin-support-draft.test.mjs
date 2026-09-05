@@ -126,6 +126,9 @@ function makeContext({ body, env, fetchImpl, rawText, authHeader, createClientIm
 
 async function callAiAssist({ body, env, fetchImpl, rawText, authHeader, createClientImpl }) {
   const mod = await import('../functions/api/ai-assist.js');
+  // Reset circuit breaker and admin rate limiter before each call
+  if (mod._resetCircuitBreaker) mod._resetCircuitBreaker();
+  if (mod._resetAdminRateLimit) mod._resetAdminRateLimit();
   const ctx = makeContext({ body, env, fetchImpl, rawText, authHeader, createClientImpl });
   const response = await mod.onRequest(ctx);
   const json = await response.json();
@@ -183,6 +186,8 @@ const ADMIN_CHECK_ERROR_CC = mockCreateClient({ admin: true, adminCheckError: tr
 const ADMIN_ENV = {
   SUPABASE_URL: 'https://test.supabase.co',
   SUPABASE_ANON_KEY: 'test-anon-key',
+  AI_ENABLED: 'true',
+  AI_ADMIN_MAX_REQUESTS_PER_MINUTE: '30',
 };
 
 // ============================================================
