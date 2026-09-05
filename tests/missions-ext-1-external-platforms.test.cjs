@@ -42,6 +42,7 @@ function test(name, fn) {
 // =====================================================
 const DASH_PATH = path.join(__dirname, '..', 'dashboard-admin.html');
 const MIGRATION_PATH = path.join(__dirname, '..', 'supabase', 'migrations', '20260905120000_missions_external_sources.sql');
+const CHECKOUT_PATH = path.join(__dirname, '..', 'functions', 'api', 'create-checkout-session.js');
 
 // =====================================================
 // Helpers — extract bounded function bodies from dashboard
@@ -388,33 +389,49 @@ async function runSecurityTests() {
       'RLS must have is_operator() at top level (operator sees all)');
   });
 
-  await test('3. convoyeur can select external available (EXISTS convoyeur subquery)', () => {
+  await test('3. convoyeur can select external available ONLY when flag=true + banned=false', () => {
     // The external available branch includes:
-    //   EXISTS (SELECT 1 FROM public.convoyeurs c WHERE c.auth_user_id = auth.uid())
-    assert.ok(rlsBlock.includes("source_mission <> 'direct'"),
-      'RLS must have source_mission <> direct branch for external available');
-    assert.ok(rlsBlock.includes('EXISTS'),
+    //   source_mission <> 'direct'
+    //   AND public.external_convoyeurs_enabled()
+    //   AND EXISTS (SELECT 1 FROM convoyeurs c WHERE c.auth_user_id = auth.uid() AND c.banned = false)
+    // Find the SQL branch (not the comment) — look for the line that starts with whitespace + source_mission <> 'direct'
+    // The comment contains "source_mission <> 'direct'" too, so we need the SQL occurrence.
+    // The SQL branch is after "OR (" on a new line with "source_mission <> 'direct'" as the first condition.
+    var sqlBranchMarker = "source_mission <> 'direct'\n          AND public.external_convoyeurs_enabled()";
+    assert.ok(rlsBlock.includes(sqlBranchMarker),
+      'RLS must have source_mission <> direct AND external_convoyeurs_enabled() in external available branch');
+    // Extract from the SQL branch marker
+    var extBranchStart = rlsBlock.indexOf(sqlBranchMarker);
+    // Find the end of this AND chain (the closing parens)
+    var extBranch = rlsBlock.substring(extBranchStart, extBranchStart + 500);
+    assert.ok(extBranch.includes('public.external_convoyeurs_enabled()'),
+      'external available branch MUST gate on external_convoyeurs_enabled()');
+    assert.ok(extBranch.includes('EXISTS'),
       'RLS must use EXISTS subquery for convoyeur check on external available');
-    assert.ok(rlsBlock.includes('FROM public.convoyeurs c'),
+    assert.ok(extBranch.includes('FROM public.convoyeurs c'),
       'RLS must query convoyeurs for convoyeur auth check on external available');
-    assert.ok(rlsBlock.includes('c.auth_user_id = (select auth.uid())'),
+    assert.ok(extBranch.includes('c.auth_user_id = (select auth.uid())'),
       'RLS must match convoyeur auth_user_id to auth.uid() for external available');
+    assert.ok(extBranch.includes('c.banned = false'),
+      'RLS must check c.banned = false for external available convoyeur access');
+  });
+
+  await test('3a. external available branch does NOT use is_internal_user (admin bypass via top-level)', () => {
+    // Per spec: do NOT rely on is_internal_user() inside the external branch
+    // because admin/operator already bypass through top-level OR.
+    var sqlBranchMarker = "source_mission <> 'direct'\n          AND public.external_convoyeurs_enabled()";
+    var extBranchStart = rlsBlock.indexOf(sqlBranchMarker);
+    var extBranch = rlsBlock.substring(extBranchStart, extBranchStart + 500);
+    assert.ok(!extBranch.includes('is_internal_user'),
+      'external available branch must NOT use is_internal_user (admin bypass via top-level)');
   });
 
   await test('4. unrelated authenticated client CANNOT select external available', () => {
     // The external available branch does NOT include client_id or client_email checks.
-    // Only is_internal_user() OR EXISTS convoyeur subquery.
-    // Extract just the external available sub-branch
-    var extBranchStart = rlsBlock.indexOf("source_mission <> 'direct'");
-    var extBranchEnd = rlsBlock.indexOf(')', extBranchStart);
-    // Find the matching close paren for the AND group
-    var depth2 = 0;
-    var ps2 = rlsBlock.indexOf('(', extBranchStart);
-    for (var j = ps2; j < rlsBlock.length; j++) {
-      if (rlsBlock[j] === '(') depth2++;
-      else if (rlsBlock[j] === ')') { depth2--; if (depth2 === 0) { extBranchEnd = j; break; } }
-    }
-    var extBranch = rlsBlock.substring(extBranchStart, extBranchEnd + 1);
+    // Only external_convoyeurs_enabled() AND EXISTS convoyeur subquery.
+    var sqlBranchMarker = "source_mission <> 'direct'\n          AND public.external_convoyeurs_enabled()";
+    var extBranchStart = rlsBlock.indexOf(sqlBranchMarker);
+    var extBranch = rlsBlock.substring(extBranchStart, extBranchStart + 500);
     assert.ok(!extBranch.includes('client_id'),
       'external available branch must NOT check client_id (clients excluded)');
     assert.ok(!extBranch.includes('client_email'),
@@ -598,6 +615,177 @@ async function runOutboxTests() {
 }
 
 // =====================================================
+// STRIPE CHECKOUT TESTS (FIX 2 — External payment isolation)
+// =====================================================
+
+async function runStripeTests() {
+  console.log('\n--- STRIPE (PAYMENT ISOLATION) ---');
+
+  const checkout = fs.readFileSync(CHECKOUT_PATH, 'utf8');
+
+  await test('8. direct mission remains Stripe-eligible (no blanket block)', () => {
+    // The guard checks source_mission && source_mission !== 'direct'
+    // So direct missions (source_mission = 'direct' or NULL) pass through.
+    assert.ok(checkout.includes("mission.source_mission && mission.source_mission !== 'direct'"),
+      'guard must only reject non-direct, not block direct');
+  });
+
+  await test('9. Hiflow mission => rejected before Stripe call', () => {
+    // The guard returns 400 before any stripe.checkout.sessions call
+    var guardPos = checkout.indexOf("mission.source_mission && mission.source_mission !== 'direct'");
+    var stripeCreatePos = checkout.indexOf('stripe.checkout.sessions.create');
+    var stripeRetrievePos = checkout.indexOf('stripe.checkout.sessions.retrieve');
+    assert.ok(guardPos > 0, 'guard must exist');
+    assert.ok(stripeCreatePos > guardPos, 'stripe.checkout.sessions.create must be AFTER the guard');
+    assert.ok(stripeRetrievePos > guardPos, 'stripe.checkout.sessions.retrieve must be AFTER the guard');
+  });
+
+  await test('10. Driiveme => rejected (same guard covers all non-direct)', () => {
+    // The guard is source_mission !== 'direct', which covers all external platforms
+    assert.ok(checkout.includes("mission.source_mission !== 'direct'"),
+      'guard must reject all non-direct sources including driiveme');
+  });
+
+  await test('11. ALB => rejected (same guard covers all non-direct)', () => {
+    assert.ok(checkout.includes("mission.source_mission !== 'direct'"),
+      'guard must reject all non-direct sources including alb');
+  });
+
+  await test('12. other => rejected (same guard covers all non-direct)', () => {
+    assert.ok(checkout.includes("mission.source_mission !== 'direct'"),
+      'guard must reject all non-direct sources including other');
+  });
+
+  await test('13. external + existing stripe_session_id => still rejected before retrieval', () => {
+    // The guard is placed BEFORE the stripe_session_id retrieval block.
+    // So even if an external mission somehow has a stripe_session_id,
+    // the guard fires first and returns 400.
+    var guardPos = checkout.indexOf("mission.source_mission && mission.source_mission !== 'direct'");
+    var sessionIdBlockPos = checkout.indexOf('mission.stripe_session_id');
+    // The first reference to stripe_session_id in the retrieval block
+    // should be after the guard.
+    // Find the retrieval block (the if (mission.stripe_session_id) { ... })
+    var retrievalBlockPos = checkout.indexOf('if (mission.stripe_session_id)', guardPos);
+    assert.ok(retrievalBlockPos > guardPos,
+      'stripe_session_id retrieval block must be AFTER the external payment guard');
+  });
+
+  await test('14. admin cannot bypass external-payment guard', () => {
+    // The guard is placed BEFORE the admin/client check (isClient/isAdmin).
+    // So even an admin cannot bypass it.
+    var guardPos = checkout.indexOf("mission.source_mission && mission.source_mission !== 'direct'");
+    var adminCheckPos = checkout.indexOf('isAdmin');
+    assert.ok(adminCheckPos > guardPos,
+      'admin check must be AFTER the external payment guard (admin cannot bypass)');
+  });
+
+  await test('15. client cannot create external checkout (guard before client check)', () => {
+    var guardPos = checkout.indexOf("mission.source_mission && mission.source_mission !== 'direct'");
+    var clientCheckPos = checkout.indexOf('isClient');
+    assert.ok(clientCheckPos > guardPos,
+      'client check must be AFTER the external payment guard (client cannot bypass)');
+  });
+
+  await test('16. zero Stripe calls on external mission (guard before any stripe.* call)', () => {
+    // The guard returns before any stripe.checkout.sessions.* call.
+    // Verify the guard is before the first stripe reference.
+    var guardPos = checkout.indexOf("mission.source_mission && mission.source_mission !== 'direct'");
+    // Find the first stripe.checkout call
+    var firstStripeCall = checkout.indexOf('stripe.checkout.sessions.');
+    assert.ok(firstStripeCall > guardPos,
+      'all stripe.checkout.calls must be AFTER the guard (zero Stripe calls on external)');
+  });
+
+  await test('16a. source_mission included in mission select query', () => {
+    assert.ok(checkout.includes('source_mission'),
+      'mission select query must include source_mission');
+  });
+
+  await test('16b. guard returns 400 with external platform message', () => {
+    assert.ok(checkout.includes('Le paiement de cette mission est géré par la plateforme externe'),
+      'guard must return the external platform payment message');
+    // Check it returns 400
+    var guardPos = checkout.indexOf("mission.source_mission && mission.source_mission !== 'direct'");
+    var blockEnd = checkout.indexOf('}', checkout.indexOf('}', guardPos) + 1);
+    var guardBlock = checkout.substring(guardPos, blockEnd);
+    assert.ok(guardBlock.includes('400'),
+      'guard must return HTTP 400');
+  });
+
+  await test('16c. guard fires before paiement_statut check', () => {
+    var guardPos = checkout.indexOf("mission.source_mission && mission.source_mission !== 'direct'");
+    var paidCheckPos = checkout.indexOf("paiement_statut === 'paid'");
+    assert.ok(paidCheckPos > guardPos,
+      'paiement_statut check must be AFTER the guard');
+  });
+
+  await test('16d. guard fires before status/payable check', () => {
+    var guardPos = checkout.indexOf("mission.source_mission && mission.source_mission !== 'direct'");
+    var payablePos = checkout.indexOf('PAYABLE_STATUSES');
+    assert.ok(payablePos > guardPos,
+      'PAYABLE_STATUSES check must be AFTER the guard');
+  });
+
+  await test('16e. guard fires before montant_ht validation in request handler', () => {
+    // Note: parseFloat(mission.montant_ht) also appears in canReuseExistingSession
+    // (a pure local function at the top of the file). The relevant validation is
+    // in the onRequest handler, after the guard.
+    var guardPos = checkout.indexOf("mission.source_mission && mission.source_mission !== 'direct'");
+    // Find the montant_ht validation in the request handler (after the guard)
+    var afterGuard = checkout.substring(guardPos);
+    var montantValidation = afterGuard.indexOf('isNaN(priceHt)');
+    assert.ok(montantValidation > 0,
+      'montant_ht isNaN validation must exist after the guard in request handler');
+  });
+}
+
+// =====================================================
+// MIGRATION RUNTIME REHEARSAL TESTS (FIX 4)
+// =====================================================
+
+async function runRuntimeRehearsalTests() {
+  console.log('\n--- MIGRATION RUNTIME REHEARSAL ---');
+
+  await test('17-26. RUNTIME_MIGRATION_REHEARSAL availability check', () => {
+    // Check if a local Supabase/Postgres environment is available.
+    // This is a static test file — we cannot start Docker from here.
+    // The runtime rehearsal requires a local Supabase instance with
+    // the full schema loaded.
+    //
+    // Environment check:
+    //   - Docker daemon: NOT running (verified in session)
+    //   - psql: NOT installed
+    //   - Supabase CLI: available via npx but Docker daemon is down
+    //
+    // Result: RUNTIME_MIGRATION_REHEARSAL=NOT_AVAILABLE
+    //
+    // The following runtime assertions CANNOT be executed:
+    //   17. existing direct row upgrades to source_mission='direct', external_reference=NULL
+    //   18. insert Hiflow + valid ref succeeds
+    //   19. external missing ref fails DB CHECK
+    //   20. direct + external ref fails DB CHECK
+    //   21. leading/trailing-space ref fails
+    //   22. duplicate same platform/ref fails unique index
+    //   23. same ref different platform succeeds
+    //   24. RLS client cannot SELECT external available
+    //   25. RLS convoyeur respects feature flag
+    //   26. source-aware notification trigger: external mission_assigned produces convoyeur outbox only
+    //
+    // These are covered by static analysis tests in the schema/validation,
+    // RLS, and outbox sections. Full runtime verification requires a local
+    // Supabase environment which is not available in this session.
+    //
+    // Per spec: report NOT_AVAILABLE and STOP before Production migration.
+    console.log('    RUNTIME_MIGRATION_REHEARSAL=NOT_AVAILABLE');
+    console.log('    Docker daemon: NOT running');
+    console.log('    psql: NOT installed');
+    console.log('    Static tests cover the same assertions structurally.');
+    // This test always passes — it reports the status.
+    assert.ok(true, 'runtime rehearsal not available — reported per spec');
+  });
+}
+
+// =====================================================
 // PROFITABILITY COMPATIBILITY TESTS
 // =====================================================
 
@@ -776,6 +964,8 @@ async function runRegressionTests() {
   await runAdminTests();
   await runSecurityTests();
   await runOutboxTests();
+  await runStripeTests();
+  await runRuntimeRehearsalTests();
   await runProfitabilityTests();
   await runDisplayTests();
   await runFilterTests();

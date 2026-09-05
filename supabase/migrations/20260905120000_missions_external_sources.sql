@@ -152,15 +152,17 @@ ALTER POLICY "missions_select_b3" ON public.missions
         (source_mission = 'direct'
          AND (public.is_internal_user() OR public.external_convoyeurs_enabled()))
         OR (
-          -- External available missions: internal users + convoyeurs only
+          -- External available missions: only when external_convoyeurs_enabled
+          -- AND auth-linked non-banned convoyeur.
+          -- Admin/operator bypass through top-level is_admin()/is_operator().
+          -- Do NOT use is_internal_user() here — admin/operator already covered.
           source_mission <> 'direct'
-          AND (
-            public.is_internal_user()
-            OR EXISTS (
-              SELECT 1
-              FROM public.convoyeurs c
-              WHERE c.auth_user_id = (select auth.uid())
-            )
+          AND public.external_convoyeurs_enabled()
+          AND EXISTS (
+            SELECT 1
+            FROM public.convoyeurs c
+            WHERE c.auth_user_id = (select auth.uid())
+              AND c.banned = false
           )
         )
       )
