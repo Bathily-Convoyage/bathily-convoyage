@@ -47,6 +47,8 @@ const ADMIN_CC = mockAdminCreateClient();
 const ADMIN_ENV = {
   SUPABASE_URL: 'https://test.supabase.co',
   SUPABASE_ANON_KEY: 'test-anon-key',
+  AI_ENABLED: 'true',
+  AI_ADMIN_MAX_REQUESTS_PER_MINUTE: '30',
 };
 
 // ============================================================
@@ -90,6 +92,10 @@ function makeContext({ body, env, fetchImpl, rawText } = {}) {
 
 async function callAiAssist({ body, env, fetchImpl, rawText }) {
   const mod = await import('../functions/api/ai-assist.js');
+  // Reset circuit breaker and admin rate limiter before each call
+  // (state is module-level and persists across tests in the same file)
+  if (mod._resetCircuitBreaker) mod._resetCircuitBreaker();
+  if (mod._resetAdminRateLimit) mod._resetAdminRateLimit();
   const ctx = makeContext({ body, env, fetchImpl, rawText });
   const response = await mod.onRequest(ctx);
   const json = await response.json();
