@@ -1,29 +1,34 @@
 -- =====================================================
--- MISSIONS-EXT-2C — Admin/Operator Expense Entry RPC
+-- MISSIONS-EXT-2C — Admin Expense Entry RPC
 -- =====================================================
 -- Adds ONE narrowly scoped SECURITY DEFINER RPC so an
--- authenticated admin or operator can record a real, known
--- mission expense directly from the mission details UI.
+-- authenticated ADMIN can record a real, known mission expense
+-- directly from the mission details UI.
 --
 -- Business semantics:
---   An expense entered directly by an authorized admin/operator
---   represents a known business cost and is APPROVED immediately.
---   The same person records and validates the cost, so the expense
---   is created with status='approved' and correct audit metadata.
+--   An expense entered directly by an authorized admin represents
+--   a known business cost and is APPROVED immediately. The same
+--   person records and validates the cost, so the expense is created
+--   with status='approved' and correct audit metadata.
 --
 -- Security:
 --   - SECURITY DEFINER, explicit empty search_path.
 --   - Rejects anonymous callers.
---   - Allows ONLY existing admin/operator roles via the project's
---     authoritative permission helpers (is_admin / is_operator).
---   - Clients blocked. Convoyeurs blocked unless they separately
---     hold an admin/operator role.
+--   - Allows ONLY existing admin role via the project's authoritative
+--     permission helper is_admin().
+--   - Operators, clients, and convoyeurs are ALL blocked.
 --   - status, reviewed_by, reviewed_at are derived SERVER-SIDE.
 --     The caller CANNOT choose status or forge the reviewer.
 --   - No broad table INSERT/UPDATE grants are added. The protect
 --     trigger and SELECT-only grant on mission_expenses remain
 --     untouched; the RPC runs as postgres (the only existing
 --     mutation identity) and performs the single INSERT.
+--
+-- Operator financial-entry support is DEFERRED to a separate
+-- security design (MISSIONS-EXT-2C.1 decision: do not widen RLS;
+-- current operator SELECT requires assigned-convoyeur identity,
+-- so an internal operator without a convoyeur profile could create
+-- but not read back an expense).
 --
 -- Profitability invariant (unchanged):
 --   margin = montant_ht - remuneration_convoyeur
@@ -63,9 +68,6 @@ SET search_path = ''
 AS $$
 DECLARE
   _mission     public.missions%ROWTYPE;
-  _is_admin    boolean;
-  _is_operator boolean;
-  _actor_role  text;
   _desc_trim   text;
   _expense_id  uuid;
 BEGIN
@@ -74,16 +76,13 @@ BEGIN
     RAISE EXCEPTION 'Non autorisé' USING ERRCODE = '42501';
   END IF;
 
-  -- 2. Authorize: admin OR operator only (clients/convoyeurs blocked
-  --    unless they separately hold an admin/operator role).
-  _is_admin    := public.is_admin();
-  _is_operator := public.is_operator();
-
-  IF NOT (_is_admin OR _is_operator) THEN
+  -- 2. Authorize: ADMIN ONLY.
+  --    Operators, clients, and convoyeurs are all blocked.
+  --    Operator financial-entry support is deferred to a separate
+  --    security design (see migration header).
+  IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'Non autorisé' USING ERRCODE = '42501';
   END IF;
-
-  _actor_role := CASE WHEN _is_admin THEN 'admin' ELSE 'operator' END;
 
   -- 3. Mission must exist
   SELECT * INTO _mission FROM public.missions WHERE id = p_mission_id;
@@ -157,7 +156,7 @@ BEGIN
     'expense_approved',
     NULL,
     NULL,
-    _actor_role,
+    'admin',
     jsonb_build_object(
       'expense_id', _expense_id,
       'expense_type', p_expense_type,

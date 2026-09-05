@@ -114,6 +114,11 @@ async function runAll() {
     assert.ok(/Ajouter un frais/.test(dash), '"Ajouter un frais" button label must be present');
     assert.ok(/id="adminMissionExpenses"/.test(dash), 'expenses container must be present');
   });
+  await test('1b. Add expense button gated on currentAdminUser (admin-only UI)', () => {
+    // The button must be conditionally rendered only when currentAdminUser is set
+    assert.ok(/currentAdminUser \?/.test(dash), 'button must be gated on currentAdminUser ternary');
+    assert.ok(/admAddExpense/.test(dash), 'admAddExpense present in template');
+  });
   await test('2. Direct mission supported (no source restriction in add flow)', () => {
     // The add-expense flow does not branch on source_mission; the RPC validates
     // only mission existence, not source.
@@ -415,11 +420,13 @@ async function runAll() {
   await test('48. admin allowed via is_admin()', () => {
     assert.ok(/public\.is_admin\(\)/.test(migration), 'RPC uses is_admin()');
   });
-  await test('49. operator allowed via is_operator()', () => {
-    assert.ok(/public\.is_operator\(\)/.test(migration), 'RPC uses is_operator()');
+  await test('49. operator BLOCKED (admin-only, not is_operator)', () => {
+    assert.ok(!/public\.is_operator\(\)/.test(migration), 'RPC must NOT use is_operator() (admin-only)');
+    assert.ok(!/is_operator/.test(migration), 'RPC must not reference is_operator at all');
   });
-  await test('50. client blocked (admin OR operator required)', () => {
-    assert.ok(/NOT \(_is_admin OR _is_operator\)/.test(migration), 'RPC requires admin OR operator');
+  await test('50. client blocked (admin-only required)', () => {
+    assert.ok(/NOT public\.is_admin\(\)/.test(migration), 'RPC requires is_admin() only');
+    assert.ok(!/OR _is_operator/.test(migration), 'RPC must NOT allow operator');
   });
   await test('51. convoyeur admin access blocked (no convoyeur-only path)', () => {
     assert.ok(!/is_convoyeur_for_mission/.test(migration), 'RPC does not grant convoyeur-only access');
@@ -447,10 +454,13 @@ async function runAll() {
     assert.ok(/SECURITY DEFINER/.test(migration), 'RPC is SECURITY DEFINER');
     assert.ok(/SET search_path = ''/.test(migration), 'RPC uses empty search_path');
   });
-  await test('57. audit event logged (expense_approved)', () => {
+  await test('57. audit event logged (expense_approved, actor_role=admin)', () => {
     assert.ok(/log_mission_event/.test(migration), 'RPC logs mission event');
     assert.ok(/'expense_approved'/.test(migration), 'event type is expense_approved');
     assert.ok(/'admin_created', true/.test(migration), 'admin_created flag set in metadata');
+    // actor_role must be hardcoded 'admin' (no operator branch)
+    assert.ok(/'admin',/.test(migration), 'actor_role is admin');
+    assert.ok(!/CASE WHEN _is_admin THEN 'admin' ELSE 'operator' END/.test(migration), 'no operator actor_role branch');
   });
 
   // -----------------------------------------------------
