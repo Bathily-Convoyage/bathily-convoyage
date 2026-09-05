@@ -827,8 +827,8 @@ const SUCCESS_BODY = {
 // TEST 35: No new AI tasks added
 {
   const source = readFileSync(new URL('../functions/api/ai-assist.js', import.meta.url), 'utf8');
-  assert.ok(source.includes("const SUPPORTED_TASKS = ['support_draft']"));
-  ok('35. no new AI tasks added (only support_draft)');
+  assert.ok(source.includes("const SUPPORTED_TASKS = ['support_draft', 'devis_structuring']"));
+  ok('35. SUPPORTED_TASKS includes support_draft and devis_structuring');
 }
 
 // TEST 36: No new infrastructure (KV, Durable Objects, migrations)
