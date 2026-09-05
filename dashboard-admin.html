@@ -5939,7 +5939,10 @@ Cadeau premium personnalisé</textarea>
         <div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-exclamation-triangle"></i> Incidents</div>
         <div id="adminMissionIncidents"><div class="inc-empty">Chargement…</div></div>
         <hr style="margin:10px 0;border-color:#eee;">
-        <div style="font-weight:700; margin-bottom:8px;"><i class="fas fa-file-invoice-dollar"></i> Frais de mission</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-weight:700;"><i class="fas fa-file-invoice-dollar"></i> Frais de mission</div>
+          <button class="btn-sm btn-sm-ghost" onclick="admAddExpense('${mission.id}')" style="font-size:0.75rem;" title="Ajouter un frais approuvé"><i class="fas fa-plus"></i> Ajouter un frais</button>
+        </div>
         <div id="adminMissionExpenses"><div class="inc-empty">Chargement…</div></div>
         <hr style="margin:14px 0;border-color:#eee;">
         <div style="display:flex;flex-wrap:wrap;gap:6px;">${actionsHtml}</div>
@@ -8264,6 +8267,26 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
   }
   function admExpTypeLabel(t) { return ADM_EXPENSE_TYPES[t] || t || '—'; }
   function admExpStatusLabel(s) { return ADM_EXPENSE_STATUSES[s] || s || '—'; }
+
+  // MISSIONS-EXT-2C — friendly subtype display for admin-created expenses.
+  // Bus/Train share return_transport and Hôtel shares other; the operator
+  // subtype is preserved in the description via a "[Bus] "/"[Train] "/"[Hôtel] "
+  // prefix. These helpers surface the friendly label and a clean description.
+  const ADM_EXPENSE_SUBTYPE_PREFIXES = { '[Bus] ': 'Bus', '[Train] ': 'Train', '[Hôtel] ': 'Hôtel' };
+  function admExpDisplayLabel(expense_type, description) {
+    const desc = description || '';
+    for (const prefix in ADM_EXPENSE_SUBTYPE_PREFIXES) {
+      if (desc.indexOf(prefix) === 0) return ADM_EXPENSE_SUBTYPE_PREFIXES[prefix];
+    }
+    return admExpTypeLabel(expense_type);
+  }
+  function admExpCleanDescription(description) {
+    const desc = description || '';
+    for (const prefix in ADM_EXPENSE_SUBTYPE_PREFIXES) {
+      if (desc.indexOf(prefix) === 0) return desc.substring(prefix.length).trim();
+    }
+    return desc;
+  }
   function admExpStatusBadge(st) {
     const colors = { draft: '#f5f5f5;color:var(--gray-mid)', submitted: 'var(--bordeaux-light);color:var(--bordeaux)', approved: '#e8f5e9;color:#2e7d32', rejected: '#fce4ec;color:#c62828' };
     return `<span style="display:inline-flex;font-size:0.55rem;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:40px;background:${colors[st] || '#f5f5f5'}">${escapeHtml(admExpStatusLabel(st))}</span>`;
@@ -8287,7 +8310,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       return `<tr>
         <td>${escapeHtml(missionRef)}</td>
         <td>${escapeHtml(operatorName)}</td>
-        <td>${escapeHtml(admExpTypeLabel(exp.expense_type))}</td>
+        <td>${escapeHtml(admExpDisplayLabel(exp.expense_type, exp.description))}</td>
         <td style="font-weight:600;">${escapeHtml(admFormatEUR(exp.amount))}</td>
         <td>${escapeHtml(dateStr)}</td>
         <td><i class="fas fa-paperclip"></i> ${receiptCount}</td>
@@ -8369,15 +8392,19 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       extraInfo += `<div style="font-size:0.75rem;color:var(--gray-dark);margin-top:4px;padding:8px;background:var(--beige);border-radius:8px;"><b>Note admin :</b> ${escapeHtml(exp.review_notes)}</div>`;
     }
 
+    const displayLabel = admExpDisplayLabel(exp.expense_type, exp.description);
+    const cleanDesc = admExpCleanDescription(exp.description);
+    const descLine = cleanDesc ? `<div class="inc-item-desc">${escapeHtml(cleanDesc)}</div>` : '';
+
     return `<div class="inc-item">
       <div class="inc-item-header">
         ${admExpStatusBadge(exp.status)}
-        <span class="inc-item-title">${escapeHtml(admExpTypeLabel(exp.expense_type))}</span>
+        <span class="inc-item-title">${escapeHtml(displayLabel)}</span>
         <span style="font-size:0.85rem;font-weight:700;color:var(--bordeaux);">${escapeHtml(admFormatEUR(exp.amount))}</span>
         <span style="font-size:0.65rem;color:var(--gray-mid);background:#f5f5f5;padding:2px 6px;border-radius:40px;"><i class="fas fa-paperclip"></i> ${receiptCount}/3</span>
       </div>
       <div class="inc-item-meta"><i class="fas fa-calendar"></i> ${escapeHtml(dateStr)}</div>
-      <div class="inc-item-desc">${escapeHtml(exp.description || '')}</div>
+      ${descLine}
       ${extraInfo}
       <div class="inc-item-actions">${actions}</div>
     </div>`;
@@ -8524,6 +8551,157 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     const visibleMissions = _allMissions.filter(m => m.status !== 'archived');
     renderMissionsTable(visibleMissions);
   }
+
+  // ============================================================
+  // MISSIONS-EXT-2C — Admin/Operator Expense Entry
+  // ============================================================
+  // Operator-facing categories mapped to the existing DB expense_type
+  // allowlist (no schema change). Bus/Train share return_transport and
+  // Hôtel shares other, so the operator-visible subtype is preserved via
+  // a deterministic description prefix (e.g. "[Bus] Montpellier → Aix").
+  // The RPC admin_create_mission_expense creates the expense as APPROVED
+  // with server-derived reviewed_by/reviewed_at; the caller cannot forge
+  // status or reviewer. Source-independent (direct/hiflow/driiveme/alb/other).
+  // No Stripe, no quote calculator, no billing, no mission status mutation.
+  const ADM_EXPENSE_CATEGORIES = [
+    { key: 'carburant', label: 'Carburant',          dbType: 'fuel',             prefix: '' },
+    { key: 'recharge',  label: 'Recharge électrique', dbType: 'charging',         prefix: '' },
+    { key: 'peage',     label: 'Péage',              dbType: 'toll',             prefix: '' },
+    { key: 'parking',   label: 'Parking',            dbType: 'parking',          prefix: '' },
+    { key: 'bus',       label: 'Bus',                dbType: 'return_transport', prefix: '[Bus] ' },
+    { key: 'train',     label: 'Train',              dbType: 'return_transport', prefix: '[Train] ' },
+    { key: 'hotel',     label: 'Hôtel',              dbType: 'other',            prefix: '[Hôtel] ' },
+    { key: 'lavage',    label: 'Lavage',             dbType: 'washing',          prefix: '' },
+    { key: 'autre',     label: 'Autre',              dbType: 'other',            prefix: '' }
+  ];
+  const ADM_EXPENSE_CATEGORY_BY_KEY = {};
+  ADM_EXPENSE_CATEGORIES.forEach(function (c) { ADM_EXPENSE_CATEGORY_BY_KEY[c.key] = c; });
+
+  // In-flight guard: prevents duplicate RPC calls on double-click/re-entry.
+  // Reset on both success and error (see finally block in admSubmitExpense).
+  let _admExpenseSubmitting = false;
+
+  function admExpenseCategoryOptions() {
+    return ADM_EXPENSE_CATEGORIES.map(function (c) {
+      return '<option value="' + c.key + '">' + escapeHtml(c.label) + '</option>';
+    }).join('');
+  }
+  window.ADM_EXPENSE_CATEGORIES = ADM_EXPENSE_CATEGORIES;
+  window.admExpenseCategoryOptions = admExpenseCategoryOptions;
+
+  // Deterministic description composition. Never overwrites a user-entered
+  // description; prepends the subtype prefix for Bus/Train/Hôtel so the
+  // operator-visible category is preserved in the shared DB type.
+  // Always returns a non-empty string (DB CHECK: btrim(description) > 0).
+  function composeExpenseDescription(categoryKey, userDesc) {
+    const cat = ADM_EXPENSE_CATEGORY_BY_KEY[categoryKey];
+    if (!cat) return (userDesc || '').trim();
+    const desc = (userDesc || '').trim();
+    if (cat.prefix) {
+      return desc ? (cat.prefix + desc) : cat.prefix.trim();
+    }
+    // No subtype prefix: keep user desc, or fall back to the category label
+    // so the NOT NULL / btrim>0 CHECK is always satisfied.
+    return desc || cat.label;
+  }
+  window.composeExpenseDescription = composeExpenseDescription;
+
+  async function admAddExpense(missionId) {
+    if (!missionId) return;
+    if (_admExpenseSubmitting) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const { value: form } = await Swal.fire({
+      title: '<i class="fas fa-plus"></i> Ajouter un frais',
+      html:
+        '<div style="text-align:left;font-size:0.9rem;">' +
+          '<div style="margin-bottom:10px;">' +
+            '<label style="font-weight:600;display:block;margin-bottom:4px;">Type de frais *</label>' +
+            '<select id="admExpType" class="swal2-select" style="width:100%;">' + admExpenseCategoryOptions() + '</select>' +
+          '</div>' +
+          '<div style="margin-bottom:10px;">' +
+            '<label style="font-weight:600;display:block;margin-bottom:4px;">Montant (€) *</label>' +
+            '<input id="admExpAmount" type="number" inputmode="decimal" step="0.01" min="0.01" placeholder="0.00" class="swal2-input" style="width:100%;" />' +
+          '</div>' +
+          '<div style="margin-bottom:10px;">' +
+            '<label style="font-weight:600;display:block;margin-bottom:4px;">Date *</label>' +
+            '<input id="admExpDate" type="date" value="' + today + '" class="swal2-input" style="width:100%;" />' +
+          '</div>' +
+          '<div style="margin-bottom:6px;">' +
+            '<label style="font-weight:600;display:block;margin-bottom:4px;">Description</label>' +
+            '<textarea id="admExpDesc" class="swal2-textarea" style="width:100%;" maxlength="500" placeholder="Détail du frais (optionnel pour les types simples)"></textarea>' +
+          '</div>' +
+          '<div style="font-size:0.7rem;color:var(--gray-mid);">Le frais est enregistré comme <b>approuvé</b> (saisie admin/opérateur). Justificatif non requis à ce stade.</div>' +
+        '</div>',
+      showCancelButton: true,
+      confirmButtonText: 'Ajouter',
+      cancelButtonText: 'Annuler',
+      confirmButtonColor: 'var(--bordeaux)',
+      focusConfirm: false,
+      preConfirm: function () {
+        const typeKey = document.getElementById('admExpType').value;
+        const amountRaw = document.getElementById('admExpAmount').value;
+        const dateRaw = document.getElementById('admExpDate').value;
+        const descRaw = document.getElementById('admExpDesc').value;
+        const cat = ADM_EXPENSE_CATEGORY_BY_KEY[typeKey];
+        if (!cat) { Swal.showValidationMessage('Type de frais invalide'); return false; }
+        if (amountRaw === '' || amountRaw === null) { Swal.showValidationMessage('Montant obligatoire'); return false; }
+        const amount = parseFloat(amountRaw);
+        if (isNaN(amount) || !isFinite(amount) || amount <= 0) {
+          Swal.showValidationMessage('Montant invalide (doit être supérieur à 0)');
+          return false;
+        }
+        const rounded = Math.round(amount * 100) / 100;
+        if (!dateRaw) { Swal.showValidationMessage('Date obligatoire'); return false; }
+        const d = new Date(dateRaw);
+        if (isNaN(d.getTime())) { Swal.showValidationMessage('Date invalide'); return false; }
+        const description = composeExpenseDescription(typeKey, descRaw);
+        if (!description || !description.trim() || description.length > 500) {
+          Swal.showValidationMessage('Description invalide'); return false;
+        }
+        return {
+          expense_type: cat.dbType,
+          amount: rounded,
+          expense_date: dateRaw,
+          description: description
+        };
+      }
+    });
+    if (!form) return;
+    await admSubmitExpense(missionId, form);
+  }
+  window.admAddExpense = admAddExpense;
+
+  async function admSubmitExpense(missionId, payload) {
+    if (_admExpenseSubmitting) return;
+    if (!missionId || !payload) return;
+    const sb = getSupabase();
+    if (!sb) { Swal.fire('Erreur', 'Supabase non initialisé', 'error'); return; }
+    _admExpenseSubmitting = true;
+    Swal.fire({ title: 'Enregistrement…', didOpen: function () { Swal.showLoading(); }, allowOutsideClick: false, showConfirmButton: false });
+    try {
+      const { error } = await sb.rpc('admin_create_mission_expense', {
+        p_mission_id: missionId,
+        p_expense_type: payload.expense_type,
+        p_amount: payload.amount,
+        p_expense_date: payload.expense_date,
+        p_description: payload.description
+      });
+      if (error) {
+        Swal.fire('Erreur', 'Frais non enregistré : ' + (error.message || 'erreur backend'), 'error');
+        return;
+      }
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Frais approuvé ajouté', timer: 2500, showConfirmButton: false });
+      // Refresh mission expenses, all-expenses cache, validate queue, missions
+      // table, and platform reporting / profitability (deterministic margin).
+      await _refreshAdminExpenses();
+      if (typeof loadAnalytics === 'function') loadAnalytics();
+    } catch (err) {
+      Swal.fire('Erreur', 'Frais non enregistré : ' + ((err && err.message) ? err.message : 'erreur inconnue'), 'error');
+    } finally {
+      _admExpenseSubmitting = false;
+    }
+  }
+  window.admSubmitExpense = admSubmitExpense;
   </script>
 
 <!-- BOTTOM NAV MOBILE -->
