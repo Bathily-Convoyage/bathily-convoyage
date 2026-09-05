@@ -177,8 +177,13 @@ function normalizeErrorCategory(rawError) {
     'network_error': 'provider_network',
     'empty_response': 'invalid_provider_response',
     'output_truncated': 'output_truncated',
-    'invalid_json_output': 'output_validation_failed',
-    'invalid_json': 'output_validation_failed',
+    // AI-BOOST-5C.1: invalid_json_output = provider returned content that
+    // cannot be parsed as JSON. This is a provider response problem, not a
+    // schema validation failure.
+    'invalid_json_output': 'invalid_provider_response',
+    // AI-BOOST-5C.1: invalid_json = client request body could not be parsed.
+    // This is a client input problem, not a provider output problem.
+    'invalid_json': 'invalid_input',
     'unknown_task': 'unknown_task',
     'missing_task': 'unknown_task',
     'invalid_body': 'invalid_input',
@@ -1389,7 +1394,8 @@ async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, time
         }
       : null;
 
-    return { ok: true, parsed, usage };
+    // AI-BOOST-5C.1: Return finishReason on success for telemetry completeness.
+    return { ok: true, parsed, usage, finishReason };
   } catch (e) {
     clearTimeout(timeoutId);
     if (e.name === 'AbortError') {
@@ -1912,6 +1918,8 @@ export async function onRequest(context) {
     inputTokens: llmResult.usage?.input_tokens,
     outputTokens: llmResult.usage?.output_tokens,
     estimatedCostUsd,
+    // AI-BOOST-5C.1: Safe finish_reason logging on success (allowlisted values only)
+    finishReason: llmResult.finishReason || null,
   });
 
   // AI-BOOST-4A: Process-local aggregation

@@ -1329,7 +1329,7 @@ function mockFetchWithFinishReason(finishReason, content, usage) {
   });
   assert.strictEqual(json.meta.fallback_used, true);
   // With finish_reason='stop' and invalid JSON, it goes through invalid_json_output
-  // which normalizes to output_validation_failed
+  // which normalizes to invalid_provider_response (AI-BOOST-5C.1)
   ok('100. finish_reason=stop + malformed JSON => fallback (not output_truncated)');
 }
 
@@ -1456,6 +1456,57 @@ function mockFetchWithFinishReason(finishReason, content, usage) {
   assert.strictEqual(mod.TASK_REASONING_EFFORT.support_draft, 'low');
   assert.strictEqual(mod.TASK_REASONING_EFFORT.devis_structuring, 'low');
   ok('109. TASK_REASONING_EFFORT exported with correct values');
+}
+
+// ============================================================
+// AI-BOOST-5C.1 — TAXONOMY COMPLETION TESTS
+// ============================================================
+
+// TEST 110: finish_reason=length + partial JSON => output_truncated
+{
+  const mod = await import('../functions/api/ai-assist.js');
+  assert.strictEqual(mod.normalizeErrorCategory('output_truncated'), 'output_truncated');
+  ok('110. finish_reason=length => output_truncated category');
+}
+
+// TEST 111: finish_reason=stop + malformed provider JSON => invalid_provider_response
+{
+  const mod = await import('../functions/api/ai-assist.js');
+  assert.strictEqual(mod.normalizeErrorCategory('invalid_json_output'), 'invalid_provider_response');
+  ok('111. malformed provider JSON => invalid_provider_response');
+}
+
+// TEST 112: finish_reason=stop + valid JSON failing schema => output_validation_failed
+{
+  const mod = await import('../functions/api/ai-assist.js');
+  // Schema validation failures use 'output_validation_failed' as the errorCategory
+  // (hardcoded in the fallback_invalid_output path, not through normalizeErrorCategory)
+  assert.strictEqual(mod.normalizeErrorCategory('output_validation_failed'), 'output_validation_failed');
+  ok('112. schema validation failure => output_validation_failed');
+}
+
+// TEST 113: malformed client/request JSON => invalid_input
+{
+  const mod = await import('../functions/api/ai-assist.js');
+  assert.strictEqual(mod.normalizeErrorCategory('invalid_json'), 'invalid_input');
+  ok('113. malformed client JSON => invalid_input');
+}
+
+// TEST 114: all three provider output failure categories are mutually distinct
+{
+  const mod = await import('../functions/api/ai-assist.js');
+  const trunc = mod.normalizeErrorCategory('output_truncated');
+  const malformed = mod.normalizeErrorCategory('invalid_json_output');
+  const schema = mod.normalizeErrorCategory('output_validation_failed');
+  assert.notStrictEqual(trunc, malformed);
+  assert.notStrictEqual(trunc, schema);
+  assert.notStrictEqual(malformed, schema);
+  // Also verify client JSON is distinct from all three
+  const client = mod.normalizeErrorCategory('invalid_json');
+  assert.notStrictEqual(client, trunc);
+  assert.notStrictEqual(client, malformed);
+  assert.notStrictEqual(client, schema);
+  ok('114. all four categories mutually distinct');
 }
 
 console.log(`\nAll ${passed} AI-BOOST-5A mission profitability advisory tests passed.`);

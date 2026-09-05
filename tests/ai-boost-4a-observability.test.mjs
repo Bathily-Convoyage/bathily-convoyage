@@ -238,12 +238,12 @@ const DEVIS_SUCCESS_BODY = {
   ok('8. provider 5xx normalized');
 }
 
-// TEST 9: invalid output normalized
+// TEST 9: invalid provider JSON output normalized (AI-BOOST-5C.1: now maps to invalid_provider_response)
 {
   const mod = await import('../functions/api/ai-assist.js');
   const result = mod.normalizeErrorCategory('invalid_json_output');
-  assert.strictEqual(result, 'output_validation_failed');
-  ok('9. invalid output normalized');
+  assert.strictEqual(result, 'invalid_provider_response');
+  ok('9. invalid provider JSON output normalized');
 }
 
 // TEST 10: unknown task normalized
