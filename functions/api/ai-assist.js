@@ -46,7 +46,7 @@ import {
 // CONFIGURATION
 // ============================================================
 
-const SUPPORTED_TASKS = ['support_draft', 'devis_structuring'];
+const SUPPORTED_TASKS = ['support_draft', 'devis_structuring', 'mission_profitability_advisory'];
 
 // Input bounds — MAX_INPUT_BYTES enforces true UTF-8 byte length
 const MAX_INPUT_BYTES = 4096;
@@ -93,10 +93,12 @@ const MAX_OUTPUT_TOKENS_MAX = 500;
 const SUPPORT_DRAFT_MAX_TOKENS = 300;
 // For devis_structuring, effective max must remain <= 300 (small JSON output)
 const DEVIS_STRUCTURING_MAX_TOKENS = 300;
+const PROFITABILITY_ADVISORY_MAX_TOKENS = 400;
 // Per-task token caps
 const TASK_TOKEN_CAPS = {
   support_draft: SUPPORT_DRAFT_MAX_TOKENS,
   devis_structuring: DEVIS_STRUCTURING_MAX_TOKENS,
+  mission_profitability_advisory: PROFITABILITY_ADVISORY_MAX_TOKENS,
 };
 
 // Circuit breaker defaults
@@ -836,6 +838,304 @@ function fallbackDevisStructuring() {
 }
 
 // ============================================================
+// AI-BOOST-5A: MISSION PROFITABILITY ADVISORY
+// ============================================================
+
+const PROFITABILITY_PROMPT = `Vous êtes un assistant d'analyse de rentabilité pour Bathily Convoyage, une entreprise française de convoyage automobile.
+
+Vous recevez des données financières DÉTERMINISTES déjà calculées par le système, basées sur les données financières enregistrées et les frais approuvés. Votre rôle est UNIQUEMENT d'expliquer et commenter ces chiffres.
+
+IMPORTANT: La marge déterministe reflète uniquement le périmètre des coûts enregistrés. Certains coûts (hôtel, remboursements) peuvent ne pas être suivis. Ne prétendez pas que cette analyse est une rentabilité complète ou universelle.
+
+RÈGLES ABSOLUES:
+- deterministic_margin_eur et deterministic_margin_rate_pct sont AUTORITAIRES. Ne les recalculez JAMAIS.
+- N'inventez JAMAIS des coûts manquants. Si missing_inputs est non vide, mentionnez-les comme incertitudes.
+- Ne proposez JAMAIS un nouveau prix client.
+- Ne proposez JAMAIS une nouvelle rémunération convoyeur.
+- Ne calculez JAMAIS de montant TTC, TVA, ou taxe.
+- Ne donnez JAMAIS de conseil fiscal, comptable ou juridique.
+- Ne décidez JAMAIS d'accepter ou refuser une mission.
+- Utilisez le langage "à vérifier" / "considérer" / "examiner" — jamais de décision automatique.
+- Identifiez les postes de coût les plus importants parmi les coûts CONNUS.
+- Mentionnez les incertitudes liées aux missing_inputs.
+
+Format de sortie JSON STRICT:
+{
+  "assessment": "healthy" | "moderate" | "weak" | "loss" | "unknown",
+  "summary": "résumé en français, max 500 caractères",
+  "main_cost_drivers": ["poste de coût 1", "poste de coût 2"],
+  "review_points": ["point à vérifier 1"],
+  "uncertainties": ["incertitude 1"],
+  "recommended_checks": ["vérification recommandée 1"],
+  "needs_human_review": true | false
+}
+
+assessment:
+- "loss" si deterministic_margin_eur < 0
+- "unknown" si les seuils weak/moderate/healthy ne sont pas établis
+- Ne inventez JAMAIS de seuils.
+
+max 10 items par tableau, max 200 caractères par item.
+Aucune donnée HTML. Aucun champ supplémentaire.`;
+
+const ASSESSMENT_LEVELS = ['healthy', 'moderate', 'weak', 'loss', 'unknown'];
+
+const PROFITABILITY_ALLOWED_FIELDS = new Set([
+  'assessment', 'summary', 'main_cost_drivers',
+  'review_points', 'uncertainties', 'recommended_checks',
+  'needs_human_review',
+]);
+
+const PROFITABILITY_FORBIDDEN_FIELDS = [
+  'price', 'prix', 'tariff', 'tarif', 'amount', 'montant',
+  'remuneration', 'rémunération', 'vat', 'tva', 'tax', 'taxe',
+  'mission_decision', 'decision', 'décision', 'accept', 'reject',
+  'invoice', 'facture', 'payment', 'paiement',
+];
+
+const MAX_PROFITABILITY_ARRAY_ITEMS = 10;
+const MAX_PROFITABILITY_ITEM_LENGTH = 200;
+const MAX_PROFITABILITY_SUMMARY_LENGTH = 500;
+
+// Allowed financial field names in the profitability input
+const ALLOWED_FINANCIAL_FIELDS = new Set([
+  'revenue_ht_eur', 'driver_remuneration_eur', 'fuel_cost_eur',
+  'toll_cost_eur', 'transport_cost_eur', 'hotel_cost_eur',
+  'parking_cost_eur', 'other_costs_eur', 'reimbursed_costs_eur',
+  'total_costs_eur', 'deterministic_margin_eur', 'deterministic_margin_rate_pct',
+  'missing_inputs',
+]);
+
+const MAX_FINANCIAL_VALUE = 10_000_000; // 10M EUR absolute cap
+const MAX_MISSING_INPUTS = 20;
+const MAX_MISSING_INPUT_LENGTH = 100;
+
+// FIX 2 (AI-BOOST-5A.2) — operational_context removed from contract.
+// Only profitability is accepted. No route_summary, no delivery_constraint,
+// no exact addresses forwarded to provider.
+const ALLOWED_PROFITABILITY_INPUT_FIELDS = new Set(['profitability']);
+
+function validateProfitabilityInput(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return { valid: false, error: 'invalid_profitability_object' };
+  }
+
+  // Reject any field other than profitability (no operational_context, no route_summary, etc.)
+  for (const key of Object.keys(input)) {
+    if (!ALLOWED_PROFITABILITY_INPUT_FIELDS.has(key)) {
+      return { valid: false, error: 'unknown_input_field' };
+    }
+  }
+
+  const { profitability } = input;
+
+  if (!profitability || typeof profitability !== 'object' || Array.isArray(profitability)) {
+    return { valid: false, error: 'missing_profitability' };
+  }
+
+  // Check for unknown fields in profitability
+  for (const key of Object.keys(profitability)) {
+    if (!ALLOWED_FINANCIAL_FIELDS.has(key)) {
+      return { valid: false, error: 'unknown_profitability_field' };
+    }
+  }
+
+  // Validate numeric fields
+  const numericFields = [
+    'revenue_ht_eur', 'driver_remuneration_eur', 'fuel_cost_eur',
+    'toll_cost_eur', 'transport_cost_eur', 'hotel_cost_eur',
+    'parking_cost_eur', 'other_costs_eur', 'reimbursed_costs_eur',
+    'total_costs_eur', 'deterministic_margin_eur', 'deterministic_margin_rate_pct',
+  ];
+
+  for (const field of numericFields) {
+    if (field in profitability) {
+      const val = profitability[field];
+      if (val === null) continue;
+      if (typeof val !== 'number' || !isFinite(val) || isNaN(val)) {
+        return { valid: false, error: `invalid_${field}` };
+      }
+      if (Math.abs(val) > MAX_FINANCIAL_VALUE) {
+        return { valid: false, error: `${field}_exceeds_cap` };
+      }
+    }
+  }
+
+  // Validate missing_inputs
+  if ('missing_inputs' in profitability) {
+    const mi = profitability.missing_inputs;
+    if (mi === null) {
+      // null is acceptable — means no missing inputs info
+    } else if (!Array.isArray(mi)) {
+      return { valid: false, error: 'invalid_missing_inputs_type' };
+    } else {
+      if (mi.length > MAX_MISSING_INPUTS) {
+        return { valid: false, error: 'too_many_missing_inputs' };
+      }
+      for (const item of mi) {
+        if (typeof item !== 'string') {
+          return { valid: false, error: 'invalid_missing_inputs_item_type' };
+        }
+        if (item.trim().length === 0) {
+          return { valid: false, error: 'missing_inputs_empty_item' };
+        }
+        if (item.length > MAX_MISSING_INPUT_LENGTH) {
+          return { valid: false, error: 'missing_inputs_item_too_long' };
+        }
+        if (/<script|<iframe|<img|<svg|onerror=|onload=|javascript:/i.test(item)) {
+          return { valid: false, error: 'html_in_missing_inputs' };
+        }
+      }
+    }
+  }
+
+  return { valid: true };
+}
+
+// FIX 1 (AI-BOOST-5A.2) — Assessment is deterministic, not LLM-chosen.
+// loss: deterministic_margin_eur < 0
+// unknown: everything else (positive, zero, null)
+// No weak/moderate/healthy thresholds are approved.
+function expectedProfitabilityAssessment(profitability) {
+  if (
+    typeof profitability.deterministic_margin_eur === 'number' &&
+    profitability.deterministic_margin_eur < 0
+  ) return 'loss';
+  return 'unknown';
+}
+
+function buildProfitabilityPrompt(input) {
+  const p = input.profitability;
+
+  // Build a sanitized prompt with only the normalized data
+  const parts = [];
+  parts.push(`Données de rentabilité déterministes:`);
+  parts.push(`- Chiffre d'affaires HT: ${p.revenue_ht_eur ?? 'non communiqué'} EUR`);
+  parts.push(`- Rémunération convoyeur: ${p.driver_remuneration_eur ?? 'non communiqué'} EUR`);
+  parts.push(`- Carburant: ${p.fuel_cost_eur ?? 'non communiqué'} EUR`);
+  parts.push(`- Péage: ${p.toll_cost_eur ?? 'non communiqué'} EUR`);
+  parts.push(`- Transport: ${p.transport_cost_eur ?? 'non communiqué'} EUR`);
+  parts.push(`- Hôtel: ${p.hotel_cost_eur ?? 'non communiqué'} EUR`);
+  parts.push(`- Parking: ${p.parking_cost_eur ?? 'non communiqué'} EUR`);
+  parts.push(`- Autres coûts: ${p.other_costs_eur ?? 'non communiqué'} EUR`);
+  parts.push(`- Coûts remboursés: ${p.reimbursed_costs_eur ?? 'non communiqué'} EUR`);
+  parts.push(`- Total des coûts: ${p.total_costs_eur ?? 'non communiqué'} EUR`);
+  parts.push(`- Marge déterministe: ${p.deterministic_margin_eur ?? 'non communiqué'} EUR`);
+  parts.push(`- Taux de marge: ${p.deterministic_margin_rate_pct ?? 'non communiqué'} %`);
+  if (p.missing_inputs && p.missing_inputs.length > 0) {
+    parts.push(`- Données manquantes: ${p.missing_inputs.join(', ')}`);
+  } else {
+    parts.push(`- Données manquantes: aucune`);
+  }
+
+  return parts.join('\n');
+}
+
+function validateProfitabilityOutput(parsed) {
+  if (!parsed || typeof parsed !== 'object') {
+    return { valid: false, error: 'invalid_json' };
+  }
+  if (Array.isArray(parsed)) {
+    return { valid: false, error: 'root_array_rejected' };
+  }
+
+  // Strict schema — reject unknown fields
+  for (const key of Object.keys(parsed)) {
+    if (!PROFITABILITY_ALLOWED_FIELDS.has(key)) {
+      return { valid: false, error: 'unknown_field_rejected' };
+    }
+  }
+
+  // Deep scan for forbidden field names
+  function deepScanForbidden(obj) {
+    if (!obj || typeof obj !== 'object') return false;
+    for (const key of Object.keys(obj)) {
+      if (PROFITABILITY_FORBIDDEN_FIELDS.includes(key.toLowerCase())) {
+        return true;
+      }
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        if (deepScanForbidden(obj[key])) return true;
+      }
+    }
+    return false;
+  }
+  if (deepScanForbidden(parsed)) {
+    return { valid: false, error: 'forbidden_field_present' };
+  }
+
+  // Required fields
+  const required = ['assessment', 'summary', 'main_cost_drivers', 'review_points', 'uncertainties', 'recommended_checks', 'needs_human_review'];
+  for (const field of required) {
+    if (!(field in parsed)) {
+      return { valid: false, error: `missing_field_${field}` };
+    }
+  }
+
+  // Validate assessment enum
+  if (!ASSESSMENT_LEVELS.includes(parsed.assessment)) {
+    return { valid: false, error: 'invalid_assessment' };
+  }
+
+  // Validate summary
+  if (typeof parsed.summary !== 'string') {
+    return { valid: false, error: 'invalid_summary_type' };
+  }
+  if (parsed.summary.trim().length === 0) {
+    return { valid: false, error: 'summary_empty' };
+  }
+  if (parsed.summary.length > MAX_PROFITABILITY_SUMMARY_LENGTH) {
+    return { valid: false, error: 'summary_too_long' };
+  }
+  if (/<script|<iframe|<img|<svg|onerror=|onload=|javascript:/i.test(parsed.summary)) {
+    return { valid: false, error: 'html_in_summary' };
+  }
+
+  // Validate needs_human_review
+  if (typeof parsed.needs_human_review !== 'boolean') {
+    return { valid: false, error: 'invalid_needs_human_review' };
+  }
+
+  // Validate array fields
+  const arrayFields = ['main_cost_drivers', 'review_points', 'uncertainties', 'recommended_checks'];
+  for (const field of arrayFields) {
+    if (!Array.isArray(parsed[field])) {
+      return { valid: false, error: `invalid_${field}_not_array` };
+    }
+    if (parsed[field].length > MAX_PROFITABILITY_ARRAY_ITEMS) {
+      return { valid: false, error: `too_many_${field}` };
+    }
+    for (const item of parsed[field]) {
+      if (typeof item !== 'string') {
+        return { valid: false, error: `invalid_${field}_item_type` };
+      }
+      if (item.trim().length === 0) {
+        return { valid: false, error: `${field}_empty_item` };
+      }
+      if (item.length > MAX_PROFITABILITY_ITEM_LENGTH) {
+        return { valid: false, error: `${field}_item_too_long` };
+      }
+      if (/<script|<iframe|<img|<svg|onerror=|onload=|javascript:|<a\s|<div|<span/i.test(item)) {
+        return { valid: false, error: `html_in_${field}_rejected` };
+      }
+    }
+  }
+
+  return { valid: true };
+}
+
+function fallbackProfitabilityAdvisory() {
+  return {
+    assessment: 'unknown',
+    summary: 'Analyse IA indisponible. Vérifiez les montants déterministes affichés.',
+    main_cost_drivers: [],
+    review_points: [],
+    uncertainties: [],
+    recommended_checks: [],
+    needs_human_review: true,
+  };
+}
+
+// ============================================================
 // TASK DEFINITIONS (after all prompts/functions are defined)
 // ============================================================
 
@@ -857,6 +1157,18 @@ const TASK_DEFINITIONS = {
     validateOutput: validateDevisStructuringOutput,
     fallback: fallbackDevisStructuring,
     systemPrompt: DEVIS_STRUCTURING_PROMPT,
+  },
+  mission_profitability_advisory: {
+    description: 'Explain mission profitability based on deterministic financial figures',
+    requiredFields: ['profitability'],
+    optionalFields: [],
+    buildPrompt: buildProfitabilityPrompt,
+    validateOutput: validateProfitabilityOutput,
+    fallback: fallbackProfitabilityAdvisory,
+    systemPrompt: PROFITABILITY_PROMPT,
+    validateInput: validateProfitabilityInput,
+    // FIX 1 (AI-BOOST-5A.2) — assessment is deterministic, overwrite model value
+    expectedAssessment: expectedProfitabilityAssessment,
   },
 };
 
@@ -886,12 +1198,29 @@ function validateInput(body) {
   const taskDef = TASK_DEFINITIONS[task];
 
   // Check required fields
+  // FIX 4 — Historical tasks (support_draft, devis_structuring) require string fields.
+  // Only mission_profitability_advisory accepts an object (profitability).
+  // Task-specific input validator handles object field validation.
   for (const field of taskDef.requiredFields) {
     if (input[field] === undefined || input[field] === null || input[field] === '') {
       return { valid: false, error: `missing_field:${field}` };
     }
+    // If the task has a custom input validator, it handles type checking for its fields.
+    // Otherwise, required fields must be strings (historical contract).
+    if (taskDef.validateInput) {
+      // Type checking deferred to task-specific validator
+      continue;
+    }
     if (typeof input[field] !== 'string') {
       return { valid: false, error: `invalid_field_type:${field}` };
+    }
+  }
+
+  // Task-specific input validation (e.g. profitability object structure)
+  if (taskDef.validateInput) {
+    const taskValidation = taskDef.validateInput(input);
+    if (!taskValidation.valid) {
+      return taskValidation;
     }
   }
 
@@ -1545,10 +1874,18 @@ export async function onRequest(context) {
     quotaLimited: false,
   });
 
+  // FIX 1 (AI-BOOST-5A.2) — Overwrite assessment with deterministic value.
+  // The LLM may explain profitability but must NOT determine the category.
+  let finalOutput = llmResult.parsed;
+  if (taskDef.expectedAssessment && finalOutput && typeof finalOutput === 'object') {
+    const expectedAssessment = taskDef.expectedAssessment(body.input.profitability);
+    finalOutput = { ...finalOutput, assessment: expectedAssessment };
+  }
+
   return jsonResponse({
     ok: true,
     task,
-    output: llmResult.parsed,
+    output: finalOutput,
     meta: {
       request_id: requestId,
       model,
@@ -1600,6 +1937,18 @@ export {
   URGENCY_LEVELS,
   CUSTOMER_INTENTS,
   FORBIDDEN_DEVIS_FIELDS,
+  // AI-BOOST-5A exports
+  PROFITABILITY_PROMPT,
+  validateProfitabilityOutput,
+  validateProfitabilityInput,
+  buildProfitabilityPrompt,
+  fallbackProfitabilityAdvisory,
+  expectedProfitabilityAssessment,
+  ASSESSMENT_LEVELS,
+  PROFITABILITY_ALLOWED_FIELDS,
+  PROFITABILITY_FORBIDDEN_FIELDS,
+  ALLOWED_FINANCIAL_FIELDS,
+  ALLOWED_PROFITABILITY_INPUT_FIELDS,
   TASK_TOKEN_CAPS,
   callLLM,
   logTelemetry,
