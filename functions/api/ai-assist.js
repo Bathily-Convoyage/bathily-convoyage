@@ -110,6 +110,193 @@ const CIRCUIT_OPEN_MS_MAX = 300000;
 // Retry policy — 0 for support_draft (safe default)
 const RETRY_COUNT_DEFAULT = 0;
 
+// ============================================================
+// AI-BOOST-4A: ERROR TAXONOMY (Phase 2)
+// Bounded allowlist — no raw exception text in telemetry
+// ============================================================
+
+const ERROR_CATEGORIES = new Set([
+  'none',
+  'ai_disabled',
+  'invalid_ai_config',
+  'unauthorized',
+  'forbidden',
+  'quota_limited',
+  'circuit_open',
+  'provider_timeout',
+  'provider_rate_limited',
+  'provider_5xx',
+  'provider_network',
+  'provider_unauthorized',
+  'invalid_provider_response',
+  'output_validation_failed',
+  'unknown_task',
+  'invalid_input',
+  'internal_error',
+]);
+
+// Map internal error strings to taxonomy categories
+function normalizeErrorCategory(rawError) {
+  if (!rawError || rawError === 'none') return 'none';
+  const lower = String(rawError).toLowerCase();
+  // Direct taxonomy match
+  if (ERROR_CATEGORIES.has(lower)) return lower;
+  // Map known internal error strings
+  const mapping = {
+    'ai_disabled': 'ai_disabled',
+    'invalid_ai_config': 'invalid_ai_config',
+    'unauthorized': 'unauthorized',
+    'forbidden': 'forbidden',
+    'rate_limited': 'quota_limited',
+    'quota_limited': 'quota_limited',
+    'circuit_open': 'circuit_open',
+    'timeout': 'provider_timeout',
+    'provider_error': 'provider_5xx',
+    'rate_limited_by_provider': 'provider_rate_limited',
+    'network_error': 'provider_network',
+    'empty_response': 'invalid_provider_response',
+    'invalid_json_output': 'output_validation_failed',
+    'invalid_json': 'output_validation_failed',
+    'unknown_task': 'unknown_task',
+    'missing_task': 'unknown_task',
+    'invalid_body': 'invalid_input',
+    'missing_input': 'invalid_input',
+    'input_too_large': 'invalid_input',
+    'unsupported_provider': 'invalid_ai_config',
+    'no_api_key': 'invalid_ai_config',
+    'secret_leak_detected': 'internal_error',
+  };
+  if (mapping[lower]) return mapping[lower];
+  // Map HTTP status-based errors
+  if (lower.includes('429')) return 'provider_rate_limited';
+  if (lower.includes('401') || lower.includes('403')) return 'provider_unauthorized';
+  if (lower.includes('5')) return 'provider_5xx';
+  // Fallback — never log raw error text
+  return 'internal_error';
+}
+
+// ============================================================
+// AI-BOOST-4A: COST ESTIMATION (Phase 4)
+// Optional, env-configurable, advisory only
+// ============================================================
+
+function parseCostRate(val) {
+  if (val === undefined || val === null || val === '') return null;
+  const n = parseFloat(val);
+  if (isNaN(n) || n < 0 || !isFinite(n)) return null;
+  return n;
+}
+
+function estimateCost(usage, config) {
+  if (!usage || !config) return null;
+  const inputPer1m = config.costInputPer1mUsd;
+  const outputPer1m = config.costOutputPer1mUsd;
+  if (inputPer1m === null && outputPer1m === null) return null;
+
+  const inputTokens = usage.input_tokens ?? null;
+  const outputTokens = usage.output_tokens ?? null;
+
+  // Conservative rule: if an applicable configured rate requires a token count
+  // and that token count is null/missing, return null (do NOT coerce to 0).
+  // Only calculate cost from token data actually reported by the provider.
+
+  // Both rates configured
+  if (inputPer1m !== null && outputPer1m !== null) {
+    if (inputTokens === null || outputTokens === null) return null;
+    return (inputTokens / 1_000_000) * inputPer1m + (outputTokens / 1_000_000) * outputPer1m;
+  }
+
+  // Only input rate configured
+  if (inputPer1m !== null && outputPer1m === null) {
+    if (inputTokens === null) return null;
+    return (inputTokens / 1_000_000) * inputPer1m;
+  }
+
+  // Only output rate configured
+  if (inputPer1m === null && outputPer1m !== null) {
+    if (outputTokens === null) return null;
+    return (outputTokens / 1_000_000) * outputPer1m;
+  }
+
+  return null;
+}
+
+// ============================================================
+// AI-BOOST-4A: PROCESS-LOCAL AGGREGATION (Phase 5)
+// Best-effort, per-isolate. NOT global Production metrics.
+// No persistence. No cross-instance accuracy.
+// ============================================================
+
+const _aiCounters = new Map();
+
+function _initTaskCounters(task) {
+  if (!_aiCounters.has(task)) {
+    _aiCounters.set(task, {
+      requests: 0,
+      successes: 0,
+      fallbacks: 0,
+      errors: 0,
+      quota_limited: 0,
+      circuit_open: 0,
+      ai_disabled: 0,
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      total_tokens: 0,
+      latency_sum_ms: 0,
+    });
+  }
+  return _aiCounters.get(task);
+}
+
+// Aggregation semantics:
+// - status='success': success+1, fallbackUsed=false → no error
+// - status='fallback': fallback+1 (safe fallback, not an error)
+// - status='error': error+1 (request rejected OR safety failure)
+//   - error+fallbackUsed=true: safety failure with fallback (e.g. secret leak)
+//   - error+fallbackUsed=false: rejected request (e.g. quota)
+function recordAggregation(task, { status, fallbackUsed, latencyMs, usage, aiDisabled, circuitOpen, quotaLimited }) {
+  const c = _initTaskCounters(task);
+  c.requests++;
+  c.latency_sum_ms += latencyMs || 0;
+  if (status === 'success') c.successes++;
+  if (fallbackUsed) c.fallbacks++;
+  if (status === 'error') c.errors++;
+  if (aiDisabled) c.ai_disabled++;
+  if (circuitOpen) c.circuit_open++;
+  if (quotaLimited) c.quota_limited++;
+  if (usage) {
+    c.prompt_tokens += usage.input_tokens || 0;
+    c.completion_tokens += usage.output_tokens || 0;
+    c.total_tokens += (usage.input_tokens || 0) + (usage.output_tokens || 0);
+  }
+}
+
+function getAggregationSummary() {
+  const summary = {};
+  for (const [task, c] of _aiCounters.entries()) {
+    summary[task] = {
+      requests: c.requests,
+      successes: c.successes,
+      fallbacks: c.fallbacks,
+      errors: c.errors,
+      quota_limited: c.quota_limited,
+      circuit_open: c.circuit_open,
+      ai_disabled: c.ai_disabled,
+      prompt_tokens: c.prompt_tokens,
+      completion_tokens: c.completion_tokens,
+      total_tokens: c.total_tokens,
+      avg_latency_ms: c.requests > 0 ? Math.round(c.latency_sum_ms / c.requests) : 0,
+      fallback_rate: c.requests > 0 ? Math.round((c.fallbacks / c.requests) * 100) / 100 : 0,
+      error_rate: c.requests > 0 ? Math.round((c.errors / c.requests) * 100) / 100 : 0,
+    };
+  }
+  return summary;
+}
+
+function _resetAggregation() {
+  _aiCounters.clear();
+}
+
 // TextEncoder for true UTF-8 byte length measurement
 const _encoder = new TextEncoder();
 
@@ -209,6 +396,15 @@ function parseAiConfig(env) {
   }
   const effectiveCircuitOpenMs = circuitOpenMs || CIRCUIT_OPEN_MS_DEFAULT;
 
+  // AI-BOOST-4A: Cost estimation rates (optional, advisory only)
+  // If absent or invalid => null (cost estimation disabled, never breaks AI)
+  const costInputPer1mUsd = parseCostRate(env.AI_COST_INPUT_PER_1M_USD);
+  const costOutputPer1mUsd = parseCostRate(env.AI_COST_OUTPUT_PER_1M_USD);
+  // Invalid cost rates are silently ignored (not config-fatal)
+  if (env.AI_COST_INPUT_PER_1M_USD && costInputPer1mUsd === null) {
+    // Log warning but don't add to errors — cost config never breaks AI
+  }
+
   return {
     valid: errors.length === 0,
     errors,
@@ -219,6 +415,8 @@ function parseAiConfig(env) {
     maxOutputTokens: effectiveMaxOutputTokens,
     circuitThreshold: effectiveCircuitThreshold,
     circuitOpenMs: effectiveCircuitOpenMs,
+    costInputPer1mUsd,
+    costOutputPer1mUsd,
   };
 }
 
@@ -812,9 +1010,13 @@ async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, time
       return { ok: false, error: 'invalid_json_output', status: 200 };
     }
 
-    // Token usage (if available) — OpenAI uses prompt_tokens/completion_tokens
+    // Token usage (if available) — normalized to prompt_tokens/completion_tokens
+    // If provider omits usage, use null — do NOT fabricate token counts
     const usage = data?.usage
-      ? { input_tokens: data.usage.prompt_tokens || 0, output_tokens: data.usage.completion_tokens || 0 }
+      ? {
+          input_tokens: data.usage.prompt_tokens ?? null,
+          output_tokens: data.usage.completion_tokens ?? null,
+        }
       : null;
 
     return { ok: true, parsed, usage };
@@ -828,28 +1030,48 @@ async function callLLM({ provider, model, apiKey, systemPrompt, userPrompt, time
 }
 
 // ============================================================
-// SANITIZED TELEMETRY
+// AI-BOOST-4A: SANITIZED TELEMETRY (Phase 1, 2, 3, 4, 8)
+// Structured event: "ai_request"
+// Forbidden: prompt, output, customerMessage, names, emails, phones,
+//   addresses, tokens, authorization, api_key, user_id, quote_id,
+//   mission_id, raw provider error body
 // ============================================================
 
 function logTelemetry(meta) {
-  // Log only safe metadata — never log PII, API keys, raw prompts, or full responses
-  // admin_user_id is a UUID — safe to log (not PII, not an auth token)
+  // Normalize error category to bounded taxonomy
+  const errorCategory = normalizeErrorCategory(meta.errorCategory);
+
+  // Compute total_tokens only if both input and output are non-null
+  const inputTokens = meta.inputTokens ?? null;
+  const outputTokens = meta.outputTokens ?? null;
+  const totalTokens = (inputTokens !== null && outputTokens !== null)
+    ? inputTokens + outputTokens
+    : null;
+
+  // Cost estimation (advisory, null if rates not configured)
+  const estimatedCost = meta.estimatedCostUsd ?? null;
+
   console.log(JSON.stringify({
-    type: 'ai_telemetry',
+    event: 'ai_request',
     request_id: meta.requestId,
     task: meta.task,
+    source: meta.source || null,
+    fallback_used: meta.fallbackUsed ?? false,
     model: meta.model,
     provider: meta.provider,
     latency_ms: meta.latencyMs,
-    status: meta.status,
-    error_category: meta.errorCategory || null,
-    injection_risk: meta.injectionRisk || false,
-    input_tokens: meta.inputTokens || null,
-    output_tokens: meta.outputTokens || null,
-    admin_user_id: meta.adminUserId || null,
+    prompt_tokens: inputTokens,
+    completion_tokens: outputTokens,
+    total_tokens: totalTokens,
+    estimated_cost_usd: estimatedCost,
+    estimated_cost_source: estimatedCost !== null ? 'env_configured_rate' : null,
+    error_category: errorCategory,
     ai_disabled: meta.aiDisabled || false,
     circuit_open: meta.circuitOpen || false,
     quota_limited: meta.quotaLimited || false,
+    http_status: meta.httpStatus || null,
+    validation_result: meta.validationResult || null,
+    injection_risk: meta.injectionRisk || false,
   }));
 }
 
@@ -896,6 +1118,7 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task: 'unknown', model: null, provider: null,
       latencyMs: Date.now() - startTime, status: 'rejected',
+      source: null, fallbackUsed: false, httpStatus: 400,
       errorCategory: 'invalid_json',
     });
     return jsonResponse({ ok: false, code: 'INVALID_JSON' }, 400, getCorsHeaders(request));
@@ -907,6 +1130,7 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task: body?.task || 'unknown', model: null, provider: null,
       latencyMs: Date.now() - startTime, status: 'rejected',
+      source: null, fallbackUsed: false, httpStatus: 400,
       errorCategory: validation.error,
     });
     return jsonResponse({ ok: false, code: validation.error.toUpperCase() }, 400, getCorsHeaders(request));
@@ -927,7 +1151,8 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task, model: null, provider: null,
       latencyMs: Date.now() - startTime, status: 'rejected_unauthenticated',
-      errorCategory: authResult.error || 'unauthenticated',
+      source: null, fallbackUsed: false, httpStatus: 401,
+      errorCategory: authResult.error || 'unauthorized',
     });
     return jsonResponse({ ok: false, code: 'UNAUTHORIZED' }, 401, getCorsHeaders(request));
   }
@@ -936,7 +1161,8 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task, model: null, provider: null,
       latencyMs: Date.now() - startTime, status: 'rejected_non_admin',
-      errorCategory: 'not_admin',
+      source: null, fallbackUsed: false, httpStatus: 403,
+      errorCategory: 'forbidden',
     });
     return jsonResponse({ ok: false, code: 'FORBIDDEN' }, 403, getCorsHeaders(request));
   }
@@ -952,9 +1178,13 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task, model: config.model, provider: config.provider,
       latencyMs, status: 'fallback_invalid_config',
+      source: 'fallback', fallbackUsed: true, httpStatus: 200,
       errorCategory: 'invalid_ai_config',
       injectionRisk: validation.injectionRisk,
-      adminUserId: authResult.userId,
+    });
+    recordAggregation(task, {
+      status: 'fallback', fallbackUsed: true, latencyMs,
+      usage: null, aiDisabled: false, circuitOpen: false, quotaLimited: false,
     });
     return jsonResponse({
       ok: true,
@@ -983,10 +1213,14 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task, model: config.model, provider: config.provider,
       latencyMs, status: 'fallback_ai_disabled',
+      source: 'fallback', fallbackUsed: true, httpStatus: 200,
       errorCategory: 'ai_disabled',
       injectionRisk: validation.injectionRisk,
-      adminUserId: authResult.userId,
       aiDisabled: true,
+    });
+    recordAggregation(task, {
+      status: 'fallback', fallbackUsed: true, latencyMs,
+      usage: null, aiDisabled: true, circuitOpen: false, quotaLimited: false,
     });
     return jsonResponse({
       ok: true,
@@ -1020,10 +1254,15 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task, model: config.model, provider: config.provider,
       latencyMs, status: 'rejected_quota_limited',
-      errorCategory: 'admin_quota_exceeded',
+      source: null, fallbackUsed: false, httpStatus: 429,
+      errorCategory: 'quota_limited',
       injectionRisk: validation.injectionRisk,
-      adminUserId: authResult.userId,
       quotaLimited: true,
+    });
+    // Quota: requests+1, errors+1 (not a fallback — request rejected)
+    recordAggregation(task, {
+      status: 'error', fallbackUsed: false, latencyMs,
+      usage: null, aiDisabled: false, circuitOpen: false, quotaLimited: true,
     });
     return jsonResponse({
       ok: false,
@@ -1055,9 +1294,13 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task, model, provider,
       latencyMs, status: 'fallback_unsupported_provider',
+      source: 'fallback', fallbackUsed: true, httpStatus: 200,
       errorCategory: 'unsupported_provider',
       injectionRisk: validation.injectionRisk,
-      adminUserId: authResult.userId,
+    });
+    recordAggregation(task, {
+      status: 'fallback', fallbackUsed: true, latencyMs,
+      usage: null, aiDisabled: false, circuitOpen: false, quotaLimited: false,
     });
     return jsonResponse({
       ok: true,
@@ -1083,8 +1326,13 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task, model, provider,
       latencyMs, status: 'fallback_no_key',
+      source: 'fallback', fallbackUsed: true, httpStatus: 200,
+      errorCategory: 'no_api_key',
       injectionRisk: validation.injectionRisk,
-      adminUserId: authResult.userId,
+    });
+    recordAggregation(task, {
+      status: 'fallback', fallbackUsed: true, latencyMs,
+      usage: null, aiDisabled: false, circuitOpen: false, quotaLimited: false,
     });
     return jsonResponse({
       ok: true,
@@ -1114,10 +1362,14 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task, model, provider,
       latencyMs, status: 'fallback_circuit_open',
+      source: 'fallback', fallbackUsed: true, httpStatus: 200,
       errorCategory: 'circuit_open',
       injectionRisk: validation.injectionRisk,
-      adminUserId: authResult.userId,
       circuitOpen: true,
+    });
+    recordAggregation(task, {
+      status: 'fallback', fallbackUsed: true, latencyMs,
+      usage: null, aiDisabled: false, circuitOpen: true, quotaLimited: false,
     });
     return jsonResponse({
       ok: true,
@@ -1166,10 +1418,14 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task, model, provider,
       latencyMs, status: 'fallback_error',
+      source: 'fallback', fallbackUsed: true, httpStatus: 200,
       errorCategory: llmResult.error,
       injectionRisk: validation.injectionRisk,
-      adminUserId: authResult.userId,
       circuitOpen: circuitIsOpen(),
+    });
+    recordAggregation(task, {
+      status: 'fallback', fallbackUsed: true, latencyMs,
+      usage: null, aiDisabled: false, circuitOpen: circuitIsOpen(), quotaLimited: false,
     });
     return jsonResponse({
       ok: true,
@@ -1198,11 +1454,16 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task, model, provider,
       latencyMs, status: 'fallback_invalid_output',
-      errorCategory: outputValidation.error,
+      source: 'fallback', fallbackUsed: true, httpStatus: 200,
+      errorCategory: 'output_validation_failed',
+      validationResult: outputValidation.error,
       injectionRisk: validation.injectionRisk,
-      adminUserId: authResult.userId,
       inputTokens: llmResult.usage?.input_tokens,
       outputTokens: llmResult.usage?.output_tokens,
+    });
+    recordAggregation(task, {
+      status: 'fallback', fallbackUsed: true, latencyMs,
+      usage: llmResult.usage, aiDisabled: false, circuitOpen: false, quotaLimited: false,
     });
     return jsonResponse({
       ok: true,
@@ -1228,11 +1489,16 @@ export async function onRequest(context) {
     logTelemetry({
       requestId, task, model, provider,
       latencyMs, status: 'fallback_secret_leak',
+      source: 'fallback', fallbackUsed: true, httpStatus: 200,
       errorCategory: 'secret_leak_detected',
       injectionRisk: validation.injectionRisk,
-      adminUserId: authResult.userId,
       inputTokens: llmResult.usage?.input_tokens,
       outputTokens: llmResult.usage?.output_tokens,
+    });
+    // Secret leak: safety failure — requests+1, fallbacks+1, errors+1
+    recordAggregation(task, {
+      status: 'error', fallbackUsed: true, latencyMs,
+      usage: llmResult.usage, aiDisabled: false, circuitOpen: false, quotaLimited: false,
     });
     return jsonResponse({
       ok: true,
@@ -1251,15 +1517,32 @@ export async function onRequest(context) {
     }, 200, getCorsHeaders(request));
   }
 
-  // Success — return plain text draft (no HTML escaping)
+  // Success — return validated output
   // Dangerous HTML was already rejected by validateOutput
+  const estimatedCostUsd = estimateCost(llmResult.usage, config);
+
   logTelemetry({
     requestId, task, model, provider,
     latencyMs, status: 'success',
+    source: 'ai',
+    fallbackUsed: false,
+    httpStatus: 200,
+    validationResult: 'valid',
     injectionRisk: validation.injectionRisk,
-    adminUserId: authResult.userId,
     inputTokens: llmResult.usage?.input_tokens,
     outputTokens: llmResult.usage?.output_tokens,
+    estimatedCostUsd,
+  });
+
+  // AI-BOOST-4A: Process-local aggregation
+  recordAggregation(task, {
+    status: 'success',
+    fallbackUsed: false,
+    latencyMs,
+    usage: llmResult.usage,
+    aiDisabled: false,
+    circuitOpen: false,
+    quotaLimited: false,
   });
 
   return jsonResponse({
@@ -1275,6 +1558,14 @@ export async function onRequest(context) {
       ai_disabled: false,
       circuit_open: false,
       quota_limited: false,
+      usage: llmResult.usage ? {
+        prompt_tokens: llmResult.usage.input_tokens ?? null,
+        completion_tokens: llmResult.usage.output_tokens ?? null,
+        total_tokens: (llmResult.usage.input_tokens !== null && llmResult.usage.output_tokens !== null)
+          ? llmResult.usage.input_tokens + llmResult.usage.output_tokens
+          : null,
+      } : null,
+      estimated_cost_usd: estimatedCostUsd,
     },
   }, 200, getCorsHeaders(request));
 }
@@ -1331,4 +1622,12 @@ export {
   CIRCUIT_FAILURE_THRESHOLD_DEFAULT,
   CIRCUIT_OPEN_MS_DEFAULT,
   RETRY_COUNT_DEFAULT,
+  // AI-BOOST-4A exports
+  ERROR_CATEGORIES,
+  normalizeErrorCategory,
+  parseCostRate,
+  estimateCost,
+  recordAggregation,
+  getAggregationSummary,
+  _resetAggregation,
 };
