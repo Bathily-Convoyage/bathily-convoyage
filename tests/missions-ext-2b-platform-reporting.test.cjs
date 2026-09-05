@@ -463,43 +463,163 @@ async function runNoSideEffectsTests() {
 }
 
 // =====================================================
-// DUPLICATE UX TESTS
+// DUPLICATE UX TESTS — MISSIONS-EXT-2B.1 precise classification
 // =====================================================
 
+// Extract the isDuplicateRef classification logic from _doCreateExternalMission
+// and compile it into a testable function that takes an error object and returns
+// { isDuplicate: bool, title: string, message: string }
+function _compileDuplicateClassifier(dash) {
+  var extFn = _extractExtFunction(dash);
+  assert.ok(extFn.length > 0, '_doCreateExternalMission not found');
+
+  // Extract the classification block: from 'var errMsg' to 'return;'
+  var errMsgStart = extFn.indexOf('var errMsg = insertRes.error.message');
+  assert.ok(errMsgStart !== -1, 'Classification block not found');
+  // Find the closing 'return;' after the if/else
+  var returnIdx = extFn.indexOf('return;', errMsgStart);
+  assert.ok(returnIdx !== -1, 'Return after classification not found');
+  var block = extFn.substring(errMsgStart, returnIdx + 'return;'.length);
+
+  // Build a function that classifies an error object
+  var code = [
+    'function classify(error) {',
+    '  var Swal = { fire: function(opts) { return opts; } };',
+    '  var escapeHtml = function(s) { return String(s); };',
+    '  var insertRes = { error: error };',
+    '  var result = null;',
+    block
+      .replace(/Swal\.fire\(\{[\s\S]*?\}\);/g, function(m) {
+        return 'result = ' + m.replace(/;$/, '') + ';';
+      })
+      .replace(/return;/, ''),
+    '  return result;',
+    '}'
+  ].join('\n');
+
+  var sandbox = { result: null };
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox);
+  return sandbox.classify;
+}
+
 async function runDuplicateUxTests() {
-  console.log('\n--- DUPLICATE UX ---');
+  console.log('\n--- DUPLICATE UX (MISSIONS-EXT-2B.1) ---');
   const dash = fs.readFileSync(DASH_PATH, 'utf8');
   const extFn = _extractExtFunction(dash);
+  const classify = _compileDuplicateClassifier(dash);
 
-  await test('31. duplicate same platform -> friendly message', () => {
-    assert.ok(extFn.indexOf('Référence déjà utilisée') !== -1, 'Friendly duplicate title must be present');
-    assert.ok(extFn.indexOf('Une mission avec cette référence existe déjà sur cette plateforme') !== -1,
-      'Friendly duplicate message must be present');
+  // Test 31: code=23505 + constraint name in message => friendly
+  await test('31. 23505 + constraint uq_missions_external_ref_per_platform in message => friendly', () => {
+    var result = classify({
+      code: '23505',
+      message: 'duplicate key value violates unique constraint "uq_missions_external_ref_per_platform"',
+      details: '',
+      hint: ''
+    });
+    assert.ok(result, 'Result must not be null');
+    assert.ok(result.title === 'Référence déjà utilisée', 'Title must be friendly duplicate');
+    assert.ok(result.html.indexOf('Une mission avec cette référence existe déjà sur cette plateforme') !== -1,
+      'Message must be friendly duplicate');
   });
 
-  await test('32. duplicate error detects PostgreSQL code 23505', () => {
-    assert.ok(extFn.indexOf("23505") !== -1, 'Must detect PostgreSQL unique violation code 23505');
+  // Test 32: code=23505 + constraint name in details => friendly
+  await test('32. 23505 + constraint name in details => friendly', () => {
+    var result = classify({
+      code: '23505',
+      message: 'duplicate key value violates unique constraint',
+      details: 'Key (source_mission, external_reference)=(hiflow, HF-123) already exists.',
+      hint: ''
+    });
+    assert.ok(result, 'Result must not be null');
+    assert.ok(result.title === 'Référence déjà utilisée', 'Title must be friendly duplicate');
   });
 
-  await test('33. duplicate error detects exact constraint name', () => {
-    assert.ok(extFn.indexOf('uq_missions_external_ref_per_platform') !== -1,
-      'Must detect exact constraint name uq_missions_external_ref_per_platform');
+  // Test 33: code=23505 + details identify (source_mission, external_reference) key => friendly
+  await test('33. 23505 + details identify (source_mission, external_reference) => friendly', () => {
+    var result = classify({
+      code: '23505',
+      message: 'duplicate key value violates unique constraint',
+      details: 'Key (source_mission, external_reference)=(driiveme, DR-456) already exists.',
+      hint: ''
+    });
+    assert.ok(result, 'Result must not be null');
+    assert.ok(result.title === 'Référence déjà utilisée', 'Title must be friendly duplicate');
   });
 
-  await test('34. unrelated DB error retains generic behavior', () => {
-    // The generic "Impossible de créer la mission externe" must still exist for non-duplicate errors
-    assert.ok(extFn.indexOf('Impossible de créer la mission externe') !== -1,
-      'Generic error message must still exist for non-duplicate errors');
-    // The isDuplicateRef check must be conditional (if/else), not unconditional
-    assert.ok(extFn.indexOf('if (isDuplicateRef)') !== -1, 'Must branch on isDuplicateRef');
+  // Test 34: code=23505 + unrelated unique constraint => generic
+  await test('34. 23505 + unrelated unique constraint => generic error', () => {
+    var result = classify({
+      code: '23505',
+      message: 'duplicate key value violates unique constraint "missions_pkey"',
+      details: 'Key (id)=(abc-123) already exists.',
+      hint: ''
+    });
+    assert.ok(result, 'Result must not be null');
+    assert.ok(result.title === 'Impossible de créer la mission externe',
+      'Title must be generic for unrelated 23505');
+    assert.ok(result.icon === 'error', 'Icon must be error for generic');
   });
 
-  await test('35. no raw Postgres error as primary duplicate UX', () => {
-    // The friendly message must come BEFORE the technical details
+  // Test 35: code=23505 + no constraint/details => generic
+  await test('35. 23505 + no constraint/details => generic error', () => {
+    var result = classify({
+      code: '23505',
+      message: 'duplicate key value violates unique constraint',
+      details: '',
+      hint: ''
+    });
+    assert.ok(result, 'Result must not be null');
+    assert.ok(result.title === 'Impossible de créer la mission externe',
+      'Title must be generic when no constraint identified');
+  });
+
+  // Test 36: non-23505 + target constraint name => document expected behavior
+  // PostgREST typically returns 23505 for unique violations, but if a non-23505
+  // error somehow mentions the constraint, we do NOT classify as duplicate
+  // because the code check is required (AND logic, not OR).
+  await test('36. non-23505 + constraint name => generic (code check is required)', () => {
+    var result = classify({
+      code: '23503', // foreign_key_violation, not unique_violation
+      message: 'insert or update on table "missions" violates foreign key constraint "uq_missions_external_ref_per_platform"',
+      details: '',
+      hint: ''
+    });
+    assert.ok(result, 'Result must not be null');
+    assert.ok(result.title === 'Impossible de créer la mission externe',
+      'Non-23505 with constraint name must be generic (code check is AND)');
+  });
+
+  // Test 37: unrelated DB error (not 23505, no constraint) => generic
+  await test('37. unrelated DB error => generic behavior unchanged', () => {
+    var result = classify({
+      code: '23502', // not_null_violation
+      message: 'null value in column "depart" violates not-null constraint',
+      details: '',
+      hint: ''
+    });
+    assert.ok(result, 'Result must not be null');
+    assert.ok(result.title === 'Impossible de créer la mission externe',
+      'Unrelated DB error must be generic');
+    assert.ok(result.icon === 'error', 'Icon must be error');
+  });
+
+  // Test 38: raw PostgreSQL error not primary operator message
+  await test('38. no raw Postgres error as primary duplicate UX', () => {
     var friendlyIdx = extFn.indexOf('Une mission avec cette référence existe déjà');
     var detailsIdx = extFn.indexOf('Détail technique', friendlyIdx);
     assert.ok(friendlyIdx !== -1, 'Friendly message must exist');
     assert.ok(detailsIdx > friendlyIdx, 'Technical details must come after friendly message');
+  });
+
+  // Test 39: classification logic uses AND (code AND constraint), not OR
+  await test('39. isDuplicateRef uses AND logic (code AND constraint/key)', () => {
+    // Verify the source code contains the AND pattern
+    assert.ok(extFn.indexOf('(errCode === \'23505\') && (targetConstraintNamed || keyIdentified)') !== -1,
+      'Must use (code === 23505) && (targetConstraintNamed || keyIdentified)');
+    // Verify the old broad OR pattern is gone
+    assert.ok(extFn.indexOf("errCode === '23505' ||") === -1,
+      'Old broad OR pattern (errCode === 23505 || ...) must be removed');
   });
 }
 

@@ -6718,12 +6718,22 @@ Cadeau premium personnalisé</textarea>
     var insertRes = await sb.from('missions').insert([missionData]).select().single();
     if (insertRes.error) {
       console.error('External mission creation error:', insertRes.error);
-      // MISSIONS-EXT-2B — Detect duplicate external reference (PostgreSQL 23505 / constraint name)
+      // MISSIONS-EXT-2B.1 — Precise duplicate external-reference detection.
+      // Only classify as external-reference duplicate when 23505 AND the violated
+      // constraint/key is specifically uq_missions_external_ref_per_platform or
+      // explicitly identifies (source_mission, external_reference).
+      // An unrelated 23505 (different unique constraint) must NOT trigger the
+      // friendly duplicate message — it falls through to the generic error path.
       var errMsg = insertRes.error.message || '';
       var errCode = insertRes.error.code || '';
-      var isDuplicateRef = errCode === '23505' ||
-        errMsg.indexOf('uq_missions_external_ref_per_platform') !== -1 ||
-        (errMsg.toLowerCase().indexOf('duplicate key') !== -1 && errMsg.toLowerCase().indexOf('external_ref') !== -1);
+      var errDetails = insertRes.error.details || '';
+      var errHint = insertRes.error.hint || '';
+      var combinedText = (errMsg + ' ' + errDetails + ' ' + errHint).toLowerCase();
+      var TARGET_CONSTRAINT = 'uq_missions_external_ref_per_platform';
+      var targetConstraintNamed = combinedText.indexOf(TARGET_CONSTRAINT) !== -1;
+      var keyIdentified = combinedText.indexOf('source_mission') !== -1 &&
+                          combinedText.indexOf('external_reference') !== -1;
+      var isDuplicateRef = (errCode === '23505') && (targetConstraintNamed || keyIdentified);
       if (isDuplicateRef) {
         Swal.fire({
           title: 'Référence déjà utilisée',
