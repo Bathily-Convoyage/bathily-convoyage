@@ -4345,7 +4345,7 @@ Cadeau premium personnalisé</textarea>
         ${details.original_total_ht && details.original_total_ht !== parseFloat(devis.total_ht) ? `<span style="color:var(--warning);font-size:0.8rem;\"><b>Prix original :</b> ${parseFloat(details.original_total_ht).toFixed(2)} €</span><br>${details.adjust_reason ? `<span style="font-size:0.75rem;color:#888;\">Raison : ${escapeHtml(details.adjust_reason)}</span><br>` : ''}` : ''}
         ${details.opts?.urgence ? '<b>⚠️ Urgence</b><br>' : ''}
         ${details.opts?.gardiennage ? '<b>📦 Gardiennage</b><br>' : ''}
-        ${details.message ? `<hr style="margin:10px 0;border-color:#eee;"><b>Message client :</b><br>${escapeHtml(details.message)}<br>` : ''}
+        ${details.message ? `<hr style="margin:10px 0;border-color:#eee;"><b>Message client :</b><br>${escapeHtml(details.message)}<br><div id="devisAiStructResult" style="margin-top:8px;"></div><button class="btn-sm btn-sm-ghost" onclick="structureDevisWithAi('${devis.id}')" id="devisStructBtn" style="margin-top:6px;"><i class="fas fa-wand-magic-sparkles"></i> Structurer avec l'IA</button>` : ''}
         ${details.promo_code ? `<b>Code promo :</b> ${escapeHtml(details.promo_code)}<br>` : ''}
         <hr style="margin:10px 0;border-color:#eee;">
         <b>Créé le :</b> ${formatDate(devis.created_at)}
@@ -4357,6 +4357,104 @@ Cadeau premium personnalisé</textarea>
       showConfirmButton: false,
       showCancelButton: false
     });
+  };
+
+  window.structureDevisWithAi = async function(devisId) {
+    const devis = _allDevisData.find(d => d.id === devisId);
+    if (!devis) return;
+    const message = devis.details?.message;
+    if (!message) return;
+
+    const client = getSupabase();
+    if (!client) return Swal.fire('Erreur', 'Session expirée. Veuillez vous reconnecter.', 'error');
+
+    const { data: sessionData } = await client.auth.getSession();
+    if (!sessionData?.session?.access_token) {
+      return Swal.fire('Erreur', 'Session expirée. Veuillez vous reconnecter.', 'error');
+    }
+
+    const btn = document.getElementById('devisStructBtn');
+    const resultDiv = document.getElementById('devisAiStructResult');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse en cours...'; }
+    if (resultDiv) resultDiv.innerHTML = '';
+
+    try {
+      const response = await fetch('/api/ai-assist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify({
+          task: 'devis_structuring',
+          input: { customerMessage: message },
+        }),
+      });
+
+      if (response.status === 401) {
+        if (resultDiv) resultDiv.innerHTML = '<span style="color:var(--danger);font-size:0.85rem;">Session expirée. Veuillez vous reconnecter.</span>';
+        return;
+      }
+      if (response.status === 403) {
+        if (resultDiv) resultDiv.innerHTML = '<span style="color:var(--danger);font-size:0.85rem;">Accès refusé. Réservé aux administrateurs.</span>';
+        return;
+      }
+      if (response.status === 429) {
+        const data = await response.json();
+        if (resultDiv) resultDiv.innerHTML = '<span style="color:var(--warning);font-size:0.85rem;">Limite IA atteinte. Réessayez dans une minute.</span>';
+        return;
+      }
+
+      const data = await response.json();
+      const o = data.output || {};
+      const meta = data.meta || {};
+
+      const vehicleLabels = { car: 'Voiture', motorcycle: 'Moto', utility: 'Utilitaire', unknown: 'Inconnu' };
+      const urgencyLabels = { normal: 'Normal', urgent: 'Urgent', unknown: 'Inconnu' };
+      const intentLabels = { quote_request: 'Demande de devis', information: 'Demande d\'information', unknown: 'Inconnu' };
+
+      if (meta.ai_disabled) {
+        if (resultDiv) resultDiv.innerHTML = '<div style="padding:8px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;font-size:0.85rem;color:#888;">IA désactivée. Veuillez contacter l\'administrateur technique.</div>';
+        return;
+      }
+      if (meta.circuit_open) {
+        if (resultDiv) resultDiv.innerHTML = '<div style="padding:8px;border:1px solid #ddd;border-radius:6px;background:#fff3cd;font-size:0.85rem;color:#856404;">IA temporairement indisponible (circuit ouvert). Réessayez plus tard.</div>';
+        return;
+      }
+
+      const constraintsHtml = (items) => {
+        if (!items || !items.length) return '<span style="color:#888;">Aucune</span>';
+        return '<ul style="margin:4px 0;padding-left:18px;">' + items.map(i => `<li>${escapeHtml(i)}</li>`).join('') + '</ul>';
+      };
+
+      const sourceLabel = meta.fallback_used
+        ? '<span style="font-size:0.75rem;color:#888;">(résultat de secours — IA indisponible)</span>'
+        : '<span style="font-size:0.75rem;color:#28a745;">(généré par IA)</span>';
+
+      const reviewBadge = o.needs_human_review
+        ? '<span style="color:var(--warning);font-size:0.8rem;">⚠️ Revue humaine recommandée</span>'
+        : '<span style="color:#28a745;font-size:0.8rem;">✓ Informations claires</span>';
+
+      if (resultDiv) resultDiv.innerHTML = `
+        <div style="padding:10px;border:1px solid #ddd;border-radius:6px;background:#fafafa;margin-top:6px;">
+          <b style="font-size:0.9rem;">Analyse IA ${sourceLabel}</b>
+          <hr style="margin:6px 0;border-color:#eee;">
+          <b>Type de véhicule :</b> ${escapeHtml(vehicleLabels[o.vehicle_type] || 'Inconnu')}<br>
+          <b>Urgence :</b> ${escapeHtml(urgencyLabels[o.urgency] || 'Inconnu')}<br>
+          <b>Contraintes de récupération :</b> ${constraintsHtml(o.pickup_constraints)}<br>
+          <b>Contraintes de livraison :</b> ${constraintsHtml(o.delivery_constraints)}<br>
+          <b>Contraintes particulières :</b> ${constraintsHtml(o.special_constraints)}<br>
+          <b>Intention client :</b> ${escapeHtml(intentLabels[o.customer_intent] || 'Inconnu')}<br>
+          <b>Revue humaine requise :</b> ${reviewBadge}<br>
+          <hr style="margin:6px 0;border-color:#eee;">
+          <span style="font-size:0.75rem;color:#888;">Aperçu en lecture seule. Aucune modification automatique. L'admin peut copier les valeurs manuellement.</span>
+        </div>
+      `;
+    } catch (err) {
+      if (resultDiv) resultDiv.innerHTML = '<span style="color:var(--danger);font-size:0.85rem;">Erreur de communication. Réessayez.</span>';
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Structurer avec l\'IA'; }
+    }
   };
 
   window.adjustDevisPrice = async function(id) {
