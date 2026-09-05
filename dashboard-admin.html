@@ -1766,6 +1766,7 @@
           <h2 class="sec-h">Toutes les <em>missions</em></h2>
           <div class="sec-actions">
             <button class="btn-red" id="createMissionBtn"><i class="fas fa-plus"></i> Créer une mission</button>
+            <button class="btn-outline" id="createExternalMissionBtn"><i class="fas fa-globe"></i> Ajouter une mission externe</button>
             <button class="btn-outline"><i class="fas fa-download"></i> Exporter</button>
           </div>
         </div>
@@ -1785,13 +1786,21 @@
             <option value="route">Route</option>
             <option value="plateau">Plateau</option>
           </select>
+          <select id="filter-source">
+            <option value="">Toutes les sources</option>
+            <option value="direct">Direct</option>
+            <option value="hiflow">Hiflow</option>
+            <option value="driiveme">Driiveme</option>
+            <option value="alb">ALB Convoyage</option>
+            <option value="other">Autre</option>
+          </select>
           <input type="text" id="filter-search" placeholder="Référence, client, convoyeur…" style="min-width:200px; border-radius:40px;">
           <button class="btn-outline" id="resetFiltersBtn" style="padding:6px 14px; font-size:0.6rem;"><i class="fas fa-times"></i> Réinitialiser</button>
           <span class="auto-refresh-badge"><span class="auto-refresh-dot"></span> Auto-refresh 30s</span>
         </div>
         <table class="data-table">
           <thead>
-            <tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Convoyeur</th><th>Mode</th><th>Pack</th><th>Montant</th><th>Rém. convoyeur</th><th>Marge</th><th>Paiement</th><th>Statut</th><th>Date</th><th>Actions</th></tr>
+            <tr><th>Réf.</th><th>Client</th><th>Trajet</th><th>Convoyeur</th><th>Mode</th><th>Pack</th><th>Source</th><th>Montant</th><th>Rém. convoyeur</th><th>Marge</th><th>Paiement</th><th>Statut</th><th>Date</th><th>Actions</th></tr>
           </thead>
           <tbody id="missionsTableBody"></tbody>
         </table>
@@ -2397,6 +2406,84 @@ Cadeau premium personnalisé</textarea>
     </div>
   </div>
 
+  <!-- MODAL CREATION MISSION EXTERNE — MISSIONS-EXT-1 -->
+  <div class="modal-overlay" id="modalExternalMission">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('modalExternalMission')"><i class="fas fa-times"></i></button>
+      <h3 class="modal-h">Ajouter une mission <em>externe</em></h3>
+      <p class="modal-sub">Mission issue d'une plateforme externe (Hiflow, Driiveme, ALB, autre)</p>
+
+      <div class="f-row">
+        <div class="f-grp">
+          <label>Plateforme *</label>
+          <select id="ext-platform">
+            <option value="">— Choisir —</option>
+            <option value="hiflow">Hiflow</option>
+            <option value="driiveme">Driiveme</option>
+            <option value="alb">ALB Convoyage</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+        <div class="f-grp"><label>Référence externe *</label><input type="text" id="ext-reference" placeholder="Ex: HF-123456" maxlength="120"></div>
+      </div>
+
+      <div class="f-row">
+        <div class="f-grp search-wrapper">
+          <label>Adresse de départ *</label>
+          <input type="text" id="ext-depart" placeholder="Ex: 70 Boulevard Pierre Semard, 34070 Montpellier" autocomplete="off">
+          <div class="suggest-box" id="extDepartSuggests"></div>
+          <div class="field-err" id="errExtDepartAddr" style="display:none; color:var(--danger); font-size:0.75rem; margin-top:4px;">Veuillez sélectionner une adresse proposée.</div>
+        </div>
+        <div class="f-grp search-wrapper">
+          <label>Adresse d'arrivée *</label>
+          <input type="text" id="ext-arrivee" placeholder="Ex: 16 Avenue Lavoisier, 63170 Aubière" autocomplete="off">
+          <div class="suggest-box" id="extArriveeSuggests"></div>
+          <div class="field-err" id="errExtArriveeAddr" style="display:none; color:var(--danger); font-size:0.75rem; margin-top:4px;">Veuillez sélectionner une adresse proposée.</div>
+        </div>
+      </div>
+
+      <div class="f-grp">
+        <label>Type de véhicule</label>
+        <div class="veh-tabs">
+          <button type="button" class="veh-tab active" data-value="Automobile" onclick="setExtVehicleType('Automobile')">🚗 Automobile</button>
+          <button type="button" class="veh-tab" data-value="Moto" onclick="setExtVehicleType('Moto')">🏍️ Moto</button>
+        </div>
+        <input type="hidden" id="extVehType" value="Automobile">
+      </div>
+
+      <div class="f-row">
+        <div class="f-grp"><label>Immatriculation</label><input type="text" id="ext-immatriculation" placeholder="AB-123-CD" maxlength="20"></div>
+        <div class="f-grp"><label>Véhicule (libre)</label><input type="text" id="ext-vehicule" placeholder="Ex: Peugeot 207"></div>
+      </div>
+
+      <div class="f-row">
+        <div class="f-grp"><label>Date de départ *</label><input type="date" id="ext-date-depart"></div>
+        <div class="f-grp"><label>Heure de départ *</label><input type="time" id="ext-heure-depart"></div>
+      </div>
+
+      <div class="f-row">
+        <div class="f-grp"><label>Montant HT (€) *</label><input type="number" id="ext-montant-ht" placeholder="Ex: 450" step="0.01" min="0"></div>
+        <div class="f-grp"><label>Rémunération convoyeur (€)</label><input type="number" id="ext-remuneration" placeholder="Ex: 200" step="0.01" min="0"></div>
+      </div>
+
+      <div class="f-row">
+        <div class="f-grp"><label>Convoyeur</label><select id="ext-convoyeur">
+          <option value="">Marché (aucun convoyeur assigné)</option>
+        </select></div>
+      </div>
+
+      <div class="f-grp">
+        <label>Notes internes</label>
+        <textarea id="ext-notes" placeholder="Notes internes (optionnel)" rows="2" style="width:100%;border-radius:8px;border:1px solid #ddd;padding:8px;font-size:0.9rem;"></textarea>
+      </div>
+
+      <div class="modal-btns">
+        <button class="btn-red" id="createExternalMissionConfirmBtn"><i class="fas fa-plus"></i> Créer la mission externe</button>
+        <button class="btn-outline" onclick="closeModal('modalExternalMission')">Annuler</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL CLIENT -->
   <div class="modal-overlay" id="modalClient">
     <div class="modal-box" style="max-width:600px;">
@@ -2966,6 +3053,14 @@ Cadeau premium personnalisé</textarea>
   function setAdminVehicleType(type) {
     document.getElementById('adminVehType').value = type;
     document.querySelectorAll('#modalMission .veh-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.value === type);
+    });
+  }
+
+  // MISSIONS-EXT-1 — External mission vehicle type selector
+  function setExtVehicleType(type) {
+    document.getElementById('extVehType').value = type;
+    document.querySelectorAll('#modalExternalMission .veh-tab').forEach(tab => {
       tab.classList.toggle('active', tab.dataset.value === type);
     });
   }
@@ -3694,7 +3789,7 @@ Cadeau premium personnalisé</textarea>
   async function loadMissions() {
     const client = getSupabase();
     if (!client) return;
-    const { data: missions, error } = await client.from('missions').select('id, reference, depart, arrivee, vehicule, mode, mode_transport, pack, status, paiement_statut, montant_ht, remuneration_convoyeur, marge, date_mission, client_id, client_email, client_nom, client_telephone, convoyeur_nom, convoyeur_id, convoyeur_telephone, immatriculation, type_vehicule, notes, stripe_session_id, photo_fin_mission, fin_mission_selfie_uploaded_at, created_at, updated_at').order('created_at', { ascending: false });
+    const { data: missions, error } = await client.from('missions').select('id, reference, depart, arrivee, vehicule, mode, mode_transport, pack, status, paiement_statut, montant_ht, remuneration_convoyeur, marge, date_mission, client_id, client_email, client_nom, client_telephone, convoyeur_nom, convoyeur_id, convoyeur_telephone, immatriculation, type_vehicule, notes, stripe_session_id, photo_fin_mission, fin_mission_selfie_uploaded_at, created_at, updated_at, source_mission, external_reference').order('created_at', { ascending: false });
     if (error) { console.error(error); return; }
     _allMissions = missions || [];
     // C-2.2C2 — Batch load open incident counts per mission (no N+1)
@@ -3754,7 +3849,7 @@ Cadeau premium personnalisé</textarea>
   function renderMissionsTable(missions) {
     const tbody = document.getElementById('missionsTableBody');
     if (!tbody) return;
-    if (!missions.length) { tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;">Aucune mission.</td></tr>'; return; }
+    if (!missions.length) { tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;">Aucune mission.</td></tr>'; return; }
     tbody.innerHTML = missions.map(m => {
       const status = m.status || 'available';
       let statusClass = 'sp-att', statusText = 'Sur le marché';
@@ -3770,6 +3865,13 @@ Cadeau premium personnalisé</textarea>
       const payClass = payStatus === 'paid' ? 'sp-ok' : 'sp-err';
       const payText = payStatus === 'paid' ? 'Payé' : 'En attente';
       const dateStr = formatDate(m.date_mission || m.created_at);
+      // MISSIONS-EXT-1 — Source badge
+      const sourceMap = { direct: 'Direct', hiflow: 'Hiflow', driiveme: 'Driiveme', alb: 'ALB', other: 'Autre' };
+      const src = m.source_mission || 'direct';
+      const sourceLabel = sourceMap[src] || src;
+      const sourceBadge = src !== 'direct'
+        ? `<span class="sp sp-att" style="font-size:0.7rem;" title="${escapeHtml(m.external_reference || '')}">${escapeHtml(sourceLabel)}</span>`
+        : `<span style="font-size:0.75rem; color:var(--gray-mid);">${escapeHtml(sourceLabel)}</span>`;
       let actionsHtml = '';
       if (status === 'archived') {
         actionsHtml = `<div class="td-actions">
@@ -3807,6 +3909,7 @@ Cadeau premium personnalisé</textarea>
         <td>${escapeHtml(m.convoyeur_nom || '-')}</td>
         <td>${escapeHtml(m.vehicule)}</td>
         <td>${escapeHtml(m.pack)}</td>
+        <td>${sourceBadge}</td>
         <td>${m.montant_ht?.toLocaleString?.('fr-FR') || m.montant_ht}€</td>
         <td>${m.remuneration_convoyeur || '-'}€</td>
         <td>${m.marge || '-'}€</td>
@@ -5617,10 +5720,17 @@ Cadeau premium personnalisé</textarea>
     }
     actionsHtml += `<button class="btn-sm btn-sm-red" onclick="Swal.close(); deleteMission('${mission.id}', '${mission.reference || ''}')"><i class="fas fa-trash"></i> Supprimer</button>`;
 
+    // MISSIONS-EXT-1 — Source / external reference labels
+    const _sourceMap = { direct: 'Direct', hiflow: 'Hiflow', driiveme: 'Driiveme', alb: 'ALB Convoyage', other: 'Autre' };
+    const _src = mission.source_mission || 'direct';
+    const sourceLabel = _sourceMap[_src] || _src;
+    const extRefLabel = _src !== 'direct' ? (mission.external_reference || '') : '';
+
     Swal.fire({
       title: `Mission ${escapeHtml(mission.reference)}`,
      html: `<div style="text-align:left;font-size:0.9rem;">
         <div style="display:flex;gap:8px;margin-bottom:12px;">${statusBadge} ${payBadge}</div>
+        <b>Source :</b> ${escapeHtml(sourceLabel)}${extRefLabel ? ' — ' + escapeHtml(extRefLabel) : ''}<br>
         <b>Client :</b> ${escapeHtml(mission.client_nom || '—')}<br>
         <b>Email client :</b> ${escapeHtml(mission.client_email || '—')}<br>
         <b>Téléphone :</b> ${escapeHtml(mission.client_telephone || '—')}<br>
@@ -5966,7 +6076,8 @@ Cadeau premium personnalisé</textarea>
         'notes', 'trajet', 'client_id', 'convoyeur_nom', 'convoyeur_id',
         'stripe_session_id', 'rappel_envoye', 'annee', 'carburant', 'puissance',
         'client_telephone_livraison', 'convoyeur_telephone', 'zone_convoyeur',
-        'photo_fin_mission', 'fin_mission_selfie_uploaded_at'
+        'photo_fin_mission', 'fin_mission_selfie_uploaded_at',
+        'source_mission', 'external_reference'
       ];
       var payload = {};
       for (var i = 0; i < ALLOWED.length; i++) {
@@ -6283,6 +6394,230 @@ Cadeau premium personnalisé</textarea>
   });
 
   // ============================================================
+  // MISSIONS-EXT-1 — EXTERNAL MISSION CREATION
+  // ============================================================
+  // External missions originate from platforms (Hiflow, Driiveme, ALB, other).
+  // They do NOT call /api/calculate-quote — montant_ht is manually entered.
+  // No fake client is created. No devis, no invoice, no email, no payment.
+  // They enter the normal mission lifecycle (status='available') after creation.
+  // ============================================================
+
+  document.getElementById('createExternalMissionConfirmBtn')?.addEventListener('click', async function() {
+    if (_isCreatingExternalMission) return;
+    _isCreatingExternalMission = true;
+    var createBtn = document.getElementById('createExternalMissionConfirmBtn');
+    if (createBtn) createBtn.disabled = true;
+
+    try {
+      await _doCreateExternalMission();
+    } catch (e) {
+      console.error('Create external mission unexpected error:', e);
+      Swal.fire('Erreur', 'Une erreur inattendue est survenue: ' + (e.message || ''), 'error');
+    } finally {
+      _isCreatingExternalMission = false;
+      if (createBtn) createBtn.disabled = false;
+    }
+  });
+
+  async function _doCreateExternalMission() {
+    var platform = document.getElementById('ext-platform').value;
+    var extRef = document.getElementById('ext-reference').value.trim();
+    var depart = document.getElementById('ext-depart').value.trim();
+    var arrivee = document.getElementById('ext-arrivee').value.trim();
+    var vehiculeType = document.getElementById('extVehType').value;
+    var immatriculation = document.getElementById('ext-immatriculation').value.trim();
+    var vehiculeLibre = document.getElementById('ext-vehicule').value.trim();
+    var dateDepart = document.getElementById('ext-date-depart')?.value || '';
+    var heureDepart = document.getElementById('ext-heure-depart')?.value || '';
+    var montantHt = document.getElementById('ext-montant-ht').value.trim();
+    var remuneration = document.getElementById('ext-remuneration').value.trim();
+    var notes = document.getElementById('ext-notes').value.trim();
+    var convoyeurId = document.getElementById('ext-convoyeur').value;
+
+    // === VALIDATION ===
+    if (!platform) {
+      Swal.fire('Champs requis', 'Veuillez sélectionner une plateforme.', 'warning');
+      return;
+    }
+    if (!extRef) {
+      Swal.fire('Champs requis', 'Veuillez renseigner la référence externe.', 'warning');
+      return;
+    }
+    // HTML/script rejection — no HTML tags allowed in external_reference
+    if (/<[^>]*>/.test(extRef)) {
+      Swal.fire('Référence invalide', 'La référence externe ne peut pas contenir de HTML.', 'error');
+      return;
+    }
+    if (extRef.length > 120) {
+      Swal.fire('Référence trop longue', 'La référence externe ne peut pas dépasser 120 caractères.', 'warning');
+      return;
+    }
+    if (!depart || !arrivee) {
+      Swal.fire('Champs requis', 'Veuillez renseigner l\'adresse de départ et l\'adresse d\'arrivée.', 'warning');
+      return;
+    }
+    if (!_extDepartSelected) {
+      _showAddrErr('errExtDepartAddr');
+      Swal.fire('Adresse invalide', 'Veuillez sélectionner une adresse de départ proposée par l\'autocomplétion.', 'warning');
+      return;
+    }
+    if (!_extArriveeSelected) {
+      _showAddrErr('errExtArriveeAddr');
+      Swal.fire('Adresse invalide', 'Veuillez sélectionner une adresse d\'arrivée proposée par l\'autocomplétion.', 'warning');
+      return;
+    }
+    if (!dateDepart || !heureDepart) {
+      Swal.fire('Planning incomplet', 'Veuillez renseigner la date et l\'heure de départ.', 'warning');
+      return;
+    }
+    var montantHtNum = parseFloat(montantHt);
+    if (isNaN(montantHtNum) || montantHtNum <= 0) {
+      Swal.fire('Montant invalide', 'Le montant HT doit être un nombre strictement positif.', 'warning');
+      return;
+    }
+    var remunerationNum = remuneration ? parseFloat(remuneration) : null;
+    if (remuneration && (isNaN(remunerationNum) || remunerationNum < 0)) {
+      Swal.fire('Rémunération invalide', 'La rémunération convoyeur doit être un nombre positif ou nul.', 'warning');
+      return;
+    }
+    if (remunerationNum !== null && remunerationNum > montantHtNum) {
+      Swal.fire('Rémunération invalide', 'La rémunération convoyeur ne peut pas dépasser le montant HT.', 'warning');
+      return;
+    }
+
+    // === TIMEZONE CONVERSION (Paris → UTC) ===
+    var depResult;
+    try {
+      depResult = ParisTZ.parisToUtc(dateDepart, heureDepart);
+    } catch (e) {
+      Swal.fire('Erreur timezone', 'Impossible de convertir la date/heure: ' + (e.message || ''), 'error');
+      return;
+    }
+    if (depResult.error === 'TIMEZONE_RESOLUTION_UNAVAILABLE') {
+      Swal.fire('Erreur timezone', 'Résolution du fuseau horaire Europe/Paris impossible. Contactez le support.', 'error');
+      return;
+    }
+    if (depResult.error === 'INVALID_INPUT') {
+      Swal.fire('Planning invalide', 'La date ou l\'heure saisie n\'est pas valide.', 'error');
+      return;
+    }
+    if (depResult.error === 'NONEXISTENT_TIME') {
+      Swal.fire('Heure inexistante',
+        'L\'heure de départ saisie n\'existe pas en France (changement d\'heure d\'été). Veuillez choisir une autre heure.',
+        'warning');
+      return;
+    }
+
+    // === BUILD MISSION DATA ===
+    var sb = getSupabase();
+    var ref = 'BC-' + new Date().getFullYear() + '-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase());
+
+    var vehicleName = vehiculeLibre || vehiculeType;
+
+    // Legacy date_mission / heure_depart projection from departure_at Paris parts
+    var depParisParts = ParisTZ.getParisParts(new Date(depResult.utcIso));
+    function _pad2(n) { return String(n).padStart(2, '0'); }
+    var legacyDateMission = depParisParts.year + '-' + _pad2(depParisParts.month) + '-' + _pad2(depParisParts.day);
+    var legacyHeureDepart = _pad2(depParisParts.hour) + ':' + _pad2(depParisParts.minute);
+
+    // Calculate marge if both montant_ht and remuneration are known
+    var margeVal = (remunerationNum !== null) ? (montantHtNum - remunerationNum) : null;
+
+    // No fake client — client_id, client_nom, client_email are all null
+    // No /api/calculate-quote call — montant_ht is manually entered
+    var missionData = buildAdminMissionPayload({
+      reference: ref,
+      client_nom: null,
+      client_email: null,
+      depart: depart,
+      arrivee: arrivee,
+      depart_ville: _extDepartData?.city || '',
+      arrivee_ville: _extArriveeData?.city || '',
+      vehicule: vehicleName,
+      type_vehicule: vehiculeType,
+      immatriculation: immatriculation || null,
+      mode: 'route',
+      pack: null,
+      montant_ht: montantHtNum,
+      remuneration_convoyeur: remunerationNum,
+      marge: margeVal,
+      status: 'available',
+      paiement_statut: 'pending',
+      date_mission: legacyDateMission,
+      heure_depart: legacyHeureDepart,
+      departure_at: depResult.utcIso,
+      notes: notes || null,
+      client_id: null,
+      source_mission: platform,
+      external_reference: extRef
+    });
+
+    var ambiguousWarning = '';
+    if (depResult.warning === 'AMBIGUOUS_FIRST_OCCURRENCE') {
+      ambiguousWarning = ' L\'heure de départ est ambiguë (changement d\'heure d\'hiver) — la première occurrence a été utilisée.';
+    }
+
+    var insertRes = await sb.from('missions').insert([missionData]).select().single();
+    if (insertRes.error) {
+      console.error('External mission creation error:', insertRes.error);
+      Swal.fire({
+        title: 'Impossible de créer la mission externe',
+        html: 'Une erreur technique est survenue lors de la création.<br><br><details style="font-size:0.75rem; color:var(--gray-mid);"><summary>Détail technique</summary>' + escapeHtml(insertRes.error.message) + '</details>',
+        icon: 'error'
+      });
+      return;
+    }
+
+    var insertedMission = insertRes.data;
+
+    // === ASSIGNMENT via canonical RPC (same as direct missions) ===
+    if (convoyeurId) {
+      var assignedConvoyeur = _convoyeursList.find(function(c) { return c.id === convoyeurId; });
+      var rpcRes = await sb.rpc('admin_assign_mission', {
+        p_mission_id: insertedMission.id,
+        p_convoyeur_id: convoyeurId
+      });
+      if (rpcRes.error) {
+        // PARTIAL SUCCESS: mission created as 'available', assignment failed
+        console.error('Assignment RPC failed:', rpcRes.error);
+        closeModal('modalExternalMission');
+        Swal.fire({
+          title: 'Mission externe créée — attribution échouée',
+          html: 'La mission ' + ref + ' a été créée mais l\'attribution du convoyeur a échoué.<br><br>' +
+                'La mission est sur le marché. Vous pouvez attribuer un convoyeur depuis la liste.<br><br>' +
+                '<details style="font-size:0.75rem; color:var(--gray-mid);"><summary>Détail technique</summary>' +
+                escapeHtml(rpcRes.error.message) + '</details>',
+          icon: 'warning',
+          confirmButtonText: 'OK'
+        });
+        loadMissions();
+        return;
+      }
+      // Full success with assignment
+      closeModal('modalExternalMission');
+      var successTitle = 'Mission externe ' + ref + ' créée et attribuée à ' +
+        (assignedConvoyeur ? escapeHtml(assignedConvoyeur.prenom + ' ' + assignedConvoyeur.nom) : 'un convoyeur') + '.';
+      if (ambiguousWarning) {
+        Swal.fire({ icon: 'success', title: successTitle, html: ambiguousWarning, timer: 5000 });
+      } else {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: successTitle, timer: 3000 });
+      }
+      loadMissions();
+      return;
+    }
+
+    // Success: no convoyeur (market)
+    closeModal('modalExternalMission');
+    var marketTitle = 'Mission externe ' + ref + ' créée sur le marché.';
+    if (ambiguousWarning) {
+      Swal.fire({ icon: 'success', title: marketTitle, html: ambiguousWarning, timer: 5000 });
+    } else {
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: marketTitle, timer: 3000 });
+    }
+    loadMissions();
+  }
+
+  // ============================================================
   // PARTIE 11 : GESTIONNAIRES D'ÉVÉNEMENTS (DOMContentLoaded)
   // ============================================================
   document.addEventListener('DOMContentLoaded', function() {
@@ -6386,6 +6721,13 @@ let _adminDepartData = null;   // { label, city, postcode, latitude, longitude, 
 let _adminArriveeSelected = false;
 let _isCreatingMission = false; // duplicate create guard
 let _adminArriveeData = null;
+
+// MISSIONS-EXT-1 — External mission address selection state
+let _extDepartSelected = false;
+let _extDepartData = null;
+let _extArriveeSelected = false;
+let _extArriveeData = null;
+let _isCreatingExternalMission = false;
 
 function _clearAddrErr(errId) {
   var el = document.getElementById(errId);
@@ -6646,6 +6988,43 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
       openModal('modalMission');
     });
 
+    // MISSIONS-EXT-1 — Create external mission button
+    document.getElementById('createExternalMissionBtn')?.addEventListener('click', function() {
+      // Reset form fields
+      document.getElementById('ext-platform').value = '';
+      document.getElementById('ext-reference').value = '';
+      document.getElementById('ext-depart').value = '';
+      document.getElementById('ext-arrivee').value = '';
+      document.getElementById('ext-immatriculation').value = '';
+      document.getElementById('ext-vehicule').value = '';
+      document.getElementById('ext-montant-ht').value = '';
+      document.getElementById('ext-remuneration').value = '';
+      document.getElementById('ext-notes').value = '';
+      var dd = document.getElementById('ext-date-depart');
+      if (dd) dd.value = new Date().toISOString().split('T')[0];
+      var hd = document.getElementById('ext-heure-depart'); if (hd) hd.value = '';
+      // Reset vehicle tabs
+      document.querySelectorAll('#modalExternalMission .veh-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.value === 'Automobile');
+      });
+      document.getElementById('extVehType').value = 'Automobile';
+      // Reset address selection state
+      _extDepartSelected = false; _extDepartData = null;
+      _extArriveeSelected = false; _extArriveeData = null;
+      // Populate convoyeur dropdown (reuse the same list as the manual modal)
+      var extConvSelect = document.getElementById('ext-convoyeur');
+      if (extConvSelect && _convoyeursList) {
+        extConvSelect.innerHTML = '<option value="">Marché (aucun convoyeur assigné)</option>';
+        _convoyeursList.forEach(function(c) {
+          var opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = (c.prenom || '') + ' ' + (c.nom || '');
+          extConvSelect.appendChild(opt);
+        });
+      }
+      openModal('modalExternalMission');
+    });
+
     // Refresh candidatures
     document.getElementById('refreshCandidaturesBtn')?.addEventListener('click', loadCandidatures);
     document.getElementById('refreshFormationCandidaturesBtn')?.addEventListener('click', loadFormationCandidatures);
@@ -6665,23 +7044,27 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     function applyMissionFilters() {
       const statusFilter = document.getElementById('filter-status')?.value || '';
       const modeFilter = document.getElementById('filter-mode')?.value || '';
+      const sourceFilter = document.getElementById('filter-source')?.value || '';
       const searchQuery = (document.getElementById('filter-search')?.value || '').toLowerCase().trim();
       let filtered = _allMissions;
       if (statusFilter) filtered = filtered.filter(m => m.status === statusFilter);
       else filtered = filtered.filter(m => m.status !== 'archived');
       if (modeFilter) filtered = filtered.filter(m => (m.mode || 'route') === modeFilter);
+      if (sourceFilter) filtered = filtered.filter(m => (m.source_mission || 'direct') === sourceFilter);
       if (searchQuery) filtered = filtered.filter(m => {
-        const haystack = `${m.reference || ''} ${m.client_nom || ''} ${m.convoyeur_nom || ''} ${m.depart || ''} ${m.arrivee || ''}`.toLowerCase();
+        const haystack = `${m.reference || ''} ${m.client_nom || ''} ${m.convoyeur_nom || ''} ${m.depart || ''} ${m.arrivee || ''} ${m.external_reference || ''}`.toLowerCase();
         return haystack.includes(searchQuery);
       });
       renderMissionsTable(filtered);
     }
     document.getElementById('filter-status')?.addEventListener('change', applyMissionFilters);
     document.getElementById('filter-mode')?.addEventListener('change', applyMissionFilters);
+    document.getElementById('filter-source')?.addEventListener('change', applyMissionFilters);
     document.getElementById('filter-search')?.addEventListener('input', applyMissionFilters);
     document.getElementById('resetFiltersBtn')?.addEventListener('click', function() {
       document.getElementById('filter-status').value = '';
       document.getElementById('filter-mode').value = '';
+      document.getElementById('filter-source').value = '';
       document.getElementById('filter-search').value = '';
       renderMissionsTable(_allMissions);
     });
@@ -8036,6 +8419,34 @@ if ("serviceWorker" in navigator) {
         }
       }
       _initAddrChangeTracking();
+      // MISSIONS-EXT-1 — External mission address autocomplete
+      AddressAutocomplete.setupAddress('ext-depart', 'extDepartSuggests', function(item) {
+        _extDepartSelected = !!item;
+        _extDepartData = item || null;
+        _clearAddrErr('errExtDepartAddr');
+      });
+      AddressAutocomplete.setupAddress('ext-arrivee', 'extArriveeSuggests', function(item) {
+        _extArriveeSelected = !!item;
+        _extArriveeData = item || null;
+        _clearAddrErr('errExtArriveeAddr');
+      });
+      // Track typing to invalidate external selection state
+      var extDepInput = document.getElementById('ext-depart');
+      var extArrInput = document.getElementById('ext-arrivee');
+      if (extDepInput && !extDepInput._addrTrackingSet) {
+        extDepInput._addrTrackingSet = true;
+        extDepInput.addEventListener('input', function() {
+          _extDepartSelected = false;
+          _extDepartData = null;
+        });
+      }
+      if (extArrInput && !extArrInput._addrTrackingSet) {
+        extArrInput._addrTrackingSet = true;
+        extArrInput.addEventListener('input', function() {
+          _extArriveeSelected = false;
+          _extArriveeData = null;
+        });
+      }
       // Mission detail view — départ/arrivée
       AddressAutocomplete.setupCity('md-depart', 'mdDepartSuggests');
       AddressAutocomplete.setupCity('md-arrivee', 'mdArriveeSuggests');
