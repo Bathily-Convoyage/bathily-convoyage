@@ -1547,6 +1547,87 @@
       color: var(--bordeaux);
       cursor: pointer;
     }
+
+    /* =====================================================
+       MISSIONS-EXT-2C-HF1 — Scoped responsive styles for the
+       admin expense-entry SweetAlert modal only.
+       Does NOT affect other SweetAlert dialogs.
+       ===================================================== */
+    .admin-expense-modal {
+      width: min(520px, calc(100vw - 24px)) !important;
+      max-width: calc(100vw - 24px) !important;
+      max-height: calc(100dvh - 24px) !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      box-sizing: border-box !important;
+      padding: 1rem 1.25rem !important;
+    }
+    .admin-expense-modal .swal2-title {
+      font-size: 1.05rem;
+      margin: 0 0 0.5rem 0;
+    }
+    .admin-expense-modal .swal2-html-container {
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow-x: hidden !important;
+      max-width: 100% !important;
+    }
+    .admin-expense-modal .swal2-html-container > div {
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+      box-sizing: border-box !important;
+    }
+    .admin-expense-modal .swal2-select,
+    .admin-expense-modal .swal2-input,
+    .admin-expense-modal .swal2-textarea {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      margin: 0 !important;
+      font-size: 0.9rem;
+    }
+    .admin-expense-modal .swal2-textarea {
+      resize: vertical;
+      min-height: 60px;
+      max-height: 120px;
+    }
+    .admin-expense-modal .swal2-actions {
+      margin: 0.75rem 0 0 0 !important;
+      gap: 8px;
+    }
+    .admin-expense-modal .swal2-confirm,
+    .admin-expense-modal .swal2-cancel {
+      font-size: 0.85rem;
+      padding: 0.5rem 1.1rem;
+    }
+
+    /* Constrained viewports — tablet */
+    @media (max-width: 768px) {
+      .admin-expense-modal {
+        width: calc(100vw - 20px) !important;
+        padding: 0.85rem 1rem !important;
+      }
+      .admin-expense-modal .swal2-title { font-size: 1rem; }
+    }
+
+    /* Constrained viewports — mobile */
+    @media (max-width: 480px) {
+      .admin-expense-modal {
+        width: calc(100vw - 16px) !important;
+        padding: 0.75rem 0.85rem !important;
+        max-height: calc(100dvh - 16px) !important;
+      }
+      .admin-expense-modal .swal2-title { font-size: 0.95rem; }
+      .admin-expense-modal .swal2-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+      }
+      .admin-expense-modal .swal2-confirm,
+      .admin-expense-modal .swal2-cancel {
+        width: 100%;
+        font-size: 0.85rem;
+      }
+    }
   </style>
 </head>
 
@@ -8553,7 +8634,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
   }
 
   // ============================================================
-  // MISSIONS-EXT-2C — Admin/Operator Expense Entry
+  // MISSIONS-EXT-2C — Admin Expense Entry
   // ============================================================
   // Operator-facing categories mapped to the existing DB expense_type
   // allowlist (no schema change). Bus/Train share return_transport and
@@ -8612,6 +8693,8 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     const today = new Date().toISOString().slice(0, 10);
     const { value: form } = await Swal.fire({
       title: '<i class="fas fa-plus"></i> Ajouter un frais',
+      width: 'min(520px, calc(100vw - 24px))',
+      customClass: { popup: 'admin-expense-modal' },
       html:
         '<div style="text-align:left;font-size:0.9rem;">' +
           '<div style="margin-bottom:10px;">' +
@@ -8630,7 +8713,7 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
             '<label style="font-weight:600;display:block;margin-bottom:4px;">Description</label>' +
             '<textarea id="admExpDesc" class="swal2-textarea" style="width:100%;" maxlength="500" placeholder="Détail du frais (optionnel pour les types simples)"></textarea>' +
           '</div>' +
-          '<div style="font-size:0.7rem;color:var(--gray-mid);">Le frais est enregistré comme <b>approuvé</b> (saisie admin/opérateur). Justificatif non requis à ce stade.</div>' +
+          '<div style="font-size:0.7rem;color:var(--gray-mid);">Le frais est enregistré comme <b>approuvé</b> (saisie admin). Justificatif non requis à ce stade.</div>' +
         '</div>',
       showCancelButton: true,
       confirmButtonText: 'Ajouter',
