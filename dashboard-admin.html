@@ -2791,6 +2791,48 @@ Cadeau premium personnalisé</textarea>
     return _eurFormatter.format(value);
   }
 
+  // ============================================================
+  // MISSIONS-EXT-3A — Source-aware payment display helper
+  // ============================================================
+  // Returns normalized presentation data for mission payment status.
+  // DIRECT missions keep existing client-payment wording.
+  // EXTERNAL missions (hiflow/driiveme/alb/other) display platform
+  // settlement semantics. No AI, no side effects — presentation only.
+  function getMissionPaymentDisplay(mission) {
+    var src = (mission && mission.source_mission) || 'direct';
+    var isExternal = src !== 'direct';
+    var payStatus = (mission && mission.paiement_statut) || 'pending';
+    var isPaid = payStatus === 'paid' || payStatus === 'paye';
+    if (isExternal) {
+      return {
+        isExternal: true,
+        sectionLabel: 'Règlement plateforme',
+        paidLabel: 'Règlement reçu',
+        pendingLabel: 'En attente de règlement',
+        badgeLabel: isPaid ? 'Règlement reçu' : 'En attente de règlement',
+        badgeClass: isPaid ? 'sp-ok' : 'sp-err',
+        actionLabel: 'Marquer règlement reçu',
+        confirmTitle: function(ref) { return 'Marquer le règlement de la mission ' + ref + ' comme reçu ?'; },
+        confirmButton: 'Oui, règlement reçu',
+        successMessage: 'Règlement reçu !',
+        isPaid: isPaid
+      };
+    }
+    return {
+      isExternal: false,
+      sectionLabel: 'Paiement',
+      paidLabel: 'Payé',
+      pendingLabel: 'En attente',
+      badgeLabel: isPaid ? 'Payé' : 'En attente',
+      badgeClass: isPaid ? 'sp-ok' : 'sp-err',
+      actionLabel: 'Marquer payée',
+      confirmTitle: function(ref) { return 'Marquer la mission ' + ref + ' comme payée ?'; },
+      confirmButton: 'Oui, payée',
+      successMessage: 'Payée !',
+      isPaid: isPaid
+    };
+  }
+
   function getSupabase() {
     if (!_supabaseClient) {
       if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
@@ -3968,8 +4010,10 @@ Cadeau premium personnalisé</textarea>
       else if (status === 'cancelled') { statusClass = 'sp-err'; statusText = 'Annulée'; }
       else if (status === 'archived') { statusClass = 'sp-err'; statusText = 'Archivée'; }
       const payStatus = m.paiement_statut || 'pending';
-      const payClass = payStatus === 'paid' ? 'sp-ok' : 'sp-err';
-      const payText = payStatus === 'paid' ? 'Payé' : 'En attente';
+      // MISSIONS-EXT-3A — Source-aware payment badge
+      const payDisp = getMissionPaymentDisplay(m);
+      const payClass = payDisp.badgeClass;
+      const payText = payDisp.badgeLabel;
       const dateStr = formatDate(m.date_mission || m.created_at);
       // MISSIONS-EXT-1 — Source badge
       const sourceMap = { direct: 'Direct', hiflow: 'Hiflow', driiveme: 'Driiveme', alb: 'ALB', other: 'Autre' };
@@ -4001,7 +4045,7 @@ Cadeau premium personnalisé</textarea>
           ${canMarkDelivered ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'delivered')" title="Marquer livrée"><i class="fas fa-clipboard-check"></i></button>` : ''}
           ${canMarkCompleted ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}
           ${(status === 'in_progress' || status === 'accepted') ? `<button class="btn-sm btn-sm-ghost" onclick="createTrackingLink('${m.id}')" title="Générer lien de suivi"><i class="fas fa-map-marker-alt"></i></button>` : ''}
-          <button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')"><i class="fas fa-unlock"></i></button>
+          <button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')" title="${escapeHtml(payDisp.actionLabel)}"><i class="fas fa-unlock"></i></button>
           <button class="btn-sm btn-sm-ghost" onclick="editMissionTariffs('${m.id}')"><i class="fas fa-coins"></i></button>
           ${canCancel ? `<button class="btn-sm btn-sm-red" onclick="updateMissionStatus('${m.id}', 'cancelled')" title="Annuler"><i class="fas fa-times"></i></button>` : ''}
           ${canArchive ? `<button class="btn-sm btn-sm-ghost" onclick="archiveMission('${m.id}', true)" title="Archiver"><i class="fas fa-archive"></i></button>` : ''}
@@ -5934,9 +5978,11 @@ Cadeau premium personnalisé</textarea>
     else if (status === 'cancelled') statusBadge = '<span class="sp sp-err"><span class="sp-dot"></span>Annulée</span>';
     else if (status === 'archived') statusBadge = '<span class="sp sp-err"><span class="sp-dot"></span>Archivée</span>';
 
-    let payBadge = payStatus === 'paye' || payStatus === 'paid'
-      ? '<span class="sp sp-ok"><span class="sp-dot"></span>Payé</span>'
-      : '<span class="sp sp-err"><span class="sp-dot"></span>En attente</span>';
+    // MISSIONS-EXT-3A — Source-aware payment badge
+    const payDisp = getMissionPaymentDisplay(mission);
+    let payBadge = payDisp.isPaid
+      ? '<span class="sp sp-ok"><span class="sp-dot"></span>' + escapeHtml(payDisp.paidLabel) + '</span>'
+      : '<span class="sp sp-err"><span class="sp-dot"></span>' + escapeHtml(payDisp.pendingLabel) + '</span>';
 
     let actionsHtml = '';
     if (status === 'available' || status === 'assigned') {
@@ -5955,7 +6001,7 @@ Cadeau premium personnalisé</textarea>
       actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); archiveMission('${mission.id}', false)" style="margin-right:6px;"><i class="fas fa-box-open"></i> Désarchiver</button>`;
     }
     if (payStatus !== 'paye' && payStatus !== 'paid') {
-      actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); markMissionPaid('${mission.id}', '${mission.reference || ''}')" style="margin-right:6px;"><i class="fas fa-euro-sign"></i> Marquer payée</button>`;
+      actionsHtml += `<button class="btn-sm btn-sm-ghost" onclick="Swal.close(); markMissionPaid('${mission.id}', '${mission.reference || ''}')" style="margin-right:6px;"><i class="fas fa-euro-sign"></i> ${escapeHtml(payDisp.actionLabel)}</button>`;
     }
     actionsHtml += `<button class="btn-sm btn-sm-red" onclick="Swal.close(); deleteMission('${mission.id}', '${mission.reference || ''}')"><i class="fas fa-trash"></i> Supprimer</button>`;
 
@@ -6238,16 +6284,19 @@ Cadeau premium personnalisé</textarea>
   };
 
   window.markMissionPaid = async function(missionId, reference) {
+    // MISSIONS-EXT-3A — Source-aware confirmation dialog
+    const mission = _allMissions.find(m => m.id === missionId);
+    const payDisp = getMissionPaymentDisplay(mission || {});
     const confirm = await Swal.fire({
-      title: `Marquer la mission ${reference} comme payée ?`,
+      title: payDisp.confirmTitle(reference),
       showCancelButton: true,
-      confirmButtonText: 'Oui, payée'
+      confirmButtonText: payDisp.confirmButton
     });
     if (!confirm.isConfirmed) return;
     const sb = getSupabase();
     const { error } = await sb.rpc('mark_mission_paid', { p_mission_id: missionId });
     if (error) Swal.fire('Erreur', error.message, 'error');
-    else { Swal.fire('Payée !', '', 'success'); loadMissions(); }
+    else { Swal.fire(payDisp.successMessage, '', 'success'); loadMissions(); }
   };
 
   // ============================================================
