@@ -191,12 +191,15 @@ export async function onRequest(context) {
     }
     else if (trigger === 'edl_completed') {
       const { data: edl, error } = await supabase.from('edls')
-        .select('id, reference, type, mission_id, convoyeur_nom, email_client, kilometrage, niveau_carburant, conforme, dommages, signatures, photos, created_at, missions(id, reference, client_email, client_nom, depart, arrivee, vehicule)')
+        .select('id, reference, type, mission_id, convoyeur_nom, email_client, kilometrage, niveau_carburant, conforme, dommages, signatures, photos, created_at, missions(id, reference, client_email, client_nom, depart, arrivee, vehicule, source_mission)')
         .eq('mission_id', id).order('created_at', { ascending: false }).limit(1).single();
       if (error || !edl) throw new Error(`État des lieux introuvable: ${error?.message}`);
       const mission = edl.missions || {};
       const typeLabel = edl.type === 'depart' ? 'Départ' : 'Arrivée';
-      const emailTo = edl.email_client || mission.client_email || 'client@email.fr';
+      // MISSIONS-EXT-4B1 — Source-aware guard: external missions must not receive
+      // direct-client EDL emails. Do NOT rely on NULL email alone.
+      const _isDirectMission = !mission.source_mission || mission.source_mission === 'direct';
+      const emailTo = _isDirectMission ? (edl.email_client || mission.client_email || null) : null;
       let damagesHtml = '<p>Aucun dommage signalé.</p>';
       if (edl.dommages && edl.dommages.length > 0) {
         damagesHtml = '<ul>' + edl.dommages.map(d => `<li><strong>${escapeHtml(d.zone)}</strong> (${escapeHtml(d.type)}) : ${escapeHtml(d.desc)}</li>`).join('') + '</ul>';
@@ -222,16 +225,21 @@ export async function onRequest(context) {
          <div class="highlight-box"><strong>Référence EDL :</strong> ${edl.reference}<br><strong>Convoyeur :</strong> ${edl.convoyeur_nom}<br><strong>Kilométrage :</strong> ${edl.kilometrage} km · <strong>Carburant :</strong> ${edl.niveau_carburant}%</div>
          <h3>Anomalies / Dommages :</h3>${damagesHtml}${signaturesHtml}
          <p style="text-align:center"><a href="https://bathily-convoyage.fr/dashboard-admin.html" class="btn">Accéder au panel Admin</a></p>`);
-      await sendEmail({ to: emailTo, subject: `Bathily Convoyage - État des lieux ${typeLabel} - Réf: ${edl.reference}`, html: clientHtml });
+      if (emailTo) {
+        await sendEmail({ to: emailTo, subject: `Bathily Convoyage - État des lieux ${typeLabel} - Réf: ${edl.reference}`, html: clientHtml });
+      }
       await sendEmail({ to: ADMIN_EMAIL, subject: `[ADMIN] EDL ${typeLabel} complété - Réf: ${edl.reference}`, html: adminHtml });
       resultData = { success: true, message: 'Emails état des lieux envoyés.' };
     }
     else if (trigger === 'payment_success') {
       const { data: mission, error } = await supabase.from('missions')
-        .select('id, reference, client_nom, client_email, client_telephone, depart, arrivee, vehicule, mode, pack, montant_ht, paiement_statut, status, convoyeur_nom, convoyeur_id, date_mission')
+        .select('id, reference, client_nom, client_email, client_telephone, depart, arrivee, vehicule, mode, pack, montant_ht, paiement_statut, status, convoyeur_nom, convoyeur_id, date_mission, source_mission')
         .eq('id', id).single();
       if (error || !mission) throw new Error(`Mission introuvable: ${error?.message}`);
-      const emailTo = mission.client_email || null;
+      // MISSIONS-EXT-4B1 — Source-aware guard: external missions must not receive
+      // direct-client payment emails. Do NOT rely on NULL email alone.
+      const _isDirectPayment = !mission.source_mission || mission.source_mission === 'direct';
+      const emailTo = _isDirectPayment ? (mission.client_email || null) : null;
       const eventKey = typeof stripe_event_id === 'string' && /^evt_[A-Za-z0-9_]+$/.test(stripe_event_id)
         ? `stripe/${stripe_event_id}`
         : null;
@@ -309,8 +317,21 @@ export async function onRequest(context) {
       const missionDate = date_mission ? new Date(date_mission).toLocaleDateString('fr-FR') : 'Non précisée';
       const convName = convoyeur_nom || 'un convoyeur';
 
-      // Email au client
-      const clientEmail = client_email || directEmail;
+      // MISSIONS-EXT-4B1 — Source-aware guard: look up mission.source_mission
+      // and skip the client email for external missions. Do NOT rely on NULL
+      // email alone. Convoyeur email is source-neutral and remains unchanged.
+      let _missionSource = 'direct';
+      if (id) {
+        const { data: _srcMission } = await supabase.from('missions')
+          .select('source_mission').eq('id', id).single();
+        if (_srcMission?.source_mission) {
+          _missionSource = _srcMission.source_mission;
+        }
+      }
+      const _isDirectAssignment = _missionSource === 'direct';
+
+      // Email au client (direct missions only)
+      const clientEmail = _isDirectAssignment ? (client_email || directEmail) : null;
       if (clientEmail) {
         const clientHtml = wrapEmailLayout("Un convoyeur a été assigné à votre mission",
           `<p>Bonjour,</p><p>Votre mission <strong>${missionRef}</strong> a été assignée à <strong>${convName}</strong>.</p>

@@ -64,7 +64,7 @@ export async function onRequest(context) {
     const tomorrowEnd = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 23, 59, 59).toISOString();
 
     const { data: missionsDemain, error: errMissions } = await sb
-      .from('missions').select('id, client_email, client_nom, convoyeur_email, convoyeur_nom, depart, arrivee, date_prise_en_charge')
+      .from('missions').select('id, client_email, client_nom, convoyeur_email, convoyeur_nom, depart, arrivee, date_prise_en_charge, source_mission')
       .eq('status', 'accepted').gte('date_prise_en_charge', tomorrowStart).lte('date_prise_en_charge', tomorrowEnd)
       .is('rappel_envoye', null).limit(50);
 
@@ -73,7 +73,11 @@ export async function onRequest(context) {
     if (missionsDemain && missionsDemain.length > 0) {
       for (const mission of missionsDemain) {
         try {
-          if (mission.client_email) await sendRappelClientEmail(mission, resendApiKey);
+          // MISSIONS-EXT-4B1 — Source-aware guard: external missions must not
+          // receive direct-client reminder emails. Do NOT rely on NULL email
+          // alone. Convoyeur reminder is source-neutral and remains unchanged.
+          const _isDirectMission = !mission.source_mission || mission.source_mission === 'direct';
+          if (_isDirectMission && mission.client_email) await sendRappelClientEmail(mission, resendApiKey);
           if (mission.convoyeur_email) await sendRappelConvoyeurEmail(mission, resendApiKey);
           await sb.from('missions').update({ rappel_envoye: now.toISOString() }).eq('id', mission.id);
           results.mission_rappels++;
