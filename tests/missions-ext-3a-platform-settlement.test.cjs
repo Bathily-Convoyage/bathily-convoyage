@@ -266,21 +266,21 @@ async function runNoSchemaChangeTests() {
   console.log('\n--- NO DB CHANGES ---');
 
   await test('no new migration file for MISSIONS-EXT-3A', () => {
-    // MISSIONS-EXT-3A is UI-only. No new migration should be added.
-    // Baseline d12a6e4 includes migrations up to 20260906120000 (SEC-MARKET-RLS-1).
+    // MISSIONS-EXT-3A is UI-only. No migration file belonging to 3A should
+    // exist. This invariant is scoped to 3A-named migrations so it remains
+    // independent of future unrelated migrations (e.g. MISSIONS-EXT-3B).
     const migrationsDir = path.join(__dirname, '..', 'supabase', 'migrations');
     const files = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.sql'));
-    const newMigrations = files.filter(f => {
-      const ts = f.substring(0, 14);
-      return ts > '20260906120000';
-    });
-    assert.strictEqual(newMigrations.length, 0,
-      'MISSIONS-EXT-3A must NOT add any migration (UI-only change). Found: ' + newMigrations.join(', '));
+    const migrations3A = files.filter(f => /missions[-_]ext[-_]3a/i.test(f));
+    assert.strictEqual(migrations3A.length, 0,
+      'MISSIONS-EXT-3A must NOT add any migration (UI-only change). Found: ' + migrations3A.join(', '));
   });
 
   await test('mark_mission_paid RPC unchanged (no new migration touching it)', () => {
     // The RPC was created in 20260813000001 and last touched in 20260825075444 (grants).
-    // No new migration should modify it.
+    // No migration after the 3A baseline should modify it. This check is
+    // content-scoped: it scans newer migrations but only asserts they don't
+    // touch mark_mission_paid, so unrelated future migrations pass cleanly.
     const migrationsDir = path.join(__dirname, '..', 'supabase', 'migrations');
     const files = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.sql'));
     const newMigrations = files.filter(f => {

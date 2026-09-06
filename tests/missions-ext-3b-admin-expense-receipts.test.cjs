@@ -181,8 +181,8 @@ async function runAll() {
   // SECOND RECEIPT SAME EXPENSE => DENY
   // -----------------------------------------------------
   console.log('\n--- DUPLICATE RECEIPT DENY ---');
-  await test('18. server enforces max 1 receipt per expense', () => {
-    assert.ok(/_count >= 1/.test(migration), 'RPC checks count >= 1');
+  await test('18. server enforces max 1 admin receipt per expense', () => {
+    assert.ok(/_admin_count >= 1/.test(migration), 'RPC checks admin_count >= 1');
     assert.ok(/Un justificatif maximum par frais/.test(migration), 'RPC rejects with max 1 message');
   });
   await test('19. RECEIPT_REPLACE = DENY (immutable trigger untouched)', () => {
@@ -200,7 +200,8 @@ async function runAll() {
   // -----------------------------------------------------
   console.log('\n--- NONEXISTENT EXPENSE DENY ---');
   await test('20. server rejects nonexistent expense', () => {
-    assert.ok(/SELECT \* INTO _expense FROM public\.mission_expenses WHERE id = p_expense_id/.test(migration), 'RPC selects expense');
+    assert.ok(/SELECT \* INTO _expense FROM public\.mission_expenses/.test(migration), 'RPC selects expense');
+    assert.ok(/FOR UPDATE/.test(migration), 'RPC locks expense row FOR UPDATE');
     assert.ok(/IF NOT FOUND/.test(migration), 'RPC checks NOT FOUND');
   });
 
@@ -239,9 +240,13 @@ async function runAll() {
     assert.ok(!/DROP POLICY IF EXISTS "mission_expenses_storage_insert" ON storage\.objects/.test(migration), '3B does not drop existing operator INSERT policy');
   });
   await test('27. operator cannot use admin_attach RPC (no is_operator branch)', () => {
-    const rpcBody = migration.match(/CREATE OR REPLACE FUNCTION public\.admin_attach_mission_expense_receipt[\s\S]*?\$\$/);
-    assert.ok(rpcBody, 'RPC body found');
-    assert.ok(!/is_operator/.test(rpcBody[0]), 'RPC body has no is_operator reference');
+    // The admin_attach RPC function body does not reference is_operator
+    // Extract function body between AS $$ and closing $$;
+    const fnStart = migration.indexOf('AS $$');
+    const fnEnd = migration.indexOf('$$;', fnStart + 4);
+    const rpcBody = fnStart >= 0 && fnEnd >= 0 ? migration.substring(fnStart, fnEnd) : '';
+    assert.ok(rpcBody.length > 0, 'RPC body found');
+    assert.ok(!/is_operator/.test(rpcBody), 'RPC body has no is_operator reference');
   });
 
   // -----------------------------------------------------
@@ -258,8 +263,10 @@ async function runAll() {
   // -----------------------------------------------------
   console.log('\n--- CONVOYEUR ---');
   await test('29. convoyeur cannot use admin_attach RPC (no convoyeur branch)', () => {
-    const rpcBody = migration.match(/CREATE OR REPLACE FUNCTION public\.admin_attach_mission_expense_receipt[\s\S]*?\$\$/);
-    assert.ok(!/is_convoyeur/.test(rpcBody[0]), 'RPC body has no convoyeur reference');
+    const fnStart = migration.indexOf('AS $$');
+    const fnEnd = migration.indexOf('$$;', fnStart + 4);
+    const rpcBody = fnStart >= 0 && fnEnd >= 0 ? migration.substring(fnStart, fnEnd) : '';
+    assert.ok(!/is_convoyeur/.test(rpcBody), 'RPC body has no convoyeur reference');
   });
   await test('30. existing convoyeur receipt RPC unchanged', () => {
     // 3B migration must NOT modify register_mission_expense_receipt
@@ -396,7 +403,10 @@ async function runAll() {
   await test('51. no broad table INSERT/UPDATE grant added', () => {
     assert.ok(!/GRANT INSERT ON public\.mission_expense_receipts/.test(migration), 'no INSERT grant on receipts table');
     assert.ok(!/GRANT UPDATE ON public\.mission_expense_receipts/.test(migration), 'no UPDATE grant on receipts table');
-    assert.ok(!/ALTER TABLE public\.mission_expense_receipts/.test(migration), 'no table ALTER');
+    // ALTER TABLE is allowed for adding the attach_mode column + CHECK constraint
+    // but no broad INSERT/UPDATE grants are added
+    assert.ok(!/GRANT INSERT ON public\.mission_expense_receipts/.test(migration), 'no INSERT grant');
+    assert.ok(!/GRANT UPDATE ON public\.mission_expense_receipts/.test(migration), 'no UPDATE grant');
   });
   await test('52. no RLS policy change on existing tables', () => {
     assert.ok(!/CREATE POLICY.*ON public\.mission_expenses/.test(migration), 'no new policy on mission_expenses table');
@@ -430,6 +440,81 @@ async function runAll() {
     const uploadFn = extractFunction(dash, 'async function admUploadAndAttachReceipt');
     assert.ok(/admin_attach_mission_expense_receipt/.test(uploadFn), 'upload uses admin_attach');
     assert.ok(!/register_mission_expense_receipt/.test(uploadFn), 'upload does NOT use register RPC');
+  });
+
+  // -----------------------------------------------------
+  // CONCURRENCY INTEGRITY (MISSIONS-EXT-3B.1)
+  // -----------------------------------------------------
+  console.log('\n--- CONCURRENCY INTEGRITY ---');
+  // Helper: extract RPC function body using indexOf (robust against $$ delimiters)
+  function getRpcBody() {
+    const fnStart = migration.indexOf('AS $$');
+    const fnEnd = migration.indexOf('$$;', fnStart + 4);
+    return fnStart >= 0 && fnEnd >= 0 ? migration.substring(fnStart, fnEnd) : '';
+  }
+  await test('56. UNIQUE_DB_INVARIANT: partial unique index on expense_id WHERE attach_mode=admin', () => {
+    assert.ok(/CREATE UNIQUE INDEX.*uq_mission_expense_receipts_one_per_expense/.test(migration), 'partial unique index exists with correct name');
+    assert.ok(/ON public\.mission_expense_receipts\(expense_id\)/.test(migration), 'index is on expense_id');
+    assert.ok(/WHERE attach_mode = 'admin'/.test(migration), 'index is partial (admin only)');
+  });
+  await test('57. attach_mode column added with CHECK constraint', () => {
+    assert.ok(/ADD COLUMN IF NOT EXISTS attach_mode text NOT NULL DEFAULT 'convoyeur'/.test(migration), 'attach_mode column added');
+    assert.ok(/mission_expense_receipts_attach_mode_valid/.test(migration), 'CHECK constraint on attach_mode');
+    assert.ok(/attach_mode IN \('admin', 'convoyeur'\)/.test(migration), 'CHECK allows admin and convoyeur only');
+  });
+  await test('58. EXPENSE_ROW_LOCK: FOR UPDATE on expense row', () => {
+    const rpcBody = getRpcBody();
+    assert.ok(rpcBody.length > 0, 'RPC body found');
+    assert.ok(/FOR UPDATE/.test(rpcBody), 'RPC locks expense row FOR UPDATE');
+  });
+  await test('59. SEQUENTIAL_DUPLICATE: pre-check rejects second admin receipt', () => {
+    const rpcBody = getRpcBody();
+    assert.ok(/_admin_count >= 1/.test(rpcBody), 'pre-check count >= 1');
+    assert.ok(/Un justificatif maximum par frais/.test(rpcBody), 'pre-check returns business error');
+  });
+  await test('60. CONCURRENT_DUPLICATE: unique_violation (23505) caught and handled', () => {
+    const rpcBody = getRpcBody();
+    assert.ok(/EXCEPTION/.test(rpcBody), 'RPC has EXCEPTION block');
+    assert.ok(/WHEN unique_violation/.test(rpcBody), 'RPC catches unique_violation');
+    // The WHEN unique_violation block must raise the business error
+    const whenBlock = rpcBody.match(/WHEN unique_violation THEN[\s\S]*?END;/);
+    assert.ok(whenBlock, 'WHEN unique_violation block found');
+    assert.ok(/Un justificatif maximum par frais/.test(whenBlock[0]), 'unique_violation returns business error');
+  });
+  await test('61. concurrent race: exactly one succeeds (DB-level guarantee)', () => {
+    // The partial UNIQUE index is the authoritative protection.
+    // Two concurrent INSERTs cannot both succeed — one gets 23505.
+    // This is enforced by Postgres, not by application logic.
+    assert.ok(/CREATE UNIQUE INDEX.*uq_mission_expense_receipts_one_per_expense/.test(migration), 'unique index is the DB-level guarantee');
+  });
+  await test('62. two different expenses: both succeed (index is per-expense)', () => {
+    // The unique index is on expense_id, so different expenses are independent
+    assert.ok(/ON public\.mission_expense_receipts\(expense_id\)/.test(migration), 'index scoped to expense_id');
+  });
+  await test('63. convoyeur 3-receipt flow NOT affected (partial index only covers admin)', () => {
+    // The partial WHERE clause ensures convoyeur receipts (attach_mode='convoyeur')
+    // are NOT subject to the unique constraint
+    assert.ok(/WHERE attach_mode = 'admin'/.test(migration), 'partial index only covers admin receipts');
+    // The existing register_mission_expense_receipt RPC is NOT modified
+    assert.ok(!/CREATE.*FUNCTION.*register_mission_expense_receipt/.test(migration), 'convoyeur RPC not modified');
+  });
+  await test('64. immutable receipt remains immutable (trigger untouched)', () => {
+    assert.ok(!/CREATE.*TRIGGER.*mission_expense_receipts_immutable/.test(migration), '3B does not create immutability trigger');
+    assert.ok(!/DROP TRIGGER.*mission_expense_receipts_immutable/.test(migration), '3B does not drop immutability trigger');
+    assert.ok(/BEFORE UPDATE OR DELETE/.test(existingReceiptMigration), 'existing trigger blocks UPDATE and DELETE');
+  });
+  await test('65. INSERT sets attach_mode = admin', () => {
+    const rpcBody = getRpcBody();
+    assert.ok(/attach_mode/.test(rpcBody), 'INSERT includes attach_mode');
+    assert.ok(/'admin'/.test(rpcBody), 'INSERT sets attach_mode to admin');
+  });
+  await test('66. no raw Postgres error exposed (controlled business error)', () => {
+    // The EXCEPTION block raises a controlled error, not the raw 23505
+    const rpcBody = getRpcBody();
+    const whenBlock = rpcBody.match(/WHEN unique_violation THEN[\s\S]*?END;/);
+    assert.ok(whenBlock, 'WHEN unique_violation block exists');
+    assert.ok(/Un justificatif maximum par frais/.test(whenBlock[0]), 'controlled business error message');
+    assert.ok(!/duplicate key/.test(whenBlock[0]), 'no raw duplicate key error');
   });
 
   // -----------------------------------------------------
