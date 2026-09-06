@@ -490,10 +490,13 @@ async function runAll() {
   console.log('\n--- RECEIPT DEFERRAL ---');
   await test('63. admin receipt upload deferred (no upload in add flow)', () => {
     const add = extractFunction(dash, 'async function admAddExpense');
-    // No storage upload calls in the add flow. The UI may mention that
-    // justificatif is not required, but must not perform any upload.
-    assert.ok(!/storage\.from|\.upload\(|register_mission_expense_receipt|admViewExpenseReceipts/i.test(add), 'add flow must not upload or register receipts');
-    assert.ok(/Justificatif non requis/.test(dash), 'UI states justificatif not required');
+    // admAddExpense itself must not directly call storage upload or register
+    // receipts. The actual upload (if a receipt file is selected) is delegated
+    // to admSubmitExpense → admUploadAndAttachReceipt (MISSIONS-EXT-3B).
+    assert.ok(!/storage\.from|\.upload\(|register_mission_expense_receipt|admViewExpenseReceipts/i.test(add), 'add flow must not directly upload or register receipts');
+    // UI states justificatif is optional (updated in MISSIONS-EXT-3B from
+    // "non requis" to "optionnel" to reflect the new receipt upload feature).
+    assert.ok(/Justificatif/.test(dash), 'UI mentions justificatif');
   });
 
   // -----------------------------------------------------
