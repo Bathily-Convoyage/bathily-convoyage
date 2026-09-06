@@ -1408,6 +1408,11 @@
             </div>
           </div>
 
+          <div class="modal-section">
+            <div class="modal-section-title">Incidents ${['accepted','in_progress','delivered'].includes(mission.status) ? `<button class="btn-sm btn-sm-ghost" style="float:right;padding:4px 10px;font-size:0.7rem;" onclick="showReportIncidentForm('${mission.id}')"><i class="fas fa-exclamation-triangle"></i> Signaler</button>` : ''}</div>
+            <div id="modalIncidents"><div class="incident-empty">Chargement...</div></div>
+          </div>
+
         `;
 
         // Actions de la modale selon le statut
@@ -1420,6 +1425,9 @@
         modalActionsHtml += `<a href="bon-de-mission.html?id=${mission.id}" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-file-alt"></i> Bon de mission</a>`;
         modalActionsHtml += `<a href="etat-des-lieux.html?mission_id=${mission.id}&type=depart" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener"><i class="fas fa-clipboard-list"></i> EDL</a>`;
         actionsContainer.innerHTML = modalActionsHtml;
+
+        // MISSIONS-EXT-4A2 — load incidents for this mission
+        loadMissionIncidents(mission.id);
 
         // Afficher la modale
         const modal = document.getElementById('missionDetailModal');
@@ -1902,7 +1910,9 @@
                   p_mime_type: file.type
                 });
                 if (regErr) {
-                  Swal.showValidationMessage("La photo a été envoyée mais n'a pas pu être enregistrée. Réessayez.");
+                  // Best-effort orphan cleanup: registration failed, remove the uploaded object.
+                  try { await sb.storage.from('mission-incidents').remove([path]); } catch (_) {}
+                  Swal.showValidationMessage("La photo n'a pas pu être enregistrée. Réessayez.");
                   return false;
                 }
                 return true;
