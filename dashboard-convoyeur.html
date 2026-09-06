@@ -1195,6 +1195,7 @@
         <div class="nav-item active" onclick="showConvTab('accueil',this)" role="button" tabindex="0"><i class="fas fa-home"></i> Tableau de bord</div>
         <div class="nav-item" onclick="showConvTab('missions',this)" role="button" tabindex="0"><i class="fas fa-route"></i> Missions disponibles</div>
         <div class="nav-item" onclick="showConvTab('mes-missions',this)" role="button" tabindex="0"><i class="fas fa-briefcase"></i> Mes missions</div>
+        <div class="nav-item" onclick="showConvTab('frais',this)" role="button" tabindex="0"><i class="fas fa-receipt"></i> Mes frais</div>
         <div class="nav-item" onclick="showConvTab('retours',this)" role="button" tabindex="0"><i class="fas fa-exchange-alt"></i> Retours possibles <span id="convRetoursBadge" style="display:none;background:var(--bordeaux);color:white;font-size:0.6rem;padding:1px 6px;border-radius:10px;margin-left:4px;">0</span></div>
         <div class="nav-item" onclick="showConvTab('candidatures',this)" role="button" tabindex="0"><i class="fas fa-file-signature"></i> Mes candidatures</div>
         <div class="nav-item" onclick="showConvTab('reseau',this)" role="button" tabindex="0"><i class="fas fa-comments"></i> Communauté</div>
@@ -1303,6 +1304,19 @@
           </div>
         </div>
         <div class="missions-list" id="convMyMissionsList">
+          <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+        </div>
+      </div>
+
+      <!-- MISSIONS-EXT-4A1 — Frais de mission -->
+      <div class="tab-content" id="conv-tab-frais">
+        <div class="dash-header">
+          <h1 class="dash-hello">Mes <em>frais</em></h1>
+        </div>
+        <div class="sec-title">
+          <h2 class="sec-h">Frais de mission <em>assignée</em></h2>
+        </div>
+        <div id="convExpensesContent">
           <div style="text-align:center;color:var(--gray-mid);padding:20px;"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
         </div>
       </div>
@@ -1759,6 +1773,10 @@
       if (missionsErr) console.error('Erreur chargement missions:', missionsErr);
       if (candErr) console.error('Erreur chargement candidatures:', candErr);
 
+      // MISSIONS-EXT-4A1 — load convoyeur expenses after missions are loaded
+      // so we can filter by assigned mission IDs.
+      await loadConvoyeurExpenses();
+
       initConvoyeurDashboard();
     }
 
@@ -1887,6 +1905,8 @@
             ${m.status === 'assigned' ? `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation();respondToAssignment('${m.id}', true)"><i class="fas fa-check"></i> Accepter</button><button class="btn-sm btn-sm-red" onclick="event.stopPropagation();respondToAssignment('${m.id}', false)"><i class="fas fa-times"></i> Refuser</button>` : ''}
             <a href="bon-de-mission.html?id=${m.id}" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener" style="text-decoration:none;"><i class="fas fa-file-alt"></i> Bon de mission</a>
             <a href="etat-des-lieux.html?mission_id=${m.id}&type=depart" class="btn-sm btn-sm-ghost" target="_blank" rel="noopener" style="text-decoration:none;"><i class="fas fa-clipboard-list"></i> EDL</a>
+            ${m.status === 'accepted' ? `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation();convoyeurStartMission('${m.id}')"><i class="fas fa-play"></i> Démarrer</button>` : ''}
+            ${m.status === 'in_progress' ? `<button class="btn-sm btn-sm-green" onclick="event.stopPropagation();convoyeurDeliverMission('${m.id}')"><i class="fas fa-clipboard-check"></i> Livrer</button>` : ''}
             ${m.status === 'in_progress' ? `<a href="gps-emitter.html?id=${m.id}&ref=${encodeURIComponent(m.reference||'')}&route=${encodeURIComponent(dep+' → '+arr)}&vehicle=${encodeURIComponent(m.vehicule||'')}" class="btn-sm btn-sm-red" target="_blank" rel="noopener" style="text-decoration:none;"><i class="fas fa-satellite-dish"></i> GPS</a>` : ''}
           </div>
         </div>`;
@@ -2120,6 +2140,384 @@
         await loadConvoyeurData(_convoyeurUser);
       }
     }
+
+    // MISSIONS-EXT-4A1 — Convoyeur field execution transitions.
+    // Backend transition_mission_status authorizes the assigned non-banned
+    // convoyeur for accepted→in_progress (depart EDL required) and
+    // in_progress→delivered (arrival EDL required). The RPC is authoritative;
+    // the UI only exposes the action when the mission is in the right state.
+    async function convoyeurStartMission(missionId) {
+      if (!_convoyeurUser) return Swal.fire('Erreur', 'Vous devez être connecté.', 'error');
+      const confirm = await Swal.fire({
+        title: 'Démarrer la mission ?',
+        text: 'L\'état des lieux de départ doit avoir été validé.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Démarrer'
+      });
+      if (!confirm.isConfirmed) return;
+      const client = getSBC();
+      const { error } = await client.rpc('transition_mission_status', {
+        p_mission_id: missionId,
+        p_target_status: 'in_progress'
+      });
+      if (error) {
+        Swal.fire('Démarrage impossible', error.message || 'Erreur inconnue.', 'error');
+      } else {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Mission démarrée', timer: 3000 });
+        await loadConvoyeurData(_convoyeurUser);
+      }
+    }
+    window.convoyeurStartMission = convoyeurStartMission;
+
+    async function convoyeurDeliverMission(missionId) {
+      if (!_convoyeurUser) return Swal.fire('Erreur', 'Vous devez être connecté.', 'error');
+      const confirm = await Swal.fire({
+        title: 'Marquer la mission comme livrée ?',
+        text: 'L\'état des lieux d\'arrivée doit avoir été validé.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Marquer livrée'
+      });
+      if (!confirm.isConfirmed) return;
+      const client = getSBC();
+      const { error } = await client.rpc('transition_mission_status', {
+        p_mission_id: missionId,
+        p_target_status: 'delivered'
+      });
+      if (error) {
+        Swal.fire('Livraison impossible', error.message || 'Erreur inconnue.', 'error');
+      } else {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Mission livrée', timer: 3000 });
+        await loadConvoyeurData(_convoyeurUser);
+      }
+    }
+    window.convoyeurDeliverMission = convoyeurDeliverMission;
+
+    // ========== MISSIONS-EXT-4A1 — FRAIS DE MISSION ==========
+    let _convExpenses = [];
+    let _convExpenseReceipts = [];
+    const CONV_EXPENSE_TYPES = [
+      { value: 'fuel', label: 'Carburant' },
+      { value: 'charging', label: 'Recharge électrique' },
+      { value: 'toll', label: 'Péage' },
+      { value: 'parking', label: 'Parking' },
+      { value: 'return_transport', label: 'Transport retour' },
+      { value: 'washing', label: 'Lavage' },
+      { value: 'other', label: 'Autre' }
+    ];
+    const CONV_RECEIPT_ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    const CONV_RECEIPT_MAX_SIZE = 5 * 1024 * 1024; // 5 MiB
+
+    async function loadConvoyeurExpenses() {
+      if (!_convoyeurUser) return;
+      const client = getSBC();
+      // RLS only returns expenses where submitted_by = auth.uid() and
+      // the caller is the assigned non-banned convoyeur.
+      const { data: expenses, error } = await client.from('mission_expenses')
+        .select('id,mission_id,expense_type,amount,expense_date,description,status,submitted_at,reviewed_at,review_notes')
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('Erreur chargement frais:', error);
+        _convExpenses = [];
+      } else {
+        _convExpenses = expenses || [];
+      }
+      // Load receipts for these expenses
+      if (_convExpenses.length > 0) {
+        const expenseIds = _convExpenses.map(e => e.id);
+        const { data: receipts, error: rcptErr } = await client.from('mission_expense_receipts')
+          .select('id,expense_id,storage_path,mime_type,created_at')
+          .in('expense_id', expenseIds);
+        if (rcptErr) {
+          console.error('Erreur chargement justificatifs:', rcptErr);
+          _convExpenseReceipts = [];
+        } else {
+          _convExpenseReceipts = receipts || [];
+        }
+      } else {
+        _convExpenseReceipts = [];
+      }
+    }
+    window.loadConvoyeurExpenses = loadConvoyeurExpenses;
+
+    function renderConvoyeurExpenses() {
+      const container = document.getElementById('convExpensesContent');
+      if (!container) return;
+      if (!_convoyeurUser) {
+        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;">Connectez-vous pour voir vos frais.</div>';
+        return;
+      }
+      // Only show expenses for missions assigned to this convoyeur
+      const myMissionIds = new Set(_myMissions.map(m => m.id));
+      const myExpenses = _convExpenses.filter(e => myMissionIds.has(e.mission_id));
+      if (myExpenses.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:var(--gray-mid);padding:30px;"><i class="fas fa-receipt" style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>Aucun frais de mission pour le moment.</div>';
+        return;
+      }
+      // Group by mission
+      const byMission = {};
+      myExpenses.forEach(e => {
+        if (!byMission[e.mission_id]) byMission[e.mission_id] = [];
+        byMission[e.mission_id].push(e);
+      });
+      let html = '';
+      Object.keys(byMission).forEach(mid => {
+        const mission = _myMissions.find(m => m.id === mid);
+        const ref = mission ? (mission.reference || mid.substring(0, 8)) : mid.substring(0, 8);
+        const dep = mission ? (mission.depart || '') : '';
+        const arr = mission ? (mission.arrivee || '') : '';
+        const canAddExpense = mission && ['accepted', 'in_progress', 'delivered', 'completed'].includes(mission.status);
+        html += '<div style="margin-bottom:20px;border:1px solid var(--border-light);border-radius:12px;padding:16px;">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
+        html += '<div><strong>' + escapeHtml(ref) + '</strong><br><span style="font-size:0.8rem;color:var(--gray-mid);">' + escapeHtml(dep) + ' → ' + escapeHtml(arr) + '</span></div>';
+        if (canAddExpense) {
+          html += '<button class="btn-sm btn-sm-green" onclick="convAddExpense(\'' + mid + '\')"><i class="fas fa-plus"></i> Ajouter un frais</button>';
+        }
+        html += '</div>';
+        html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+        byMission[mid].forEach(exp => {
+          html += renderConvExpenseRow(exp);
+        });
+        html += '</div></div>';
+      });
+      container.innerHTML = html;
+    }
+    window.renderConvoyeurExpenses = renderConvoyeurExpenses;
+
+    function renderConvExpenseRow(exp) {
+      const typeLabel = (CONV_EXPENSE_TYPES.find(t => t.value === exp.expense_type) || {}).label || exp.expense_type;
+      const statusInfo = {
+        draft: { label: 'Brouillon', color: '#e0a343' },
+        submitted: { label: 'Soumis', color: '#0A4D68' },
+        approved: { label: 'Approuvé', color: '#4a7c6b' },
+        rejected: { label: 'Rejeté', color: '#c62828' }
+      };
+      const si = statusInfo[exp.status] || { label: exp.status, color: '#6b7280' };
+      const receipts = _convExpenseReceipts.filter(r => r.expense_id === exp.id);
+      const isDraft = exp.status === 'draft';
+      let html = '<div style="border:1px solid var(--border-light);border-radius:8px;padding:10px;background:#fafafa;">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">';
+      html += '<div style="flex:1;">';
+      html += '<div><strong>' + escapeHtml(typeLabel) + '</strong> — ' + (exp.amount != null ? parseFloat(exp.amount).toFixed(2) : '-') + ' €</div>';
+      html += '<div style="font-size:0.8rem;color:var(--gray-mid);">' + escapeHtml(exp.description || '') + '</div>';
+      html += '<div style="font-size:0.75rem;margin-top:2px;">';
+      html += '<span style="padding:2px 8px;border-radius:12px;background:' + si.color + '22;color:' + si.color + ';">' + si.label + '</span>';
+      if (exp.expense_date) html += ' <span style="color:var(--gray-mid);">· ' + new Date(exp.expense_date).toLocaleDateString('fr-FR') + '</span>';
+      html += '</div>';
+      if (exp.status === 'rejected' && exp.review_notes) {
+        html += '<div style="font-size:0.75rem;color:#c62828;margin-top:4px;"><i class="fas fa-exclamation-circle"></i> ' + escapeHtml(exp.review_notes) + '</div>';
+      }
+      // Receipts
+      if (receipts.length > 0) {
+        html += '<div style="font-size:0.75rem;margin-top:4px;color:var(--gray-mid);"><i class="fas fa-paperclip"></i> ' + receipts.length + ' justificatif(s)</div>';
+      }
+      html += '</div>';
+      // Actions
+      html += '<div style="display:flex;gap:4px;flex-wrap:wrap;">';
+      if (isDraft) {
+        html += '<button class="btn-sm btn-sm-ghost" onclick="convEditExpense(\'' + exp.id + '\')" title="Modifier"><i class="fas fa-edit"></i></button>';
+        html += '<button class="btn-sm btn-sm-ghost" onclick="convUploadReceipt(\'' + exp.id + '\')" title="Justificatif"><i class="fas fa-paperclip"></i></button>';
+        html += '<button class="btn-sm btn-sm-green" onclick="convSubmitExpense(\'' + exp.id + '\')" title="Soumettre"><i class="fas fa-paper-plane"></i></button>';
+        html += '<button class="btn-sm btn-sm-red" onclick="convDeleteExpense(\'' + exp.id + '\')" title="Supprimer"><i class="fas fa-trash"></i></button>';
+      }
+      html += '</div>';
+      html += '</div></div>';
+      return html;
+    }
+
+    async function convAddExpense(missionId) {
+      const mission = _myMissions.find(m => m.id === missionId);
+      if (!mission) return Swal.fire('Erreur', 'Mission introuvable.', 'error');
+      const { value: formValues } = await Swal.fire({
+        title: 'Nouveau frais',
+        html:
+          '<select id="swalExpType" class="swal2-input" style="width:80%;">' +
+          CONV_EXPENSE_TYPES.map(t => '<option value="' + t.value + '">' + t.label + '</option>').join('') +
+          '</select>' +
+          '<input id="swalExpAmount" type="number" step="0.01" min="0.01" class="swal2-input" placeholder="Montant (€)" style="width:80%;">' +
+          '<input id="swalExpDate" type="date" class="swal2-input" style="width:80%;" value="' + new Date().toISOString().split('T')[0] + '">' +
+          '<input id="swalExpDesc" type="text" maxlength="500" class="swal2-input" placeholder="Description" style="width:80%;">',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Créer le brouillon',
+        preConfirm: () => {
+          const expense_type = document.getElementById('swalExpType').value;
+          const amount = parseFloat(document.getElementById('swalExpAmount').value);
+          const expense_date = document.getElementById('swalExpDate').value;
+          const description = document.getElementById('swalExpDesc').value;
+          if (!expense_type || !amount || amount <= 0 || !expense_date || !description || !description.trim()) {
+            Swal.showValidationMessage('Tous les champs sont obligatoires et le montant doit être positif.');
+            return null;
+          }
+          return { expense_type, amount, expense_date, description: description.trim() };
+        }
+      });
+      if (!formValues) return;
+      const client = getSBC();
+      Swal.fire({ title: 'Enregistrement...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      const { data: expenseId, error } = await client.rpc('create_mission_expense_draft', {
+        p_mission_id: missionId,
+        p_expense_type: formValues.expense_type,
+        p_amount: formValues.amount,
+        p_expense_date: formValues.expense_date,
+        p_description: formValues.description
+      });
+      if (error) {
+        Swal.fire('Erreur', error.message || 'Frais non créé.', 'error');
+        return;
+      }
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Brouillon créé', timer: 2500 });
+      await loadConvoyeurExpenses();
+      renderConvoyeurExpenses();
+    }
+    window.convAddExpense = convAddExpense;
+
+    async function convEditExpense(expenseId) {
+      const exp = _convExpenses.find(e => e.id === expenseId);
+      if (!exp) return;
+      const { value: formValues } = await Swal.fire({
+        title: 'Modifier le frais',
+        html:
+          '<select id="swalExpType" class="swal2-input" style="width:80%;">' +
+          CONV_EXPENSE_TYPES.map(t => '<option value="' + t.value + '"' + (t.value === exp.expense_type ? ' selected' : '') + '>' + t.label + '</option>').join('') +
+          '</select>' +
+          '<input id="swalExpAmount" type="number" step="0.01" min="0.01" class="swal2-input" value="' + exp.amount + '" style="width:80%;">' +
+          '<input id="swalExpDate" type="date" class="swal2-input" value="' + (exp.expense_date || '') + '" style="width:80%;">' +
+          '<input id="swalExpDesc" type="text" maxlength="500" class="swal2-input" value="' + escapeHtml(exp.description || '') + '" style="width:80%;">',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Enregistrer',
+        preConfirm: () => {
+          const expense_type = document.getElementById('swalExpType').value;
+          const amount = parseFloat(document.getElementById('swalExpAmount').value);
+          const expense_date = document.getElementById('swalExpDate').value;
+          const description = document.getElementById('swalExpDesc').value;
+          if (!expense_type || !amount || amount <= 0 || !expense_date || !description || !description.trim()) {
+            Swal.showValidationMessage('Tous les champs sont obligatoires.');
+            return null;
+          }
+          return { expense_type, amount, expense_date, description: description.trim() };
+        }
+      });
+      if (!formValues) return;
+      const client = getSBC();
+      Swal.fire({ title: 'Enregistrement...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      const { error } = await client.rpc('update_mission_expense_draft', {
+        p_expense_id: expenseId,
+        p_expense_type: formValues.expense_type,
+        p_amount: formValues.amount,
+        p_expense_date: formValues.expense_date,
+        p_description: formValues.description
+      });
+      if (error) {
+        Swal.fire('Erreur', error.message || 'Modification impossible.', 'error');
+        return;
+      }
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Frais modifié', timer: 2500 });
+      await loadConvoyeurExpenses();
+      renderConvoyeurExpenses();
+    }
+    window.convEditExpense = convEditExpense;
+
+    async function convDeleteExpense(expenseId) {
+      const confirm = await Swal.fire({
+        title: 'Supprimer ce frais ?',
+        text: 'Action irréversible (uniquement possible sans justificatif).',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Supprimer'
+      });
+      if (!confirm.isConfirmed) return;
+      const client = getSBC();
+      const { error } = await client.rpc('delete_mission_expense_draft', { p_expense_id: expenseId });
+      if (error) {
+        Swal.fire('Erreur', error.message || 'Suppression impossible.', 'error');
+        return;
+      }
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Frais supprimé', timer: 2500 });
+      await loadConvoyeurExpenses();
+      renderConvoyeurExpenses();
+    }
+    window.convDeleteExpense = convDeleteExpense;
+
+    async function convUploadReceipt(expenseId) {
+      const exp = _convExpenses.find(e => e.id === expenseId);
+      if (!exp) return;
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = CONV_RECEIPT_ALLOWED_MIMES.join(',');
+      input.style.display = 'none';
+      document.body.appendChild(input);
+      input.addEventListener('change', async function () {
+        const file = input.files[0];
+        document.body.removeChild(input);
+        if (!file) return;
+        if (!CONV_RECEIPT_ALLOWED_MIMES.includes(file.type)) {
+          Swal.fire('Format refusé', 'JPEG, PNG, WebP ou PDF uniquement.', 'error');
+          return;
+        }
+        if (file.size > CONV_RECEIPT_MAX_SIZE) {
+          Swal.fire('Fichier trop volumineux', '5 Mo maximum.', 'error');
+          return;
+        }
+        const client = getSBC();
+        Swal.fire({ title: 'Envoi...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        const ext = file.type === 'application/pdf' ? 'pdf' : (file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin');
+        const safeExt = ['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(ext) ? ext : 'bin';
+        const fileName = Date.now() + '_' + Math.random().toString(36).slice(2, 10) + '.' + safeExt;
+        const path = 'missions/' + exp.mission_id + '/expenses/' + exp.id + '/' + fileName;
+        const { error: upErr } = await client.storage.from('mission-expenses').upload(path, file, { contentType: file.type, upsert: false });
+        if (upErr) {
+          Swal.fire('Erreur', "L'envoi du fichier a échoué.", 'error');
+          return;
+        }
+        const { error: regErr } = await client.rpc('register_mission_expense_receipt', {
+          p_expense_id: exp.id,
+          p_storage_bucket: 'mission-expenses',
+          p_storage_path: path,
+          p_mime_type: file.type
+        });
+        if (regErr) {
+          try { await client.storage.from('mission-expenses').remove([path]); } catch (e) { /* best-effort */ }
+          Swal.fire('Erreur', "L'enregistrement du justificatif a échoué : " + (regErr.message || ''), 'error');
+          return;
+        }
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Justificatif ajouté', timer: 2500 });
+        await loadConvoyeurExpenses();
+        renderConvoyeurExpenses();
+      });
+      input.click();
+    }
+    window.convUploadReceipt = convUploadReceipt;
+
+    async function convSubmitExpense(expenseId) {
+      const exp = _convExpenses.find(e => e.id === expenseId);
+      if (!exp) return;
+      const receipts = _convExpenseReceipts.filter(r => r.expense_id === expenseId);
+      if (exp.expense_type !== 'washing' && receipts.length === 0) {
+        Swal.fire('Justificatif manquant', 'Un justificatif est obligatoire pour ce type de frais (sauf lavage).', 'warning');
+        return;
+      }
+      const confirm = await Swal.fire({
+        title: 'Soumettre ce frais ?',
+        text: 'Après soumission, le frais ne sera plus modifiable.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Soumettre'
+      });
+      if (!confirm.isConfirmed) return;
+      const client = getSBC();
+      const { error } = await client.rpc('submit_mission_expense', { p_expense_id: expenseId });
+      if (error) {
+        Swal.fire('Erreur', error.message || 'Soumission impossible.', 'error');
+        return;
+      }
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Frais soumis', timer: 2500 });
+      await loadConvoyeurExpenses();
+      renderConvoyeurExpenses();
+    }
+    window.convSubmitExpense = convSubmitExpense;
 
     async function retirerCandidature(candidatureId) {
       const confirm = await Swal.fire({
@@ -2452,7 +2850,7 @@
       document.getElementById('mobMoreOverlay').classList.remove('open');
     }
     function showConvTab(id, el) {
-      document.querySelectorAll('#conv-tab-accueil, #conv-tab-missions, #conv-tab-mes-missions, #conv-tab-retours, #conv-tab-candidatures, #conv-tab-profil, #conv-tab-support, #conv-tab-reseau, #conv-tab-gamification')
+      document.querySelectorAll('#conv-tab-accueil, #conv-tab-missions, #conv-tab-mes-missions, #conv-tab-frais, #conv-tab-retours, #conv-tab-candidatures, #conv-tab-profil, #conv-tab-support, #conv-tab-reseau, #conv-tab-gamification')
         .forEach(t => t.classList.remove('active'));
       const target = document.getElementById('conv-tab-' + id);
       if (target) target.classList.add('active');
@@ -2465,6 +2863,9 @@
       }
       if (id === 'mes-missions') {
         filterMyMissions(_myMissionFilter, document.querySelector('#conv-tab-mes-missions .btn-sm-ghost'));
+      }
+      if (id === 'frais') {
+        renderConvoyeurExpenses();
       }
       if (id === 'reseau') {
         fetchReseauPosts();

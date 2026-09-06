@@ -4036,13 +4036,17 @@ Cadeau premium personnalisé</textarea>
         </div>`;
       } else {
         const canChangeConvoyeur = (status === 'assigned' || status === 'accepted');
-        const canMarkDelivered   = (status === 'in_progress');
         const canMarkCompleted   = (status === 'delivered');
         const canArchive         = (status === 'completed' || status === 'cancelled');
         const canCancel          = ['available','assigned','accepted','in_progress'].includes(status);
+        // MISSIONS-EXT-4A1: in_progress→delivered is convoyeur-only (P4.2B
+        // transition_mission_status). The admin "Marquer livrée" button was a
+        // dead path — the backend rejected it. Replaced with a non-mutating
+        // status indicator so admins know the convoyeur must mark delivery.
+        const deliveryPending    = (status === 'in_progress');
         actionsHtml = `<div class="td-actions">
           ${canChangeConvoyeur ? `<button class="btn-sm btn-sm-ghost" onclick="assignConvoyeurToMission('${m.id}')" title="Changer convoyeur"><i class="fas fa-user-edit"></i></button>` : ''}
-          ${canMarkDelivered ? `<button class="btn-sm btn-sm-ghost" onclick="updateMissionStatus('${m.id}', 'delivered')" title="Marquer livrée"><i class="fas fa-clipboard-check"></i></button>` : ''}
+          ${deliveryPending ? `<span class="btn-sm" style="cursor:default;opacity:0.7;" title="La livraison est marquée par le convoyeur après EDL arrivée"><i class="fas fa-clock"></i> Livraison convoyeur</span>` : ''}
           ${canMarkCompleted ? `<button class="btn-sm btn-sm-green" onclick="updateMissionStatus('${m.id}', 'completed')"><i class="fas fa-check"></i></button>` : ''}
           ${(status === 'in_progress' || status === 'accepted') ? `<button class="btn-sm btn-sm-ghost" onclick="createTrackingLink('${m.id}')" title="Générer lien de suivi"><i class="fas fa-map-marker-alt"></i></button>` : ''}
           <button class="btn-sm btn-sm-ghost" onclick="markMissionPaid('${m.id}', '${m.reference}')" title="${escapeHtml(payDisp.actionLabel)}"><i class="fas fa-unlock"></i></button>
