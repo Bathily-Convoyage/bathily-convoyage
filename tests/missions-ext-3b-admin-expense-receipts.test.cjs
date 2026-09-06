@@ -518,6 +518,60 @@ async function runAll() {
   });
 
   // -----------------------------------------------------
+  // IMMUTABILITY COMPATIBILITY (MISSIONS-EXT-3B.2)
+  // -----------------------------------------------------
+  console.log('\n--- IMMUTABILITY COMPATIBILITY ---');
+  await test('67. NO explicit UPDATE on mission_expense_receipts (immutable trigger safe)', () => {
+    // The mission_expense_receipts_immutable trigger blocks UPDATE
+    // unconditionally. The migration must NOT issue any UPDATE on
+    // the receipts table.
+    assert.ok(!/UPDATE\s+public\.mission_expense_receipts/.test(migration), 'migration contains NO UPDATE on mission_expense_receipts');
+  });
+  await test('68. NO DISABLE TRIGGER / DROP TRIGGER / alter immutable trigger', () => {
+    assert.ok(!/DISABLE\s+TRIGGER/.test(migration), 'no DISABLE TRIGGER');
+    assert.ok(!/DROP\s+TRIGGER.*mission_expense_receipts_immutable/.test(migration), 'no DROP immutable trigger');
+    assert.ok(!/ALTER\s+TRIGGER.*mission_expense_receipts_immutable/.test(migration), 'no ALTER immutable trigger');
+    assert.ok(!/CREATE.*TRIGGER.*mission_expense_receipts_immutable/.test(migration), 'no CREATE/replace immutable trigger');
+  });
+  await test('69. NO postgres bypass added (no ALTER TABLE DISABLE, no session_replication_role)', () => {
+    assert.ok(!/session_replication_role/.test(migration), 'no session_replication_role bypass');
+    assert.ok(!/ALTER TABLE.*DISABLE ROW LEVEL SECURITY/.test(migration), 'no RLS disable');
+    assert.ok(!/ALTER TABLE.*mission_expense_receipts.*DISABLE/.test(migration), 'no trigger disable on receipts table');
+  });
+  await test('70. attach_mode column remains NOT NULL DEFAULT convoyeur', () => {
+    assert.ok(/ADD COLUMN IF NOT EXISTS attach_mode text NOT NULL DEFAULT 'convoyeur'/.test(migration), 'column is NOT NULL DEFAULT convoyeur');
+  });
+  await test('71. existing convoyeur receipt inserts that omit attach_mode resolve to convoyeur (DEFAULT)', () => {
+    // The existing register_mission_expense_receipt RPC does NOT set attach_mode,
+    // so the column DEFAULT 'convoyeur' applies. We verify the existing RPC
+    // is NOT modified by the 3B migration (so it still omits attach_mode).
+    assert.ok(!/CREATE.*FUNCTION.*register_mission_expense_receipt/.test(migration), 'existing convoyeur RPC not modified');
+    // The DEFAULT on the column ensures any INSERT omitting attach_mode
+    // gets 'convoyeur' automatically.
+    assert.ok(/DEFAULT 'convoyeur'/.test(migration), 'DEFAULT convoyeur present for auto-population');
+  });
+  await test('72. admin RPC inserts attach_mode = admin', () => {
+    const rpcBody = getRpcBody();
+    assert.ok(/'admin'/.test(rpcBody), 'admin RPC sets attach_mode to admin');
+  });
+  await test('73. partial unique index remains (uq_mission_expense_receipts_one_per_expense WHERE admin)', () => {
+    assert.ok(/CREATE UNIQUE INDEX.*uq_mission_expense_receipts_one_per_expense/.test(migration), 'partial unique index exists');
+    assert.ok(/WHERE attach_mode = 'admin'/.test(migration), 'index is partial (admin only)');
+  });
+  await test('74. concurrency invariant remains PASS (FOR UPDATE + unique_violation handling)', () => {
+    const rpcBody = getRpcBody();
+    assert.ok(/FOR UPDATE/.test(rpcBody), 'FOR UPDATE lock present');
+    assert.ok(/WHEN unique_violation/.test(rpcBody), 'unique_violation handling present');
+    assert.ok(/CREATE UNIQUE INDEX.*uq_mission_expense_receipts_one_per_expense/.test(migration), 'unique index present');
+  });
+  await test('75. receipt UPDATE/DELETE immutability remains PASS (trigger untouched)', () => {
+    assert.ok(!/CREATE.*TRIGGER.*mission_expense_receipts_immutable/.test(migration), '3B does not create immutability trigger');
+    assert.ok(!/DROP TRIGGER.*mission_expense_receipts_immutable/.test(migration), '3B does not drop immutability trigger');
+    assert.ok(!/CREATE OR REPLACE FUNCTION public\.mission_expense_receipts_immutable/.test(migration), '3B does not replace immutability function');
+    assert.ok(/BEFORE UPDATE OR DELETE/.test(existingReceiptMigration), 'existing trigger blocks UPDATE and DELETE');
+  });
+
+  // -----------------------------------------------------
   // Results
   // -----------------------------------------------------
   console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);

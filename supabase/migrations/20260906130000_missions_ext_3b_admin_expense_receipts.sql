@@ -135,15 +135,16 @@ CREATE POLICY "mission_expenses_storage_delete_admin_orphan"
 -- this to 'admin'. This column enables a partial UNIQUE index that
 -- enforces max-1-admin-receipt-per-expense without affecting the
 -- convoyeur 3-receipt flow.
+--
+-- IMPORTANT: No explicit UPDATE/backfill is performed on existing
+-- receipt rows. The mission_expense_receipts_immutable trigger blocks
+-- UPDATE unconditionally (even for postgres/SECURITY DEFINER). The
+-- NOT NULL DEFAULT 'convoyeur' on ALTER ADD COLUMN is sufficient to
+-- populate existing rows at the storage level without issuing a
+-- row-level UPDATE, so the immutable trigger is never invoked.
 
 ALTER TABLE public.mission_expense_receipts
   ADD COLUMN IF NOT EXISTS attach_mode text NOT NULL DEFAULT 'convoyeur';
-
--- Backfill existing rows (defensive — the DEFAULT already handles this
--- for ALTER ADD COLUMN, but explicit UPDATE is safe for any edge case).
-UPDATE public.mission_expense_receipts
-  SET attach_mode = 'convoyeur'
-  WHERE attach_mode IS NULL OR attach_mode NOT IN ('admin', 'convoyeur');
 
 -- CHECK constraint: only valid modes
 ALTER TABLE public.mission_expense_receipts
