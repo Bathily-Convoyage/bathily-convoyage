@@ -285,7 +285,7 @@ async function runNoSchemaChangeTests() {
     const files = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.sql'));
     const newMigrations = files.filter(f => {
       const ts = f.substring(0, 14);
-      return ts > '20260906120000';
+      return ts > '20260906092229';
     });
     for (const f of newMigrations) {
       const content = fs.readFileSync(path.join(migrationsDir, f), 'utf8');
