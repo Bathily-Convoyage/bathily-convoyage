@@ -51,7 +51,7 @@ function test(name, fn) {
 const DASH_PATH = path.join(__dirname, '..', 'dashboard-admin.html');
 const MIGRATION_PATH = path.join(__dirname, '..', 'supabase', 'migrations', '20260906130000_missions_ext_3b_admin_expense_receipts.sql');
 const EXISTING_RECEIPT_MIGRATION = path.join(__dirname, '..', 'supabase', 'migrations', '20260811000003_phase3_c22c3_mission_expenses.sql');
-const ADMIN_EXPENSE_MIGRATION = path.join(__dirname, '..', 'supabase', 'migrations', '20260905130000_missions_ext_2c_admin_expense_rpc.sql');
+const ADMIN_EXPENSE_MIGRATION = path.join(__dirname, '..', 'supabase', 'migrations', '20260905223640_missions_ext_2c_admin_expense_rpc.sql');
 
 // =====================================================
 // Helpers

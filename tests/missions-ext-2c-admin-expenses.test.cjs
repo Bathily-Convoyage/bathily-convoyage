@@ -42,7 +42,7 @@ function test(name, fn) {
 // File paths
 // =====================================================
 const DASH_PATH = path.join(__dirname, '..', 'dashboard-admin.html');
-const MIGRATION_PATH = path.join(__dirname, '..', 'supabase', 'migrations', '20260905130000_missions_ext_2c_admin_expense_rpc.sql');
+const MIGRATION_PATH = path.join(__dirname, '..', 'supabase', 'migrations', '20260905223640_missions_ext_2c_admin_expense_rpc.sql');
 
 // =====================================================
 // Helpers — extract bounded function bodies from dashboard
