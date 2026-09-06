@@ -198,6 +198,24 @@ async function runStripeIsolationTests() {
 
   const checkout = fs.readFileSync(CHECKOUT_PATH, 'utf8');
 
+  // MISSIONS-EXT-3A.1 — Section label rendered in modal
+  await test('section label rendered via payDisp.sectionLabel in details modal', () => {
+    // Find the viewMissionDetails function and verify it renders payDisp.sectionLabel
+    var fnStart = dash.indexOf('window.viewMissionDetails = async function');
+    if (fnStart < 0) fnStart = dash.indexOf('viewMissionDetails = async function');
+    assert.ok(fnStart > 0, 'viewMissionDetails must exist');
+    var braceStart = dash.indexOf('{', fnStart);
+    var depth = 0;
+    var fnEnd = fnStart;
+    for (var i = braceStart; i < dash.length; i++) {
+      if (dash[i] === '{') depth++;
+      else if (dash[i] === '}') { depth--; if (depth === 0) { fnEnd = i; break; } }
+    }
+    var fnBody = dash.substring(fnStart, fnEnd + 1);
+    assert.ok(fnBody.includes('payDisp.sectionLabel'),
+      'viewMissionDetails must render payDisp.sectionLabel in the modal HTML');
+  });
+
   await test('external mission blocked from Stripe checkout (guard exists)', () => {
     assert.ok(checkout.includes("mission.source_mission && mission.source_mission !== 'direct'"),
       'create-checkout-session must guard against non-direct missions');

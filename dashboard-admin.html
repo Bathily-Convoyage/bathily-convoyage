@@ -6015,6 +6015,7 @@ Cadeau premium personnalisé</textarea>
       title: `Mission ${escapeHtml(mission.reference)}`,
      html: `<div style="text-align:left;font-size:0.9rem;">
         <div style="display:flex;gap:8px;margin-bottom:12px;">${statusBadge} ${payBadge}</div>
+        <b>${escapeHtml(payDisp.sectionLabel)} :</b> ${payBadge}<br>
         <b>Source :</b> ${escapeHtml(sourceLabel)}${extRefLabel ? ' — ' + escapeHtml(extRefLabel) : ''}<br>
         <b>Client :</b> ${escapeHtml(mission.client_nom || '—')}<br>
         <b>Email client :</b> ${escapeHtml(mission.client_email || '—')}<br>

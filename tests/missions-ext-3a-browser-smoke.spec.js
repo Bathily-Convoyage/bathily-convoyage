@@ -218,10 +218,44 @@ test.describe('MISSIONS-EXT-3A — Platform Settlement Semantics (browser smoke)
     expect(modalText).toContain('En attente de règlement');
     // Verify no standalone direct "Payé" wording leaked into external modal
     expect(modalText).not.toContain('Payé');
+    // MISSIONS-EXT-3A.1 — Section label rendered
+    expect(modalText).toContain('Règlement plateforme');
     // Check the action button in the modal
     const modalHtml = await page.innerHTML('.swal2-html-container');
     expect(modalHtml).toContain('Marquer règlement reçu');
     expect(modalHtml).not.toContain('Marquer payée');
+  });
+
+  test('Scenario C2 — DIRECT mission details modal: "Paiement" section label', async ({ page }) => {
+    await page.evaluate(() => {
+      const mission = {
+        id: 'direct-detail-001',
+        reference: 'BC-DIRECT-003',
+        source_mission: 'direct',
+        paiement_statut: 'pending',
+        status: 'assigned',
+        depart: 'Paris',
+        arrivee: 'Lyon',
+        client_nom: 'TestClient',
+        client_email: 'client@test.local',
+        client_telephone: '0600000000',
+        convoyeur_nom: 'TestConvoyeur',
+        vehicule: 'Berline',
+        mode: 'route',
+        montant_ht: 500,
+        date_mission: '2026-09-06',
+      };
+      _allMissions = [mission];
+      viewMissionDetails('direct-detail-001');
+    });
+    await page.waitForSelector('.swal2-modal', { timeout: 5000 });
+    const modalText = await page.textContent('.swal2-modal');
+    // MISSIONS-EXT-3A.1 — DIRECT section label
+    expect(modalText).toContain('Paiement');
+    expect(modalText).not.toContain('Règlement plateforme');
+    // Direct wording preserved
+    expect(modalText).toContain('En attente');
+    expect(modalText).toContain('Marquer payée');
   });
 
   test('Scenario D — No "Payer" or Stripe wording for external missions', async ({ page }) => {
