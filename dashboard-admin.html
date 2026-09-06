@@ -4191,6 +4191,9 @@ Cadeau premium personnalisé</textarea>
     );
     return _allMissions.filter(m => {
       if (m.status !== 'completed') return false;
+      // MISSIONS-EXT-4A3: External missions are autofactured by their platform.
+      // They must NOT appear in the normal "À facturer" list.
+      if (m.source_mission && m.source_mission !== 'direct') return false;
       const montant = parseFloat(m.montant_ht);
       if (!montant || montant <= 0) return false;
       if (firstEligible) {
