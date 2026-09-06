@@ -51,9 +51,10 @@
     var urgence = opts.urgence || 'standard';
 
     var rate = BASE_RATES[vehType] || BASE_RATES.Automobile;
+    var min = rate.min;
 
     // ── Tarif de base (route) ──
-    prix = distance * rate.perKm;
+    var prix = distance * rate.perKm;
     prix = Math.max(prix, rate.min);
 
     // ── Plateau s'AJOUTE au prix route (minimum 350€) ──
