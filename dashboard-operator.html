@@ -577,26 +577,6 @@
     .evidence-gallery-empty {
       font-size: 0.75rem; color: var(--gray-mid); font-style: italic;
     }
-    .swal-incident-form {
-      text-align: left; font-size: 0.85rem;
-    }
-    .swal-incident-form label {
-      display: block; font-weight: 600; font-size: 0.75rem;
-      text-transform: uppercase; color: var(--gray-mid);
-      margin-bottom: 4px; margin-top: 12px;
-    }
-    .swal-incident-form label:first-child { margin-top: 0; }
-    .swal-incident-form select,
-    .swal-incident-form input,
-    .swal-incident-form textarea {
-      width: 100%; padding: 10px 12px; border: 1px solid var(--border-light);
-      border-radius: 10px; font-family: 'Inter', sans-serif;
-      font-size: 0.85rem; box-sizing: border-box;
-    }
-    .swal-incident-form textarea { resize: vertical; min-height: 80px; }
-    .swal-incident-form .char-count {
-      font-size: 0.65rem; color: var(--gray-mid); text-align: right; margin-top: 2px;
-    }
     .swal-preview-img {
       width: 100%; max-height: 200px; object-fit: contain;
       border-radius: 10px; margin-top: 8px; border: 1px solid var(--border-light);
@@ -1409,7 +1389,7 @@
           </div>
 
           <div class="modal-section">
-            <div class="modal-section-title">Incidents ${['accepted','in_progress','delivered'].includes(mission.status) ? `<button class="btn-sm btn-sm-ghost" style="float:right;padding:4px 10px;font-size:0.7rem;" onclick="showReportIncidentForm('${mission.id}')"><i class="fas fa-exclamation-triangle"></i> Signaler</button>` : ''}</div>
+            <div class="modal-section-title">Incidents</div>
             <div id="modalIncidents"><div class="incident-empty">Chargement...</div></div>
           </div>
 
@@ -1646,8 +1626,6 @@
         'reviewed': 'Pris en compte',
         'resolved': 'Résolu'
       };
-      const ALLOWED_EVIDENCE_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
-      const MAX_EVIDENCE_SIZE = 5 * 1024 * 1024; // 5 MiB
       let _currentIncidentMissionId = null;
 
       function incidentTypeLabel(t) { return INCIDENT_TYPES[t] || t || '—'; }
@@ -1689,12 +1667,9 @@
             const dateStr = new Date(inc.occurred_at).toLocaleDateString('fr-FR', {
               day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
             });
-            let actions = '';
-            if (inc.status === 'open') {
-              actions += `<button class="btn-sm btn-sm-ghost" style="padding:6px 10px;" onclick="showUpdateIncidentForm('${inc.id}')"><i class="fas fa-edit"></i> Modifier</button>`;
-              actions += `<button class="btn-sm btn-sm-ghost" style="padding:6px 10px;" onclick="showAddEvidenceForm('${inc.id}')"><i class="fas fa-camera"></i> Ajouter une photo</button>`;
-            }
-            actions += `<button class="btn-sm btn-sm-ghost" style="padding:6px 10px;" onclick="showIncidentEvidence('${inc.id}')"><i class="fas fa-images"></i> Photos</button>`;
+            // MISSIONS-EXT-4A2 FIX-1: operator dashboard is read-only for incidents.
+            // Field-report actions (report/update/evidence) are handled by the convoyeur dashboard.
+            const actions = `<button class="btn-sm btn-sm-ghost" style="padding:6px 10px;" onclick="showIncidentEvidence('${inc.id}')"><i class="fas fa-images"></i> Photos</button>`;
             return `<div class="incident-item">
               <div class="incident-item-header">
                 ${incidentSeverityBadge(inc.severity)}
@@ -1713,222 +1688,14 @@
       }
       window.loadMissionIncidents = loadMissionIncidents;
 
-      function showReportIncidentForm(missionId) {
-        const now = new Date();
-        const localISO = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-        const typeOpts = Object.entries(INCIDENT_TYPES).map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
-        const sevOpts = Object.entries(INCIDENT_SEVERITIES).map(([v, l]) => `<option value="${v}"${v === 'medium' ? ' selected' : ''}>${l}</option>`).join('');
-        Swal.fire({
-          title: 'Signaler un incident',
-          html: `<div class="swal-incident-form">
-            <label for="inc-type">Type *</label>
-            <select id="inc-type"><option value="">— Choisir —</option>${typeOpts}</select>
-            <label for="inc-severity">Gravité *</label>
-            <select id="inc-severity">${sevOpts}</select>
-            <label for="inc-title">Titre * <span class="char-count" id="inc-title-count">0/120</span></label>
-            <input type="text" id="inc-title" maxlength="120" placeholder="Résumé court de l'incident">
-            <label for="inc-desc">Description * <span class="char-count" id="inc-desc-count">0/2000</span></label>
-            <textarea id="inc-desc" maxlength="2000" placeholder="Décrivez ce qui s'est passé..."></textarea>
-            <label for="inc-when">Date / heure de l'incident *</label>
-            <input type="datetime-local" id="inc-when" value="${localISO}">
-            <label for="inc-loc">Lieu (facultatif) <span class="char-count" id="inc-loc-count">0/300</span></label>
-            <input type="text" id="inc-loc" maxlength="300" placeholder="Adresse ou repère">
-          </div>`,
-          showCancelButton: true,
-          confirmButtonText: 'Signaler',
-          cancelButtonText: 'Annuler',
-          confirmButtonColor: 'var(--bordeaux)',
-          didOpen: () => {
-            const t = document.getElementById('inc-title');
-            const d = document.getElementById('inc-desc');
-            const l = document.getElementById('inc-loc');
-            t.addEventListener('input', () => { document.getElementById('inc-title-count').textContent = t.value.length + '/120'; });
-            d.addEventListener('input', () => { document.getElementById('inc-desc-count').textContent = d.value.length + '/2000'; });
-            l.addEventListener('input', () => { document.getElementById('inc-loc-count').textContent = l.value.length + '/300'; });
-          },
-          preConfirm: async () => {
-            const incidentType = document.getElementById('inc-type').value;
-            const severity = document.getElementById('inc-severity').value;
-            const title = document.getElementById('inc-title').value.trim();
-            const description = document.getElementById('inc-desc').value.trim();
-            const occurredAt = document.getElementById('inc-when').value;
-            const locationText = document.getElementById('inc-loc').value.trim() || null;
-            if (!incidentType) { Swal.showValidationMessage('Le type est obligatoire.'); return false; }
-            if (!title) { Swal.showValidationMessage('Le titre est obligatoire.'); return false; }
-            if (!description) { Swal.showValidationMessage('La description est obligatoire.'); return false; }
-            if (!occurredAt) { Swal.showValidationMessage('La date/heure est obligatoire.'); return false; }
-            const sb = getSBC();
-            if (!sb) { Swal.showValidationMessage('Erreur de connexion.'); return false; }
-            const { data, error } = await sb.rpc('report_mission_incident', {
-              p_mission_id: missionId,
-              p_incident_type: incidentType,
-              p_severity: severity,
-              p_title: title,
-              p_description: description,
-              p_occurred_at: new Date(occurredAt).toISOString(),
-              p_location_text: locationText
-            });
-            if (error) {
-              Swal.showValidationMessage("Impossible de signaler l'incident. Vérifiez les informations et réessayez.");
-              return false;
-            }
-            return data;
-          }
-        }).then(result => {
-          if (result.isConfirmed && result.value) {
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Incident signalé', timer: 2500, showConfirmButton: false });
-            if (_currentIncidentMissionId) {
-              loadMissionIncidents(_currentIncidentMissionId);
-              loadMissionTimeline(_currentIncidentMissionId);
-            }
-          }
-        });
-      }
-      window.showReportIncidentForm = showReportIncidentForm;
-
-      function showUpdateIncidentForm(incidentId) {
-        const sb = getSBC();
-        if (!sb) return;
-        Swal.fire({ title: 'Chargement…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
-        sb.from('mission_incidents')
-          .select('id,incident_type,severity,title,description,location_text')
-          .eq('id', incidentId).single()
-          .then(({ data: inc, error }) => {
-            if (error || !inc) {
-              Swal.fire('Erreur', 'Incident introuvable.', 'error');
-              return;
-            }
-            const typeOpts = Object.entries(INCIDENT_TYPES).map(([v, l]) => `<option value="${v}"${v === inc.incident_type ? ' selected' : ''}>${l}</option>`).join('');
-            const sevOpts = Object.entries(INCIDENT_SEVERITIES).map(([v, l]) => `<option value="${v}"${v === inc.severity ? ' selected' : ''}>${l}</option>`).join('');
-            Swal.fire({
-              title: "Modifier l'incident",
-              html: `<div class="swal-incident-form">
-                <label for="inc-type">Type *</label>
-                <select id="inc-type">${typeOpts}</select>
-                <label for="inc-severity">Gravité *</label>
-                <select id="inc-severity">${sevOpts}</select>
-                <label for="inc-title">Titre * <span class="char-count" id="inc-title-count">${(inc.title||'').length}/120</span></label>
-                <input type="text" id="inc-title" maxlength="120" value="${escapeHtml(inc.title || '')}">
-                <label for="inc-desc">Description * <span class="char-count" id="inc-desc-count">${(inc.description||'').length}/2000</span></label>
-                <textarea id="inc-desc" maxlength="2000">${escapeHtml(inc.description || '')}</textarea>
-                <label for="inc-loc">Lieu (facultatif) <span class="char-count" id="inc-loc-count">${(inc.location_text||'').length}/300</span></label>
-                <input type="text" id="inc-loc" maxlength="300" value="${escapeHtml(inc.location_text || '')}">
-              </div>`,
-              showCancelButton: true,
-              confirmButtonText: 'Enregistrer',
-              cancelButtonText: 'Annuler',
-              confirmButtonColor: 'var(--bordeaux)',
-              didOpen: () => {
-                const t = document.getElementById('inc-title');
-                const d = document.getElementById('inc-desc');
-                const l = document.getElementById('inc-loc');
-                t.addEventListener('input', () => { document.getElementById('inc-title-count').textContent = t.value.length + '/120'; });
-                d.addEventListener('input', () => { document.getElementById('inc-desc-count').textContent = d.value.length + '/2000'; });
-                l.addEventListener('input', () => { document.getElementById('inc-loc-count').textContent = l.value.length + '/300'; });
-              },
-              preConfirm: async () => {
-                const incidentType = document.getElementById('inc-type').value;
-                const severity = document.getElementById('inc-severity').value;
-                const title = document.getElementById('inc-title').value.trim();
-                const description = document.getElementById('inc-desc').value.trim();
-                const locationText = document.getElementById('inc-loc').value.trim() || null;
-                if (!title) { Swal.showValidationMessage('Le titre est obligatoire.'); return false; }
-                if (!description) { Swal.showValidationMessage('La description est obligatoire.'); return false; }
-                const sb2 = getSBC();
-                const { error: rpcErr } = await sb2.rpc('update_mission_incident', {
-                  p_incident_id: incidentId,
-                  p_incident_type: incidentType,
-                  p_severity: severity,
-                  p_title: title,
-                  p_description: description,
-                  p_location_text: locationText
-                });
-                if (rpcErr) {
-                  Swal.showValidationMessage("Impossible de modifier l'incident. Il a peut-être été traité par l'administration.");
-                  return false;
-                }
-                return true;
-              }
-            }).then(result => {
-              if (result.isConfirmed) {
-                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Incident modifié', timer: 2500, showConfirmButton: false });
-                if (_currentIncidentMissionId) loadMissionIncidents(_currentIncidentMissionId);
-              }
-            });
-          });
-      }
-      window.showUpdateIncidentForm = showUpdateIncidentForm;
-
-      function showAddEvidenceForm(incidentId) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/jpeg,image/png,image/webp';
-        input.style.display = 'none';
-        document.body.appendChild(input);
-        input.addEventListener('change', async () => {
-          const file = input.files[0];
-          document.body.removeChild(input);
-          if (!file) return;
-          if (!ALLOWED_EVIDENCE_MIMES.includes(file.type)) {
-            Swal.fire('Format refusé', 'Seuls les formats JPEG, PNG et WebP sont acceptés.', 'error');
-            return;
-          }
-          if (file.size > MAX_EVIDENCE_SIZE) {
-            Swal.fire('Fichier trop volumineux', 'La taille maximum est de 5 Mo.', 'error');
-            return;
-          }
-          // Preview
-          const reader = new FileReader();
-          reader.onload = async (e) => {
-            const previewUrl = e.target.result;
-            Swal.fire({
-              title: "Confirmer l'ajout",
-              html: `<img src="${previewUrl}" class="swal-preview-img" alt="Aperçu"><p style="font-size:0.75rem;color:var(--gray-mid);margin-top:8px;">${escapeHtml(file.name)} · ${(file.size/1024).toFixed(0)} Ko</p>`,
-              showCancelButton: true,
-              confirmButtonText: '<i class="fas fa-upload"></i> Ajouter cette photo',
-              cancelButtonText: 'Annuler',
-              confirmButtonColor: 'var(--bordeaux)',
-              preConfirm: async () => {
-                const sb = getSBC();
-                if (!sb) { Swal.showValidationMessage('Erreur de connexion.'); return false; }
-                if (!_currentIncidentMissionId) { Swal.showValidationMessage('Session expirée.'); return false; }
-                Swal.update({ title: 'Envoi…' });
-                Swal.showLoading();
-                const ext = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '');
-                const safeExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
-                const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${safeExt}`;
-                const path = `missions/${_currentIncidentMissionId}/incidents/${incidentId}/${fileName}`;
-                const { error: upErr } = await sb.storage.from('mission-incidents').upload(path, file, { contentType: file.type, upsert: false });
-                if (upErr) {
-                  Swal.showValidationMessage("L'envoi de la photo a échoué. Réessayez.");
-                  return false;
-                }
-                const { error: regErr } = await sb.rpc('register_mission_incident_evidence', {
-                  p_incident_id: incidentId,
-                  p_storage_bucket: 'mission-incidents',
-                  p_storage_path: path,
-                  p_mime_type: file.type
-                });
-                if (regErr) {
-                  // Best-effort orphan cleanup: registration failed, remove the uploaded object.
-                  try { await sb.storage.from('mission-incidents').remove([path]); } catch (_) {}
-                  Swal.showValidationMessage("La photo n'a pas pu être enregistrée. Réessayez.");
-                  return false;
-                }
-                return true;
-              }
-            }).then(result => {
-              if (result.isConfirmed) {
-                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Photo ajoutée', timer: 2500, showConfirmButton: false });
-                if (_currentIncidentMissionId) loadMissionIncidents(_currentIncidentMissionId);
-              }
-            });
-          };
-          reader.readAsDataURL(file);
-        });
-        input.click();
-      }
-      window.showAddEvidenceForm = showAddEvidenceForm;
+      // MISSIONS-EXT-4A2 FIX-1: The operator dashboard loads ALL missions via
+      // is_operator() RLS (missions_select_b3), not just missions assigned to
+      // the current user as convoyeur. The field-report incident RPCs
+      // (report/update/register_evidence) authorize only the assigned non-banned
+      // convoyeur. Exposing a "Signaler" button to a non-assigned operator would
+      // show an action that is guaranteed to fail server-side. The field-report
+      // flow is handled exclusively by the convoyeur dashboard. The operator
+      // dashboard retains read-only incident display + photo viewing only.
 
       async function showIncidentEvidence(incidentId) {
         const sb = getSBC();

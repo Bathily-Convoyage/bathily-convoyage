@@ -420,18 +420,84 @@ test('operator dashboard has modalIncidents element in mission modal', () => {
   assert.ok(/id="modalIncidents"/.test(operatorDashboard), 'modalIncidents element present');
 });
 
-test('operator dashboard has Signaler incident button in modal', () => {
-  assert.ok(/showReportIncidentForm/.test(operatorDashboard), 'showReportIncidentForm called');
+test('operator dashboard does NOT expose Signaler field-report button', () => {
+  // MISSIONS-EXT-4A2 FIX-1: operator dashboard must not show a field-report
+  // incident action to a non-assigned operator.
+  assert.ok(
+    !/showReportIncidentForm/.test(operatorDashboard),
+    'operator dashboard must not reference showReportIncidentForm',
+  );
+  assert.ok(
+    !/Signaler un incident/.test(operatorDashboard),
+    'operator dashboard must not have Signaler un incident button',
+  );
 });
 
-test('operator dashboard loads incidents when modal opens', () => {
+test('operator dashboard does NOT expose update/evidence field-report actions', () => {
+  assert.ok(
+    !/showUpdateIncidentForm/.test(operatorDashboard),
+    'operator dashboard must not reference showUpdateIncidentForm',
+  );
+  assert.ok(
+    !/showAddEvidenceForm/.test(operatorDashboard),
+    'operator dashboard must not reference showAddEvidenceForm',
+  );
+});
+
+test('operator dashboard does NOT call report/update/register incident RPCs', () => {
+  assert.ok(
+    !/report_mission_incident/.test(operatorDashboard),
+    'operator dashboard must not call report_mission_incident',
+  );
+  assert.ok(
+    !/update_mission_incident/.test(operatorDashboard),
+    'operator dashboard must not call update_mission_incident',
+  );
+  assert.ok(
+    !/register_mission_incident_evidence/.test(operatorDashboard),
+    'operator dashboard must not call register_mission_incident_evidence',
+  );
+});
+
+test('operator dashboard does NOT have evidence orphan cleanup (no evidence upload path)', () => {
+  assert.ok(
+    !/storage\.from\('mission-incidents'\)\.remove/.test(operatorDashboard),
+    'operator dashboard must not have evidence orphan cleanup (no upload path)',
+  );
+});
+
+test('operator dashboard does NOT have unused incident constants', () => {
+  assert.ok(
+    !/ALLOWED_EVIDENCE_MIMES/.test(operatorDashboard),
+    'operator dashboard must not have ALLOWED_EVIDENCE_MIMES constant',
+  );
+  assert.ok(
+    !/MAX_EVIDENCE_SIZE/.test(operatorDashboard),
+    'operator dashboard must not have MAX_EVIDENCE_SIZE constant',
+  );
+});
+
+test('operator dashboard does NOT have swal-incident-form CSS (form removed)', () => {
+  assert.ok(
+    !/swal-incident-form/.test(operatorDashboard),
+    'operator dashboard must not have swal-incident-form CSS class',
+  );
+});
+
+test('operator dashboard loads incidents when modal opens (read-only display)', () => {
   assert.ok(/loadMissionIncidents\(mission\.id\)/.test(operatorDashboard), 'loadMissionIncidents called on modal open');
 });
 
-test('operator dashboard has orphan cleanup for evidence', () => {
+test('operator dashboard retains incident evidence viewing (read-only)', () => {
+  assert.ok(/showIncidentEvidence/.test(operatorDashboard), 'showIncidentEvidence function present for read-only viewing');
+});
+
+test('operator dashboard has no dead incident report/update/evidence callsites', () => {
+  // No remaining references to the deleted functions should exist anywhere.
+  const stripped = operatorDashboard.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
   assert.ok(
-    /storage\.from\('mission-incidents'\)\.remove\(\[path\]\)/.test(operatorDashboard),
-    'orphan cleanup on registration failure',
+    !/showReportIncidentForm|showUpdateIncidentForm|showAddEvidenceForm/.test(stripped),
+    'no dead incident report/update/evidence callsites in code (comments excluded)',
   );
 });
 
