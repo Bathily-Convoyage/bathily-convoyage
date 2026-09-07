@@ -53,6 +53,9 @@ self.addEventListener('fetch', (event) => {
   // Skip Netlify functions
   if (url.pathname.startsWith('/.netlify/')) return;
 
+  // Skip same-origin API routes — dynamic responses must never be cached
+  if (url.pathname === '/api' || url.pathname.startsWith('/api/')) return;
+
   // HTML pages: network-first (always fresh content)
   if (req.headers.get('accept')?.includes('text/html')) {
     event.respondWith(
