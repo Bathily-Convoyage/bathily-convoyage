@@ -8,7 +8,7 @@
 
   var text = document.createElement('span');
   text.style.flex = '1 1 300px';
-  text.innerHTML = 'Nous utilisons des cookies pour améliorer votre expérience et analyser le trafic. En continuant, vous acceptez notre <a href="mentions-legales.html" style="color:#F5A623;text-decoration:underline;">politique de confidentialité</a>.';
+  text.innerHTML = 'Nous utilisons des cookies pour améliorer votre expérience et analyser le trafic. En continuant, vous acceptez notre <a href="/mentions-legales.html" style="color:#F5A623;text-decoration:underline;">politique de confidentialité</a>.';
 
   var btnAccept = document.createElement('button');
   btnAccept.textContent = 'Accepter';
