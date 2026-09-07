@@ -161,22 +161,25 @@ test('subscribePush persists endpoint to push_subscriptions table', () => {
     'subscribePush must persist auth_key');
 });
 
-// ── 10. Current implementation does NOT require UPDATE RLS ──
+// ── 10. Implementation uses SELECT-then-INSERT/UPDATE, not upsert ──
 
-test('subscribePush uses SELECT-then-INSERT, not upsert with onConflict', () => {
+test('subscribePush uses SELECT-then-INSERT/UPDATE, not upsert with onConflict', () => {
   const content = readFile('public/js/gamification.js');
   const subIdx = content.indexOf('async function subscribePush');
-  const subBlock = content.substring(subIdx, subIdx + 3000);
+  const subBlock = content.substring(subIdx, subIdx + 4000);
   // Strip comments to check only actual code
   const codeOnly = subBlock.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
-  // Must NOT use upsert (which requires UPDATE RLS)
+  // Must NOT use upsert (which is less explicit than SELECT-then-INSERT/UPDATE)
   assert.ok(!codeOnly.includes('.upsert('),
-    'subscribePush must NOT use .upsert() — current RLS has no UPDATE policy');
-  // Must use SELECT to check existing, then INSERT
+    'subscribePush must NOT use .upsert() — explicit SELECT/INSERT/UPDATE is safer');
+  // Must use SELECT to check existing, then INSERT or UPDATE
   assert.ok(codeOnly.includes('.select('),
     'subscribePush must SELECT to check for existing row');
   assert.ok(codeOnly.includes('.insert('),
     'subscribePush must INSERT new row');
+  // After P3-B2.2B RLS migration, UPDATE is now permitted for key refresh
+  assert.ok(codeOnly.includes('.update('),
+    'subscribePush must UPDATE existing row when keys differ (P3-B2.2B UPDATE RLS)');
   assert.ok(codeOnly.includes('.maybeSingle()'),
     'subscribePush must use maybeSingle() for existence check');
 });
@@ -356,4 +359,41 @@ test('generate-config.cjs produces VAPID_PUBLIC_KEY line when env set', () => {
     'generate-config must read VAPID_PUBLIC_KEY from environment');
   assert.ok(content.includes("|| ''"),
     'generate-config must default to empty string when VAPID_PUBLIC_KEY not set');
+});
+
+// ── P3-B2.4A Integration: key refresh UPDATE scope ──
+
+test('subscribePush UPDATE only modifies p256dh, auth_key, user_agent (not user_id/endpoint)', () => {
+  const content = readFile('public/js/gamification.js');
+  const subIdx = content.indexOf('async function subscribePush');
+  const subBlock = content.substring(subIdx, subIdx + 4000);
+  // Find the .update() call
+  const updateIdx = subBlock.indexOf('.update(');
+  if (updateIdx === -1) {
+    // If no update call, test passes only if we're not testing key refresh
+    // But after P3-B2.4A integration, update should exist
+    assert.fail('subscribePush must contain .update() for key refresh after P3-B2.4A integration');
+  }
+  // Extract the update block (object literal passed to .update())
+  const updateBlock = subBlock.substring(updateIdx, updateIdx + 300);
+  // Must update only p256dh, auth_key, user_agent
+  assert.ok(updateBlock.includes('p256dh'),
+    'UPDATE must refresh p256dh');
+  assert.ok(updateBlock.includes('auth_key'),
+    'UPDATE must refresh auth_key');
+  assert.ok(updateBlock.includes('user_agent'),
+    'UPDATE must refresh user_agent');
+  // Must NOT update user_id or endpoint in the .update() object
+  // The .eq() filters are separate — check the update object only
+  const updateObjEnd = updateBlock.indexOf('})');
+  const updateObj = updateBlock.substring(0, updateObjEnd);
+  assert.ok(!updateObj.match(/user_id\s*:/),
+    'UPDATE must NOT modify user_id');
+  assert.ok(!updateObj.match(/endpoint\s*:/),
+    'UPDATE must NOT modify endpoint');
+  // UPDATE must be scoped by both user_id AND endpoint
+  assert.ok(updateBlock.includes(".eq('user_id'"),
+    'UPDATE must be scoped by user_id');
+  assert.ok(updateBlock.includes(".eq('endpoint'"),
+    'UPDATE must be scoped by endpoint');
 });

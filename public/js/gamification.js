@@ -240,12 +240,12 @@
       var p256dh = arrayBufferToBase64(sub.getKey('p256dh'));
       var authKey = arrayBufferToBase64(sub.getKey('auth'));
 
-      // RLS-compatible persistence: SELECT first, INSERT only if absent.
-      // Current Production RLS has SELECT/INSERT/DELETE but NO UPDATE policy.
-      // Using .upsert() with onConflict would require UPDATE RLS, which does not exist yet.
-      // This SELECT-then-INSERT approach works with current RLS.
+      // Persistence: SELECT first, then INSERT or UPDATE as needed.
+      // Uses owner-only UPDATE RLS policy (P3-B2.2B) to refresh keys
+      // when the browser re-subscribes with the same endpoint but new keys.
+      // Does NOT change user_id or endpoint — only p256dh, auth_key, user_agent.
       var _existing = await sb.from('push_subscriptions')
-        .select('id')
+        .select('id, p256dh, auth_key, user_agent')
         .eq('user_id', userId)
         .eq('endpoint', endpoint)
         .maybeSingle();
@@ -255,7 +255,7 @@
       }
 
       if (!_existing.data) {
-        // No existing row for this endpoint — INSERT only
+        // No existing row for this endpoint — INSERT
         var _insert = await sb.from('push_subscriptions').insert({
           user_id: userId,
           endpoint: endpoint,
@@ -269,8 +269,26 @@
           try { await sub.unsubscribe(); } catch (e) { /* best effort */ }
           throw _insert.error;
         }
+      } else {
+        // Row exists — check if keys/user_agent differ
+        var _row = _existing.data;
+        if (_row.p256dh !== p256dh || _row.auth_key !== authKey || _row.user_agent !== navigator.userAgent) {
+          // Keys changed — UPDATE only mutable columns, scoped to user_id + endpoint
+          var _update = await sb.from('push_subscriptions')
+            .update({
+              p256dh: p256dh,
+              auth_key: authKey,
+              user_agent: navigator.userAgent
+            })
+            .eq('user_id', userId)
+            .eq('endpoint', endpoint);
+
+          if (_update.error) {
+            throw _update.error;
+          }
+        }
+        // If keys unchanged — no-op
       }
-      // If row already exists, no action needed (keys may differ but UPDATE is not RLS-permitted)
 
       showSwal('Activé !', 'Vous recevrez les notifications push.', 'success', 2000);
       await refreshPushUIState();

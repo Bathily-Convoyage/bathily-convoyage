@@ -58,7 +58,7 @@ ALTER TABLE public.push_notification_outbox
 -- Max attempts ceiling
 ALTER TABLE public.push_notification_outbox
   ADD CONSTRAINT push_notification_outbox_attempts_check
-  CHECK (attempts >= 0 AND attempts <= 10);
+  CHECK (attempts >= 0 AND attempts <= 5);
 
 -- =====================================================
 -- 3. INDEXES
@@ -170,9 +170,9 @@ REVOKE EXECUTE ON FUNCTION public.enqueue_push_notification() FROM authenticated
 -- =====================================================
 -- Atomically transitions eligible rows to 'processing'.
 -- Eligible rows:
---   pending AND next_attempt_at <= now() AND attempts < 10
+--   pending AND next_attempt_at <= now() AND attempts < 5
 --   OR
---   processing AND claimed_at < now() - 5 minutes AND attempts < 10
+--   processing AND claimed_at < now() - 5 minutes AND attempts < 5
 --
 -- The 5-minute timeout allows recovery of rows claimed by workers
 -- that crashed before finalizing. Reclaiming increments attempts
@@ -212,7 +212,7 @@ BEGIN
       OR
       (q.status = 'processing' AND q.claimed_at < now() - interval '5 minutes')
     )
-    AND q.attempts < 10
+    AND q.attempts < 5
     ORDER BY q.next_attempt_at ASC
     LIMIT p_limit
     FOR UPDATE SKIP LOCKED

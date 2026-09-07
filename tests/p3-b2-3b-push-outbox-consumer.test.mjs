@@ -423,13 +423,17 @@ test('B1.2: fresh processing row is NOT reclaimed (within timeout)', () => {
 
 // ── 3. Stale row still respects max attempts ──
 
-test('B1.3: stale row still respects max attempts (attempts < 10 in claim)', () => {
+test('B1.3: stale row still respects max attempts (attempts < 5 in claim)', () => {
   const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
   const claimIdx = sql.indexOf('claim_push_outbox_rows');
   const claimBlock = sql.substring(claimIdx, claimIdx + 2000);
-  // The attempts < 10 check must apply to BOTH pending and processing reclaim
-  assert.ok(claimBlock.includes('q.attempts < 10'),
-    'claim must enforce attempts < 10 for both pending and stale processing rows');
+  // The attempts < 5 check must apply to BOTH pending and processing reclaim
+  // and must match consumer MAX_ATTEMPTS = 5
+  assert.ok(claimBlock.includes('q.attempts < 5'),
+    'claim must enforce attempts < 5 for both pending and stale processing rows');
+  // Verify alignment: SQL CHECK constraint also uses 5
+  assert.ok(sql.includes('attempts <= 5'),
+    'schema CHECK constraint must use attempts <= 5 (aligned with consumer MAX_ATTEMPTS)');
 });
 
 // ── 4. Concurrent stale recovery cannot double-claim ──
