@@ -215,17 +215,26 @@ test('19. terminal 400/401/403', () => {
     'consumer must set failed for terminal errors');
 });
 
-test('20. max attempts enforced', () => {
+test('20. max attempts enforced — 5 actual sends, attempt 6 impossible', () => {
   const js = readFile('functions/api/process-push-outbox.js');
   assert.ok(js.includes('MAX_ATTEMPTS'),
     'consumer must have MAX_ATTEMPTS constant');
-  assert.ok(js.includes('max_attempts'),
-    'consumer must check max attempts');
-  assert.ok(js.includes("p_status: 'failed'"),
-    'consumer must mark as failed when max attempts reached');
   // Verify MAX_ATTEMPTS is 5
   assert.ok(js.includes('MAX_ATTEMPTS = 5'),
     'MAX_ATTEMPTS must be 5');
+  // Post-send check: after send failure, if attempts >= MAX_ATTEMPTS → failed
+  assert.ok(js.includes('row.attempts >= MAX_ATTEMPTS'),
+    'consumer must check attempts >= MAX_ATTEMPTS after send failure (not before send)');
+  assert.ok(js.includes("p_status: 'failed'"),
+    'consumer must mark as failed when max attempts reached after send');
+  // Must NOT have pre-send max attempts check that skips send
+  // The old pattern was: if (row.attempts >= MAX_ATTEMPTS) { ... continue; }
+  // before the send logic. This would prevent the 5th send.
+  const sendIdx = js.indexOf('sendWebPush');
+  const maxCheckIdx = js.indexOf('row.attempts >= MAX_ATTEMPTS');
+  // The max attempts check must come AFTER the send logic, not before
+  assert.ok(maxCheckIdx > sendIdx,
+    'max attempts check must be AFTER send (post-send), not before (pre-send)');
 });
 
 test('21. no subscription deterministic handling', () => {
@@ -607,6 +616,182 @@ test('B1.15: email pipeline still untouched after hardening', () => {
   assert.ok(!codeOnly.match(/INSERT\s+INTO.*\bnotification_outbox\b(?!_)/i),
     'migration must NOT INSERT into email notification_outbox table');
   // Consumer must not reference email helpers in code
+  const js = readFile('functions/api/process-push-outbox.js');
+  const jsCodeOnly = js.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.ok(!jsCodeOnly.includes('sendEmail'),
+    'push consumer must NOT call sendEmail');
+  assert.ok(!jsCodeOnly.match(/\bnotification_outbox\b(?!_)/),
+    'push consumer must NOT reference email outbox table in code');
+});
+
+// =========================================================
+// P3-B2.4A1 — FINAL SQL/RETRY CORRECTION TESTS
+// =========================================================
+
+// ── 1. service_role explicitly has EXECUTE on claim RPC ──
+
+test('A1.1: service_role has EXECUTE on claim_push_outbox_rows', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  assert.ok(sql.includes('GRANT EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) TO service_role'),
+    'must explicitly GRANT EXECUTE on claim_push_outbox_rows TO service_role');
+});
+
+// ── 2. service_role explicitly has EXECUTE on complete RPC ──
+
+test('A1.2: service_role has EXECUTE on complete_push_outbox_row', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  assert.ok(sql.includes('GRANT EXECUTE ON FUNCTION public.complete_push_outbox_row(uuid, text, int, text, timestamptz) TO service_role'),
+    'must explicitly GRANT EXECUTE on complete_push_outbox_row TO service_role');
+});
+
+// ── 3. Trigger function does NOT have service_role EXECUTE (least privilege) ──
+
+test('A1.3: trigger function enqueue_push_notification has NO service_role grant (least privilege)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  // enqueue_push_notification is trigger-only — no GRANT EXECUTE to service_role
+  assert.ok(!sql.match(/GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.enqueue_push_notification.*TO\s+service_role/i),
+    'trigger function must NOT have GRANT EXECUTE to service_role (least privilege, trigger-only)');
+});
+
+// ── 4. PUBLIC/anon/authenticated all revoked on all 3 functions ──
+
+test('A1.4: PUBLIC, anon, authenticated all revoked on all 3 SECURITY DEFINER functions', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  const fns = [
+    'public.enqueue_push_notification()',
+    'public.claim_push_outbox_rows(int)',
+    'public.complete_push_outbox_row(uuid, text, int, text, timestamptz)'
+  ];
+  for (const fn of fns) {
+    assert.ok(sql.includes(`REVOKE EXECUTE ON FUNCTION ${fn} FROM PUBLIC`),
+      `PUBLIC must be revoked on ${fn}`);
+    assert.ok(sql.includes(`REVOKE EXECUTE ON FUNCTION ${fn} FROM anon`),
+      `anon must be revoked on ${fn}`);
+    assert.ok(sql.includes(`REVOKE EXECUTE ON FUNCTION ${fn} FROM authenticated`),
+      `authenticated must be revoked on ${fn}`);
+  }
+});
+
+// ── 5. Exactly 5 actual send attempts are possible ──
+
+test('A1.5: exactly 5 actual send attempts possible (claim < 5, no pre-send skip)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  // Claim RPC only claims rows with attempts < 5
+  // After claim, attempts becomes 1, 2, 3, 4, or 5
+  // All claimed rows get sent (no pre-send skip)
+  const claimIdx = sql.indexOf('claim_push_outbox_rows');
+  const claimBlock = sql.substring(claimIdx, claimIdx + 3000);
+  assert.ok(claimBlock.includes('q.attempts < 5'),
+    'claim must only select rows with attempts < 5 (allowing 5 claims total)');
+
+  const js = readFile('functions/api/process-push-outbox.js');
+  // Must NOT have pre-send check that skips send when attempts >= MAX_ATTEMPTS
+  // The old pattern: if (row.attempts >= MAX_ATTEMPTS) { ... continue; }
+  // before the sendWebPush call
+  const sendIdx = js.indexOf('sendWebPush');
+  const beforeSend = js.substring(0, sendIdx);
+  // Check that there's no max attempts skip before send
+  assert.ok(!beforeSend.includes('row.attempts >= MAX_ATTEMPTS') || !beforeSend.includes('continue'),
+    'consumer must NOT skip send based on max attempts before sendWebPush');
+});
+
+// ── 6. Attempt 5 actually calls sendWebPush() ──
+
+test('A1.6: attempt 5 actually calls sendWebPush (no pre-send guard)', () => {
+  const js = readFile('functions/api/process-push-outbox.js');
+  // The sendWebPush call must come before any max attempts check
+  const sendIdx = js.indexOf('sendWebPush(');
+  const maxCheckIdx = js.indexOf('row.attempts >= MAX_ATTEMPTS');
+  assert.ok(sendIdx > -1, 'consumer must call sendWebPush');
+  assert.ok(maxCheckIdx > -1, 'consumer must have max attempts check');
+  // sendWebPush must come BEFORE the post-send max attempts check
+  assert.ok(sendIdx < maxCheckIdx,
+    'sendWebPush must be called before post-send max attempts check');
+});
+
+// ── 7. Failed attempt 5 becomes terminal ──
+
+test('A1.7: failed attempt 5 becomes terminal (failed, not pending)', () => {
+  const js = readFile('functions/api/process-push-outbox.js');
+  // After send, if retryableCount > 0 AND attempts >= MAX_ATTEMPTS → failed
+  const outcomeIdx = js.indexOf('retryableCount > 0');
+  const outcomeBlock = js.substring(outcomeIdx, outcomeIdx + 500);
+  assert.ok(outcomeBlock.includes('row.attempts >= MAX_ATTEMPTS'),
+    'post-send retryable path must check attempts >= MAX_ATTEMPTS');
+  assert.ok(outcomeBlock.includes("finalStatus = 'failed'"),
+    'attempt 5 with retryable failure must become failed (terminal)');
+});
+
+// ── 8. Attempt 6 impossible ──
+
+test('A1.8: attempt 6 impossible (SQL claim < 5, CHECK <= 5)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  // Claim RPC: attempts < 5 → max claim produces attempts=5
+  // After attempts=5, row is not claimable (5 < 5 is false)
+  const claimIdx = sql.indexOf('claim_push_outbox_rows');
+  const claimBlock = sql.substring(claimIdx, claimIdx + 3000);
+  assert.ok(claimBlock.includes('q.attempts < 5'),
+    'claim eligibility requires attempts < 5 — attempt 6 impossible');
+  // Schema CHECK: attempts <= 5
+  assert.ok(sql.includes('attempts <= 5'),
+    'schema CHECK must enforce attempts <= 5 — attempt 6 impossible');
+});
+
+// ── 9. Stale processing with attempts < 5 recoverable ──
+
+test('A1.9: stale processing with attempts < 5 is recoverable (reclaimed)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  const claimIdx = sql.indexOf('claim_push_outbox_rows');
+  const claimBlock = sql.substring(claimIdx, claimIdx + 3000);
+  // Phase 2 claims stale processing with attempts < 5
+  assert.ok(claimBlock.includes("q.status = 'processing'"),
+    'claim must consider stale processing rows');
+  assert.ok(claimBlock.includes("claimed_at < now() - interval '5 minutes'"),
+    'claim must use 5-minute timeout for stale detection');
+  assert.ok(claimBlock.includes('q.attempts < 5'),
+    'stale processing with attempts < 5 must be reclaimable');
+});
+
+// ── 10. Stale processing with attempts = 5 NOT reclaimed (terminal recovery) ──
+
+test('A1.10: stale processing with attempts=5 NOT reclaimed — marked failed instead', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  // Phase 1: stale terminal recovery — find the actual UPDATE code
+  // Look for the recovery UPDATE that marks stale processing with attempts >= 5 as failed
+  const recoveryMatch = sql.match(/UPDATE\s+public\.push_notification_outbox\s+SET\s+status\s*=\s*'failed'[^;]*attempts\s*>=\s*5/is);
+  assert.ok(recoveryMatch, 'must have UPDATE ... SET status = failed ... WHERE attempts >= 5 (stale terminal recovery)');
+  const recoveryBlock = recoveryMatch[0];
+  assert.ok(recoveryBlock.includes("status = 'processing'") || recoveryBlock.match(/status\s*=\s*'processing'/i),
+    'recovery must target processing rows');
+  assert.ok(recoveryBlock.includes('claimed_at') && recoveryBlock.includes('interval'),
+    'recovery must check stale claimed_at');
+  assert.ok(recoveryBlock.includes('attempts >= 5') || recoveryBlock.match(/attempts\s*>=\s*5/i),
+    'recovery must target attempts >= 5 (exhausted)');
+});
+
+// ── 11. CAS still protected ──
+
+test('A1.11: CAS protection intact after retry correction', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  const completeIdx = sql.indexOf('complete_push_outbox_row');
+  const completeBlock = sql.substring(completeIdx, completeIdx + 1000);
+  assert.ok(completeBlock.includes("status = 'processing'"),
+    'complete RPC must still check status = processing (CAS)');
+  assert.ok(completeBlock.includes('attempts = p_expected_attempts'),
+    'complete RPC must still check attempts = expected (CAS)');
+  assert.ok(completeBlock.includes('RETURNS boolean'),
+    'complete RPC must still return boolean');
+});
+
+// ── 12. Email pipeline untouched ──
+
+test('A1.12: email pipeline untouched after retry correction', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  const codeOnly = sql.replace(/--.*$/gm, '');
+  assert.ok(!codeOnly.match(/ALTER\s+TABLE.*\bnotification_outbox\b(?!_)/i),
+    'migration must NOT ALTER email notification_outbox table');
+  assert.ok(!codeOnly.match(/INSERT\s+INTO.*\bnotification_outbox\b(?!_)/i),
+    'migration must NOT INSERT into email notification_outbox table');
   const js = readFile('functions/api/process-push-outbox.js');
   const jsCodeOnly = js.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
   assert.ok(!jsCodeOnly.includes('sendEmail'),

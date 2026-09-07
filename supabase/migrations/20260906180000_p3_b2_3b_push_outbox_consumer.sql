@@ -161,6 +161,7 @@ CREATE TRIGGER mission_events_enqueue_push
 -- Revoke direct execution from client roles — trigger still works
 -- because trigger functions execute with SECURITY DEFINER context,
 -- not the caller's privileges.
+-- No GRANT EXECUTE to service_role: trigger-only, least privilege.
 REVOKE EXECUTE ON FUNCTION public.enqueue_push_notification() FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.enqueue_push_notification() FROM anon;
 REVOKE EXECUTE ON FUNCTION public.enqueue_push_notification() FROM authenticated;
@@ -168,15 +169,23 @@ REVOKE EXECUTE ON FUNCTION public.enqueue_push_notification() FROM authenticated
 -- =====================================================
 -- 7. CLAIM RPC — concurrency-safe row claiming with stale recovery
 -- =====================================================
--- Atomically transitions eligible rows to 'processing'.
--- Eligible rows:
---   pending AND next_attempt_at <= now() AND attempts < 5
---   OR
---   processing AND claimed_at < now() - 5 minutes AND attempts < 5
+-- Two-phase operation:
+--
+-- Phase 1 (stale terminal recovery): Mark processing rows that are
+--   stale (claimed_at < now() - 5 minutes) AND have exhausted attempts
+--   (attempts >= 5) as 'failed'. These rows cannot be reclaimed for
+--   another send — they are terminal. Without this, a worker crash
+--   on the 5th attempt would leave the row in 'processing' forever.
+--
+-- Phase 2 (claim): Atomically transition eligible rows to 'processing'.
+--   Eligible rows:
+--     pending AND next_attempt_at <= now() AND attempts < 5
+--     OR
+--     processing AND claimed_at < now() - 5 minutes AND attempts < 5
 --
 -- The 5-minute timeout allows recovery of rows claimed by workers
--- that crashed before finalizing. Reclaiming increments attempts
--- again, ensuring max attempts is still enforced.
+-- that crashed before finalizing. Reclaiming increments attempts,
+-- ensuring max attempts is still enforced.
 --
 -- FOR UPDATE SKIP LOCKED prevents two concurrent consumers from
 -- claiming the same row.
@@ -197,6 +206,17 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
+  -- Phase 1: Recover stale processing rows that have exhausted attempts
+  UPDATE public.push_notification_outbox
+  SET
+    status = 'failed',
+    last_error = 'Max attempts reached (stale processing recovery)',
+    updated_at = now()
+  WHERE status = 'processing'
+    AND claimed_at < now() - interval '5 minutes'
+    AND attempts >= 5;
+
+  -- Phase 2: Claim eligible rows for processing
   RETURN QUERY
   UPDATE public.push_notification_outbox AS p
   SET
@@ -228,6 +248,9 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM anon;
 REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM authenticated;
+-- Explicit grant to service_role — needed for Supabase RPC calls
+-- (service_role has BYPASSRLS but NOT superuser; EXECUTE must be granted)
+GRANT EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) TO service_role;
 
 -- =====================================================
 -- 8. COMPLETE RPC — finalize delivery outcome with CAS protection
@@ -272,5 +295,7 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.complete_push_outbox_row(uuid, text, int, text, timestamptz) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.complete_push_outbox_row(uuid, text, int, text, timestamptz) FROM anon;
 REVOKE EXECUTE ON FUNCTION public.complete_push_outbox_row(uuid, text, int, text, timestamptz) FROM authenticated;
+-- Explicit grant to service_role — needed for Supabase RPC calls
+GRANT EXECUTE ON FUNCTION public.complete_push_outbox_row(uuid, text, int, text, timestamptz) TO service_role;
 
 COMMIT;

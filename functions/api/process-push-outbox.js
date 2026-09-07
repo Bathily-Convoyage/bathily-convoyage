@@ -154,17 +154,10 @@ export async function onRequest(context) {
     const results = [];
 
     for (const row of (claimedRows || [])) {
-      // ── 5. Max attempts check ──
-      if (row.attempts >= MAX_ATTEMPTS) {
-        await supabase.rpc('complete_push_outbox_row', {
-          p_id: row.id,
-          p_status: 'failed',
-          p_expected_attempts: row.attempts,
-          p_last_error: 'Max attempts reached'
-        });
-        results.push({ id: row.id, status: 'failed', reason: 'max_attempts' });
-        continue;
-      }
+      // ── 5. Claim RPC already enforced attempts < 5 before claiming ──
+      // Every claimed row gets an actual send attempt (5 sends max).
+      // Post-send failure handling checks attempts >= MAX_ATTEMPTS
+      // to decide terminal vs retry.
 
       // ── 6. Load ALL push_subscriptions for target user ──
       const { data: subscriptions, error: subErr } = await supabase
@@ -268,10 +261,17 @@ export async function onRequest(context) {
         finalStatus = 'failed';
         finalError = 'All subscriptions stale (404/410)';
       } else if (retryableCount > 0) {
-        // Some endpoints had transient failures → retry
-        finalStatus = 'pending';
-        finalError = lastError;
-        nextAttempt = computeBackoff(row.attempts);
+        // Some endpoints had transient failures
+        // Check if max attempts exhausted — terminal, not retry
+        if (row.attempts >= MAX_ATTEMPTS) {
+          finalStatus = 'failed';
+          finalError = 'Max attempts reached: ' + (lastError || 'transient failure');
+        } else {
+          // Retry with backoff
+          finalStatus = 'pending';
+          finalError = lastError;
+          nextAttempt = computeBackoff(row.attempts);
+        }
       } else {
         // All terminal failures
         finalStatus = 'failed';
