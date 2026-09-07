@@ -91,14 +91,42 @@ test('hosting section external link is well-formed (https + cloudflare.com + noo
   );
 });
 
-test('hosting section does not invent an unverified postal address', () => {
-  // Per hotfix scope: do not invent unsupported legal details. The Cloudflare
-  // postal address is not verified from repo documentation, so the hosting
-  // section must not contain a street address line.
+test('hosting section contains the verified Cloudflare, Inc. entity line', () => {
+  const section = legal.match(/Hébergeur du site[\s\S]*?<h3>/);
+  assert.ok(section, 'hosting section block found');
+  assert.ok(/Cloudflare, Inc\./.test(section[0]), 'hosting section names Cloudflare, Inc.');
+});
+
+test('hosting section contains the verified Cloudflare street address (101 Townsend)', () => {
+  const section = legal.match(/Hébergeur du site[\s\S]*?<h3>/);
+  assert.ok(section, 'hosting section block found');
+  assert.ok(/101 Townsend/.test(section[0]), 'hosting section contains 101 Townsend St');
+});
+
+test('hosting section contains the verified Cloudflare city/state/zip (San Francisco, CA 94107)', () => {
+  const section = legal.match(/Hébergeur du site[\s\S]*?<h3>/);
+  assert.ok(section, 'hosting section block found');
+  assert.ok(/San Francisco/.test(section[0]), 'hosting section contains San Francisco');
+  assert.ok(/CA 94107/.test(section[0]), 'hosting section contains CA 94107');
+});
+
+test('hosting section contains the verified Cloudflare phone (+1 (650) 319-8930)', () => {
   const section = legal.match(/Hébergeur du site[\s\S]*?<h3>/);
   assert.ok(section, 'hosting section block found');
   assert.ok(
-    !/Street|USA|CA \d{5}/.test(section[0]),
-    'hosting section must not contain an unverified postal address',
+    /\+1 \(650\) 319-8930/.test(section[0]),
+    'hosting section contains the official Cloudflare phone number',
+  );
+});
+
+test('hosting section does NOT add a Cloudflare France address or French subsidiary', () => {
+  // Per hotfix scope: only the Cloudflare, Inc. principal office is named.
+  // No French subsidiary or France-specific address should be introduced.
+  const section = legal.match(/Hébergeur du site[\s\S]*?<h3>/);
+  assert.ok(section, 'hosting section block found');
+  assert.ok(!/Cloudflare France/i.test(section[0]), 'no Cloudflare France entity introduced');
+  assert.ok(
+    !/Portugal|DSA|représentant/i.test(section[0]),
+    'no Portugal DSA representative introduced',
   );
 });
