@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS public.push_notification_outbox (
   payload             jsonb NOT NULL DEFAULT '{}'::jsonb,
   status              text NOT NULL DEFAULT 'pending',
   attempts            int  NOT NULL DEFAULT 0,
+  claimed_at          timestamptz,
   next_attempt_at     timestamptz NOT NULL DEFAULT now(),
   created_at          timestamptz NOT NULL DEFAULT now(),
   updated_at          timestamptz NOT NULL DEFAULT now(),
@@ -65,6 +66,9 @@ ALTER TABLE public.push_notification_outbox
 
 CREATE INDEX IF NOT EXISTS idx_push_outbox_status_due
   ON public.push_notification_outbox (status, next_attempt_at);
+
+CREATE INDEX IF NOT EXISTS idx_push_outbox_status_claimed
+  ON public.push_notification_outbox (status, claimed_at);
 
 CREATE INDEX IF NOT EXISTS idx_push_outbox_target_user
   ON public.push_notification_outbox (target_user_id);
@@ -154,11 +158,28 @@ CREATE TRIGGER mission_events_enqueue_push
   FOR EACH ROW
   EXECUTE FUNCTION public.enqueue_push_notification();
 
+-- Revoke direct execution from client roles — trigger still works
+-- because trigger functions execute with SECURITY DEFINER context,
+-- not the caller's privileges.
+REVOKE EXECUTE ON FUNCTION public.enqueue_push_notification() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.enqueue_push_notification() FROM anon;
+REVOKE EXECUTE ON FUNCTION public.enqueue_push_notification() FROM authenticated;
+
 -- =====================================================
--- 7. CLAIM RPC — concurrency-safe row claiming
+-- 7. CLAIM RPC — concurrency-safe row claiming with stale recovery
 -- =====================================================
--- Atomically transitions due pending/retryable rows to 'processing'
--- using a CAS (Compare-And-Swap) pattern that prevents double-sends.
+-- Atomically transitions eligible rows to 'processing'.
+-- Eligible rows:
+--   pending AND next_attempt_at <= now() AND attempts < 10
+--   OR
+--   processing AND claimed_at < now() - 5 minutes AND attempts < 10
+--
+-- The 5-minute timeout allows recovery of rows claimed by workers
+-- that crashed before finalizing. Reclaiming increments attempts
+-- again, ensuring max attempts is still enforced.
+--
+-- FOR UPDATE SKIP LOCKED prevents two concurrent consumers from
+-- claiming the same row.
 
 CREATE OR REPLACE FUNCTION public.claim_push_outbox_rows(p_limit int DEFAULT 10)
 RETURNS TABLE (
@@ -176,22 +197,22 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
-  -- Only service_role can call this (no RLS policy for authenticated/anon)
-  -- Atomic claim: UPDATE ... WHERE status='pending' AND due, RETURNING claimed rows
-  -- The FOR UPDATE SKIP LOCKED + UPDATE pattern ensures two concurrent
-  -- consumers cannot claim the same row.
   RETURN QUERY
   UPDATE public.push_notification_outbox AS p
   SET
     status = 'processing',
     attempts = p.attempts + 1,
+    claimed_at = now(),
     updated_at = now()
   WHERE p.id IN (
     SELECT q.id
     FROM public.push_notification_outbox q
-    WHERE q.status = 'pending'
-      AND q.next_attempt_at <= now()
-      AND q.attempts < 10
+    WHERE (
+      (q.status = 'pending' AND q.next_attempt_at <= now())
+      OR
+      (q.status = 'processing' AND q.claimed_at < now() - interval '5 minutes')
+    )
+    AND q.attempts < 10
     ORDER BY q.next_attempt_at ASC
     LIMIT p_limit
     FOR UPDATE SKIP LOCKED
@@ -203,21 +224,33 @@ BEGIN
 END;
 $$;
 
+-- Revoke direct execution from client roles — backend/service_role only
+REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM authenticated;
+
 -- =====================================================
--- 8. COMPLETE RPC — finalize delivery outcome
+-- 8. COMPLETE RPC — finalize delivery outcome with CAS protection
 -- =====================================================
+-- CAS (Compare-And-Swap): only finalizes a row if it is still
+-- 'processing' with the expected attempt number. This prevents
+-- a worker from overwriting a row that was reclaimed and is now
+-- being processed by another worker.
 
 CREATE OR REPLACE FUNCTION public.complete_push_outbox_row(
   p_id uuid,
   p_status text,
+  p_expected_attempts int,
   p_last_error text DEFAULT NULL,
   p_next_attempt_at timestamptz DEFAULT NULL
 )
-RETURNS void
+RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
+DECLARE
+  _updated bool;
 BEGIN
   UPDATE public.push_notification_outbox
   SET
@@ -226,8 +259,18 @@ BEGIN
     next_attempt_at = COALESCE(p_next_attempt_at, now()),
     sent_at = CASE WHEN p_status = 'sent' THEN now() ELSE sent_at END,
     updated_at = now()
-  WHERE id = p_id;
+  WHERE id = p_id
+    AND status = 'processing'
+    AND attempts = p_expected_attempts
+  RETURNING TRUE INTO _updated;
+
+  RETURN COALESCE(_updated, FALSE);
 END;
 $$;
+
+-- Revoke direct execution from client roles — backend/service_role only
+REVOKE EXECUTE ON FUNCTION public.complete_push_outbox_row(uuid, text, int, text, timestamptz) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.complete_push_outbox_row(uuid, text, int, text, timestamptz) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.complete_push_outbox_row(uuid, text, int, text, timestamptz) FROM authenticated;
 
 COMMIT;

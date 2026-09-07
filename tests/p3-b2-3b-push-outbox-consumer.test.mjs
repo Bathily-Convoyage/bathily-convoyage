@@ -358,10 +358,12 @@ test('no cron configuration changes', () => {
     'consumer must NOT contain cron configuration assignments');
 });
 
-test('complete_push_outbox_row RPC exists', () => {
+test('complete_push_outbox_row RPC exists with CAS parameters', () => {
   const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
   assert.ok(sql.includes('complete_push_outbox_row'),
     'migration must define complete_push_outbox_row RPC');
+  assert.ok(sql.includes('p_expected_attempts'),
+    'complete RPC must accept p_expected_attempts for CAS protection');
 });
 
 test('VAPID private key is read from env, not hardcoded', () => {
@@ -384,4 +386,227 @@ test('sanitized logging — no sensitive data in logs', () => {
     'consumer must not log p256dh keys');
   assert.ok(!js.match(/console\.(log|error).*auth_key/i),
     'consumer must not log auth keys');
+});
+
+// =========================================================
+// P3-B2.3B1 — RELIABILITY + SQL SECURITY HARDENING TESTS
+// =========================================================
+
+// ── 1. Stale processing row becomes reclaimable ──
+
+test('B1.1: stale processing row becomes reclaimable (claimed_at + timeout)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  // claimed_at column must exist
+  assert.ok(sql.includes('claimed_at'),
+    'schema must have claimed_at column for stale recovery');
+  // Claim RPC must reclaim processing rows older than timeout
+  const claimIdx = sql.indexOf('claim_push_outbox_rows');
+  const claimBlock = sql.substring(claimIdx, claimIdx + 2000);
+  assert.ok(claimBlock.includes("q.status = 'processing'"),
+    'claim RPC must consider processing rows for reclaim');
+  assert.ok(claimBlock.includes('claimed_at'),
+    'claim RPC must use claimed_at for stale detection');
+  assert.ok(claimBlock.includes("interval '5 minutes'"),
+    'claim RPC must use 5-minute timeout for stale processing rows');
+});
+
+// ── 2. Fresh processing row is NOT reclaimed ──
+
+test('B1.2: fresh processing row is NOT reclaimed (within timeout)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  const claimIdx = sql.indexOf('claim_push_outbox_rows');
+  const claimBlock = sql.substring(claimIdx, claimIdx + 2000);
+  // The condition must use < (older than), not <= (any processing)
+  assert.ok(claimBlock.includes('q.claimed_at < now() - interval'),
+    'claim must only reclaim processing rows OLDER than timeout, not fresh ones');
+});
+
+// ── 3. Stale row still respects max attempts ──
+
+test('B1.3: stale row still respects max attempts (attempts < 10 in claim)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  const claimIdx = sql.indexOf('claim_push_outbox_rows');
+  const claimBlock = sql.substring(claimIdx, claimIdx + 2000);
+  // The attempts < 10 check must apply to BOTH pending and processing reclaim
+  assert.ok(claimBlock.includes('q.attempts < 10'),
+    'claim must enforce attempts < 10 for both pending and stale processing rows');
+});
+
+// ── 4. Concurrent stale recovery cannot double-claim ──
+
+test('B1.4: concurrent stale recovery cannot double-claim (FOR UPDATE SKIP LOCKED)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  const claimIdx = sql.indexOf('claim_push_outbox_rows');
+  const claimBlock = sql.substring(claimIdx, claimIdx + 2000);
+  assert.ok(claimBlock.includes('FOR UPDATE SKIP LOCKED'),
+    'claim must use FOR UPDATE SKIP LOCKED for concurrency safety');
+  // The SKIP LOCKED must apply to the combined eligible set
+  assert.ok(claimBlock.includes('LIMIT p_limit'),
+    'claim must limit rows per invocation');
+});
+
+// ── 5. Crash-after-claim scenario recovers ──
+
+test('B1.5: crash-after-claim scenario recovers (processing → reclaim → finalize)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  // claimed_at is set on claim
+  assert.ok(sql.includes('claimed_at = now()'),
+    'claim must set claimed_at = now() when claiming');
+  // Stale processing rows are eligible after timeout
+  const claimIdx = sql.indexOf('claim_push_outbox_rows');
+  const claimBlock = sql.substring(claimIdx, claimIdx + 2000);
+  assert.ok(claimBlock.includes("status = 'processing'"),
+    'reclaimed rows must be set back to processing (re-claimed)');
+  assert.ok(claimBlock.includes('attempts = p.attempts + 1'),
+    'reclaim must increment attempts (bounded retry)');
+});
+
+// ── 6. SECURITY DEFINER functions have safe search_path ──
+
+test('B1.6: all SECURITY DEFINER functions have safe search_path', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  // Find all SECURITY DEFINER functions and verify each has SET search_path
+  const fnBlocks = sql.split(/CREATE OR REPLACE FUNCTION/);
+  for (let i = 1; i < fnBlocks.length; i++) {
+    const block = fnBlocks[i];
+    if (block.includes('SECURITY DEFINER')) {
+      assert.ok(block.includes('SET search_path'),
+        `SECURITY DEFINER function must have SET search_path: ${block.substring(0, 60)}...`);
+    }
+  }
+});
+
+// ── 7. PUBLIC execute revoked ──
+
+test('B1.7: PUBLIC execute revoked on all SECURITY DEFINER functions', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  // Check for REVOKE EXECUTE ... FROM PUBLIC on each function
+  assert.ok(sql.includes('REVOKE EXECUTE ON FUNCTION public.enqueue_push_notification() FROM PUBLIC'),
+    'PUBLIC execute must be revoked on enqueue_push_notification');
+  assert.ok(sql.includes('REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM PUBLIC'),
+    'PUBLIC execute must be revoked on claim_push_outbox_rows');
+  assert.ok(sql.includes('REVOKE EXECUTE ON FUNCTION public.complete_push_outbox_row'),
+    'PUBLIC execute must be revoked on complete_push_outbox_row');
+  assert.ok(sql.includes('FROM PUBLIC'),
+    'must revoke from PUBLIC');
+});
+
+// ── 8. anon execute revoked ──
+
+test('B1.8: anon execute revoked on all SECURITY DEFINER functions', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  assert.ok(sql.includes('REVOKE EXECUTE ON FUNCTION public.enqueue_push_notification() FROM anon'),
+    'anon execute must be revoked on enqueue_push_notification');
+  assert.ok(sql.includes('REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM anon'),
+    'anon execute must be revoked on claim_push_outbox_rows');
+  assert.ok(sql.includes('FROM anon'),
+    'must revoke from anon');
+});
+
+// ── 9. authenticated execute revoked (backend-only) ──
+
+test('B1.9: authenticated execute revoked on backend-only functions', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  assert.ok(sql.includes('REVOKE EXECUTE ON FUNCTION public.enqueue_push_notification() FROM authenticated'),
+    'authenticated execute must be revoked on enqueue_push_notification (trigger only)');
+  assert.ok(sql.includes('REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM authenticated'),
+    'authenticated execute must be revoked on claim_push_outbox_rows (backend only)');
+  assert.ok(sql.includes('REVOKE EXECUTE ON FUNCTION public.complete_push_outbox_row') && sql.includes('FROM authenticated'),
+    'authenticated execute must be revoked on complete_push_outbox_row (backend only)');
+});
+
+// ── 10. Trigger still server-derived target user ──
+
+test('B1.10: trigger derives target_user_id server-side (not from user input)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  const fnIdx = sql.indexOf('enqueue_push_notification');
+  const fnBlock = sql.substring(fnIdx, fnIdx + 2000);
+  // target_user_id must be derived from convoyeurs.auth_user_id, not from NEW or user input
+  assert.ok(fnBlock.includes('SELECT auth_user_id INTO _target_user_id'),
+    'target_user_id must be derived from convoyeurs.auth_user_id (server-side)');
+  assert.ok(fnBlock.includes('FROM public.convoyeurs'),
+    'must query convoyeurs table (schema-qualified)');
+  assert.ok(fnBlock.includes('FROM public.missions'),
+    'must query missions table (schema-qualified)');
+  // Must NOT use NEW.target_user_id or any user-supplied field
+  assert.ok(!fnBlock.includes('NEW.target_user_id'),
+    'trigger must NOT use NEW.target_user_id (server-derived only)');
+});
+
+// ── 11. Claim RPC unavailable to browser roles ──
+
+test('B1.11: claim RPC unavailable to browser roles (anon + authenticated revoked)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  // Both anon and authenticated must have EXECUTE revoked
+  assert.ok(sql.match(/REVOKE EXECUTE ON FUNCTION public\.claim_push_outbox_rows\(int\) FROM anon/),
+    'anon cannot call claim_push_outbox_rows');
+  assert.ok(sql.match(/REVOKE EXECUTE ON FUNCTION public\.claim_push_outbox_rows\(int\) FROM authenticated/),
+    'authenticated cannot call claim_push_outbox_rows');
+  // service_role is not explicitly revoked (it retains access via superuser bypass)
+  assert.ok(!sql.match(/REVOKE.*claim_push_outbox_rows.*service_role/i),
+    'service_role must NOT be revoked on claim_push_outbox_rows');
+});
+
+// ── 12. Finalization CAS-protected ──
+
+test('B1.12: finalization is CAS-protected (status + attempts check)', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  const completeIdx = sql.indexOf('complete_push_outbox_row');
+  const completeBlock = sql.substring(completeIdx, completeIdx + 2000);
+  // Must check status = 'processing' AND attempts = expected
+  assert.ok(completeBlock.includes("status = 'processing'"),
+    'complete RPC must verify status is still processing (CAS)');
+  assert.ok(completeBlock.includes('attempts = p_expected_attempts'),
+    'complete RPC must verify attempts match expected (CAS)');
+  // Must return boolean (success/failure of CAS)
+  assert.ok(completeBlock.includes('RETURNS boolean'),
+    'complete RPC must return boolean for CAS result');
+});
+
+// ── 13. Retry CAS-protected ──
+
+test('B1.13: retry finalization is CAS-protected (same RPC, pending status)', () => {
+  const js = readFile('functions/api/process-push-outbox.js');
+  // Consumer must pass p_expected_attempts on ALL complete calls
+  // Including retry (pending) and failure paths
+  const completeCalls = js.split('complete_push_outbox_row').length - 1;
+  const expectedAttemptsCalls = js.split('p_expected_attempts').length - 1;
+  // Every complete call should include p_expected_attempts
+  // -1 for the function definition reference, so completeCalls should match
+  assert.ok(expectedAttemptsCalls >= completeCalls,
+    'every complete_push_outbox_row call must include p_expected_attempts for CAS');
+});
+
+// ── 14. At-least-one-device semantics explicitly tested ──
+
+test('B1.14: AT_LEAST_ONE_DEVICE delivery semantics documented and tested', () => {
+  const js = readFile('functions/api/process-push-outbox.js');
+  assert.ok(js.includes('AT_LEAST_ONE_DEVICE'),
+    'consumer must document AT_LEAST_ONE_DEVICE semantics');
+  assert.ok(js.includes('DELIVERY_SUCCESS_SEMANTICS'),
+    'consumer must declare DELIVERY_SUCCESS_SEMANTICS constant');
+  // anySuccess → sent (at least one device)
+  assert.ok(js.includes('if (anySuccess)'),
+    'consumer must check anySuccess for AT_LEAST_ONE_DEVICE semantics');
+  assert.ok(js.includes("finalStatus = 'sent'"),
+    'consumer must mark sent when at least one device succeeds');
+});
+
+// ── 15. Email pipeline still untouched ──
+
+test('B1.15: email pipeline still untouched after hardening', () => {
+  const sql = readFile('supabase/migrations/20260906180000_p3_b2_3b_push_outbox_consumer.sql');
+  // Strip comments to check only DDL code
+  const codeOnly = sql.replace(/--.*$/gm, '');
+  assert.ok(!codeOnly.match(/ALTER\s+TABLE.*\bnotification_outbox\b(?!_)/i),
+    'migration must NOT ALTER email notification_outbox table');
+  assert.ok(!codeOnly.match(/INSERT\s+INTO.*\bnotification_outbox\b(?!_)/i),
+    'migration must NOT INSERT into email notification_outbox table');
+  // Consumer must not reference email helpers in code
+  const js = readFile('functions/api/process-push-outbox.js');
+  const jsCodeOnly = js.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.ok(!jsCodeOnly.includes('sendEmail'),
+    'push consumer must NOT call sendEmail');
+  assert.ok(!jsCodeOnly.match(/\bnotification_outbox\b(?!_)/),
+    'push consumer must NOT reference email outbox table in code');
 });

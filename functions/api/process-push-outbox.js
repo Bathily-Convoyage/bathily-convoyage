@@ -24,6 +24,15 @@ import { sendWebPush, classifyPushResponse, webpush } from '../_push.js';
 
 const MAX_ATTEMPTS = 5;
 
+// Delivery success semantics: AT_LEAST_ONE_DEVICE
+// If at least one endpoint succeeds, the row is marked 'sent'.
+// Other devices with transient failures are NOT retried for this row.
+// This is acceptable for Bathily-Convoyage MVP — the user will see
+// the notification on at least one device. If ALL_DEVICES semantics
+// are needed in the future, endpoint-level delivery state would be
+// required (separate from the outbox row).
+const DELIVERY_SUCCESS_SEMANTICS = 'AT_LEAST_ONE_DEVICE';
+
 // Exponential backoff: 30s, 60s, 120s, 240s, 480s
 function computeBackoff(attempts) {
   const baseSeconds = 30;
@@ -150,6 +159,7 @@ export async function onRequest(context) {
         await supabase.rpc('complete_push_outbox_row', {
           p_id: row.id,
           p_status: 'failed',
+          p_expected_attempts: row.attempts,
           p_last_error: 'Max attempts reached'
         });
         results.push({ id: row.id, status: 'failed', reason: 'max_attempts' });
@@ -166,6 +176,7 @@ export async function onRequest(context) {
         await supabase.rpc('complete_push_outbox_row', {
           p_id: row.id,
           p_status: 'pending',
+          p_expected_attempts: row.attempts,
           p_last_error: 'Failed to load subscriptions: ' + subErr.message,
           p_next_attempt_at: computeBackoff(row.attempts)
         });
@@ -179,6 +190,7 @@ export async function onRequest(context) {
         await supabase.rpc('complete_push_outbox_row', {
           p_id: row.id,
           p_status: 'failed',
+          p_expected_attempts: row.attempts,
           p_last_error: 'No push subscriptions for target user'
         });
         results.push({ id: row.id, status: 'failed', reason: 'no_subscriptions' });
@@ -266,17 +278,21 @@ export async function onRequest(context) {
         finalError = lastError || 'All endpoints returned terminal failure';
       }
 
-      // ── 12. Complete delivery ──
-      await supabase.rpc('complete_push_outbox_row', {
+      // ── 12. Complete delivery (CAS-protected) ──
+      const { data: completeResult } = await supabase.rpc('complete_push_outbox_row', {
         p_id: row.id,
         p_status: finalStatus,
+        p_expected_attempts: row.attempts,
         p_last_error: finalError,
         p_next_attempt_at: nextAttempt
       });
 
+      // If CAS failed (row was reclaimed by another worker), skip reporting
+      const casOk = completeResult === true || completeResult === 'true';
+
       results.push({
         id: row.id,
-        status: finalStatus,
+        status: casOk ? finalStatus : 'cas_mismatch',
         endpoints_total: subscriptions.length,
         stale_cleaned: staleEndpoints.length,
         retryable: retryableCount
