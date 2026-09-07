@@ -104,7 +104,19 @@ self.addEventListener('fetch', (event) => {
 // Push notifications (future use)
 self.addEventListener('push', (event) => {
   if (!event.data) return;
-  const data = event.data.json();
+  let data;
+  try {
+    data = event.data.json();
+  } catch (e) {
+    // Malformed JSON — fall back to text or default
+    try {
+      var text = event.data.text();
+      data = text ? { body: text } : {};
+    } catch (e2) {
+      data = {};
+    }
+  }
+  if (!data || typeof data !== 'object') data = {};
   const options = {
     body: data.body || 'Nouvelle notification Bathily-Convoyage',
     icon: '/favicon.png',

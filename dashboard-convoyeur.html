@@ -1523,7 +1523,9 @@
         <div style="margin-top:24px;max-width:700px;">
           <h4 style="font-family:Montserrat,sans-serif;font-size:1rem;margin-bottom:12px;color:var(--bordeaux);"><i class="fas fa-bell" style="margin-right:8px;"></i>Notifications push</h4>
           <p style="font-size:0.85rem;color:var(--gray-mid);margin-bottom:16px;">Recevez des notifications pour les nouvelles missions, rappels et badges.</p>
-          <button id="btnEnablePush" style="background:var(--bordeaux);color:white;border:none;padding:10px 24px;border-radius:30px;cursor:pointer;font-weight:600;font-size:0.85rem;"><i class="fas fa-bell"></i> Activer les notifications</button>
+          <div id="pushStatus" style="font-size:0.8rem;color:var(--gray-mid);margin-bottom:12px;display:none;"></div>
+          <button id="btnEnablePush" style="background:var(--bordeaux);color:white;border:none;padding:10px 24px;border-radius:30px;cursor:pointer;font-weight:600;font-size:0.85rem;display:none;"><i class="fas fa-bell"></i> Activer les notifications</button>
+          <button id="btnDisablePush" style="background:var(--gray-mid);color:white;border:none;padding:10px 24px;border-radius:30px;cursor:pointer;font-weight:600;font-size:0.85rem;display:none;"><i class="fas fa-bell-slash"></i> Désactiver les notifications</button>
         </div>
       </div>
     </main>

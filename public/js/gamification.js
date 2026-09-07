@@ -109,61 +109,253 @@
   }
 
   // ── Push notifications ──
-  async function subscribePush() {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      if (typeof Swal !== 'undefined') {
-        Swal.fire('Non supporté', 'Les notifications push ne sont pas supportées par votre navigateur.', 'warning');
+
+  function pushSupported() {
+    return ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window);
+  }
+
+  function vapidConfigured() {
+    return !!(window.VAPID_PUBLIC_KEY && window.VAPID_PUBLIC_KEY.length > 0);
+  }
+
+  function showPushStatus(msg) {
+    var el = document.getElementById('pushStatus');
+    if (el) { el.textContent = msg; el.style.display = msg ? 'block' : 'none'; }
+  }
+
+  function showSwal(title, text, icon, timer) {
+    if (typeof Swal !== 'undefined') {
+      var opts = { title: title, text: text, icon: icon };
+      if (timer) { opts.timer = timer; opts.showConfirmButton = false; }
+      Swal.fire(opts);
+    }
+  }
+
+  // Refresh push UI state based on browser support, permission, and subscription.
+  // Does NOT request permission or subscribe — only inspects current state.
+  async function refreshPushUIState() {
+    var btnEnable = document.getElementById('btnEnablePush');
+    var btnDisable = document.getElementById('btnDisablePush');
+    if (!btnEnable || !btnDisable) return;
+
+    // Reset
+    btnEnable.style.display = 'none';
+    btnDisable.style.display = 'none';
+    showPushStatus('');
+
+    if (!pushSupported()) {
+      showPushStatus('Les notifications push ne sont pas supportées par votre navigateur.');
+      return;
+    }
+
+    if (!vapidConfigured()) {
+      btnEnable.style.display = 'block';
+      btnEnable.disabled = true;
+      btnEnable.style.opacity = '0.5';
+      btnEnable.style.cursor = 'not-allowed';
+      showPushStatus('Configuration des notifications indisponible. Veuillez réessayer plus tard.');
+      return;
+    }
+
+    btnEnable.disabled = false;
+    btnEnable.style.opacity = '1';
+    btnEnable.style.cursor = 'pointer';
+
+    var permission = Notification.permission;
+
+    if (permission === 'denied') {
+      showPushStatus('Les notifications ont été bloquées. Réactivez-les dans les paramètres de votre navigateur.');
+      return;
+    }
+
+    // Check existing subscription
+    try {
+      var reg = await navigator.serviceWorker.ready;
+      var sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        btnEnable.style.display = 'none';
+        btnDisable.style.display = 'block';
+      } else {
+        btnEnable.style.display = 'block';
+        btnDisable.style.display = 'none';
       }
+    } catch (err) {
+      console.error('refreshPushUIState:', err);
+      btnEnable.style.display = 'block';
+      btnDisable.style.display = 'none';
+    }
+  }
+
+  async function subscribePush() {
+    if (!pushSupported()) {
+      showSwal('Non supporté', 'Les notifications push ne sont pas supportées par votre navigateur.', 'warning');
+      return;
+    }
+
+    if (!vapidConfigured()) {
+      showSwal('Configuration manquante', 'Les notifications push ne sont pas configurées sur ce site. Veuillez réessayer plus tard.', 'warning');
       return;
     }
 
     try {
       var permission = await Notification.requestPermission();
-      if (permission !== 'granted') return;
+      if (permission === 'denied') {
+        showSwal('Notifications bloquées', 'Vous avez refusé les notifications. Réactivez-les dans les paramètres de votre navigateur.', 'info');
+        await refreshPushUIState();
+        return;
+      }
+      if (permission !== 'granted') {
+        // Dismissed or default — no subscription attempt
+        await refreshPushUIState();
+        return;
+      }
 
       var reg = await navigator.serviceWorker.ready;
-      var sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(window.VAPID_PUBLIC_KEY || '')
-      });
+
+      // Check existing subscription first — avoid duplicates
+      var existingSub = await reg.pushManager.getSubscription();
+      var sub = existingSub;
+
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(window.VAPID_PUBLIC_KEY)
+        });
+      }
 
       var sb = getSB();
-      if (!sb) return;
+      if (!sb) {
+        showSwal('Erreur', 'Impossible de se connecter au service. Veuillez vous connecter.', 'error');
+        return;
+      }
 
       var _auth = await sb.auth.getSession();
-      if (!_auth.data || !_auth.data.session) return;
-
-      await sb.from('push_subscriptions').upsert({
-        user_id: _auth.data.session.user.id,
-        endpoint: sub.endpoint,
-        p256dh: arrayBufferToBase64(sub.getKey('p256dh')),
-        auth_key: arrayBufferToBase64(sub.getKey('auth')),
-        user_agent: navigator.userAgent
-      });
-
-      if (typeof Swal !== 'undefined') {
-        Swal.fire({ title: 'Activé !', text: 'Vous recevrez les notifications push.', icon: 'success', timer: 2000, showConfirmButton: false });
+      if (!_auth.data || !_auth.data.session) {
+        showSwal('Erreur', 'Vous devez être connecté pour activer les notifications.', 'error');
+        return;
       }
+
+      var userId = _auth.data.session.user.id;
+      var endpoint = sub.endpoint;
+      var p256dh = arrayBufferToBase64(sub.getKey('p256dh'));
+      var authKey = arrayBufferToBase64(sub.getKey('auth'));
+
+      // Persistence: SELECT first, then INSERT or UPDATE as needed.
+      // Uses owner-only UPDATE RLS policy (P3-B2.2B) to refresh keys
+      // when the browser re-subscribes with the same endpoint but new keys.
+      // Does NOT change user_id or endpoint — only p256dh, auth_key, user_agent.
+      var _existing = await sb.from('push_subscriptions')
+        .select('id, p256dh, auth_key, user_agent')
+        .eq('user_id', userId)
+        .eq('endpoint', endpoint)
+        .maybeSingle();
+
+      if (_existing.error) {
+        throw _existing.error;
+      }
+
+      if (!_existing.data) {
+        // No existing row for this endpoint — INSERT
+        var _insert = await sb.from('push_subscriptions').insert({
+          user_id: userId,
+          endpoint: endpoint,
+          p256dh: p256dh,
+          auth_key: authKey,
+          user_agent: navigator.userAgent
+        });
+
+        if (_insert.error) {
+          // Persistence failed — roll back browser subscription to avoid inconsistency
+          try { await sub.unsubscribe(); } catch (e) { /* best effort */ }
+          throw _insert.error;
+        }
+      } else {
+        // Row exists — check if keys/user_agent differ
+        var _row = _existing.data;
+        if (_row.p256dh !== p256dh || _row.auth_key !== authKey || _row.user_agent !== navigator.userAgent) {
+          // Keys changed — UPDATE only mutable columns, scoped to user_id + endpoint
+          var _update = await sb.from('push_subscriptions')
+            .update({
+              p256dh: p256dh,
+              auth_key: authKey,
+              user_agent: navigator.userAgent
+            })
+            .eq('user_id', userId)
+            .eq('endpoint', endpoint);
+
+          if (_update.error) {
+            throw _update.error;
+          }
+        }
+        // If keys unchanged — no-op
+      }
+
+      showSwal('Activé !', 'Vous recevrez les notifications push.', 'success', 2000);
+      await refreshPushUIState();
     } catch (err) {
       console.error('Erreur subscribePush:', err);
+      showSwal('Erreur', 'L\'activation des notifications a échoué. Veuillez réessayer.', 'error');
+      await refreshPushUIState();
     }
   }
 
   async function unsubscribePush() {
+    if (!pushSupported()) {
+      showSwal('Non supporté', 'Les notifications push ne sont pas supportées par votre navigateur.', 'warning');
+      return;
+    }
+
     try {
       var reg = await navigator.serviceWorker.ready;
       var sub = await reg.pushManager.getSubscription();
-      if (sub) await sub.unsubscribe();
 
+      if (!sub) {
+        // Already unsubscribed — clean up any stale DB rows for this user
+        var sb0 = getSB();
+        if (sb0) {
+          var _auth0 = await sb0.auth.getSession();
+          if (_auth0.data && _auth0.data.session) {
+            // No browser subscription to identify endpoint — nothing to delete safely
+          }
+        }
+        await refreshPushUIState();
+        return;
+      }
+
+      // Capture endpoint before unsubscribing
+      var endpoint = sub.endpoint;
+
+      // Unsubscribe browser subscription
+      await sub.unsubscribe();
+
+      // Delete only the matching DB row (per-device, not per-user)
       var sb = getSB();
       if (sb) {
         var _auth = await sb.auth.getSession();
         if (_auth.data && _auth.data.session) {
-          await sb.from('push_subscriptions').delete().eq('user_id', _auth.data.session.user.id);
+          var _del = await sb.from('push_subscriptions')
+            .delete()
+            .eq('user_id', _auth.data.session.user.id)
+            .eq('endpoint', endpoint);
+
+          if (_del.error) {
+            console.error('DB cleanup failed:', _del.error);
+            showSwal('Attention', 'Désactivé de votre navigateur, mais une erreur est survenue lors de la suppression du serveur.', 'warning');
+          } else {
+            showSwal('Désactivé', 'Vous ne recevrez plus les notifications push.', 'success', 2000);
+          }
+        } else {
+          showSwal('Désactivé', 'Vous ne recevrez plus les notifications push.', 'success', 2000);
         }
+      } else {
+        showSwal('Désactivé', 'Vous ne recevrez plus les notifications push.', 'success', 2000);
       }
+
+      await refreshPushUIState();
     } catch (err) {
       console.error('Erreur unsubscribePush:', err);
+      showSwal('Erreur', 'La désactivation des notifications a échoué. Veuillez réessayer.', 'error');
+      await refreshPushUIState();
     }
   }
 
@@ -200,12 +392,18 @@
 
     var btnUnsub = document.getElementById('btnDisablePush');
     if (btnUnsub) btnUnsub.addEventListener('click', unsubscribePush);
+
+    // Detect initial push UI state (no auto-subscribe, no permission request)
+    refreshPushUIState();
   });
 
   window.BathilyGamification = {
     load: loadGamification,
     subscribePush: subscribePush,
     unsubscribePush: unsubscribePush,
+    refreshPushUIState: refreshPushUIState,
+    pushSupported: pushSupported,
+    vapidConfigured: vapidConfigured,
     getLevel: getLevel,
     LEVELS: LEVELS
   };
