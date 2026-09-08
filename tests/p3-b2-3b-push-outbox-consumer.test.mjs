@@ -799,3 +799,255 @@ test('A1.12: email pipeline untouched after retry correction', () => {
   assert.ok(!jsCodeOnly.match(/\bnotification_outbox\b(?!_)/),
     'push consumer must NOT reference email outbox table in code');
 });
+
+// ── P3-B2.4H2A: Claim RPC ambiguity fix regression tests ──
+
+test('H2A.1: fix migration file exists', () => {
+  assert.ok(fileExists('supabase/migrations/20260908130000_p3_b2_push_claim_ambiguity_fix.sql'),
+    'ambiguity fix migration must exist');
+});
+
+test('H2A.2: fix migration uses #variable_conflict use_column', () => {
+  const sql = readFile('supabase/migrations/20260908130000_p3_b2_push_claim_ambiguity_fix.sql');
+  assert.ok(sql.includes('#variable_conflict use_column'),
+    'fix migration must include #variable_conflict use_column directive');
+});
+
+test('H2A.3: fix migration preserves function signature', () => {
+  const sql = readFile('supabase/migrations/20260908130000_p3_b2_push_claim_ambiguity_fix.sql');
+  assert.ok(sql.includes('claim_push_outbox_rows(p_limit int DEFAULT 10)'),
+    'function name and parameter must be preserved');
+  assert.ok(sql.includes('RETURNS TABLE'),
+    'RETURNS TABLE must be preserved');
+  assert.ok(sql.includes('SECURITY DEFINER'),
+    'SECURITY DEFINER must be preserved');
+  assert.ok(sql.includes("SET search_path = ''"),
+    'search_path must be safe (empty)');
+});
+
+test('H2A.4: fix migration preserves security grants', () => {
+  const sql = readFile('supabase/migrations/20260908130000_p3_b2_push_claim_ambiguity_fix.sql');
+  assert.ok(sql.includes('REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM PUBLIC'),
+    'must revoke from PUBLIC');
+  assert.ok(sql.includes('REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM anon'),
+    'must revoke from anon');
+  assert.ok(sql.includes('REVOKE EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) FROM authenticated'),
+    'must revoke from authenticated');
+  assert.ok(sql.includes('GRANT EXECUTE ON FUNCTION public.claim_push_outbox_rows(int) TO service_role'),
+    'must grant to service_role');
+});
+
+test('H2A.5: fix migration preserves retry semantics (attempts < 5, stale recovery)', () => {
+  const sql = readFile('supabase/migrations/20260908130000_p3_b2_push_claim_ambiguity_fix.sql');
+  assert.ok(sql.includes('q.attempts < 5'),
+    'claim eligibility must still require attempts < 5');
+  assert.ok(sql.includes("FOR UPDATE SKIP LOCKED"),
+    'SKIP LOCKED must be preserved');
+  assert.ok(sql.includes('attempts >= 5'),
+    'stale terminal recovery (attempts >= 5) must be preserved');
+  assert.ok(sql.includes("claimed_at < now() - interval '5 minutes'"),
+    '5-minute stale timeout must be preserved');
+});
+
+test('H2A.6: fix migration does not modify business semantics', () => {
+  const sql = readFile('supabase/migrations/20260908130000_p3_b2_push_claim_ambiguity_fix.sql');
+  assert.ok(!sql.match(/ALTER\s+TABLE/i) || sql.match(/ALTER\s+TABLE.*ENABLE/i),
+    'fix migration must NOT alter table schema');
+  assert.ok(!sql.match(/CREATE\s+TABLE/i),
+    'fix migration must NOT create tables');
+  assert.ok(!sql.match(/DROP\s+TABLE/i),
+    'fix migration must NOT drop tables');
+  assert.ok(!sql.match(/ADD\s+CONSTRAINT/i),
+    'fix migration must NOT add constraints');
+  assert.ok(sql.includes('CREATE OR REPLACE FUNCTION public.claim_push_outbox_rows'),
+    'fix migration must use CREATE OR REPLACE FUNCTION');
+});
+
+// ── H2A.7: Dynamic RPC execution test (requires local Supabase) ──
+
+test('H2A.7: claim_push_outbox_rows executes without ambiguity error (local DB)', async (t) => {
+  let pg;
+  try {
+    pg = await import('pg');
+  } catch (e) {
+    t.skip('pg module not available — skipping dynamic RPC test');
+    return;
+  }
+
+  const client = new pg.default.Client({
+    connectionString: 'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+    connectionTimeoutMillis: 3000
+  });
+
+  try {
+    await client.connect();
+  } catch (e) {
+    t.skip('local Supabase not running — skipping dynamic RPC test');
+    return;
+  }
+
+  try {
+    await client.query("DELETE FROM public.push_notification_outbox WHERE notification_type LIKE 'test_h2a_%'");
+
+    const insert = await client.query(`
+      INSERT INTO public.push_notification_outbox (
+        notification_type, target_user_id, payload, status, attempts
+      ) VALUES (
+        'test_h2a_claim', gen_random_uuid(), '{}'::jsonb, 'pending', 0
+      )
+      RETURNING id, status, attempts
+    `);
+    const testId = insert.rows[0].id;
+    assert.strictEqual(insert.rows[0].status, 'pending');
+    assert.strictEqual(insert.rows[0].attempts, 0);
+
+    const claim = await client.query('SELECT * FROM public.claim_push_outbox_rows(10)');
+    assert.ok(claim.rows.length >= 1, 'claim must return at least one row');
+
+    const claimed = claim.rows.find(r => r.id === testId);
+    assert.ok(claimed, 'test row must be claimed');
+    assert.strictEqual(claimed.attempts, 1, 'claimed attempts must be 1');
+
+    const verify = await client.query(
+      'SELECT status, attempts, claimed_at IS NOT NULL AS has_claimed_at FROM public.push_notification_outbox WHERE id = $1',
+      [testId]
+    );
+    assert.strictEqual(verify.rows[0].status, 'processing');
+    assert.strictEqual(verify.rows[0].attempts, 1);
+    assert.strictEqual(verify.rows[0].has_claimed_at, true);
+
+    const claim2 = await client.query('SELECT * FROM public.claim_push_outbox_rows(10)');
+    const reclaimed = claim2.rows.find(r => r.id === testId);
+    assert.ok(!reclaimed, 'fresh processing row must not be reclaimed');
+
+    await client.query("DELETE FROM public.push_notification_outbox WHERE notification_type LIKE 'test_h2a_%'");
+  } finally {
+    await client.end();
+  }
+});
+
+// ── H2A.8: Stale terminal recovery at attempts=5 (local DB) ──
+
+test('H2A.8: stale processing attempts=5 becomes failed, not reclaimed (local DB)', async (t) => {
+  let pg;
+  try {
+    pg = await import('pg');
+  } catch (e) {
+    t.skip('pg module not available — skipping dynamic RPC test');
+    return;
+  }
+
+  const client = new pg.default.Client({
+    connectionString: 'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+    connectionTimeoutMillis: 3000
+  });
+
+  try {
+    await client.connect();
+  } catch (e) {
+    t.skip('local Supabase not running — skipping dynamic RPC test');
+    return;
+  }
+
+  try {
+    await client.query("DELETE FROM public.push_notification_outbox WHERE notification_type LIKE 'test_h2a_%'");
+
+    const insert = await client.query(`
+      INSERT INTO public.push_notification_outbox (
+        notification_type, target_user_id, payload, status, attempts, claimed_at
+      ) VALUES (
+        'test_h2a_stale5', gen_random_uuid(), '{}'::jsonb, 'processing', 5, now() - interval '10 minutes'
+      )
+      RETURNING id
+    `);
+    const testId = insert.rows[0].id;
+
+    const claim = await client.query('SELECT * FROM public.claim_push_outbox_rows(10)');
+    const claimed = claim.rows.find(r => r.id === testId);
+    assert.ok(!claimed, 'stale processing with attempts=5 must NOT be reclaimed');
+
+    const verify = await client.query(
+      'SELECT status, attempts, last_error FROM public.push_notification_outbox WHERE id = $1',
+      [testId]
+    );
+    assert.strictEqual(verify.rows[0].status, 'failed');
+    assert.strictEqual(verify.rows[0].attempts, 5);
+    assert.ok(verify.rows[0].last_error.includes('Max attempts'),
+      'last_error must indicate max attempts reached');
+
+    await client.query("DELETE FROM public.push_notification_outbox WHERE notification_type LIKE 'test_h2a_%'");
+  } finally {
+    await client.end();
+  }
+});
+
+// ── H2A.9: CAS complete_push_outbox_row non-regression (local DB) ──
+
+test('H2A.9: CAS complete_push_outbox_row still works correctly (local DB)', async (t) => {
+  let pg;
+  try {
+    pg = await import('pg');
+  } catch (e) {
+    t.skip('pg module not available — skipping dynamic RPC test');
+    return;
+  }
+
+  const client = new pg.default.Client({
+    connectionString: 'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+    connectionTimeoutMillis: 3000
+  });
+
+  try {
+    await client.connect();
+  } catch (e) {
+    t.skip('local Supabase not running — skipping dynamic RPC test');
+    return;
+  }
+
+  try {
+    await client.query("DELETE FROM public.push_notification_outbox WHERE notification_type LIKE 'test_h2a_%'");
+
+    const insert = await client.query(`
+      INSERT INTO public.push_notification_outbox (
+        notification_type, target_user_id, payload, status, attempts
+      ) VALUES (
+        'test_h2a_cas', gen_random_uuid(), '{}'::jsonb, 'pending', 0
+      )
+      RETURNING id
+    `);
+    const testId = insert.rows[0].id;
+
+    const claim = await client.query('SELECT * FROM public.claim_push_outbox_rows(10)');
+    const claimed = claim.rows.find(r => r.id === testId);
+    const expectedAttempts = claimed.attempts;
+
+    const completeOk = await client.query(`
+      SELECT public.complete_push_outbox_row($1, 'sent', $2, NULL, NULL) AS result
+    `, [testId, expectedAttempts]);
+    assert.strictEqual(completeOk.rows[0].result, true, 'CAS with correct attempts must succeed');
+
+    const verify = await client.query('SELECT status, sent_at IS NOT NULL AS has_sent_at FROM public.push_notification_outbox WHERE id = $1', [testId]);
+    assert.strictEqual(verify.rows[0].status, 'sent');
+    assert.strictEqual(verify.rows[0].has_sent_at, true);
+
+    const insert2 = await client.query(`
+      INSERT INTO public.push_notification_outbox (
+        notification_type, target_user_id, payload, status, attempts
+      ) VALUES (
+        'test_h2a_cas2', gen_random_uuid(), '{}'::jsonb, 'pending', 0
+      )
+      RETURNING id
+    `);
+    const testId2 = insert2.rows[0].id;
+    await client.query('SELECT * FROM public.claim_push_outbox_rows(10)');
+
+    const completeFail = await client.query(`
+      SELECT public.complete_push_outbox_row($1, 'sent', 99, NULL, NULL) AS result
+    `, [testId2]);
+    assert.strictEqual(completeFail.rows[0].result, false, 'CAS with wrong attempts must fail');
+
+    await client.query("DELETE FROM public.push_notification_outbox WHERE notification_type LIKE 'test_h2a_%'");
+  } finally {
+    await client.end();
+  }
+});
