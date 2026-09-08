@@ -1,7 +1,7 @@
 // P3-B2.3A2 — Durable test for Cloudflare-compatible web push transport adapter.
 // Tests:
 // - Synthetic subscription generation (WebCrypto, no crypto.createECDH)
-// - Request build via @pushforge/builder (async, WebCrypto-based)
+// - Request build via RFC 8291 aes128gcm (async, WebCrypto-based)
 // - Fetch POST to local mock server
 // - Required headers (Authorization, TTL, Content-Encoding, Urgency)
 // - Non-empty encrypted payload
@@ -109,7 +109,7 @@ test('buildWebPushRequest produces correct method, endpoint, headers, body', asy
   assert.equal(req.endpoint, 'https://127.0.0.1:1/push');
   assert.ok(req.headers['Authorization'] || req.headers['authorization'], 'VAPID Authorization header present');
   assert.equal(req.headers['TTL'] || req.headers['ttl'], '60');
-  assert.equal(req.headers['Content-Encoding'] || req.headers['content-encoding'], 'aesgcm');
+  assert.equal(req.headers['Content-Encoding'] || req.headers['content-encoding'], 'aes128gcm');
   assert.equal(req.headers['Content-Type'] || req.headers['content-type'], 'application/octet-stream');
   assert.ok(req.body, 'encrypted body exists');
   assert.ok(req.body.byteLength > 0, 'encrypted body is non-empty');
@@ -130,6 +130,42 @@ test('buildWebPushRequest encrypted body differs from plaintext', async () => {
     : new TextDecoder().decode(req.body);
   assert.ok(!bodyStr.includes('"title":"Test"'), 'plaintext must not appear in encrypted body');
   assert.ok(!bodyStr.includes('Test'), 'plaintext content must not appear in body');
+});
+
+test('buildWebPushRequest does NOT emit legacy Encryption header', async () => {
+  const keys = await generateTestVapidKeys();
+  webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
+
+  const sub = await generateSyntheticSubscription('https://127.0.0.1:1/push');
+  const payload = JSON.stringify({ title: 'Test', body: 'Test', url: '/' });
+
+  const req = await buildWebPushRequest(sub, payload, { TTL: 60 });
+
+  // RFC 8291 aes128gcm does NOT use separate Encryption/Crypto-Key headers
+  assert.ok(!req.headers['Encryption'] && !req.headers['encryption'],
+    'must NOT emit legacy Encryption header (salt is in body)');
+  assert.ok(!req.headers['Crypto-Key'] && !req.headers['crypto-key'],
+    'must NOT emit legacy Crypto-Key dh header (key is in body)');
+});
+
+test('buildWebPushRequest body has RFC 8188 header structure', async () => {
+  const keys = await generateTestVapidKeys();
+  webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
+
+  const sub = await generateSyntheticSubscription('https://127.0.0.1:1/push');
+  const payload = JSON.stringify({ title: 'Test', body: 'Test', url: '/' });
+
+  const req = await buildWebPushRequest(sub, payload, { TTL: 60 });
+  const body = new Uint8Array(req.body);
+
+  // RFC 8188: salt(16) || rs(4 BE) || idlen(1) || keyid(65) || ciphertext
+  assert.ok(body.length >= 86, 'body must be at least 86-byte header + ciphertext');
+  assert.equal(body[16], 0x00, 'rs high byte (4096 = 0x00001000 BE)');
+  assert.equal(body[17], 0x00, 'rs byte 1');
+  assert.equal(body[18], 0x10, 'rs byte 2 (0x10)');
+  assert.equal(body[19], 0x00, 'rs low byte');
+  assert.equal(body[20], 65, 'idlen must be 65 (uncompressed P-256)');
+  assert.equal(body[21], 0x04, 'keyid must start with 0x04 (uncompressed point)');
 });
 
 test('sendWebPush sends POST to mock server and receives 201', async () => {
@@ -175,7 +211,7 @@ test('sendWebPush headers reach mock server correctly', async () => {
   const lastReq = mock.getLastRequest();
   assert.ok(lastReq.headers['authorization'], 'Authorization header received by mock');
   assert.equal(lastReq.headers['ttl'], '120', 'TTL header received by mock');
-  assert.equal(lastReq.headers['content-encoding'], 'aesgcm');
+  assert.equal(lastReq.headers['content-encoding'], 'aes128gcm');
   assert.equal(lastReq.headers['content-type'], 'application/octet-stream');
 
   await mock.close();
@@ -184,6 +220,7 @@ test('sendWebPush headers reach mock server correctly', async () => {
 test('classifyPushResponse: 2xx → success', () => {
   assert.equal(classifyPushResponse(200, {}), 'success');
   assert.equal(classifyPushResponse(201, {}), 'success');
+  assert.equal(classifyPushResponse(202, {}), 'success');
 });
 
 test('classifyPushResponse: 404 → stale_subscription', () => {
@@ -335,6 +372,14 @@ test('no crypto.createECDH is used by the adapter', async () => {
     '_push.js must NOT import from web-push');
   assert.ok(!pushCode.includes("from 'node:crypto'"),
     '_push.js must NOT import from node:crypto');
-  assert.ok(pushCode.includes('@pushforge/builder'),
-    '_push.js must import from @pushforge/builder');
+  assert.ok(!pushCode.includes("from 'node:https'"),
+    '_push.js must NOT import from node:https');
+  assert.ok(!pushCode.includes('@pushforge/builder'),
+    '_push.js must NOT import from removed @pushforge/builder');
+  assert.ok(pushCode.includes('@mmmike/web-push'),
+    '_push.js must import from @mmmike/web-push');
+  assert.ok(pushCode.includes('aes128gcm'),
+    '_push.js must use aes128gcm encoding');
+  assert.ok(pushCode.includes('crypto.subtle'),
+    '_push.js must use WebCrypto crypto.subtle');
 });
