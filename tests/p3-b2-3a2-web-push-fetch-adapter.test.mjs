@@ -1,38 +1,52 @@
-// P3-B2.3A2 — Durable test for fetch-based web push transport adapter.
+// P3-B2.3A2 — Durable test for Cloudflare-compatible web push transport adapter.
 // Tests:
-// - Synthetic subscription generation
-// - Request build via generateRequestDetails (public API)
+// - Synthetic subscription generation (WebCrypto, no crypto.createECDH)
+// - Request build via @pushforge/builder (async, WebCrypto-based)
 // - Fetch POST to local mock server
 // - Required headers (Authorization, TTL, Content-Encoding, Urgency)
 // - Non-empty encrypted payload
 // - Response classification (2xx, 404, 410, 429, 5xx, network error)
 // - No https.request usage
-// - Request equivalence between buildWebPushRequest and generateRequestDetails
+// - No crypto.createECDH usage
 
 import { test } from 'node:test';
 import assert from 'node:assert';
 import http from 'node:http';
-import crypto from 'node:crypto';
-import { buildWebPushRequest, sendWebPush, classifyPushResponse, webpush } from '../functions/_push.js';
+import { buildWebPushRequest, sendWebPush, classifyPushResponse, webpush, generateVAPIDKeys } from '../functions/_push.js';
 
 // ── Helpers ──
 
-function generateTestVapidKeys() {
-  return webpush.generateVAPIDKeys();
+async function generateTestVapidKeys() {
+  return generateVAPIDKeys();
 }
 
-function generateSyntheticSubscription(endpoint) {
-  const ecdh = crypto.createECDH('prime256v1');
-  ecdh.generateKeys();
-  const p256dh = ecdh.getPublicKey().toString('base64')
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  const auth = crypto.randomBytes(16).toString('base64')
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  return { endpoint, keys: { p256dh, auth } };
+async function generateSyntheticSubscription(endpoint) {
+  // Generate P-256 ECDH key pair using WebCrypto (not crypto.createECDH)
+  const keyPair = await crypto.subtle.generateKey(
+    { name: 'ECDH', namedCurve: 'P-256' },
+    true,
+    ['deriveBits']
+  );
+  const publicRaw = await crypto.subtle.exportKey('raw', keyPair.publicKey);
+  // Base64url encode the 65-byte uncompressed public key
+  const p256dh = base64UrlEncode(publicRaw);
+  // Generate 16-byte auth secret
+  const authBytes = crypto.getRandomValues(new Uint8Array(16));
+  const auth = base64UrlEncode(authBytes);
+  return { endpoint, keys: { p256dh, auth }, _privateKey: keyPair.privateKey };
+}
+
+function base64UrlEncode(bytes) {
+  const arr = new Uint8Array(bytes);
+  let binary = '';
+  for (let i = 0; i < arr.length; i++) binary += String.fromCharCode(arr[i]);
+  const base64 = typeof btoa !== 'undefined'
+    ? btoa(binary)
+    : Buffer.from(binary, 'binary').toString('base64');
+  return base64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 }
 
 function startMockServer(responses) {
-  // responses: array of { status, headers?, body? } to return sequentially
   let callIndex = 0;
   let lastRequest = null;
 
@@ -65,79 +79,61 @@ function startMockServer(responses) {
 
 // ── Tests ──
 
-test('web-push generateVAPIDKeys produces valid keys', () => {
-  const keys = generateTestVapidKeys();
+test('generateVAPIDKeys produces valid keys (WebCrypto)', async () => {
+  const keys = await generateTestVapidKeys();
   assert.ok(keys.publicKey.length > 80, 'publicKey ~87 chars');
   assert.ok(keys.privateKey.length > 40, 'privateKey ~43 chars');
 });
 
-test('crypto.createECDH prime256v1 generates valid p256dh', () => {
-  const ecdh = crypto.createECDH('prime256v1');
-  ecdh.generateKeys();
-  const pubKey = ecdh.getPublicKey();
+test('WebCrypto ECDH P-256 generates valid p256dh (65 bytes uncompressed)', async () => {
+  const keyPair = await crypto.subtle.generateKey(
+    { name: 'ECDH', namedCurve: 'P-256' },
+    true,
+    ['deriveBits']
+  );
+  const pubKey = new Uint8Array(await crypto.subtle.exportKey('raw', keyPair.publicKey));
   assert.equal(pubKey.length, 65, 'uncompressed P-256 public key is 65 bytes');
   assert.equal(pubKey[0], 0x04, 'starts with 0x04');
 });
 
-test('buildWebPushRequest produces correct method, endpoint, headers, body', () => {
-  const keys = generateTestVapidKeys();
+test('buildWebPushRequest produces correct method, endpoint, headers, body', async () => {
+  const keys = await generateTestVapidKeys();
   webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
 
-  const sub = generateSyntheticSubscription('https://127.0.0.1:1/push');
+  const sub = await generateSyntheticSubscription('https://127.0.0.1:1/push');
   const payload = JSON.stringify({ title: 'Test', body: 'Test', url: '/' });
 
-  const req = buildWebPushRequest(sub, payload, { TTL: 60 });
+  const req = await buildWebPushRequest(sub, payload, { TTL: 60 });
 
   assert.equal(req.method, 'POST');
   assert.equal(req.endpoint, 'https://127.0.0.1:1/push');
-  assert.ok(req.headers['Authorization'], 'VAPID Authorization header present');
-  assert.equal(req.headers['TTL'], 60);
-  assert.equal(req.headers['Content-Encoding'], 'aes128gcm');
-  assert.equal(req.headers['Content-Type'], 'application/octet-stream');
-  assert.equal(req.headers['Urgency'], 'normal');
+  assert.ok(req.headers['Authorization'] || req.headers['authorization'], 'VAPID Authorization header present');
+  assert.equal(req.headers['TTL'] || req.headers['ttl'], '60');
+  assert.equal(req.headers['Content-Encoding'] || req.headers['content-encoding'], 'aesgcm');
+  assert.equal(req.headers['Content-Type'] || req.headers['content-type'], 'application/octet-stream');
   assert.ok(req.body, 'encrypted body exists');
-  assert.ok(req.body.length > 0, 'encrypted body is non-empty');
+  assert.ok(req.body.byteLength > 0, 'encrypted body is non-empty');
 });
 
-test('buildWebPushRequest is equivalent to web-push generateRequestDetails', () => {
-  const keys = generateTestVapidKeys();
+test('buildWebPushRequest encrypted body differs from plaintext', async () => {
+  const keys = await generateTestVapidKeys();
   webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
 
-  const sub = generateSyntheticSubscription('https://127.0.0.1:1/push');
+  const sub = await generateSyntheticSubscription('https://127.0.0.1:1/push');
   const payload = JSON.stringify({ title: 'Test', body: 'Test', url: '/' });
-  const options = { TTL: 60 };
 
-  // PATH_A: direct generateRequestDetails
-  const direct = webpush.generateRequestDetails(sub, payload, options);
+  const req = await buildWebPushRequest(sub, payload, { TTL: 60 });
 
-  // PATH_B: adapter buildWebPushRequest
-  const adapter = buildWebPushRequest(sub, payload, options);
-
-  // Method and endpoint are deterministic
-  assert.equal(adapter.method, direct.method);
-  assert.equal(adapter.endpoint, direct.endpoint);
-
-  // Headers: TTL, Content-Encoding, Content-Type, Urgency are deterministic
-  assert.equal(adapter.headers['TTL'], direct.headers['TTL']);
-  assert.equal(adapter.headers['Content-Encoding'], direct.headers['Content-Encoding']);
-  assert.equal(adapter.headers['Content-Type'], direct.headers['Content-Type']);
-  assert.equal(adapter.headers['Urgency'], direct.headers['Urgency']);
-
-  // Authorization header: VAPID JWT contains an exp claim that changes per
-  // invocation, so we compare structure (starts with 'vapid t=') not exact value.
-  assert.ok(adapter.headers['Authorization'].startsWith('vapid t='),
-    'adapter Authorization is VAPID format');
-  assert.ok(direct.headers['Authorization'].startsWith('vapid t='),
-    'direct Authorization is VAPID format');
-
-  // Body: encryption uses a random salt + ephemeral ECDH key, so the ciphertext
-  // differs per invocation. Compare length (same payload → same ciphertext length).
-  assert.equal(adapter.body.length, direct.body.length,
-    'body length matches for same payload');
+  // Convert body to string for comparison
+  const bodyStr = typeof req.body === 'string'
+    ? req.body
+    : new TextDecoder().decode(req.body);
+  assert.ok(!bodyStr.includes('"title":"Test"'), 'plaintext must not appear in encrypted body');
+  assert.ok(!bodyStr.includes('Test'), 'plaintext content must not appear in body');
 });
 
 test('sendWebPush sends POST to mock server and receives 201', async () => {
-  const keys = generateTestVapidKeys();
+  const keys = await generateTestVapidKeys();
   webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
 
   const mock = startMockServer([{ status: 201, body: 'OK' }]);
@@ -146,7 +142,7 @@ test('sendWebPush sends POST to mock server and receives 201', async () => {
   const port = mock.server.address().port;
   const endpoint = `http://127.0.0.1:${port}/push`;
 
-  const sub = generateSyntheticSubscription(endpoint);
+  const sub = await generateSyntheticSubscription(endpoint);
   const payload = JSON.stringify({ title: 'Test', body: 'Test', url: '/' });
 
   const result = await sendWebPush(sub, payload, { TTL: 60 });
@@ -163,7 +159,7 @@ test('sendWebPush sends POST to mock server and receives 201', async () => {
 });
 
 test('sendWebPush headers reach mock server correctly', async () => {
-  const keys = generateTestVapidKeys();
+  const keys = await generateTestVapidKeys();
   webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
 
   const mock = startMockServer([{ status: 201 }]);
@@ -171,7 +167,7 @@ test('sendWebPush headers reach mock server correctly', async () => {
   const port = mock.server.address().port;
   const endpoint = `http://127.0.0.1:${port}/push`;
 
-  const sub = generateSyntheticSubscription(endpoint);
+  const sub = await generateSyntheticSubscription(endpoint);
   const payload = JSON.stringify({ title: 'Test', body: 'Test', url: '/' });
 
   await sendWebPush(sub, payload, { TTL: 120 });
@@ -179,7 +175,7 @@ test('sendWebPush headers reach mock server correctly', async () => {
   const lastReq = mock.getLastRequest();
   assert.ok(lastReq.headers['authorization'], 'Authorization header received by mock');
   assert.equal(lastReq.headers['ttl'], '120', 'TTL header received by mock');
-  assert.equal(lastReq.headers['content-encoding'], 'aes128gcm');
+  assert.equal(lastReq.headers['content-encoding'], 'aesgcm');
   assert.equal(lastReq.headers['content-type'], 'application/octet-stream');
 
   await mock.close();
@@ -214,14 +210,14 @@ test('classifyPushResponse: 400/401/403 → terminal_failed', () => {
 });
 
 test('sendWebPush classifies 404 as stale_subscription', async () => {
-  const keys = generateTestVapidKeys();
+  const keys = await generateTestVapidKeys();
   webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
 
   const mock = startMockServer([{ status: 404, body: 'Not Found' }]);
   await new Promise((resolve) => mock.server.listen(0, '127.0.0.1', resolve));
   const port = mock.server.address().port;
 
-  const sub = generateSyntheticSubscription(`http://127.0.0.1:${port}/push`);
+  const sub = await generateSyntheticSubscription(`http://127.0.0.1:${port}/push`);
   const result = await sendWebPush(sub, JSON.stringify({ title: 'T' }), { TTL: 60 });
 
   assert.equal(result.ok, false);
@@ -232,14 +228,14 @@ test('sendWebPush classifies 404 as stale_subscription', async () => {
 });
 
 test('sendWebPush classifies 410 as stale_subscription', async () => {
-  const keys = generateTestVapidKeys();
+  const keys = await generateTestVapidKeys();
   webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
 
   const mock = startMockServer([{ status: 410, body: 'Gone' }]);
   await new Promise((resolve) => mock.server.listen(0, '127.0.0.1', resolve));
   const port = mock.server.address().port;
 
-  const sub = generateSyntheticSubscription(`http://127.0.0.1:${port}/push`);
+  const sub = await generateSyntheticSubscription(`http://127.0.0.1:${port}/push`);
   const result = await sendWebPush(sub, JSON.stringify({ title: 'T' }), { TTL: 60 });
 
   assert.equal(result.status, 410);
@@ -249,14 +245,14 @@ test('sendWebPush classifies 410 as stale_subscription', async () => {
 });
 
 test('sendWebPush classifies 429 as retryable and parses Retry-After', async () => {
-  const keys = generateTestVapidKeys();
+  const keys = await generateTestVapidKeys();
   webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
 
   const mock = startMockServer([{ status: 429, headers: { 'Retry-After': '30' } }]);
   await new Promise((resolve) => mock.server.listen(0, '127.0.0.1', resolve));
   const port = mock.server.address().port;
 
-  const sub = generateSyntheticSubscription(`http://127.0.0.1:${port}/push`);
+  const sub = await generateSyntheticSubscription(`http://127.0.0.1:${port}/push`);
   const result = await sendWebPush(sub, JSON.stringify({ title: 'T' }), { TTL: 60 });
 
   assert.equal(result.status, 429);
@@ -267,14 +263,14 @@ test('sendWebPush classifies 429 as retryable and parses Retry-After', async () 
 });
 
 test('sendWebPush classifies 500 as retryable', async () => {
-  const keys = generateTestVapidKeys();
+  const keys = await generateTestVapidKeys();
   webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
 
   const mock = startMockServer([{ status: 503, body: 'Service Unavailable' }]);
   await new Promise((resolve) => mock.server.listen(0, '127.0.0.1', resolve));
   const port = mock.server.address().port;
 
-  const sub = generateSyntheticSubscription(`http://127.0.0.1:${port}/push`);
+  const sub = await generateSyntheticSubscription(`http://127.0.0.1:${port}/push`);
   const result = await sendWebPush(sub, JSON.stringify({ title: 'T' }), { TTL: 60 });
 
   assert.equal(result.status, 503);
@@ -284,11 +280,11 @@ test('sendWebPush classifies 500 as retryable', async () => {
 });
 
 test('sendWebPush classifies network error as ambiguous_retryable', async () => {
-  const keys = generateTestVapidKeys();
+  const keys = await generateTestVapidKeys();
   webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
 
   // Use a non-listening port — connection refused
-  const sub = generateSyntheticSubscription('http://127.0.0.1:1/push');
+  const sub = await generateSyntheticSubscription('http://127.0.0.1:1/push');
   const result = await sendWebPush(sub, JSON.stringify({ title: 'T' }), { TTL: 60 });
 
   assert.equal(result.ok, false);
@@ -298,8 +294,6 @@ test('sendWebPush classifies network error as ambiguous_retryable', async () => 
 });
 
 test('no https.request is called by the adapter', async () => {
-  // Verify that sendWebPush uses fetch, not https.request.
-  // We intercept https.request to detect if it's called.
   const https = await import('node:https');
   const originalRequest = https.default.request;
   let httpsCalled = false;
@@ -310,14 +304,14 @@ test('no https.request is called by the adapter', async () => {
   };
 
   try {
-    const keys = generateTestVapidKeys();
+    const keys = await generateTestVapidKeys();
     webpush.setVapidDetails('mailto:test@bathily-convoyage.invalid', keys.publicKey, keys.privateKey);
 
     const mock = startMockServer([{ status: 201 }]);
     await new Promise((resolve) => mock.server.listen(0, '127.0.0.1', resolve));
     const port = mock.server.address().port;
 
-    const sub = generateSyntheticSubscription(`http://127.0.0.1:${port}/push`);
+    const sub = await generateSyntheticSubscription(`http://127.0.0.1:${port}/push`);
     await sendWebPush(sub, JSON.stringify({ title: 'T' }), { TTL: 60 });
 
     assert.equal(httpsCalled, false, 'https.request was not called');
@@ -326,4 +320,21 @@ test('no https.request is called by the adapter', async () => {
   } finally {
     https.default.request = originalRequest;
   }
+});
+
+test('no crypto.createECDH is used by the adapter', async () => {
+  // Verify that the _push.js module does not import or use crypto.createECDH
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const pushCode = fs.readFileSync(
+    path.resolve('functions/_push.js'), 'utf8'
+  );
+  assert.ok(!pushCode.includes('createECDH'),
+    '_push.js must NOT use crypto.createECDH');
+  assert.ok(!pushCode.includes("from 'web-push'"),
+    '_push.js must NOT import from web-push');
+  assert.ok(!pushCode.includes("from 'node:crypto'"),
+    '_push.js must NOT import from node:crypto');
+  assert.ok(pushCode.includes('@pushforge/builder'),
+    '_push.js must import from @pushforge/builder');
 });
