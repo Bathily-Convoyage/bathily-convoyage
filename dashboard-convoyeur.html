@@ -1693,10 +1693,11 @@
       if (authError) {
         const emailMessage = window.BathilyAuthErrors.getEmailNotConfirmedMessage(authError);
         const passwordMessage = window.BathilyAuthErrors.getPasswordRejectionMessage(authError);
+        const networkMessage = window.BathilyAuthErrors.getNetworkErrorMessage(authError);
         const fallbackMessage = 'Email ou mot de passe incorrect. Utilisez « Mot de passe oublié » pour réinitialiser votre mot de passe.';
         Swal.fire({
           title: 'Connexion impossible',
-          text: emailMessage || passwordMessage || fallbackMessage,
+          text: emailMessage || passwordMessage || networkMessage || fallbackMessage,
           icon: 'warning',
           showCancelButton: true,
           confirmButtonText: 'Réinitialiser mon mot de passe',

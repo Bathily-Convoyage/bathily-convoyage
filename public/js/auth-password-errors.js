@@ -10,6 +10,12 @@
   const EMAIL_NOT_CONFIRMED_MESSAGE =
     'Votre adresse email n\'est pas encore confirmée. Consultez votre boîte mail ou renvoyez l\'email de confirmation.';
 
+  // P2A: Neutral message for network/transient failures.
+  // Must NOT claim credentials are incorrect — the request never reached
+  // the auth server or the server returned a transient error.
+  const NETWORK_ERROR_MESSAGE =
+    'Une erreur technique est survenue. Vérifiez votre connexion et réessayez.';
+
   function getReasons(error) {
     if (!error || !Array.isArray(error.reasons)) return [];
     return error.reasons.filter(reason => typeof reason === 'string');
@@ -51,13 +57,44 @@
     return EMAIL_NOT_CONFIRMED_MESSAGE;
   }
 
+  // P2A: Detect network/transient errors that are NOT credential rejections.
+  // Supabase JS v2 returns AuthRetryableError for fetch/timeout/5xx failures.
+  // These must not be shown as "Email ou mot de passe incorrect".
+  function isNetworkOrTransientError(error) {
+    if (!error) return false;
+    // AuthRetryableError is Supabase JS v2's class for retryable errors
+    if (error.name === 'AuthRetryableError') return true;
+    // 5xx status or status 0 (network failure) — but NOT 4xx (client errors)
+    if (typeof error.status === 'number' && (error.status >= 500 || error.status === 0)) return true;
+    // No auth error code + message contains network/fetch/timeout keywords
+    // (invalid_credentials always has code='invalid_credentials', so this won't catch it)
+    if (!error.code) {
+      var msg = (error.message || '').toLowerCase();
+      if (msg.indexOf('fetch') !== -1) return true;
+      if (msg.indexOf('network') !== -1) return true;
+      if (msg.indexOf('timeout') !== -1) return true;
+      if (msg.indexOf('abort') !== -1) return true;
+      if (msg.indexOf('connection') !== -1) return true;
+    }
+    return false;
+  }
+
+  // P2A: Get the network/transient error message if applicable, else null.
+  function getNetworkErrorMessage(error) {
+    if (!isNetworkOrTransientError(error)) return null;
+    return NETWORK_ERROR_MESSAGE;
+  }
+
   global.BathilyAuthErrors = Object.freeze({
     COMPROMISED_PASSWORD_MESSAGE,
     WEAK_PASSWORD_MESSAGE,
     EMAIL_NOT_CONFIRMED_MESSAGE,
+    NETWORK_ERROR_MESSAGE,
     getPasswordRejectionMessage,
     isWeakPasswordError,
     isEmailNotConfirmedError,
-    getEmailNotConfirmedMessage
+    getEmailNotConfirmedMessage,
+    isNetworkOrTransientError,
+    getNetworkErrorMessage
   });
 })(window);
