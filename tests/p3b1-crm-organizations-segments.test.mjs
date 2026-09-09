@@ -153,7 +153,11 @@ const rlsOrgChecks = [
   ['REVOKE ALL FROM PUBLIC on organizations', /REVOKE ALL ON public\.organizations FROM PUBLIC/i],
   ['REVOKE ALL FROM anon on organizations', /REVOKE ALL ON public\.organizations FROM anon/i],
   ['REVOKE ALL FROM authenticated on organizations', /REVOKE ALL ON public\.organizations FROM authenticated/i],
-  ['GRANT SELECT to authenticated on organizations', /GRANT SELECT ON public\.organizations TO authenticated/i],
+  ['GRANT includes SELECT for authenticated on organizations', /GRANT\s+SELECT[^;]*ON public\.organizations TO authenticated/i],
+  ['GRANT includes INSERT for authenticated on organizations', /GRANT\s+SELECT,\s*INSERT[^;]*ON public\.organizations TO authenticated/i],
+  ['GRANT includes UPDATE for authenticated on organizations', /GRANT\s+SELECT,\s*INSERT,\s*UPDATE[^;]*ON public\.organizations TO authenticated/i],
+  ['GRANT includes DELETE for authenticated on organizations', /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON public\.organizations TO authenticated/i],
+  ['GRANT ALL to service_role on organizations', /GRANT ALL ON public\.organizations TO service_role/i],
   ['SELECT policy uses is_internal_user', /organizations_select_internal[\s\S]*FOR SELECT[\s\S]*is_internal_user\(\)/i],
   ['INSERT policy uses is_internal_user', /organizations_insert_internal[\s\S]*FOR INSERT[\s\S]*is_internal_user\(\)/i],
   ['UPDATE policy uses is_internal_user', /organizations_update_internal[\s\S]*FOR UPDATE[\s\S]*is_internal_user\(\)/i],
@@ -174,7 +178,11 @@ const rlsSegChecks = [
   ['REVOKE ALL FROM PUBLIC on organization_segments', /REVOKE ALL ON public\.organization_segments FROM PUBLIC/i],
   ['REVOKE ALL FROM anon on organization_segments', /REVOKE ALL ON public\.organization_segments FROM anon/i],
   ['REVOKE ALL FROM authenticated on organization_segments', /REVOKE ALL ON public\.organization_segments FROM authenticated/i],
-  ['GRANT SELECT to authenticated on organization_segments', /GRANT SELECT ON public\.organization_segments TO authenticated/i],
+  ['GRANT includes SELECT for authenticated on organization_segments', /GRANT\s+SELECT[^;]*ON public\.organization_segments TO authenticated/i],
+  ['GRANT includes INSERT for authenticated on organization_segments', /GRANT\s+SELECT,\s*INSERT[^;]*ON public\.organization_segments TO authenticated/i],
+  ['GRANT includes UPDATE for authenticated on organization_segments', /GRANT\s+SELECT,\s*INSERT,\s*UPDATE[^;]*ON public\.organization_segments TO authenticated/i],
+  ['GRANT includes DELETE for authenticated on organization_segments', /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON public\.organization_segments TO authenticated/i],
+  ['GRANT ALL to service_role on organization_segments', /GRANT ALL ON public\.organization_segments TO service_role/i],
   ['SELECT policy uses is_internal_user', /organization_segments_select_internal[\s\S]*FOR SELECT[\s\S]*is_internal_user\(\)/i],
   ['INSERT policy uses is_internal_user', /organization_segments_insert_internal[\s\S]*FOR INSERT[\s\S]*is_internal_user\(\)/i],
   ['DELETE policy uses is_internal_user', /organization_segments_delete_internal[\s\S]*FOR DELETE[\s\S]*is_internal_user\(\)/i],
@@ -182,6 +190,53 @@ const rlsSegChecks = [
 
 for (const [name, pattern] of rlsSegChecks) {
   assert.match(sql, pattern, name);
+  console.log(`  ✓ ${name}`);
+}
+
+// =========================================================
+// POLICY / GRANT CONSISTENCY GUARD
+// =========================================================
+// Every INSERT/UPDATE/DELETE RLS policy must have a matching GRANT
+// to authenticated. Without the GRANT, the policy is dead code
+// (PostgreSQL checks SQL privileges BEFORE RLS policies).
+// This guard would have FAILED on the P3B1A defect (SELECT-only grant).
+
+const consistencyChecks = [
+  // organizations: INSERT policy → INSERT grant
+  {
+    name: 'organizations INSERT policy has matching GRANT',
+    policy: /organizations_insert_internal[\s\S]*FOR INSERT/i,
+    grant: /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON public\.organizations TO authenticated/i,
+  },
+  // organizations: UPDATE policy → UPDATE grant
+  {
+    name: 'organizations UPDATE policy has matching GRANT',
+    policy: /organizations_update_internal[\s\S]*FOR UPDATE/i,
+    grant: /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON public\.organizations TO authenticated/i,
+  },
+  // organizations: DELETE policy → DELETE grant
+  {
+    name: 'organizations DELETE policy has matching GRANT',
+    policy: /organizations_delete_admin[\s\S]*FOR DELETE/i,
+    grant: /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON public\.organizations TO authenticated/i,
+  },
+  // organization_segments: INSERT policy → INSERT grant
+  {
+    name: 'organization_segments INSERT policy has matching GRANT',
+    policy: /organization_segments_insert_internal[\s\S]*FOR INSERT/i,
+    grant: /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON public\.organization_segments TO authenticated/i,
+  },
+  // organization_segments: DELETE policy → DELETE grant
+  {
+    name: 'organization_segments DELETE policy has matching GRANT',
+    policy: /organization_segments_delete_internal[\s\S]*FOR DELETE/i,
+    grant: /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON public\.organization_segments TO authenticated/i,
+  },
+];
+
+for (const { name, policy, grant } of consistencyChecks) {
+  assert.match(sql, policy, `${name} — policy exists`);
+  assert.match(sql, grant, `${name} — grant exists`);
   console.log(`  ✓ ${name}`);
 }
 

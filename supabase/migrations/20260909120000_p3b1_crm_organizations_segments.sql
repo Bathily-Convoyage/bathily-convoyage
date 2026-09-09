@@ -141,11 +141,14 @@ ALTER TABLE public.organization_segments OWNER TO postgres;
 
 ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
 
--- Revoke all direct table privileges; access is via RLS policies only.
+-- Revoke all direct table privileges, then re-grant explicitly.
+-- RLS remains the actual authorization gate; GRANTs enable the policies
+-- to function (PostgreSQL checks SQL privileges BEFORE RLS policies).
 REVOKE ALL ON public.organizations FROM PUBLIC;
 REVOKE ALL ON public.organizations FROM anon;
 REVOKE ALL ON public.organizations FROM authenticated;
-GRANT SELECT ON public.organizations TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.organizations TO authenticated;
+GRANT ALL ON public.organizations TO service_role;
 
 -- SELECT: internal users (admin + operator) only.
 CREATE POLICY organizations_select_internal
@@ -180,7 +183,8 @@ ALTER TABLE public.organization_segments ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.organization_segments FROM PUBLIC;
 REVOKE ALL ON public.organization_segments FROM anon;
 REVOKE ALL ON public.organization_segments FROM authenticated;
-GRANT SELECT ON public.organization_segments TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.organization_segments TO authenticated;
+GRANT ALL ON public.organization_segments TO service_role;
 
 -- SELECT: internal users only.
 CREATE POLICY organization_segments_select_internal
