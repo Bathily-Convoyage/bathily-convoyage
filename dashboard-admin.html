@@ -7117,11 +7117,13 @@ async function calculateAdminPrice() {
     _lastManualQuote = quote;
     if (priceInput) priceInput.value = quote.total_ht;
     if (remInput) remInput.value = quote.remuneration_convoyeur;
+    updateManualMarginDisplay();
   } catch (err) {
     console.warn('Erreur calculate-quote admin:', err);
     _lastManualQuote = null;
     if (priceInput) priceInput.value = '';
     if (remInput) remInput.value = '';
+    updateManualMarginDisplay();
   }
 }
 
@@ -7183,19 +7185,16 @@ if (packField) {
 }
 
 // ---- Mise à jour automatique de la marge ----
-document.getElementById('manual-price')?.addEventListener('input', function() {
-  const prix = parseFloat(this.value) || 0;
-  const rem = parseFloat(document.getElementById('manual-remuneration').value) || 0;
+function updateManualMarginDisplay() {
+  const prix = parseFloat(document.getElementById('manual-price')?.value) || 0;
+  const rem = parseFloat(document.getElementById('manual-remuneration')?.value) || 0;
   const margeEl = document.getElementById('manual-marge-val');
   if (margeEl) margeEl.textContent = (prix - rem).toFixed(2) + ' €';
-});
+}
 
-document.getElementById('manual-remuneration')?.addEventListener('input', function() {
-  const prix = parseFloat(document.getElementById('manual-price').value) || 0;
-  const rem = parseFloat(this.value) || 0;
-  const margeEl = document.getElementById('manual-marge-val');
-  if (margeEl) margeEl.textContent = (prix - rem).toFixed(2) + ' €';
-});
+document.getElementById('manual-price')?.addEventListener('input', updateManualMarginDisplay);
+
+document.getElementById('manual-remuneration')?.addEventListener('input', updateManualMarginDisplay);
 
     // Navigation tabs
     document.querySelectorAll('.nav-item[data-tab]').forEach(item => {
@@ -7403,21 +7402,6 @@ document.getElementById('manual-remuneration')?.addEventListener('input', functi
     });
 
     // Mobile menu (onclick déjà attaché dans leML, pas besoin de double listener)
-
-    // ---- Mise à jour automatique de la marge ----
-    document.getElementById('manual-price')?.addEventListener('input', function() {
-      const prix = parseFloat(this.value) || 0;
-      const rem = parseFloat(document.getElementById('manual-remuneration').value) || 0;
-      const margeEl = document.getElementById('manual-marge-val');
-      if (margeEl) margeEl.textContent = (prix - rem).toFixed(2) + ' €';
-    });
-
-    document.getElementById('manual-remuneration')?.addEventListener('input', function() {
-      const prix = parseFloat(document.getElementById('manual-price').value) || 0;
-      const rem = parseFloat(this.value) || 0;
-      const margeEl = document.getElementById('manual-marge-val');
-      if (margeEl) margeEl.textContent = (prix - rem).toFixed(2) + ' €';
-    });
 
     // Stat cards navigation
     document.querySelectorAll('[data-nav]').forEach(el => {

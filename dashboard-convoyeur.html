@@ -1691,10 +1691,13 @@
       const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
 
       if (authError) {
+        const emailMessage = window.BathilyAuthErrors.getEmailNotConfirmedMessage(authError);
         const passwordMessage = window.BathilyAuthErrors.getPasswordRejectionMessage(authError);
+        const networkMessage = window.BathilyAuthErrors.getNetworkErrorMessage(authError);
+        const fallbackMessage = 'Email ou mot de passe incorrect. Utilisez « Mot de passe oublié » pour réinitialiser votre mot de passe.';
         Swal.fire({
           title: 'Connexion impossible',
-          text: passwordMessage || 'Votre compte n\'est pas encore migré vers le nouveau système d\'authentification. Cliquez sur "Mot de passe oublié" pour réinitialiser votre mot de passe et activer votre compte.',
+          text: emailMessage || passwordMessage || networkMessage || fallbackMessage,
           icon: 'warning',
           showCancelButton: true,
           confirmButtonText: 'Réinitialiser mon mot de passe',
