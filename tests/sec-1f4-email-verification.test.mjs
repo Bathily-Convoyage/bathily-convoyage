@@ -429,8 +429,10 @@ const expectedMigrations = [
   "20260903100000_sec_1c2_fidelity_acl_hardening.sql"
 ];
 // Check that no NEW migration files were added (we just verify the count is reasonable)
+// Threshold bumped to 61 after P3B2 added organization_sites + organization_contacts.
+// TECH_DEBT: this absolute ceiling requires manual maintenance on every legitimate migration.
 assert.ok(
-  migrationFiles.length <= 60,
+  migrationFiles.length <= 61,
   "No excessive migration files (no new SQL migration should have been added)"
 );
 // Verify no sec-1f4 migration was added
