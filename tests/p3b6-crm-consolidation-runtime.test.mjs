@@ -19,6 +19,7 @@ import { spawnSync } from 'node:child_process';
 import { writeFileSync, unlinkSync, readFileSync, readdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 
 const CONTAINER = 'p3b6_runtime_pg17';
 const PGUSER = 'postgres';
@@ -26,9 +27,9 @@ const PGDB = 'postgres';
 const PGPASSWORD = 'p3b6test';
 const PGPORT = '54182';
 
-const MIGRATIONS_DIR = new URL('../supabase/migrations/', import.meta.url).pathname
-  .replace(/^\//, '')
-  .replace(/\//g, '\\');
+const MIGRATIONS_DIR = fileURLToPath(
+  new URL('../supabase/migrations/', import.meta.url)
+);
 
 const BASELINE_FILE    = join(MIGRATIONS_DIR, '20260807214536_remote_public_baseline.sql');
 const P3B6_FILE = join(MIGRATIONS_DIR, '20260910120000_p3b6_crm_consolidation.sql');
