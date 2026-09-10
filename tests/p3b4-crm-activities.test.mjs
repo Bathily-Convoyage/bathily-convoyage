@@ -143,6 +143,13 @@ console.log('  ✓ cross-entity queries crm_opportunities');
 assert.match(sql, /v_opp_org_id\s+IS\s+DISTINCT\s+FROM\s+NEW\.organization_id/i, 'cross-entity checks opportunity org match');
 console.log('  ✓ cross-entity checks opportunity org match');
 
+// P3B4C: FOR SHARE locks on parent rows (concurrency safety)
+assert.match(sql, /FROM\s+public\.organization_contacts\s+WHERE\s+id\s*=\s*NEW\.contact_id\s+FOR\s+SHARE/is, 'cross-entity locks contact FOR SHARE');
+console.log('  ✓ cross-entity locks contact FOR SHARE (P3B4C)');
+
+assert.match(sql, /FROM\s+public\.crm_opportunities\s+WHERE\s+id\s*=\s*NEW\.opportunity_id\s+FOR\s+SHARE/is, 'cross-entity locks opportunity FOR SHARE');
+console.log('  ✓ cross-entity locks opportunity FOR SHARE (P3B4C)');
+
 // P3B4A: assigned_to validation
 assert.match(sql, /NEW\.assigned_to\s+IS\s+NOT\s+NULL/i, 'cross-entity checks assigned_to');
 console.log('  ✓ cross-entity checks assigned_to');
@@ -265,17 +272,18 @@ console.log('  ✓ DELETE policy admin-only');
 // =========================================================
 // SECURITY DEFINER INVENTORY + SEARCH_PATH
 // =========================================================
-// P3B4B: 4 SECURITY DEFINER functions (2 original + 2 parent guards)
+// P3B4C: 5 SECURITY DEFINER functions (2 original + 2 parent guards + 1 hardened P3B3)
 const sqlNoComments = sql.replace(/^\s*--[^\n]*$/gm, '');
 const sdCount = (sqlNoComments.match(/^SECURITY\s+DEFINER/gim) || []).length;
-assert.equal(sdCount, 4, `exactly 4 SECURITY DEFINER functions, found ${sdCount}`);
-console.log(`  ✓ exactly 4 SECURITY DEFINER functions (count=${sdCount})`);
+assert.equal(sdCount, 5, `exactly 5 SECURITY DEFINER functions, found ${sdCount}`);
+console.log(`  ✓ exactly 5 SECURITY DEFINER functions (count=${sdCount})`);
 
 const sdFunctions = [
   'crm_activities_check_cross_entity',
   'crm_activities_set_created_by',
   'organization_contacts_guard_reparent',
   'crm_opportunities_guard_reparent',
+  'crm_opportunities_check_contact_org',
 ];
 for (const fn of sdFunctions) {
   const block = sql.match(
@@ -350,6 +358,21 @@ assert.doesNotMatch(sql, /organization_contacts_guard_reparent[\s\S]*?UPDATE\s+p
 assert.doesNotMatch(sql, /organization_contacts_guard_reparent[\s\S]*?UPDATE\s+public\.crm_activities/is, 'contact guard does not cascade-update activities');
 assert.doesNotMatch(sql, /crm_opportunities_guard_reparent[\s\S]*?UPDATE\s+public\.crm_activities/is, 'opportunity guard does not cascade-update activities');
 console.log('  ✓ no automatic cascade in parent guards');
+
+// =========================================================
+// P3B4C: HARDENED P3B3 crm_opportunities_check_contact_org
+// =========================================================
+assert.match(sql, /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.crm_opportunities_check_contact_org\(\)/i, 'hardened crm_opportunities_check_contact_org exists');
+console.log('  ✓ hardened crm_opportunities_check_contact_org exists (P3B4C)');
+
+assert.match(sql, /crm_opportunities_check_contact_org[\s\S]*?SECURITY\s+DEFINER[\s\S]*?SET\s+search_path\s*=\s*''/is, 'hardened contact_org is SECURITY DEFINER + fixed search_path');
+console.log("  ✓ hardened contact_org: SECURITY DEFINER + SET search_path = ''");
+
+assert.match(sql, /crm_opportunities_check_contact_org[\s\S]*?FROM\s+public\.organization_contacts\s+WHERE\s+id\s*=\s*NEW\.contact_id\s+FOR\s+SHARE/is, 'hardened contact_org locks contact FOR SHARE');
+console.log('  ✓ hardened contact_org locks contact FOR SHARE (P3B4C)');
+
+assert.match(sql, /REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.crm_opportunities_check_contact_org\(\)\s+FROM\s+PUBLIC,\s*anon,\s*authenticated/i, 'hardened contact_org EXECUTE revoked');
+console.log('  ✓ hardened contact_org EXECUTE revoked from PUBLIC, anon, authenticated');
 
 // =========================================================
 // NO MODIFICATION TO EXISTING TABLES (P3B4B exception: triggers)

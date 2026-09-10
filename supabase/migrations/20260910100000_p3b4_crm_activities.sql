@@ -173,6 +173,14 @@ CREATE TRIGGER crm_activities_set_updated_at
 --      operator (user_roles role='operator' AND internal_operators.active
 --      = true). Clients, convoyeurs, inactive operators, and unknown
 --      users are rejected. Admin takes precedence where roles overlap.
+--
+-- P3B4C CONCURRENCY: Parent rows (organization_contacts,
+-- crm_opportunities) are locked FOR SHARE before reading their
+-- organization_id. FOR SHARE conflicts with the parent UPDATE
+-- (FOR NO KEY UPDATE), so child validation and parent reparent
+-- serialize: whichever acquires the lock first commits first, and
+-- the other operation validates against the committed state.
+-- Lock order: contact before opportunity (deterministic, no cycle).
 
 CREATE OR REPLACE FUNCTION public.crm_activities_check_cross_entity()
 RETURNS trigger
@@ -195,7 +203,8 @@ BEGIN
 
     SELECT organization_id INTO v_contact_org_id
     FROM public.organization_contacts
-    WHERE id = NEW.contact_id;
+    WHERE id = NEW.contact_id
+    FOR SHARE;
 
     IF NOT FOUND THEN
       RAISE EXCEPTION 'Contact introuvable' USING ERRCODE = 'P0002';
@@ -211,7 +220,8 @@ BEGIN
   IF NEW.opportunity_id IS NOT NULL THEN
     SELECT organization_id INTO v_opp_org_id
     FROM public.crm_opportunities
-    WHERE id = NEW.opportunity_id;
+    WHERE id = NEW.opportunity_id
+    FOR SHARE;
 
     IF NOT FOUND THEN
       RAISE EXCEPTION 'Opportunité introuvable' USING ERRCODE = 'P0002';
@@ -436,6 +446,63 @@ CREATE TRIGGER crm_opportunities_guard_reparent
   BEFORE UPDATE OF organization_id ON public.crm_opportunities
   FOR EACH ROW
   EXECUTE FUNCTION public.crm_opportunities_guard_reparent();
+
+-- =========================================================
+-- 4e. P3B4C: Harden P3B3 crm_opportunities_check_contact_org
+-- =========================================================
+-- P3B3's crm_opportunities_check_contact_org() used a plain SELECT
+-- (ACCESS SHARE) on organization_contacts, which does NOT conflict
+-- with a concurrent contact reparent (FOR NO KEY UPDATE). A race
+-- could allow an opportunity INSERT to validate against a stale
+-- contact org and commit, then the contact reparents, leaving the
+-- opportunity/contact graph inconsistent.
+--
+-- P3B4C replaces the function with identical semantics plus a
+-- FOR SHARE lock on the contact row. FOR SHARE conflicts with the
+-- parent UPDATE, serializing opportunity validation and contact
+-- reparent. The trigger from P3B3 continues to fire; only the
+-- function body is hardened.
+--
+-- P3B3 semantic behavior is preserved exactly:
+--   - contact_id non-null => organization_id non-null AND matches
+--   - contact_id null => no constraint
+--   - error messages unchanged
+
+CREATE OR REPLACE FUNCTION public.crm_opportunities_check_contact_org()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_contact_org_id uuid;
+BEGIN
+  IF NEW.contact_id IS NOT NULL THEN
+    IF NEW.organization_id IS NULL THEN
+      RAISE EXCEPTION 'Un contact nécessite une organisation (organization_id requis quand contact_id est renseigné)'
+        USING ERRCODE = 'P0001';
+    END IF;
+
+    SELECT organization_id INTO v_contact_org_id
+    FROM public.organization_contacts
+    WHERE id = NEW.contact_id
+    FOR SHARE;
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Contact introuvable' USING ERRCODE = 'P0002';
+    END IF;
+
+    IF v_contact_org_id IS DISTINCT FROM NEW.organization_id THEN
+      RAISE EXCEPTION 'Le contact n''appartient pas à cette organisation'
+        USING ERRCODE = 'P0001';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+ALTER FUNCTION public.crm_opportunities_check_contact_org() OWNER TO postgres;
+REVOKE EXECUTE ON FUNCTION public.crm_opportunities_check_contact_org() FROM PUBLIC, anon, authenticated;
 
 -- =========================================================
 -- 5. RLS: crm_activities
