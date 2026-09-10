@@ -119,9 +119,9 @@ console.log("  ✓ guard_clients_organization_id: SECURITY DEFINER + SET search_
 assert.match(sql, /guard_clients_organization_id[\s\S]*?TG_OP\s*=\s*'INSERT'[\s\S]*?NEW\.organization_id\s+IS\s+NOT\s+NULL[\s\S]*?is_admin\(\)\s+OR\s+public\.is_operator\(\)/is, 'INSERT authorization check');
 console.log('  ✓ INSERT: non-null org requires is_admin() OR is_operator()');
 
-// UPDATE: IS DISTINCT FROM OLD with non-null check requires is_admin() OR is_operator()
-assert.match(sql, /guard_clients_organization_id[\s\S]*?NEW\.organization_id\s+IS\s+NOT\s+NULL\s+AND\s+NEW\.organization_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.organization_id[\s\S]*?is_admin\(\)\s+OR\s+public\.is_operator\(\)/is, 'UPDATE authorization check');
-console.log('  ✓ UPDATE: non-null org change requires is_admin() OR is_operator()');
+// UPDATE: IS DISTINCT FROM OLD requires is_admin() OR is_operator()
+assert.match(sql, /guard_clients_organization_id[\s\S]*?NEW\.organization_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.organization_id[\s\S]*?is_admin\(\)\s+OR\s+public\.is_operator\(\)/is, 'UPDATE authorization check');
+console.log('  ✓ UPDATE: IS DISTINCT FROM OLD requires is_admin() OR is_operator() (covers unlink)');
 
 // NOT auth.uid() IS NULL bypass
 assert.doesNotMatch(sql, /guard_clients_organization_id[\s\S]*?auth\.uid\(\)\s+IS\s+NULL[\s\S]*?RETURN\s+NEW/is, 'no auth.uid() IS NULL bypass in guard_clients_organization_id');
@@ -144,9 +144,9 @@ console.log("  ✓ devis_guard_crm_links: SECURITY DEFINER + SET search_path = '
 assert.match(sql, /devis_guard_crm_links[\s\S]*?TG_OP\s*=\s*'INSERT'[\s\S]*?NEW\.organization_id\s+IS\s+NOT\s+NULL[\s\S]*?NEW\.contact_id\s+IS\s+NOT\s+NULL[\s\S]*?NEW\.opportunity_id\s+IS\s+NOT\s+NULL/is, 'INSERT mutation detection');
 console.log('  ✓ INSERT mutation detection (any CRM link non-null)');
 
-// Phase 1: UPDATE mutation detection (non-null IS DISTINCT FROM — covers unlink)
-assert.match(sql, /devis_guard_crm_links[\s\S]*?NEW\.organization_id\s+IS\s+NOT\s+NULL\s+AND\s+NEW\.organization_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.organization_id[\s\S]*?NEW\.contact_id\s+IS\s+NOT\s+NULL\s+AND\s+NEW\.contact_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.contact_id[\s\S]*?NEW\.opportunity_id\s+IS\s+NOT\s+NULL\s+AND\s+NEW\.opportunity_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.opportunity_id/is, 'UPDATE mutation detection');
-console.log('  ✓ UPDATE mutation detection (non-null IS DISTINCT FROM — allows unlink)');
+// Phase 1: UPDATE mutation detection (IS DISTINCT FROM — covers unlink)
+assert.match(sql, /devis_guard_crm_links[\s\S]*?NEW\.organization_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.organization_id[\s\S]*?NEW\.contact_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.contact_id[\s\S]*?NEW\.opportunity_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.opportunity_id/is, 'UPDATE mutation detection');
+console.log('  ✓ UPDATE mutation detection (IS DISTINCT FROM — covers unlink)');
 
 // Phase 1: is_internal_user() authorization
 assert.match(sql, /devis_guard_crm_links[\s\S]*?_crm_mutation\s+AND\s+NOT\s+public\.is_internal_user\(\)/is, 'is_internal_user() authorization');
@@ -181,9 +181,23 @@ console.log("  ✓ missions_check_devis_org: SECURITY DEFINER + SET search_path 
 assert.match(sql, /missions_check_devis_org[\s\S]*?TG_OP\s*=\s*'INSERT'[\s\S]*?NEW\.devis_id\s+IS\s+NOT\s+NULL[\s\S]*?NEW\.organization_id\s+IS\s+NOT\s+NULL/is, 'INSERT mutation detection');
 console.log('  ✓ INSERT mutation detection');
 
-// Phase 1: UPDATE mutation detection (non-null IS DISTINCT FROM — covers unlink)
-assert.match(sql, /missions_check_devis_org[\s\S]*?NEW\.devis_id\s+IS\s+NOT\s+NULL\s+AND\s+NEW\.devis_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.devis_id[\s\S]*?NEW\.organization_id\s+IS\s+NOT\s+NULL\s+AND\s+NEW\.organization_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.organization_id/is, 'UPDATE mutation detection');
-console.log('  ✓ UPDATE mutation detection (non-null IS DISTINCT FROM — allows unlink)');
+// Phase 1: UPDATE mutation detection (IS DISTINCT FROM — covers unlink)
+assert.match(sql, /missions_check_devis_org[\s\S]*?NEW\.devis_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.devis_id[\s\S]*?NEW\.organization_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.organization_id/is, 'UPDATE mutation detection');
+console.log('  ✓ UPDATE mutation detection (IS DISTINCT FROM — covers unlink)');
+
+// CRITICAL: No IS NOT NULL bypass in any UPDATE mutation detection
+// The pattern "NEW.col IS NOT NULL AND NEW.col IS DISTINCT FROM OLD.col"
+// would bypass authorization for value→NULL unlinks. This must NOT exist.
+const unlinkBypassPatterns = [
+  /NEW\.organization_id\s+IS\s+NOT\s+NULL\s+AND\s+NEW\.organization_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.organization_id/i,
+  /NEW\.contact_id\s+IS\s+NOT\s+NULL\s+AND\s+NEW\.contact_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.contact_id/i,
+  /NEW\.opportunity_id\s+IS\s+NOT\s+NULL\s+AND\s+NEW\.opportunity_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.opportunity_id/i,
+  /NEW\.devis_id\s+IS\s+NOT\s+NULL\s+AND\s+NEW\.devis_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.devis_id/i,
+];
+for (const pat of unlinkBypassPatterns) {
+  assert.ok(!pat.test(sql), 'No IS NOT NULL bypass in UPDATE mutation detection');
+}
+console.log('  ✓ No IS NOT NULL bypass in UPDATE mutation detection (unlink requires auth)');
 
 // Phase 1: is_internal_user() authorization
 assert.match(sql, /missions_check_devis_org[\s\S]*?_crm_mutation\s+AND\s+NOT\s+public\.is_internal_user\(\)/is, 'is_internal_user() authorization');

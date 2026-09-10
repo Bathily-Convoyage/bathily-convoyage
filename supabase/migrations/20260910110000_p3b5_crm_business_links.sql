@@ -133,11 +133,12 @@ CREATE INDEX IF NOT EXISTS idx_missions_organization_id
 -- legacy semantics. Uses is_admin() OR is_operator() — NOT
 -- auth.uid() IS NULL.
 -- INSERT: non-null org requires authorization.
--- UPDATE: setting org to non-null requires authorization.
---   Setting org to NULL (unlinking) is ALLOWED without
---   authorization to support ON DELETE SET NULL FK cascades.
---   Unlinking is less dangerous than linking and is a
---   system-level operation when triggered by FK cascade.
+-- UPDATE: ANY change to organization_id (including to NULL)
+--   requires is_admin() OR is_operator().
+--   This covers: NULL→value, value→value, value→NULL.
+--   FK ON DELETE SET NULL cascades fire this trigger; admin
+--   deletes (auth.uid()=admin) pass is_admin(), service_role
+--   deletes (auth.uid()=NULL) are correctly denied.
 
 CREATE OR REPLACE FUNCTION public.guard_clients_organization_id()
 RETURNS trigger
@@ -154,9 +155,7 @@ BEGIN
       END IF;
     END IF;
   ELSE  -- UPDATE
-    -- Only require authorization when setting to a non-null value.
-    -- Setting to NULL (unlinking) is allowed to support ON DELETE SET NULL.
-    IF NEW.organization_id IS NOT NULL AND NEW.organization_id IS DISTINCT FROM OLD.organization_id THEN
+    IF NEW.organization_id IS DISTINCT FROM OLD.organization_id THEN
       IF NOT (public.is_admin() OR public.is_operator()) THEN
         RAISE EXCEPTION 'Non autorisé : organization_id modifiable par admin ou opérateur actif uniquement'
           USING ERRCODE = '42501';
@@ -181,10 +180,11 @@ CREATE TRIGGER trg_guard_clients_organization_id
 -- 5. AUTHORIZATION + CONSISTENCY GUARD: devis CRM links
 -- =========================================================
 -- Phase 1: AUTHORIZATION (no CRM lookups — prevents error oracle)
---   Setting any CRM link to a non-null value requires is_internal_user().
---   Setting CRM links to NULL (unlinking) is ALLOWED without
---   authorization to support ON DELETE SET NULL FK cascades.
---   service_role (auth.uid()=NULL) is denied for non-null links.
+--   ANY CRM link mutation (NULL→value, value→value, value→NULL)
+--   requires is_internal_user().
+--   service_role (auth.uid()=NULL) is denied for all mutations.
+--   FK ON DELETE SET NULL cascades fire this trigger; admin
+--   deletes pass is_internal_user(), service_role deletes denied.
 -- Phase 2: CROSS-ENTITY CONSISTENCY (CRM lookups — always runs)
 --   - contact set => org required + contact.org = devis.org
 --   - opportunity set + opp.org non-null => devis.org = opp.org
@@ -205,17 +205,16 @@ DECLARE
 BEGIN
   -- ============================================================
   -- Phase 1: AUTHORIZATION (no CRM lookups)
-  -- Only require authorization when setting a non-null CRM link.
-  -- Unlinking (setting to NULL) is allowed to support ON DELETE SET NULL.
+  -- ANY change to any CRM link column requires is_internal_user().
   -- ============================================================
   IF TG_OP = 'INSERT' THEN
     _crm_mutation := NEW.organization_id IS NOT NULL
                      OR NEW.contact_id IS NOT NULL
                      OR NEW.opportunity_id IS NOT NULL;
   ELSE  -- UPDATE
-    _crm_mutation := (NEW.organization_id IS NOT NULL AND NEW.organization_id IS DISTINCT FROM OLD.organization_id)
-                     OR (NEW.contact_id IS NOT NULL AND NEW.contact_id IS DISTINCT FROM OLD.contact_id)
-                     OR (NEW.opportunity_id IS NOT NULL AND NEW.opportunity_id IS DISTINCT FROM OLD.opportunity_id);
+    _crm_mutation := NEW.organization_id IS DISTINCT FROM OLD.organization_id
+                     OR NEW.contact_id IS DISTINCT FROM OLD.contact_id
+                     OR NEW.opportunity_id IS DISTINCT FROM OLD.opportunity_id;
   END IF;
 
   IF _crm_mutation AND NOT public.is_internal_user() THEN
@@ -305,10 +304,11 @@ CREATE TRIGGER trg_devis_guard_crm_links
 -- 6. AUTHORIZATION + CONSISTENCY GUARD: missions devis/org
 -- =========================================================
 -- Phase 1: AUTHORIZATION (no CRM lookups)
---   Setting any CRM link to a non-null value requires is_internal_user().
---   Setting CRM links to NULL (unlinking) is ALLOWED without
---   authorization to support ON DELETE SET NULL FK cascades.
---   service_role (auth.uid()=NULL) is denied for non-null links.
+--   ANY CRM link mutation (NULL→value, value→value, value→NULL)
+--   requires is_internal_user().
+--   service_role (auth.uid()=NULL) is denied for all mutations.
+--   FK ON DELETE SET NULL cascades fire this trigger; admin
+--   deletes pass is_internal_user(), service_role deletes denied.
 -- Phase 2: CONSISTENCY
 --   If devis_id set, lock devis FOR SHARE.
 --   If devis.org non-null, mission.org must match.
@@ -325,15 +325,14 @@ DECLARE
 BEGIN
   -- ============================================================
   -- Phase 1: AUTHORIZATION (no CRM lookups)
-  -- Only require authorization when setting a non-null CRM link.
-  -- Unlinking (setting to NULL) is allowed to support ON DELETE SET NULL.
+  -- ANY change to any CRM link column requires is_internal_user().
   -- ============================================================
   IF TG_OP = 'INSERT' THEN
     _crm_mutation := NEW.devis_id IS NOT NULL
                      OR NEW.organization_id IS NOT NULL;
   ELSE  -- UPDATE
-    _crm_mutation := (NEW.devis_id IS NOT NULL AND NEW.devis_id IS DISTINCT FROM OLD.devis_id)
-                     OR (NEW.organization_id IS NOT NULL AND NEW.organization_id IS DISTINCT FROM OLD.organization_id);
+    _crm_mutation := NEW.devis_id IS DISTINCT FROM OLD.devis_id
+                     OR NEW.organization_id IS DISTINCT FROM OLD.organization_id;
   END IF;
 
   IF _crm_mutation AND NOT public.is_internal_user() THEN

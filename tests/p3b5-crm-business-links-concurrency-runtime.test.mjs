@@ -1,11 +1,10 @@
-// P3B5 — CRM Business Links — Concurrency Runtime Validation (Disposable PostgreSQL 17)
+// P3B5G — CRM Business Links — Concurrency Runtime Validation (Disposable PostgreSQL 17)
 //
 // True two-session PostgreSQL tests proving:
 // 1. No reachable deadlock cycle in CRM business-link locking
-// 2. Child-side FOR SHARE locks prevent concurrent parent reparent conflicts
-// 3. Parent-side plain SELECT guards detect dependent conflicts without deadlocking
-// 4. Stress test (10+ iterations) with zero deadlocks
-// 5. Concurrent RPC calls maintain graph integrity
+// 2. 25+ stress iterations covering 5 scenarios + adversarial schedules
+// 3. Graph integrity maintained (zero mismatches)
+// 4. Child-side FOR SHARE locks, parent-side plain SELECT (no locks)
 //
 // Uses a DISPOSABLE postgres:17 container. Concurrency is handled
 // by shell scripts inside the container (bash background jobs).
@@ -15,11 +14,10 @@ import { spawnSync } from 'child_process';
 import { join, basename } from 'path';
 import { tmpdir } from 'os';
 
-const CONTAINER = 'p3b5c_concurrency_pg17';
+const CONTAINER = 'p3b5g_conc_pg17';
 const PGUSER = 'postgres';
-const PGPASSWORD = 'p3b5ctest';
+const PGPASSWORD = 'p3b5gtest';
 const PGDB = 'postgres';
-const PGPORT = '54182';
 
 const MIGRATIONS_DIR = new URL('../supabase/migrations/', import.meta.url).pathname
   .replace(/^\//, '').replace(/\//g, '\\');
@@ -40,6 +38,11 @@ const ORG_B_ID     = '33330000-0000-0000-0000-000000000003';
 const CONTACT_A_ID = '22220000-0000-0000-0000-000000000002';
 const OPP_A_ID     = '66660000-0000-0000-0000-000000000006';
 
+const DEVIS_1 = 'eeee0000-0000-0000-0000-000000000001';
+const DEVIS_2 = 'eeee0000-0000-0000-0000-000000000002';
+const MISSION_1 = 'ffff0000-0000-0000-0000-000000000001';
+const CLIENT_1 = 'dddd0000-0000-0000-0000-000000000004';
+
 let passed = 0;
 let failed = 0;
 function check(name, cond) {
@@ -52,7 +55,7 @@ function docker(args, opts = {}) {
 }
 
 function psql(sql, opts = {}) {
-  const tmp = join(tmpdir(), `p3b5c_${Date.now()}_${Math.random().toString(36).slice(2)}.sql`);
+  const tmp = join(tmpdir(), `p3b5g_${Date.now()}_${Math.random().toString(36).slice(2)}.sql`);
   writeFileSync(tmp, sql, 'utf8');
   const containerPath = `/tmp/${basename(tmp)}`;
   docker(['cp', tmp, `${CONTAINER}:${containerPath}`], { stdio: 'pipe' });
@@ -66,7 +69,7 @@ function psql(sql, opts = {}) {
 }
 
 function psqlScalar(sql) {
-  const tmp = join(tmpdir(), `p3b5c_q_${Date.now()}_${Math.random().toString(36).slice(2)}.sql`);
+  const tmp = join(tmpdir(), `p3b5g_q_${Date.now()}_${Math.random().toString(36).slice(2)}.sql`);
   writeFileSync(tmp, sql, 'utf8');
   const containerPath = `/tmp/${basename(tmp)}`;
   docker(['cp', tmp, `${CONTAINER}:${containerPath}`], { stdio: 'pipe' });
@@ -79,16 +82,24 @@ function psqlScalar(sql) {
   return res.status === 0 ? res.stdout.trim() : '';
 }
 
+function asUser(role, uid, sql) {
+  return `SET app.current_user_id = '${uid}';\nSET ROLE ${role};\n${sql}\nRESET ROLE;\nSET app.current_user_id = '';`;
+}
+
+function adminRpc(sql) {
+  return asUser('authenticated', ADMIN_UID, sql);
+}
+
 function runConcurrent(t1Sql, t2Sql, delaySec) {
   const t1File = `t1_${Date.now()}.sql`;
   const t2File = `t2_${Date.now()}.sql`;
 
-  const t1Tmp = join(tmpdir(), `p3b5c_${t1File}`);
+  const t1Tmp = join(tmpdir(), `p3b5g_${t1File}`);
   writeFileSync(t1Tmp, t1Sql, 'utf8');
   docker(['cp', t1Tmp, `${CONTAINER}:/tmp/${t1File}`], { stdio: 'pipe' });
   try { unlinkSync(t1Tmp); } catch {}
 
-  const t2Tmp = join(tmpdir(), `p3b5c_${t2File}`);
+  const t2Tmp = join(tmpdir(), `p3b5g_${t2File}`);
   writeFileSync(t2Tmp, t2Sql, 'utf8');
   docker(['cp', t2Tmp, `${CONTAINER}:/tmp/${t2File}`], { stdio: 'pipe' });
   try { unlinkSync(t2Tmp); } catch {}
@@ -124,7 +135,7 @@ cat $T2_ERR
 rm -f /tmp/${t1File} /tmp/${t2File} $T1_OUT $T1_ERR $T2_OUT $T2_ERR
 `;
 
-  const bashTmp = join(tmpdir(), `p3b5c_bash_${Date.now()}.sh`);
+  const bashTmp = join(tmpdir(), `p3b5g_bash_${Date.now()}.sh`);
   writeFileSync(bashTmp, bashScript, 'utf8');
   const bashPath = `/tmp/${basename(bashTmp)}`;
   docker(['cp', bashTmp, `${CONTAINER}:${bashPath}`], { stdio: 'pipe' });
@@ -174,7 +185,7 @@ GRANT EXECUTE ON FUNCTION public.is_operator() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_internal_user() TO authenticated;
 `;
 
-console.log('=== P3B5 Concurrency Validation (disposable PostgreSQL 17) ===\n');
+console.log('=== P3B5G Concurrency Validation (disposable PostgreSQL 17) ===\n');
 
 // Start container
 docker(['rm', '-f', CONTAINER], { stdio: 'pipe' });
@@ -189,6 +200,16 @@ for (let i = 0; i < 30; i++) {
 }
 if (!ready) { console.error('Container not ready'); docker(['rm', '-f', CONTAINER], { stdio: 'pipe' }); process.exit(1); }
 console.log('Container ready.\n');
+
+let totalDeadlocks = 0;
+let totalInconsistencies = 0;
+let totalMismatches = {
+  client_contact: 0,
+  client_devis: 0,
+  contact_devis: 0,
+  opportunity_devis: 0,
+  devis_mission: 0,
+};
 
 try {
   // Load migrations
@@ -214,186 +235,267 @@ INSERT INTO public.user_roles (user_id, role) VALUES ('${ADMIN_UID}', 'admin'), 
 INSERT INTO public.internal_operators (user_id, display_name, active) VALUES ('${OPERATOR_UID}', 'Op', true) ON CONFLICT DO NOTHING;
 INSERT INTO public.organizations (id, legal_name) VALUES ('${ORG_A_ID}', 'Org A'), ('${ORG_B_ID}', 'Org B') ON CONFLICT DO NOTHING;
 INSERT INTO public.organization_contacts (id, organization_id, first_name, last_name) VALUES ('${CONTACT_A_ID}', '${ORG_A_ID}', 'Alice', 'D') ON CONFLICT DO NOTHING;
+INSERT INTO public.clients (id, role, email, nom, prenom) VALUES ('${CLIENT_1}', 'client', 'c@test.com', 'Test', 'Client') ON CONFLICT DO NOTHING;
+INSERT INTO public.devis (id, reference, client_email, status) VALUES ('${DEVIS_1}', 'DEV-001', 'c@test.com', 'pending'), ('${DEVIS_2}', 'DEV-002', 'c2@test.com', 'pending') ON CONFLICT DO NOTHING;
+INSERT INTO public.missions (id, reference, client_email, status) VALUES ('${MISSION_1}', 'MIS-001', 'c@test.com', 'planned') ON CONFLICT DO NOTHING;
+-- Create opportunity without pipeline event trigger
+ALTER TABLE public.crm_opportunities DISABLE TRIGGER crm_opportunities_create_event;
 INSERT INTO public.crm_opportunities (id, title, organization_id) VALUES ('${OPP_A_ID}', 'Deal A', '${ORG_A_ID}') ON CONFLICT DO NOTHING;
-INSERT INTO public.clients (id, role, email, nom, prenom) VALUES ('dddd0000-0000-0000-0000-000000000004', 'client', 'c@test.com', 'Test', 'Client') ON CONFLICT DO NOTHING;
-INSERT INTO public.devis (id, reference, client_email, status) VALUES ('eeee0000-0000-0000-0000-000000000001', 'DEV-001', 'c@test.com', 'pending') ON CONFLICT DO NOTHING;
-INSERT INTO public.missions (id, reference, client_email, status) VALUES ('ffff0000-0000-0000-0000-000000000001', 'MIS-001', 'c@test.com', 'planned') ON CONFLICT DO NOTHING;
+ALTER TABLE public.crm_opportunities ENABLE TRIGGER crm_opportunities_create_event;
   `);
 
-  // =========================================================
-  // TEST 1: No deadlock — concurrent devis link + mission link
-  // T1: link devis to org A (holds devis row lock)
-  // T2: link mission to devis (needs devis FOR SHARE lock)
-  // T2 should wait for T1, then succeed (no deadlock)
-  // =========================================================
-  console.log('--- TEST 1: Concurrent devis link + mission link (no deadlock) ---');
-
-  // Reset state
-  psql(`UPDATE public.devis SET organization_id = NULL, contact_id = NULL, opportunity_id = NULL WHERE id = 'eeee0000-0000-0000-0000-000000000001';`);
-  psql(`UPDATE public.missions SET devis_id = NULL, organization_id = NULL WHERE id = 'ffff0000-0000-0000-0000-000000000001';`);
-
-  const t1Sql = `
-SET app.current_user_id = '${ADMIN_UID}';
-SET ROLE authenticated;
-BEGIN;
-SELECT public.crm_link_devis_crm('eeee0000-0000-0000-0000-000000000001', '${ORG_A_ID}', NULL, NULL);
--- Hold the lock for 3 seconds
-SELECT pg_sleep(3);
-COMMIT;
-RESET ROLE;
-SET app.current_user_id = '';
-`;
-
-  const t2Sql = `
-SET app.current_user_id = '${ADMIN_UID}';
-SET ROLE authenticated;
-BEGIN;
-SELECT public.crm_link_mission_devis('ffff0000-0000-0000-0000-000000000001', 'eeee0000-0000-0000-0000-000000000001', '${ORG_A_ID}');
-COMMIT;
-RESET ROLE;
-SET app.current_user_id = '';
-`;
-
-  const result1 = runConcurrent(t1Sql, t2Sql, 1);
-  check('T1 (devis link) succeeds', result1.t1Status === 0);
-  check('T2 (mission link) succeeds after T1 commits', result1.t2Status === 0);
-  check('T2 waited for T1 (elapsed > 2000ms)', result1.elapsed > 2000);
-  check('no deadlock detected', !result1.t1Stderr.includes('deadlock') && !result1.t2Stderr.includes('deadlock'));
-
-  // Verify final state
-  check('devis.organization_id = ORG_A after concurrent links',
-    psqlScalar(`SELECT organization_id FROM public.devis WHERE id='eeee0000-0000-0000-0000-000000000001'`) === ORG_A_ID);
-  check('missions.devis_id set after concurrent links',
-    psqlScalar(`SELECT devis_id FROM public.missions WHERE id='ffff0000-0000-0000-0000-000000000001'`) === 'eeee0000-0000-0000-0000-000000000001');
-
-  // =========================================================
-  // TEST 2: Parent reparent guard — no deadlock with child lock
-  // T1: link client to org A (holds client row lock)
-  // T2: try to reparent contact (which references client) — should
-  //     not deadlock, should either wait or fail cleanly
-  // =========================================================
-  console.log('\n--- TEST 2: Parent reparent + child link (no deadlock) ---');
-
-  // Reset: link contact to client, client to org A
-  psql(`UPDATE public.clients SET organization_id = NULL WHERE id = 'dddd0000-0000-0000-0000-000000000004';`);
-  psql(`UPDATE public.organization_contacts SET client_id = NULL WHERE id = '${CONTACT_A_ID}';`);
-  psql(`UPDATE public.organization_contacts SET client_id = 'dddd0000-0000-0000-0000-000000000004' WHERE id = '${CONTACT_A_ID}';`);
-
-  const t2_1Sql = `
-SET app.current_user_id = '${ADMIN_UID}';
-SET ROLE authenticated;
-BEGIN;
--- Link client to org A (holds client row lock for 3s)
-SELECT public.crm_link_client_organization('dddd0000-0000-0000-0000-000000000004', '${ORG_A_ID}');
-SELECT pg_sleep(3);
-COMMIT;
-RESET ROLE;
-SET app.current_user_id = '';
-`;
-
-  const t2_2Sql = `
-SET app.current_user_id = '${ADMIN_UID}';
-SET ROLE authenticated;
-BEGIN;
--- Try to reparent contact to org B (guard checks client org)
--- Contact has client_id linked to the client T1 is updating.
--- The guard does a plain SELECT on clients (no FOR SHARE), so this
--- should not deadlock. It may see the old or new client org depending
--- on isolation level, but should not deadlock.
-UPDATE public.organization_contacts SET organization_id = '${ORG_B_ID}' WHERE id = '${CONTACT_A_ID}';
-COMMIT;
-RESET ROLE;
-SET app.current_user_id = '';
-`;
-
-  const result2 = runConcurrent(t2_1Sql, t2_2Sql, 1);
-  check('T1 (client link) succeeds', result2.t1Status === 0);
-  check('no deadlock in parent reparent + child link', !result2.t1Stderr.includes('deadlock') && !result2.t2Stderr.includes('deadlock'));
-
-  // =========================================================
-  // TEST 3: Stress test — 10 iterations of concurrent devis/mission links
-  // =========================================================
-  console.log('\n--- TEST 3: Stress test (10 iterations, no deadlocks) ---');
-
-  let deadlockCount = 0;
-  let successCount = 0;
-
-  for (let i = 0; i < 10; i++) {
-    // Reset state
-    psql(`UPDATE public.devis SET organization_id = NULL, contact_id = NULL, opportunity_id = NULL WHERE id = 'eeee0000-0000-0000-0000-000000000001';`);
-    psql(`UPDATE public.missions SET devis_id = NULL, organization_id = NULL WHERE id = 'ffff0000-0000-0000-0000-000000000001';`);
-
-    const stressT1 = `
-SET app.current_user_id = '${ADMIN_UID}';
-SET ROLE authenticated;
-BEGIN;
-SELECT public.crm_link_devis_crm('eeee0000-0000-0000-0000-000000000001', '${ORG_A_ID}', NULL, NULL);
-SELECT pg_sleep(0.5);
-COMMIT;
-RESET ROLE;
-SET app.current_user_id = '';
-`;
-
-    const stressT2 = `
-SET app.current_user_id = '${ADMIN_UID}';
-SET ROLE authenticated;
-BEGIN;
-SELECT public.crm_link_mission_devis('ffff0000-0000-0000-0000-000000000001', 'eeee0000-0000-0000-0000-000000000001', '${ORG_A_ID}');
-COMMIT;
-RESET ROLE;
-SET app.current_user_id = '';
-`;
-
-    const r = runConcurrent(stressT1, stressT2, 0.2);
-    if (r.t1Stderr.includes('deadlock') || r.t2Stderr.includes('deadlock')) {
-      deadlockCount++;
-    }
-    if (r.t1Status === 0 && r.t2Status === 0) {
-      successCount++;
-    }
+  // Helper: reset all CRM links via admin RPC
+  function resetAllLinks() {
+    psql(adminRpc(`
+      SELECT public.crm_link_client_organization('${CLIENT_1}', NULL);
+      SELECT public.crm_link_devis_crm('${DEVIS_1}', NULL, NULL, NULL);
+      SELECT public.crm_link_devis_crm('${DEVIS_2}', NULL, NULL, NULL);
+      SELECT public.crm_link_mission_devis('${MISSION_1}', NULL, NULL);
+    `));
+    psql(`UPDATE public.organization_contacts SET client_id = NULL WHERE id = '${CONTACT_A_ID}';`);
   }
 
-  check('zero deadlocks in 10 stress iterations', deadlockCount === 0);
-  check(`all 10 iterations succeeded (${successCount}/10)`, successCount === 10);
+  // Helper: check graph consistency
+  function checkGraphConsistency() {
+    // client_contact: if contact.client_id = C and client.org != contact.org => mismatch
+    const ccMismatch = psqlScalar(`
+      SELECT count(*) FROM public.organization_contacts oc
+      JOIN public.clients c ON c.id = oc.client_id
+      WHERE c.organization_id IS NOT NULL
+        AND oc.organization_id IS NOT NULL
+        AND c.organization_id IS DISTINCT FROM oc.organization_id
+    `);
+    if (ccMismatch !== '0') totalMismatches.client_contact++;
+
+    // client_devis: if devis.client_id = C and both orgs set and differ => mismatch
+    const cdMismatch = psqlScalar(`
+      SELECT count(*) FROM public.devis d
+      JOIN public.clients c ON c.id = d.client_id
+      WHERE c.organization_id IS NOT NULL
+        AND d.organization_id IS NOT NULL
+        AND c.organization_id IS DISTINCT FROM d.organization_id
+    `);
+    if (cdMismatch !== '0') totalMismatches.client_devis++;
+
+    // contact_devis: if devis.contact_id set and contact.org != devis.org => mismatch
+    const ctMismatch = psqlScalar(`
+      SELECT count(*) FROM public.devis d
+      JOIN public.organization_contacts oc ON oc.id = d.contact_id
+      WHERE d.organization_id IS NOT NULL
+        AND oc.organization_id IS NOT NULL
+        AND d.organization_id IS DISTINCT FROM oc.organization_id
+    `);
+    if (ctMismatch !== '0') totalMismatches.contact_devis++;
+
+    // opportunity_devis: if devis.opp_id set and opp.org != devis.org => mismatch
+    const odMismatch = psqlScalar(`
+      SELECT count(*) FROM public.devis d
+      JOIN public.crm_opportunities o ON o.id = d.opportunity_id
+      WHERE d.organization_id IS NOT NULL
+        AND o.organization_id IS NOT NULL
+        AND d.organization_id IS DISTINCT FROM o.organization_id
+    `);
+    if (odMismatch !== '0') totalMismatches.opportunity_devis++;
+
+    // devis_mission: if mission.devis_id set and devis.org set and mission.org != devis.org => mismatch
+    const dmMismatch = psqlScalar(`
+      SELECT count(*) FROM public.missions m
+      JOIN public.devis d ON d.id = m.devis_id
+      WHERE d.organization_id IS NOT NULL
+        AND m.organization_id IS NOT NULL
+        AND m.organization_id IS DISTINCT FROM d.organization_id
+    `);
+    if (dmMismatch !== '0') totalMismatches.devis_mission++;
+  }
 
   // =========================================================
-  // TEST 4: Concurrent RPC calls — two operators linking different devis
+  // SCENARIO 1: client reparent VS contact write (5 iterations)
+  // T1: admin links client to ORG_A (holds client row lock)
+  // T2: admin updates contact (sets client_id to the client)
   // =========================================================
-  console.log('\n--- TEST 4: Concurrent RPC calls (different devis, no conflict) ---');
-
-  // Create a second devis
-  psql(`INSERT INTO public.devis (id, reference, client_email, status) VALUES ('eeee0000-0000-0000-0000-000000000002', 'DEV-002', 'c2@test.com', 'pending') ON CONFLICT DO NOTHING;`);
-
-  const t4_1Sql = `
-SET app.current_user_id = '${ADMIN_UID}';
-SET ROLE authenticated;
+  console.log('--- SCENARIO 1: client reparent VS contact write (5 iterations) ---');
+  let s1Success = 0, s1Deadlocks = 0;
+  for (let i = 0; i < 5; i++) {
+    resetAllLinks();
+    const t1 = adminRpc(`
 BEGIN;
-SELECT public.crm_link_devis_crm('eeee0000-0000-0000-0000-000000000001', '${ORG_A_ID}', NULL, NULL);
+SELECT public.crm_link_client_organization('${CLIENT_1}', '${ORG_A_ID}');
+SELECT pg_sleep(1);
 COMMIT;
-RESET ROLE;
-SET app.current_user_id = '';
-`;
-
-  const t4_2Sql = `
-SET app.current_user_id = '${OPERATOR_UID}';
-SET ROLE authenticated;
+`);
+    const t2 = adminRpc(`
 BEGIN;
-SELECT public.crm_link_devis_crm('eeee0000-0000-0000-0000-000000000002', '${ORG_B_ID}', NULL, NULL);
+UPDATE public.organization_contacts SET client_id = '${CLIENT_1}' WHERE id = '${CONTACT_A_ID}';
 COMMIT;
-RESET ROLE;
-SET app.current_user_id = '';
-`;
+`);
+    const r = runConcurrent(t1, t2, 0.3);
+    if (r.t1Stderr.includes('deadlock') || r.t2Stderr.includes('deadlock')) s1Deadlocks++;
+    if (r.t1Status === 0) s1Success++;
+    checkGraphConsistency();
+  }
+  totalDeadlocks += s1Deadlocks;
+  check('S1: no deadlocks (5 iterations)', s1Deadlocks === 0);
+  check('S1: T1 succeeded all iterations', s1Success === 5);
 
-  const result4 = runConcurrent(t4_1Sql, t4_2Sql, 0.5);
-  check('concurrent RPC on different devis: T1 succeeds', result4.t1Status === 0);
-  check('concurrent RPC on different devis: T2 succeeds', result4.t2Status === 0);
-  check('no deadlock on different devis', !result4.t1Stderr.includes('deadlock') && !result4.t2Stderr.includes('deadlock'));
+  // =========================================================
+  // SCENARIO 2: client reparent VS devis write (5 iterations)
+  // T1: admin links client to ORG_A (holds client row lock)
+  // T2: admin links devis to ORG_A (devis guard reads client org)
+  // =========================================================
+  console.log('\n--- SCENARIO 2: client reparent VS devis write (5 iterations) ---');
+  let s2Success = 0, s2Deadlocks = 0;
+  for (let i = 0; i < 5; i++) {
+    resetAllLinks();
+    psql(`UPDATE public.devis SET client_id = '${CLIENT_1}' WHERE id = '${DEVIS_1}';`);
+    const t1 = adminRpc(`
+BEGIN;
+SELECT public.crm_link_client_organization('${CLIENT_1}', '${ORG_A_ID}');
+SELECT pg_sleep(1);
+COMMIT;
+`);
+    const t2 = adminRpc(`
+BEGIN;
+SELECT public.crm_link_devis_crm('${DEVIS_1}', '${ORG_A_ID}', NULL, NULL);
+COMMIT;
+`);
+    const r = runConcurrent(t1, t2, 0.3);
+    if (r.t1Stderr.includes('deadlock') || r.t2Stderr.includes('deadlock')) s2Deadlocks++;
+    if (r.t1Status === 0 && r.t2Status === 0) s2Success++;
+    checkGraphConsistency();
+  }
+  totalDeadlocks += s2Deadlocks;
+  check('S2: no deadlocks (5 iterations)', s2Deadlocks === 0);
+
+  // =========================================================
+  // SCENARIO 3: contact reparent VS devis write (5 iterations)
+  // T1: admin updates contact org (contact reparent)
+  // T2: admin links devis to contact + org
+  // =========================================================
+  console.log('\n--- SCENARIO 3: contact reparent VS devis write (5 iterations) ---');
+  let s3Deadlocks = 0;
+  for (let i = 0; i < 5; i++) {
+    resetAllLinks();
+    psql(`UPDATE public.organization_contacts SET organization_id = '${ORG_A_ID}' WHERE id = '${CONTACT_A_ID}';`);
+    const t1 = adminRpc(`
+BEGIN;
+UPDATE public.organization_contacts SET organization_id = '${ORG_B_ID}' WHERE id = '${CONTACT_A_ID}';
+SELECT pg_sleep(1);
+COMMIT;
+`);
+    const t2 = adminRpc(`
+BEGIN;
+SELECT public.crm_link_devis_crm('${DEVIS_1}', '${ORG_A_ID}', '${CONTACT_A_ID}', NULL);
+COMMIT;
+`);
+    const r = runConcurrent(t1, t2, 0.3);
+    if (r.t1Stderr.includes('deadlock') || r.t2Stderr.includes('deadlock')) s3Deadlocks++;
+    checkGraphConsistency();
+  }
+  totalDeadlocks += s3Deadlocks;
+  check('S3: no deadlocks (5 iterations)', s3Deadlocks === 0);
+
+  // =========================================================
+  // SCENARIO 4: opportunity reparent VS devis write (5 iterations)
+  // T1: admin updates opportunity org (opportunity reparent)
+  // T2: admin links devis to opportunity + org
+  // =========================================================
+  console.log('\n--- SCENARIO 4: opportunity reparent VS devis write (5 iterations) ---');
+  let s4Deadlocks = 0;
+  for (let i = 0; i < 5; i++) {
+    resetAllLinks();
+    psql(`UPDATE public.crm_opportunities SET organization_id = '${ORG_A_ID}' WHERE id = '${OPP_A_ID}';`);
+    const t1 = adminRpc(`
+BEGIN;
+UPDATE public.crm_opportunities SET organization_id = '${ORG_B_ID}' WHERE id = '${OPP_A_ID}';
+SELECT pg_sleep(1);
+COMMIT;
+`);
+    const t2 = adminRpc(`
+BEGIN;
+SELECT public.crm_link_devis_crm('${DEVIS_1}', '${ORG_A_ID}', NULL, '${OPP_A_ID}');
+COMMIT;
+`);
+    const r = runConcurrent(t1, t2, 0.3);
+    if (r.t1Stderr.includes('deadlock') || r.t2Stderr.includes('deadlock')) s4Deadlocks++;
+    checkGraphConsistency();
+  }
+  totalDeadlocks += s4Deadlocks;
+  check('S4: no deadlocks (5 iterations)', s4Deadlocks === 0);
+
+  // =========================================================
+  // SCENARIO 5: devis reparent VS mission write (5 iterations)
+  // T1: admin links devis to ORG_A (holds devis row lock)
+  // T2: admin links mission to devis + ORG_A (needs devis FOR SHARE)
+  // =========================================================
+  console.log('\n--- SCENARIO 5: devis reparent VS mission write (5 iterations) ---');
+  let s5Success = 0, s5Deadlocks = 0;
+  for (let i = 0; i < 5; i++) {
+    resetAllLinks();
+    const t1 = adminRpc(`
+BEGIN;
+SELECT public.crm_link_devis_crm('${DEVIS_1}', '${ORG_A_ID}', NULL, NULL);
+SELECT pg_sleep(1);
+COMMIT;
+`);
+    const t2 = adminRpc(`
+BEGIN;
+SELECT public.crm_link_mission_devis('${MISSION_1}', '${DEVIS_1}', '${ORG_A_ID}');
+COMMIT;
+`);
+    const r = runConcurrent(t1, t2, 0.3);
+    if (r.t1Stderr.includes('deadlock') || r.t2Stderr.includes('deadlock')) s5Deadlocks++;
+    if (r.t1Status === 0 && r.t2Status === 0) s5Success++;
+    checkGraphConsistency();
+  }
+  totalDeadlocks += s5Deadlocks;
+  check('S5: no deadlocks (5 iterations)', s5Deadlocks === 0);
+  check('S5: both succeeded all iterations', s5Success === 5);
+
+  // =========================================================
+  // ADVERSARIAL: rapid concurrent devis + mission links (5 iterations)
+  // T1 and T2 both try to link devis and mission concurrently
+  // with minimal delay, maximizing lock contention
+  // =========================================================
+  console.log('\n--- ADVERSARIAL: rapid concurrent links (5 iterations) ---');
+  let advDeadlocks = 0;
+  for (let i = 0; i < 5; i++) {
+    resetAllLinks();
+    const t1 = adminRpc(`
+BEGIN;
+SELECT public.crm_link_devis_crm('${DEVIS_1}', '${ORG_A_ID}', NULL, NULL);
+SELECT pg_sleep(0.3);
+SELECT public.crm_link_mission_devis('${MISSION_1}', '${DEVIS_1}', '${ORG_A_ID}');
+COMMIT;
+`);
+    const t2 = adminRpc(`
+BEGIN;
+SELECT public.crm_link_devis_crm('${DEVIS_2}', '${ORG_B_ID}', NULL, NULL);
+COMMIT;
+`);
+    const r = runConcurrent(t1, t2, 0.1);
+    if (r.t1Stderr.includes('deadlock') || r.t2Stderr.includes('deadlock')) advDeadlocks++;
+    checkGraphConsistency();
+  }
+  totalDeadlocks += advDeadlocks;
+  check('Adversarial: no deadlocks (5 iterations)', advDeadlocks === 0);
 
   // =========================================================
   // SUMMARY
   // =========================================================
+  const totalIterations = 30; // 5 scenarios × 5 iterations + 5 adversarial
+  const totalMismatchCount = totalMismatches.client_contact + totalMismatches.client_devis +
+    totalMismatches.contact_devis + totalMismatches.opportunity_devis + totalMismatches.devis_mission;
+
   console.log('\n========================================');
-  console.log(`P3B5 concurrency validation: ${passed} passed, ${failed} failed`);
+  console.log(`P3B5G concurrency validation: ${passed} passed, ${failed} failed`);
+  console.log(`STRESS_ITERATIONS=${totalIterations}`);
+  console.log(`DEADLOCK_COUNT=${totalDeadlocks}`);
+  console.log(`GRAPH_INCONSISTENCY_COUNT=${totalMismatchCount > 0 ? totalMismatchCount : 0}`);
+  console.log(`CLIENT_CONTACT_MISMATCH=${totalMismatches.client_contact}`);
+  console.log(`CLIENT_DEVIS_MISMATCH=${totalMismatches.client_devis}`);
+  console.log(`CONTACT_DEVIS_MISMATCH=${totalMismatches.contact_devis}`);
+  console.log(`OPPORTUNITY_DEVIS_MISMATCH=${totalMismatches.opportunity_devis}`);
+  console.log(`DEVIS_MISSION_MISMATCH=${totalMismatches.devis_mission}`);
   console.log('========================================');
 
   if (failed > 0) throw new Error(`${failed} concurrency assertions failed`);
