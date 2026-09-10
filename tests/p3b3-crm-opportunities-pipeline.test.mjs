@@ -508,7 +508,10 @@ const rlsOppChecks = [
   ['REVOKE ALL FROM anon', /REVOKE ALL ON public\.crm_opportunities FROM anon/i],
   ['REVOKE ALL FROM authenticated', /REVOKE ALL ON public\.crm_opportunities FROM authenticated/i],
   ['GRANT SELECT, DELETE to authenticated (no table INSERT/UPDATE)', /GRANT\s+SELECT,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i],
-  ['GRANT ALL to service_role', /GRANT ALL ON public\.crm_opportunities TO service_role/i],
+  ['P3B3C: no GRANT ALL to service_role on opportunities', /REVOKE\s+ALL\s+ON\s+public\.crm_opportunities\s+FROM\s+service_role/i],
+  ['P3B3C: service_role SELECT on opportunities', /GRANT\s+SELECT\s+ON\s+public\.crm_opportunities\s+TO\s+service_role/i],
+  ['P3B3C: service_role column-level INSERT on opportunities', /GRANT\s+INSERT\s*\([^)]*organization_id[^)]*\)\s+ON\s+public\.crm_opportunities\s+TO\s+service_role/i],
+  ['P3B3C: service_role column-level UPDATE on opportunities', /GRANT\s+UPDATE\s*\([^)]*organization_id[^)]*\)\s+ON\s+public\.crm_opportunities\s+TO\s+service_role/i],
   ['SELECT policy uses is_internal_user', /crm_opportunities_select_internal[\s\S]*FOR SELECT[\s\S]*is_internal_user\(\)/i],
   ['INSERT policy uses is_internal_user', /crm_opportunities_insert_internal[\s\S]*FOR INSERT[\s\S]*is_internal_user\(\)/i],
   ['UPDATE policy uses is_internal_user', /crm_opportunities_update_internal[\s\S]*FOR UPDATE[\s\S]*is_internal_user\(\)/i],
@@ -530,7 +533,8 @@ const rlsEventChecks = [
   ['REVOKE ALL FROM anon', /REVOKE ALL ON public\.crm_pipeline_events FROM anon/i],
   ['REVOKE ALL FROM authenticated', /REVOKE ALL ON public\.crm_pipeline_events FROM authenticated/i],
   ['GRANT SELECT only to authenticated', /GRANT\s+SELECT\s+ON public\.crm_pipeline_events TO authenticated/i],
-  ['GRANT ALL to service_role', /GRANT ALL ON public\.crm_pipeline_events TO service_role/i],
+  ['P3B3C: no GRANT ALL to service_role on events', /REVOKE\s+ALL\s+ON\s+public\.crm_pipeline_events\s+FROM\s+service_role/i],
+  ['P3B3C: service_role SELECT only on events', /GRANT\s+SELECT\s+ON\s+public\.crm_pipeline_events\s+TO\s+service_role/i],
   ['SELECT policy uses is_internal_user', /crm_pipeline_events_select_internal[\s\S]*FOR SELECT[\s\S]*is_internal_user\(\)/i],
 ];
 
@@ -673,6 +677,64 @@ assert.match(
   'set_created_by assigns auth.uid()',
 );
 console.log('  ✓ set_created_by assigns auth.uid()');
+
+// =========================================================
+// SERVICE_ROLE PRIVILEGE CATALOG (P3B3C)
+// =========================================================
+// service_role is an application credential, NOT a database owner.
+// It must not bypass lifecycle controls.
+
+// No GRANT ALL on crm_opportunities to service_role.
+assert.doesNotMatch(
+  sql,
+  /GRANT\s+ALL\s+ON\s+public\.crm_opportunities\s+TO\s+service_role/i,
+  'no GRANT ALL on crm_opportunities to service_role',
+);
+console.log('  ✓ no GRANT ALL on crm_opportunities to service_role');
+
+// service_role column-level INSERT on opportunities excludes protected columns.
+const srInsertBlock = sql.match(/GRANT\s+INSERT\s*\(([^)]*)\)\s+ON\s+public\.crm_opportunities\s+TO\s+service_role/is);
+assert.ok(srInsertBlock, 'service_role column-level INSERT block found');
+assert.doesNotMatch(srInsertBlock[1], /\bstage\b/i, 'service_role INSERT excludes stage');
+assert.doesNotMatch(srInsertBlock[1], /\blost_reason\b/i, 'service_role INSERT excludes lost_reason');
+assert.doesNotMatch(srInsertBlock[1], /\bcreated_by\b/i, 'service_role INSERT excludes created_by');
+assert.doesNotMatch(srInsertBlock[1], /\bid\b/i, 'service_role INSERT excludes id');
+assert.doesNotMatch(srInsertBlock[1], /\bcreated_at\b/i, 'service_role INSERT excludes created_at');
+assert.doesNotMatch(srInsertBlock[1], /\bupdated_at\b/i, 'service_role INSERT excludes updated_at');
+console.log('  ✓ service_role INSERT excludes protected columns');
+
+// service_role column-level UPDATE on opportunities excludes protected columns.
+const srUpdateBlock = sql.match(/GRANT\s+UPDATE\s*\(([^)]*)\)\s+ON\s+public\.crm_opportunities\s+TO\s+service_role/is);
+assert.ok(srUpdateBlock, 'service_role column-level UPDATE block found');
+assert.doesNotMatch(srUpdateBlock[1], /\bstage\b/i, 'service_role UPDATE excludes stage');
+assert.doesNotMatch(srUpdateBlock[1], /\blost_reason\b/i, 'service_role UPDATE excludes lost_reason');
+assert.doesNotMatch(srUpdateBlock[1], /\bcreated_by\b/i, 'service_role UPDATE excludes created_by');
+assert.doesNotMatch(srUpdateBlock[1], /\bupdated_at\b/i, 'service_role UPDATE excludes updated_at');
+console.log('  ✓ service_role UPDATE excludes protected columns');
+
+// No GRANT ALL on crm_pipeline_events to service_role.
+assert.doesNotMatch(
+  sql,
+  /GRANT\s+ALL\s+ON\s+public\.crm_pipeline_events\s+TO\s+service_role/i,
+  'no GRANT ALL on crm_pipeline_events to service_role',
+);
+console.log('  ✓ no GRANT ALL on crm_pipeline_events to service_role');
+
+// service_role has only SELECT on pipeline events (no INSERT/UPDATE/DELETE).
+assert.match(
+  sql,
+  /GRANT\s+SELECT\s+ON\s+public\.crm_pipeline_events\s+TO\s+service_role/i,
+  'service_role SELECT only on pipeline events',
+);
+console.log('  ✓ service_role SELECT only on pipeline events');
+
+// No table-wide INSERT/UPDATE/DELETE grant to service_role on events.
+assert.doesNotMatch(
+  sql,
+  /GRANT\s+(INSERT|UPDATE|DELETE)\s+ON\s+public\.crm_pipeline_events\s+TO\s+service_role/i,
+  'no table-wide INSERT/UPDATE/DELETE on events to service_role',
+);
+console.log('  ✓ no table-wide INSERT/UPDATE/DELETE on events to service_role');
 
 // =========================================================
 // NO MODIFICATION TO EXISTING TABLES

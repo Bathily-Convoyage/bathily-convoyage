@@ -51,6 +51,13 @@
 --   3. public.crm_opportunities_check_contact_org (contact/org trigger)
 --   4. public.crm_opportunities_set_created_by (created_by trigger)
 -- All trigger functions have EXECUTE revoked from PUBLIC, anon, authenticated.
+--
+-- Service role trust boundary (P3B3C):
+--   service_role is an application credential, NOT a database owner.
+--   It has column-level INSERT/UPDATE on normal business columns only.
+--   It has NO direct access to lifecycle fields (stage, lost_reason,
+--   created_by) or to pipeline event writes. Lifecycle mutations are
+--   possible only via SECURITY DEFINER functions running as owner postgres.
 -- =========================================================
 
 BEGIN;
@@ -432,7 +439,50 @@ GRANT UPDATE (
 ) ON public.crm_opportunities TO authenticated;
 -- stage, lost_reason, created_by, id, created_at, updated_at intentionally
 -- NOT in the column-level INSERT or UPDATE grants.
-GRANT ALL ON public.crm_opportunities TO service_role;
+-- P3B3C: service_role is an application credential, NOT a database owner.
+-- It must not bypass lifecycle controls. Column-level privileges only.
+REVOKE ALL ON public.crm_opportunities FROM service_role;
+GRANT SELECT ON public.crm_opportunities TO service_role;
+GRANT INSERT (
+  organization_id,
+  contact_id,
+  title,
+  estimated_value,
+  probability,
+  source,
+  source_detail,
+  campaign,
+  external_reference,
+  lead_first_name,
+  lead_last_name,
+  lead_email,
+  lead_phone,
+  next_action,
+  next_action_at,
+  last_contact_at
+) ON public.crm_opportunities TO service_role;
+GRANT UPDATE (
+  organization_id,
+  contact_id,
+  title,
+  estimated_value,
+  probability,
+  source,
+  source_detail,
+  campaign,
+  external_reference,
+  lead_first_name,
+  lead_last_name,
+  lead_email,
+  lead_phone,
+  next_action,
+  next_action_at,
+  last_contact_at
+) ON public.crm_opportunities TO service_role;
+-- service_role has NO INSERT/UPDATE on: stage, lost_reason, created_by,
+-- id, created_at, updated_at. Lifecycle fields are writable only via
+-- crm_transition_opportunity() (SECURITY DEFINER, runs as owner postgres).
+-- created_by is server-derived via trigger (auth.uid()).
 
 -- SELECT: internal users only.
 CREATE POLICY crm_opportunities_select_internal
@@ -470,7 +520,12 @@ REVOKE ALL ON public.crm_pipeline_events FROM PUBLIC;
 REVOKE ALL ON public.crm_pipeline_events FROM anon;
 REVOKE ALL ON public.crm_pipeline_events FROM authenticated;
 GRANT SELECT ON public.crm_pipeline_events TO authenticated;
-GRANT ALL ON public.crm_pipeline_events TO service_role;
+-- P3B3C: service_role gets SELECT only on pipeline events.
+-- No INSERT/UPDATE/DELETE — events are audit evidence written only by
+-- SECURITY DEFINER functions (create_event trigger, transition RPC)
+-- which run as owner postgres and bypass privileges.
+REVOKE ALL ON public.crm_pipeline_events FROM service_role;
+GRANT SELECT ON public.crm_pipeline_events TO service_role;
 
 -- SELECT: internal users only.
 CREATE POLICY crm_pipeline_events_select_internal

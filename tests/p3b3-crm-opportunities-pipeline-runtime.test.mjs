@@ -528,6 +528,189 @@ INSERT INTO public.crm_opportunities (title, created_by) VALUES ('Forge creator'
   }
 
   // =========================================================
+  // SERVICE_ROLE PRIVILEGE TESTS (P3B3C)
+  // =========================================================
+  console.log('\n--- SERVICE_ROLE PRIVILEGE TESTS ---');
+
+  // service_role SELECT opportunities -> PASS.
+  {
+    const res = psql(asUser('service_role', null, `SELECT count(*) FROM public.crm_opportunities;`));
+    check('service_role SELECT opportunities PASS', res.status === 0);
+  }
+
+  // service_role normal INSERT -> PASS.
+  {
+    const res = psql(asUser('service_role', null, `
+INSERT INTO public.crm_opportunities (title, lead_first_name, lead_email)
+VALUES ('SR lead', 'SR', 'sr@test.com');
+    `));
+    check('service_role normal INSERT PASS', res.status === 0);
+  }
+
+  // service_role INSERT stage='won' -> DENIED.
+  {
+    const res = psql(asUser('service_role', null, `
+INSERT INTO public.crm_opportunities (title, stage) VALUES ('SR bad stage', 'won');
+    `));
+    check('service_role INSERT stage=won DENIED', res.status !== 0);
+  }
+
+  // service_role INSERT lost_reason -> DENIED.
+  {
+    const res = psql(asUser('service_role', null, `
+INSERT INTO public.crm_opportunities (title, lost_reason) VALUES ('SR bad reason', 'Too expensive');
+    `));
+    check('service_role INSERT lost_reason DENIED', res.status !== 0);
+  }
+
+  // service_role UPDATE stage -> DENIED.
+  {
+    const res = psql(asUser('service_role', null, `
+UPDATE public.crm_opportunities SET stage='won' WHERE title='SR lead';
+    `));
+    check('service_role UPDATE stage DENIED', res.status !== 0);
+  }
+
+  // service_role UPDATE lost_reason -> DENIED.
+  {
+    const res = psql(asUser('service_role', null, `
+UPDATE public.crm_opportunities SET lost_reason='hacked' WHERE title='SR lead';
+    `));
+    check('service_role UPDATE lost_reason DENIED', res.status !== 0);
+  }
+
+  // service_role direct pipeline event INSERT -> DENIED.
+  {
+    const res = psql(asUser('service_role', null, `
+INSERT INTO public.crm_pipeline_events (opportunity_id, to_stage) VALUES ('66660000-0000-0000-0000-000000000006', 'won');
+    `));
+    check('service_role direct pipeline event INSERT DENIED', res.status !== 0);
+  }
+
+  // service_role direct pipeline event UPDATE -> DENIED.
+  {
+    const res = psql(asUser('service_role', null, `
+UPDATE public.crm_pipeline_events SET reason='hacked' WHERE opportunity_id='66660000-0000-0000-0000-000000000006';
+    `));
+    check('service_role direct pipeline event UPDATE DENIED', res.status !== 0);
+  }
+
+  // service_role direct pipeline event DELETE -> DENIED.
+  {
+    const res = psql(asUser('service_role', null, `
+DELETE FROM public.crm_pipeline_events WHERE opportunity_id='66660000-0000-0000-0000-000000000006';
+    `));
+    check('service_role direct pipeline event DELETE DENIED', res.status !== 0);
+  }
+
+  // =========================================================
+  // PRIVILEGE CATALOG CHECKS (P3B3C)
+  // =========================================================
+  console.log('\n--- PRIVILEGE CATALOG CHECKS ---');
+
+  // authenticated has no INSERT privilege on stage column.
+  const authStageInsert = psqlScalar(`
+SELECT count(*) FROM information_schema.column_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_opportunities'
+  AND column_name = 'stage' AND grantee = 'authenticated' AND privilege_type = 'INSERT'
+`);
+  check('authenticated has NO INSERT on stage (catalog)', authStageInsert === '0');
+
+  // authenticated has no UPDATE privilege on stage column.
+  const authStageUpdate = psqlScalar(`
+SELECT count(*) FROM information_schema.column_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_opportunities'
+  AND column_name = 'stage' AND grantee = 'authenticated' AND privilege_type = 'UPDATE'
+`);
+  check('authenticated has NO UPDATE on stage (catalog)', authStageUpdate === '0');
+
+  // authenticated has no INSERT privilege on lost_reason column.
+  const authLostInsert = psqlScalar(`
+SELECT count(*) FROM information_schema.column_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_opportunities'
+  AND column_name = 'lost_reason' AND grantee = 'authenticated' AND privilege_type = 'INSERT'
+`);
+  check('authenticated has NO INSERT on lost_reason (catalog)', authLostInsert === '0');
+
+  // service_role has no INSERT privilege on stage column.
+  const srStageInsert = psqlScalar(`
+SELECT count(*) FROM information_schema.column_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_opportunities'
+  AND column_name = 'stage' AND grantee = 'service_role' AND privilege_type = 'INSERT'
+`);
+  check('service_role has NO INSERT on stage (catalog)', srStageInsert === '0');
+
+  // service_role has no UPDATE privilege on stage column.
+  const srStageUpdate = psqlScalar(`
+SELECT count(*) FROM information_schema.column_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_opportunities'
+  AND column_name = 'stage' AND grantee = 'service_role' AND privilege_type = 'UPDATE'
+`);
+  check('service_role has NO UPDATE on stage (catalog)', srStageUpdate === '0');
+
+  // service_role has no INSERT privilege on lost_reason column.
+  const srLostInsert = psqlScalar(`
+SELECT count(*) FROM information_schema.column_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_opportunities'
+  AND column_name = 'lost_reason' AND grantee = 'service_role' AND privilege_type = 'INSERT'
+`);
+  check('service_role has NO INSERT on lost_reason (catalog)', srLostInsert === '0');
+
+  // service_role has no INSERT on pipeline events.
+  const srEventInsert = psqlScalar(`
+SELECT count(*) FROM information_schema.table_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_pipeline_events'
+  AND grantee = 'service_role' AND privilege_type = 'INSERT'
+`);
+  check('service_role has NO INSERT on pipeline events (catalog)', srEventInsert === '0');
+
+  // service_role has no UPDATE on pipeline events.
+  const srEventUpdate = psqlScalar(`
+SELECT count(*) FROM information_schema.table_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_pipeline_events'
+  AND grantee = 'service_role' AND privilege_type = 'UPDATE'
+`);
+  check('service_role has NO UPDATE on pipeline events (catalog)', srEventUpdate === '0');
+
+  // service_role has no DELETE on pipeline events.
+  const srEventDelete = psqlScalar(`
+SELECT count(*) FROM information_schema.table_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_pipeline_events'
+  AND grantee = 'service_role' AND privilege_type = 'DELETE'
+`);
+  check('service_role has NO DELETE on pipeline events (catalog)', srEventDelete === '0');
+
+  // No table-wide INSERT/UPDATE/DELETE on opportunities for authenticated.
+  const authTableInsert = psqlScalar(`
+SELECT count(*) FROM information_schema.table_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_opportunities'
+  AND grantee = 'authenticated' AND privilege_type = 'INSERT'
+`);
+  check('authenticated has NO table-wide INSERT on opportunities (catalog)', authTableInsert === '0');
+
+  const authTableUpdate = psqlScalar(`
+SELECT count(*) FROM information_schema.table_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_opportunities'
+  AND grantee = 'authenticated' AND privilege_type = 'UPDATE'
+`);
+  check('authenticated has NO table-wide UPDATE on opportunities (catalog)', authTableUpdate === '0');
+
+  // No table-wide INSERT/UPDATE on opportunities for service_role.
+  const srTableInsert = psqlScalar(`
+SELECT count(*) FROM information_schema.table_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_opportunities'
+  AND grantee = 'service_role' AND privilege_type = 'INSERT'
+`);
+  check('service_role has NO table-wide INSERT on opportunities (catalog)', srTableInsert === '0');
+
+  const srTableUpdate = psqlScalar(`
+SELECT count(*) FROM information_schema.table_privileges
+WHERE table_schema = 'public' AND table_name = 'crm_opportunities'
+  AND grantee = 'service_role' AND privilege_type = 'UPDATE'
+`);
+  check('service_role has NO table-wide UPDATE on opportunities (catalog)', srTableUpdate === '0');
+
+  // =========================================================
   // RLS: READ ACCESS
   // =========================================================
   console.log('\n--- RLS: READ ACCESS ---');
