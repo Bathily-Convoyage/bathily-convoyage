@@ -884,19 +884,47 @@ ON CONFLICT (id) DO NOTHING;
   // =========================================================
   console.log('\n--- SECURITY DEFINER INVENTORY ---');
 
-  // P3B5 had 11, P3B6 adds 4 new (crm_link_events_immutable, log_crm_link_event,
-  // crm_timeline_read, crm_organizations_summary) = 15 total
-  // But log_crm_link_event is internal helper, not in the P3B5 list.
-  // The 3 extended guards are CREATE OR REPLACE (already counted in P3B5's 11).
-  // New SD functions: 4
-  // Total SD in public schema (including all from P3B1-P3B5 + P3B6):
+  // P3B6 introduces 4 new SECURITY DEFINER functions:
+  //   crm_link_events_immutable, log_crm_link_event,
+  //   crm_timeline_read, crm_organizations_summary
+  // The 3 P3B5 guards are CREATE OR REPLACE (no count increase).
+  // Cumulative inventory is verified separately; do not hard-code a
+  // historical total here.
   const sdCount = psqlScalar(`
     SELECT count(*) FROM pg_proc p
     JOIN pg_namespace n ON n.oid = p.pronamespace
     WHERE n.nspname = 'public' AND p.prosecdef = true
   `);
   console.log(`    Total SECURITY DEFINER functions in public: ${sdCount}`);
-  check('SECURITY DEFINER count >= 14 (P3B5 11 + 4 new)', parseInt(sdCount) >= 14);
+
+  // P3B6-specific SD functions are present, SECURITY DEFINER, fixed search_path, postgres-owned.
+  const p3b6SdFunctions = [
+    'crm_link_events_immutable',
+    'log_crm_link_event',
+    'guard_clients_organization_id',
+    'devis_guard_crm_links',
+    'missions_check_devis_org',
+    'crm_timeline_read',
+    'crm_organizations_summary'
+  ];
+
+  // All 7 P3B6-relevant functions exist and are SECURITY DEFINER
+  const sdPresent = psqlScalar(`
+    SELECT count(*) FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.prosecdef = true
+      AND p.proname IN (
+        'crm_link_events_immutable',
+        'log_crm_link_event',
+        'guard_clients_organization_id',
+        'devis_guard_crm_links',
+        'missions_check_devis_org',
+        'crm_timeline_read',
+        'crm_organizations_summary'
+      )
+  `);
+  check('all 7 P3B6-relevant SD functions present', sdPresent === '7');
 
   // All P3B6 SD functions have search_path = ''
   const sdSearchPathOk = psqlScalar(`

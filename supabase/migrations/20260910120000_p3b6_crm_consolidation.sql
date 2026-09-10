@@ -16,9 +16,17 @@
 -- same transaction (FAIL_CLOSED).
 --
 -- SECURITY DEFINER inventory after P3B6:
---   P3B5 (11) + crm_link_events_immutable (trigger-only)
---   + crm_timeline_read (callable) + crm_organizations_summary (callable)
---   = 14 total. All: OWNER postgres, SET search_path = ''.
+--   P3B6 introduces 4 new SECURITY DEFINER functions:
+--     - crm_link_events_immutable
+--     - log_crm_link_event
+--     - crm_timeline_read
+--     - crm_organizations_summary
+--
+--   The 3 P3B5 guards are CREATE OR REPLACE and do not increase
+--   the function count.
+--
+--   Cumulative SECURITY DEFINER inventory is verified separately;
+--   do not hard-code a historical total here.
 --
 -- Privilege expansion (intentional, documented):
 --   crm_timeline_read and crm_organizations_summary are SECURITY DEFINER
