@@ -647,18 +647,18 @@ UPDATE public.crm_activities SET created_by='${ADMIN_UID}' WHERE subject='SR not
   // =========================================================
   console.log('\n--- SECURITY DEFINER AUDIT ---');
 
-  // Exactly 2 SECURITY DEFINER functions from P3B4
+  // P3B4B: 4 SECURITY DEFINER functions (2 original + 2 parent guards)
   const sdCount = psqlScalar(`
 SELECT count(*) FROM pg_proc p
 JOIN pg_namespace n ON p.pronamespace = n.oid
 WHERE n.nspname = 'public'
-  AND p.proname IN ('crm_activities_check_cross_entity', 'crm_activities_set_created_by')
+  AND p.proname IN ('crm_activities_check_cross_entity', 'crm_activities_set_created_by', 'organization_contacts_guard_reparent', 'crm_opportunities_guard_reparent')
   AND p.prosecdef = true
 `);
-  check('exactly 2 SECURITY DEFINER functions from P3B4', sdCount === '2');
+  check('exactly 4 SECURITY DEFINER functions from P3B4', sdCount === '4');
 
   // All have search_path = ''
-  const sdFunctions = ['crm_activities_check_cross_entity', 'crm_activities_set_created_by'];
+  const sdFunctions = ['crm_activities_check_cross_entity', 'crm_activities_set_created_by', 'organization_contacts_guard_reparent', 'crm_opportunities_guard_reparent'];
   for (const fn of sdFunctions) {
     const sp = psqlScalar(`
 SELECT (config).setting FROM pg_proc p
@@ -692,6 +692,15 @@ INSERT INTO public.user_roles (user_id, role) VALUES ('eeee0000-0000-0000-0000-0
 ON CONFLICT DO NOTHING;
 INSERT INTO public.internal_operators (user_id, display_name, active) VALUES ('eeee0000-0000-0000-0000-000000000005', 'Inactive Op', false)
 ON CONFLICT (user_id) DO NOTHING;
+  `);
+
+  // P3B4B: Create a legacy admin (clients.role='admin', no user_roles entry)
+  const LEGACY_ADMIN_UID = 'aaaa00ff-0000-0000-0000-0000000000ff';
+  psql(`
+INSERT INTO auth.users (id) VALUES ('${LEGACY_ADMIN_UID}')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.clients (id, role, auth_user_id) VALUES ('dddd00ff-0000-0000-0000-0000000000ff', 'admin', '${LEGACY_ADMIN_UID}')
+ON CONFLICT (id) DO NOTHING;
   `);
 
   // assigned_to=NULL -> PASS
@@ -748,6 +757,15 @@ VALUES ('task', 'Unknown assignee', 'ffff0000-0000-0000-0000-0000000000ff');
     check('assigned_to=unknown UUID DENIED (FK)', r.status !== 0);
   }
 
+  // P3B4B: assigned_to=legacy admin (clients.role='admin') -> PASS
+  {
+    const r = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, assigned_to)
+VALUES ('task', 'Legacy admin assignee', '${LEGACY_ADMIN_UID}');
+    `));
+    check('assigned_to=legacy admin PASS (clients.role=admin)', r.status === 0);
+  }
+
   // =========================================================
   // NULL ORG OPPORTUNITY POLICY (P3B4A)
   // =========================================================
@@ -788,49 +806,205 @@ VALUES ('meeting', 'Null opp with org A and contact', '11110000-0000-0000-0000-0
   }
 
   // =========================================================
-  // PARENT-CHANGE INTEGRITY AUDIT (P3B4A)
+  // CONTACT REPARENTING MATRIX (P3B4B)
   // =========================================================
-  console.log('\n--- PARENT-CHANGE INTEGRITY AUDIT (P3B4A) ---');
+  console.log('\n--- CONTACT REPARENTING MATRIX (P3B4B) ---');
 
-  // Create a valid activity linked to org A + contact A
-  psql(asUser('authenticated', ADMIN_UID, `
-INSERT INTO public.crm_activities (activity_type, subject, organization_id, contact_id)
-VALUES ('call', 'Parent-change audit test', '11110000-0000-0000-0000-000000000001', '22220000-0000-0000-0000-000000000002');
-  `));
+  // Setup: dedicated contacts/orgs for reparent tests (avoid fixture collisions)
+  psql(`
+INSERT INTO public.organizations (id, legal_name) VALUES
+  ('aaa10000-0000-0000-0000-0000000000a1', 'Reparent Org A1'),
+  ('aaa10000-0000-0000-0000-0000000000a2', 'Reparent Org A2'),
+  ('aaa10000-0000-0000-0000-0000000000b1', 'Reparent Org B1'),
+  ('aaa10000-0000-0000-0000-0000000000b2', 'Reparent Org B2')
+ON CONFLICT (id) DO NOTHING;
 
-  // Audit: can organization_contacts.organization_id be updated?
-  const contactOrgMutable = psqlScalarSafe(`
-UPDATE public.organization_contacts SET organization_id = '33330000-0000-0000-0000-000000000003'
-WHERE id = '22220000-0000-0000-0000-000000000002'
+INSERT INTO public.organization_contacts (id, organization_id, first_name, last_name) VALUES
+  ('ccc10000-0000-0000-0000-0000000000c1', 'aaa10000-0000-0000-0000-0000000000a1', 'Reparent', 'C1'),
+  ('ccc10000-0000-0000-0000-0000000000c2', 'aaa10000-0000-0000-0000-0000000000a2', 'Reparent', 'C2'),
+  ('ccc10000-0000-0000-0000-0000000000c3', 'aaa10000-0000-0000-0000-0000000000b1', 'Reparent', 'C3'),
+  ('ccc10000-0000-0000-0000-0000000000c4', 'aaa10000-0000-0000-0000-0000000000b2', 'Reparent', 'C4')
+ON CONFLICT (id) DO NOTHING;
+  `);
+
+  // Contact with no dependencies: A -> B ALLOW
+  {
+    const r = psqlScalarSafe(`
+UPDATE public.organization_contacts SET organization_id = 'aaa10000-0000-0000-0000-0000000000b1'
+WHERE id = 'ccc10000-0000-0000-0000-0000000000c1'
 RETURNING organization_id;
 `);
-  check('CONTACT_ORGANIZATION_MUTABLE', contactOrgMutable !== null);
-
-  // If mutable, check if activity became inconsistent
-  if (contactOrgMutable !== null) {
-    // Revert the contact's organization to keep test state clean
-    psql(`UPDATE public.organization_contacts SET organization_id = '11110000-0000-0000-0000-000000000001' WHERE id = '22220000-0000-0000-0000-000000000002';`);
-
-    // The activity still has organization_id=A and contact_id=contact(A),
-    // but contact now has org B (before revert). The activity's cross-entity
-    // trigger only fires on activity INSERT/UPDATE, not on parent UPDATE.
-    // So the activity CAN become inconsistent after a parent update.
-    check('ACTIVITY_CAN_BECOME_CROSS_ORG_AFTER_PARENT_UPDATE', true);
-  } else {
-    check('ACTIVITY_CAN_BECOME_CROSS_ORG_AFTER_PARENT_UPDATE', false);
+    check('contact no deps: A->B ALLOW', r !== null);
+    // Revert for clean state
+    psql(`UPDATE public.organization_contacts SET organization_id = 'aaa10000-0000-0000-0000-0000000000a1' WHERE id = 'ccc10000-0000-0000-0000-0000000000c1';`);
   }
 
-  // Audit: can crm_opportunities.organization_id be updated?
-  const oppOrgMutable = psqlScalarSafe(`
-UPDATE public.crm_opportunities SET organization_id = '33330000-0000-0000-0000-000000000003'
-WHERE id = '66660000-0000-0000-0000-000000000006'
+  // Contact referenced by opportunity: A -> B DENY
+  psql(`
+INSERT INTO public.crm_opportunities (id, title, organization_id, contact_id)
+VALUES ('0aa10000-0000-0000-0000-0000000000d2', 'Reparent opp C2', 'aaa10000-0000-0000-0000-0000000000a2', 'ccc10000-0000-0000-0000-0000000000c2')
+ON CONFLICT (id) DO NOTHING;
+  `);
+  {
+    const r = psqlScalarSafe(`
+UPDATE public.organization_contacts SET organization_id = 'aaa10000-0000-0000-0000-0000000000b1'
+WHERE id = 'ccc10000-0000-0000-0000-0000000000c2'
 RETURNING organization_id;
 `);
-  check('OPPORTUNITY_ORGANIZATION_MUTABLE', oppOrgMutable !== null);
+    check('contact referenced by opportunity: A->B DENY', r === null);
+    // Verify original org preserved
+    const orgAfter = psqlScalar(`SELECT organization_id FROM public.organization_contacts WHERE id = 'ccc10000-0000-0000-0000-0000000000c2';`);
+    check('contact referenced by opportunity: original org preserved', orgAfter === 'aaa10000-0000-0000-0000-0000000000a2');
+  }
 
-  // Revert
-  if (oppOrgMutable !== null) {
-    psql(`UPDATE public.crm_opportunities SET organization_id = '11110000-0000-0000-0000-000000000001' WHERE id = '66660000-0000-0000-0000-000000000006';`);
+  // Contact referenced by activity: A -> B DENY
+  psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, organization_id, contact_id)
+VALUES ('call', 'Reparent activity C3', 'aaa10000-0000-0000-0000-0000000000b1', 'ccc10000-0000-0000-0000-0000000000c3');
+  `));
+  {
+    const r = psqlScalarSafe(`
+UPDATE public.organization_contacts SET organization_id = 'aaa10000-0000-0000-0000-0000000000a1'
+WHERE id = 'ccc10000-0000-0000-0000-0000000000c3'
+RETURNING organization_id;
+`);
+    check('contact referenced by activity: A->B DENY', r === null);
+    const orgAfter = psqlScalar(`SELECT organization_id FROM public.organization_contacts WHERE id = 'ccc10000-0000-0000-0000-0000000000c3';`);
+    check('contact referenced by activity: original org preserved', orgAfter === 'aaa10000-0000-0000-0000-0000000000b1');
+  }
+
+  // Contact referenced by both opportunity and activity: A -> B DENY
+  psql(`
+INSERT INTO public.crm_opportunities (id, title, organization_id, contact_id)
+VALUES ('0aa10000-0000-0000-0000-0000000000d4', 'Reparent opp C4', 'aaa10000-0000-0000-0000-0000000000b2', 'ccc10000-0000-0000-0000-0000000000c4')
+ON CONFLICT (id) DO NOTHING;
+  `);
+  psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, organization_id, contact_id)
+VALUES ('call', 'Reparent activity C4', 'aaa10000-0000-0000-0000-0000000000b2', 'ccc10000-0000-0000-0000-0000000000c4');
+  `));
+  {
+    const r = psqlScalarSafe(`
+UPDATE public.organization_contacts SET organization_id = 'aaa10000-0000-0000-0000-0000000000a1'
+WHERE id = 'ccc10000-0000-0000-0000-0000000000c4'
+RETURNING organization_id;
+`);
+    check('contact referenced by both: A->B DENY', r === null);
+    const orgAfter = psqlScalar(`SELECT organization_id FROM public.organization_contacts WHERE id = 'ccc10000-0000-0000-0000-0000000000c4';`);
+    check('contact referenced by both: original org preserved', orgAfter === 'aaa10000-0000-0000-0000-0000000000b2');
+    // Verify no dependent row mutated
+    const oppOrgAfter = psqlScalar(`SELECT organization_id FROM public.crm_opportunities WHERE id = '0aa10000-0000-0000-0000-0000000000d4';`);
+    check('contact referenced by both: opportunity org not mutated', oppOrgAfter === 'aaa10000-0000-0000-0000-0000000000b2');
+  }
+
+  // Safe no-op update (same org) ALLOW
+  {
+    const r = psqlScalarSafe(`
+UPDATE public.organization_contacts SET organization_id = 'aaa10000-0000-0000-0000-0000000000a1'
+WHERE id = 'ccc10000-0000-0000-0000-0000000000c1'
+RETURNING organization_id;
+`);
+    check('contact no-op update (same org) ALLOW', r !== null);
+  }
+
+  // =========================================================
+  // OPPORTUNITY REPARENTING MATRIX (P3B4B)
+  // =========================================================
+  console.log('\n--- OPPORTUNITY REPARENTING MATRIX (P3B4B) ---');
+
+  // Setup: dedicated opportunities for reparent tests
+  const oppSetupRes = psql(`
+INSERT INTO public.organizations (id, legal_name) VALUES
+  ('0aa10000-0000-0000-0000-0000000000a1', 'Opp Reparent Org A1'),
+  ('0aa10000-0000-0000-0000-0000000000b1', 'Opp Reparent Org B1')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.crm_opportunities (id, title, organization_id) VALUES
+  ('0aa10000-0000-0000-0000-0000000000e1', 'Opp no deps', '0aa10000-0000-0000-0000-0000000000a1'),
+  ('0aa10000-0000-0000-0000-0000000000e2', 'Opp with contact', '0aa10000-0000-0000-0000-0000000000a1'),
+  ('0aa10000-0000-0000-0000-0000000000e3', 'Opp with activity', '0aa10000-0000-0000-0000-0000000000a1'),
+  ('0aa10000-0000-0000-0000-0000000000e4', 'Opp NULL->A', NULL),
+  ('0aa10000-0000-0000-0000-0000000000e5', 'Opp NULL->B', NULL)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.organization_contacts (id, organization_id, first_name, last_name)
+VALUES ('0aa10000-0000-0000-0000-0000000000c2', '0aa10000-0000-0000-0000-0000000000a1', 'Opp', 'Contact')
+ON CONFLICT (id) DO NOTHING;
+
+UPDATE public.crm_opportunities SET contact_id = '0aa10000-0000-0000-0000-0000000000c2' WHERE id = '0aa10000-0000-0000-0000-0000000000e2';
+  `);
+  check('opportunity reparent setup succeeded', oppSetupRes.status === 0);
+  if (oppSetupRes.status !== 0) {
+    console.log('  SETUP ERROR:', oppSetupRes.stderr);
+  }
+
+  // Opp with no contact and no activities: A -> B ALLOW
+  {
+    const r = psqlScalarSafe(`
+UPDATE public.crm_opportunities SET organization_id = '0aa10000-0000-0000-0000-0000000000b1'
+WHERE id = '0aa10000-0000-0000-0000-0000000000e1'
+RETURNING organization_id;
+`);
+    check('opportunity no deps: A->B ALLOW', r !== null);
+    psql(`UPDATE public.crm_opportunities SET organization_id = '0aa10000-0000-0000-0000-0000000000a1' WHERE id = '0aa10000-0000-0000-0000-0000000000e1';`);
+  }
+
+  // Opp with contact(A): A -> B DENY (P3B3 contact/org integrity)
+  {
+    const r = psqlScalarSafe(`
+UPDATE public.crm_opportunities SET organization_id = '0aa10000-0000-0000-0000-0000000000b1'
+WHERE id = '0aa10000-0000-0000-0000-0000000000e2'
+RETURNING organization_id;
+`);
+    check('opportunity with contact: A->B DENY', r === null);
+    const orgAfter = psqlScalar(`SELECT organization_id FROM public.crm_opportunities WHERE id = '0aa10000-0000-0000-0000-0000000000e2';`);
+    check('opportunity with contact: original org preserved', orgAfter === '0aa10000-0000-0000-0000-0000000000a1');
+  }
+
+  // Opp org A + activity org A: A -> B DENY
+  psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, organization_id, opportunity_id)
+VALUES ('note', 'Reparent activity E3', '0aa10000-0000-0000-0000-0000000000a1', '0aa10000-0000-0000-0000-0000000000e3');
+  `));
+  {
+    const r = psqlScalarSafe(`
+UPDATE public.crm_opportunities SET organization_id = '0aa10000-0000-0000-0000-0000000000b1'
+WHERE id = '0aa10000-0000-0000-0000-0000000000e3'
+RETURNING organization_id;
+`);
+    check('opportunity with activity org A: A->B DENY', r === null);
+    const orgAfter = psqlScalar(`SELECT organization_id FROM public.crm_opportunities WHERE id = '0aa10000-0000-0000-0000-0000000000e3';`);
+    check('opportunity with activity: original org preserved', orgAfter === '0aa10000-0000-0000-0000-0000000000a1');
+  }
+
+  // Opp org NULL + activity org A: NULL -> A ALLOW
+  psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, organization_id, opportunity_id)
+VALUES ('note', 'Reparent activity E4', '0aa10000-0000-0000-0000-0000000000a1', '0aa10000-0000-0000-0000-0000000000e4');
+  `));
+  {
+    const r = psqlScalarSafe(`
+UPDATE public.crm_opportunities SET organization_id = '0aa10000-0000-0000-0000-0000000000a1'
+WHERE id = '0aa10000-0000-0000-0000-0000000000e4'
+RETURNING organization_id;
+`);
+    check('opportunity NULL->A with activity org A: ALLOW', r !== null);
+  }
+
+  // Opp org NULL + activity org B: NULL -> A DENY
+  psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, organization_id, opportunity_id)
+VALUES ('note', 'Reparent activity E5', '0aa10000-0000-0000-0000-0000000000b1', '0aa10000-0000-0000-0000-0000000000e5');
+  `));
+  {
+    const r = psqlScalarSafe(`
+UPDATE public.crm_opportunities SET organization_id = '0aa10000-0000-0000-0000-0000000000a1'
+WHERE id = '0aa10000-0000-0000-0000-0000000000e5'
+RETURNING organization_id;
+`);
+    check('opportunity NULL->A with activity org B: DENY', r === null);
+    const orgAfter = psqlScalar(`SELECT organization_id FROM public.crm_opportunities WHERE id = '0aa10000-0000-0000-0000-0000000000e5';`);
+    check('opportunity NULL->A denied: original NULL org preserved', orgAfter === '');
   }
 
   // =========================================================

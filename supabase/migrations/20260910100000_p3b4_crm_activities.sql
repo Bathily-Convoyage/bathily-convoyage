@@ -230,11 +230,17 @@ BEGIN
     END IF;
   END IF;
 
-  -- Rule 4: assigned_to must be an active internal user (admin or active operator)
+  -- Rule 4: assigned_to must be an active internal user (admin or active operator).
+  -- P3B4B: Admin semantics now match public.is_admin() exactly — both the
+  -- user_roles path AND the legacy clients.role='admin' path are recognized.
   IF NEW.assigned_to IS NOT NULL THEN
     SELECT EXISTS (
       SELECT 1 FROM public.user_roles ur
       WHERE ur.user_id = NEW.assigned_to AND ur.role = 'admin'
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.clients c
+      WHERE c.role = 'admin' AND c.auth_user_id = NEW.assigned_to
     ) INTO v_is_admin;
 
     SELECT EXISTS (
@@ -291,6 +297,145 @@ CREATE TRIGGER crm_activities_set_created_by
   BEFORE INSERT ON public.crm_activities
   FOR EACH ROW
   EXECUTE FUNCTION public.crm_activities_set_created_by();
+
+-- =========================================================
+-- 4c. PARENT GUARD: organization_contacts.organization_id
+-- =========================================================
+-- P3B4B: Protects the CRM graph from cross-organization
+-- inconsistency. A contact organization change is rejected if it
+-- would leave any dependent opportunity or activity inconsistent.
+--
+-- organization_contacts.organization_id is NOT NULL, so only A->B
+-- transitions are possible (never -> NULL).
+--
+-- Invariants enforced:
+--   - No crm_opportunities.contact_id = NEW.id with
+--     organization_id IS DISTINCT FROM NEW.organization_id
+--     (would violate P3B3 crm_opportunities_check_contact_org).
+--   - No crm_activities.contact_id = NEW.id with
+--     organization_id IS DISTINCT FROM NEW.organization_id
+--     (would violate P3B4 crm_activities_check_cross_entity rule 1).
+--
+-- No automatic cascade. The guard ALLOWs safe transitions or
+-- REJECTs unsafe ones. Exceptional graph migrations require an
+-- explicit admin-only atomic operation (future).
+
+CREATE OR REPLACE FUNCTION public.organization_contacts_guard_reparent()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_conflict_count integer;
+BEGIN
+  -- No-op if organization_id unchanged
+  IF OLD.organization_id IS NOT DISTINCT FROM NEW.organization_id THEN
+    RETURN NEW;
+  END IF;
+
+  -- Check dependent opportunities (P3B3: contact requires matching org)
+  SELECT count(*) INTO v_conflict_count
+  FROM public.crm_opportunities o
+  WHERE o.contact_id = NEW.id
+    AND o.organization_id IS DISTINCT FROM NEW.organization_id;
+
+  IF v_conflict_count > 0 THEN
+    RAISE EXCEPTION 'Le changement d''organisation du contact rendrait des opportunités incohérentes'
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  -- Check dependent activities (P3B4: contact requires matching org)
+  SELECT count(*) INTO v_conflict_count
+  FROM public.crm_activities a
+  WHERE a.contact_id = NEW.id
+    AND a.organization_id IS DISTINCT FROM NEW.organization_id;
+
+  IF v_conflict_count > 0 THEN
+    RAISE EXCEPTION 'Le changement d''organisation du contact rendrait des activités incohérentes'
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+ALTER FUNCTION public.organization_contacts_guard_reparent() OWNER TO postgres;
+REVOKE EXECUTE ON FUNCTION public.organization_contacts_guard_reparent() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS organization_contacts_guard_reparent ON public.organization_contacts;
+CREATE TRIGGER organization_contacts_guard_reparent
+  BEFORE UPDATE OF organization_id ON public.organization_contacts
+  FOR EACH ROW
+  EXECUTE FUNCTION public.organization_contacts_guard_reparent();
+
+-- =========================================================
+-- 4d. PARENT GUARD: crm_opportunities.organization_id
+-- =========================================================
+-- P3B4B: Protects the CRM graph from cross-organization
+-- inconsistency. An opportunity organization change is rejected
+-- if it would leave any linked activity inconsistent.
+--
+-- crm_opportunities.organization_id is nullable, so transitions
+-- include A->B, A->NULL, NULL->A.
+--
+-- P3B4 activity rule: if opp.org is non-null, activity.org must
+-- match. If opp.org is NULL, activity.org is unconstrained.
+-- Therefore:
+--   - NEW.organization_id = NULL -> always ALLOW (NULL opp doesn't
+--     constrain activities).
+--   - NEW.organization_id = non-null -> DENY if any linked activity
+--     has organization_id IS DISTINCT FROM NEW.organization_id.
+--
+-- P3B3 contact/org integrity (crm_opportunities_check_contact_org)
+-- is already enforced by the existing P3B3 trigger and is not
+-- duplicated here. This guard only covers the activity dimension.
+--
+-- No automatic cascade.
+
+CREATE OR REPLACE FUNCTION public.crm_opportunities_guard_reparent()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_conflict_count integer;
+BEGIN
+  -- No-op if organization_id unchanged
+  IF OLD.organization_id IS NOT DISTINCT FROM NEW.organization_id THEN
+    RETURN NEW;
+  END IF;
+
+  -- NULL organization doesn't constrain activities (P3B4 rule)
+  IF NEW.organization_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  -- Non-null NEW organization: any linked activity with a
+  -- mismatched (or NULL) organization_id would become inconsistent.
+  SELECT count(*) INTO v_conflict_count
+  FROM public.crm_activities a
+  WHERE a.opportunity_id = NEW.id
+    AND a.organization_id IS DISTINCT FROM NEW.organization_id;
+
+  IF v_conflict_count > 0 THEN
+    RAISE EXCEPTION 'Le changement d''organisation de l''opportunité rendrait des activités incohérentes'
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+ALTER FUNCTION public.crm_opportunities_guard_reparent() OWNER TO postgres;
+REVOKE EXECUTE ON FUNCTION public.crm_opportunities_guard_reparent() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS crm_opportunities_guard_reparent ON public.crm_opportunities;
+CREATE TRIGGER crm_opportunities_guard_reparent
+  BEFORE UPDATE OF organization_id ON public.crm_opportunities
+  FOR EACH ROW
+  EXECUTE FUNCTION public.crm_opportunities_guard_reparent();
 
 -- =========================================================
 -- 5. RLS: crm_activities

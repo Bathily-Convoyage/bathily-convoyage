@@ -147,8 +147,12 @@ console.log('  ✓ cross-entity checks opportunity org match');
 assert.match(sql, /NEW\.assigned_to\s+IS\s+NOT\s+NULL/i, 'cross-entity checks assigned_to');
 console.log('  ✓ cross-entity checks assigned_to');
 
-assert.match(sql, /user_roles[\s\S]*?WHERE\s+ur\.user_id\s*=\s*NEW\.assigned_to\s+AND\s+ur\.role\s*=\s*'admin'/is, 'cross-entity validates admin assignee');
-console.log('  ✓ cross-entity validates admin assignee');
+assert.match(sql, /user_roles[\s\S]*?WHERE\s+ur\.user_id\s*=\s*NEW\.assigned_to\s+AND\s+ur\.role\s*=\s*'admin'/is, 'cross-entity validates admin assignee (user_roles)');
+console.log('  ✓ cross-entity validates admin assignee (user_roles)');
+
+// P3B4B: legacy admin path (clients.role='admin') must be recognized
+assert.match(sql, /clients\s+c[\s\S]*?c\.role\s*=\s*'admin'[\s\S]*?c\.auth_user_id\s*=\s*NEW\.assigned_to/is, 'cross-entity validates legacy admin assignee (clients.role)');
+console.log('  ✓ cross-entity validates legacy admin assignee (clients.role)');
 
 assert.match(sql, /internal_operators\s+io\s+ON\s+io\.user_id\s*=\s*ur\.user_id[\s\S]*?io\.active\s*=\s*true/is, 'cross-entity validates active operator assignee');
 console.log('  ✓ cross-entity validates active operator assignee');
@@ -261,12 +265,18 @@ console.log('  ✓ DELETE policy admin-only');
 // =========================================================
 // SECURITY DEFINER INVENTORY + SEARCH_PATH
 // =========================================================
+// P3B4B: 4 SECURITY DEFINER functions (2 original + 2 parent guards)
 const sqlNoComments = sql.replace(/^\s*--[^\n]*$/gm, '');
 const sdCount = (sqlNoComments.match(/^SECURITY\s+DEFINER/gim) || []).length;
-assert.equal(sdCount, 2, `exactly 2 SECURITY DEFINER functions, found ${sdCount}`);
-console.log(`  ✓ exactly 2 SECURITY DEFINER functions (count=${sdCount})`);
+assert.equal(sdCount, 4, `exactly 4 SECURITY DEFINER functions, found ${sdCount}`);
+console.log(`  ✓ exactly 4 SECURITY DEFINER functions (count=${sdCount})`);
 
-const sdFunctions = ['crm_activities_check_cross_entity', 'crm_activities_set_created_by'];
+const sdFunctions = [
+  'crm_activities_check_cross_entity',
+  'crm_activities_set_created_by',
+  'organization_contacts_guard_reparent',
+  'crm_opportunities_guard_reparent',
+];
 for (const fn of sdFunctions) {
   const block = sql.match(
     new RegExp(`CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+public\\.${fn}\\(\\)[\\s\\S]*?\\$\\$;`, 'i'),
@@ -295,11 +305,61 @@ assert.match(
 console.log('  ✓ set_created_by EXECUTE revoked from PUBLIC, anon, authenticated');
 
 // =========================================================
-// NO MODIFICATION TO EXISTING TABLES
+// PARENT GUARDS (P3B4B)
 // =========================================================
+// Contact parent guard
+assert.match(sql, /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.organization_contacts_guard_reparent\(\)/i, 'contact parent guard function exists');
+console.log('  ✓ contact parent guard function exists');
+
+assert.match(sql, /organization_contacts_guard_reparent[\s\S]*?SECURITY\s+DEFINER[\s\S]*?SET\s+search_path\s*=\s*''/is, 'contact guard is SECURITY DEFINER + fixed search_path');
+console.log("  ✓ contact guard is SECURITY DEFINER + SET search_path = ''");
+
+assert.match(sql, /organization_contacts_guard_reparent[\s\S]*?crm_opportunities\s+o[\s\S]*?o\.contact_id\s*=\s*NEW\.id[\s\S]*?o\.organization_id\s+IS\s+DISTINCT\s+FROM\s+NEW\.organization_id/is, 'contact guard checks dependent opportunities');
+console.log('  ✓ contact guard checks dependent opportunities');
+
+assert.match(sql, /organization_contacts_guard_reparent[\s\S]*?crm_activities\s+a[\s\S]*?a\.contact_id\s*=\s*NEW\.id[\s\S]*?a\.organization_id\s+IS\s+DISTINCT\s+FROM\s+NEW\.organization_id/is, 'contact guard checks dependent activities');
+console.log('  ✓ contact guard checks dependent activities');
+
+assert.match(sql, /REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.organization_contacts_guard_reparent\(\)\s+FROM\s+PUBLIC,\s*anon,\s*authenticated/i, 'contact guard EXECUTE revoked');
+console.log('  ✓ contact guard EXECUTE revoked from PUBLIC, anon, authenticated');
+
+assert.match(sql, /CREATE\s+TRIGGER\s+organization_contacts_guard_reparent\s+BEFORE\s+UPDATE\s+OF\s+organization_id\s+ON\s+public\.organization_contacts/i, 'contact guard trigger on UPDATE OF organization_id');
+console.log('  ✓ contact guard trigger on UPDATE OF organization_id');
+
+// Opportunity parent guard
+assert.match(sql, /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.crm_opportunities_guard_reparent\(\)/i, 'opportunity parent guard function exists');
+console.log('  ✓ opportunity parent guard function exists');
+
+assert.match(sql, /crm_opportunities_guard_reparent[\s\S]*?SECURITY\s+DEFINER[\s\S]*?SET\s+search_path\s*=\s*''/is, 'opportunity guard is SECURITY DEFINER + fixed search_path');
+console.log("  ✓ opportunity guard is SECURITY DEFINER + SET search_path = ''");
+
+assert.match(sql, /crm_opportunities_guard_reparent[\s\S]*?NEW\.organization_id\s+IS\s+NULL[\s\S]*?RETURN\s+NEW/is, 'opportunity guard allows NULL org (no constraint)');
+console.log('  ✓ opportunity guard allows NULL org transition');
+
+assert.match(sql, /crm_opportunities_guard_reparent[\s\S]*?crm_activities\s+a[\s\S]*?a\.opportunity_id\s*=\s*NEW\.id[\s\S]*?a\.organization_id\s+IS\s+DISTINCT\s+FROM\s+NEW\.organization_id/is, 'opportunity guard checks dependent activities');
+console.log('  ✓ opportunity guard checks dependent activities');
+
+assert.match(sql, /REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.crm_opportunities_guard_reparent\(\)\s+FROM\s+PUBLIC,\s*anon,\s*authenticated/i, 'opportunity guard EXECUTE revoked');
+console.log('  ✓ opportunity guard EXECUTE revoked from PUBLIC, anon, authenticated');
+
+assert.match(sql, /CREATE\s+TRIGGER\s+crm_opportunities_guard_reparent\s+BEFORE\s+UPDATE\s+OF\s+organization_id\s+ON\s+public\.crm_opportunities/i, 'opportunity guard trigger on UPDATE OF organization_id');
+console.log('  ✓ opportunity guard trigger on UPDATE OF organization_id');
+
+// No automatic cascade — guards must not UPDATE child records
+assert.doesNotMatch(sql, /organization_contacts_guard_reparent[\s\S]*?UPDATE\s+public\.crm_opportunities/is, 'contact guard does not cascade-update opportunities');
+assert.doesNotMatch(sql, /organization_contacts_guard_reparent[\s\S]*?UPDATE\s+public\.crm_activities/is, 'contact guard does not cascade-update activities');
+assert.doesNotMatch(sql, /crm_opportunities_guard_reparent[\s\S]*?UPDATE\s+public\.crm_activities/is, 'opportunity guard does not cascade-update activities');
+console.log('  ✓ no automatic cascade in parent guards');
+
+// =========================================================
+// NO MODIFICATION TO EXISTING TABLES (P3B4B exception: triggers)
+// =========================================================
+// P3B4B authorizes protective triggers on organization_contacts
+// and crm_opportunities. No ALTER TABLE, no column changes, no FK
+// changes, no RLS changes to existing tables.
 const existingTableAlter = /ALTER\s+TABLE\s+public\.(clients|devis|missions|convoyeurs|billing_records|billing_events|support_tickets|system_settings|user_roles|internal_operators|organizations|organization_segments|organization_sites|organization_contacts|crm_opportunities|crm_pipeline_events)\b/i;
 assert.doesNotMatch(sql, existingTableAlter, 'does not ALTER existing tables');
-console.log('  ✓ does not ALTER existing tables');
+console.log('  ✓ does not ALTER existing tables (triggers only, P3B4B authorized)');
 
 // =========================================================
 // NO DUPLICATE set_updated_at
