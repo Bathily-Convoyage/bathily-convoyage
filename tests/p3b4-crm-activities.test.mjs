@@ -143,6 +143,19 @@ console.log('  ✓ cross-entity queries crm_opportunities');
 assert.match(sql, /v_opp_org_id\s+IS\s+DISTINCT\s+FROM\s+NEW\.organization_id/i, 'cross-entity checks opportunity org match');
 console.log('  ✓ cross-entity checks opportunity org match');
 
+// P3B4A: assigned_to validation
+assert.match(sql, /NEW\.assigned_to\s+IS\s+NOT\s+NULL/i, 'cross-entity checks assigned_to');
+console.log('  ✓ cross-entity checks assigned_to');
+
+assert.match(sql, /user_roles[\s\S]*?WHERE\s+ur\.user_id\s*=\s*NEW\.assigned_to\s+AND\s+ur\.role\s*=\s*'admin'/is, 'cross-entity validates admin assignee');
+console.log('  ✓ cross-entity validates admin assignee');
+
+assert.match(sql, /internal_operators\s+io\s+ON\s+io\.user_id\s*=\s*ur\.user_id[\s\S]*?io\.active\s*=\s*true/is, 'cross-entity validates active operator assignee');
+console.log('  ✓ cross-entity validates active operator assignee');
+
+assert.match(sql, /L''assigné doit être un utilisateur interne actif/i, 'cross-entity rejects non-internal assignee');
+console.log('  ✓ cross-entity rejects non-internal assignee');
+
 // =========================================================
 // CREATED_BY FUNCTION
 // =========================================================
@@ -214,7 +227,7 @@ assert.doesNotMatch(updateBlock[1], /\bupdated_at\b/i, 'updated_at NOT in UPDATE
 console.log('  ✓ column-level UPDATE excludes protected columns');
 
 // =========================================================
-// GRANTS — service_role (column-level, same principle)
+// GRANTS — service_role (SELECT only, P3B4A least privilege)
 // =========================================================
 assert.match(sql, /GRANT\s+SELECT\s+ON\s+public\.crm_activities\s+TO\s+service_role/i, 'service_role SELECT');
 console.log('  ✓ service_role SELECT');
@@ -222,16 +235,13 @@ console.log('  ✓ service_role SELECT');
 assert.doesNotMatch(sql, /GRANT\s+ALL\s+ON\s+public\.crm_activities\s+TO\s+service_role/i, 'no GRANT ALL to service_role');
 console.log('  ✓ no GRANT ALL to service_role');
 
-const srInsertBlock = sql.match(/GRANT\s+INSERT\s*\(([^)]*)\)\s+ON\s+public\.crm_activities\s+TO\s+service_role/is);
-assert.ok(srInsertBlock, 'service_role column-level INSERT block found');
-assert.doesNotMatch(srInsertBlock[1], /\bcreated_by\b/i, 'service_role INSERT excludes created_by');
-assert.doesNotMatch(srInsertBlock[1], /\bid\b/i, 'service_role INSERT excludes id');
-console.log('  ✓ service_role column-level INSERT excludes protected columns');
+// P3B4A: service_role INSERT/UPDATE removed (no existing write path,
+// INSERT always failed due to created_by=auth.uid()=NULL)
+assert.doesNotMatch(sql, /GRANT\s+INSERT\s*\([^)]*\)\s+ON\s+public\.crm_activities\s+TO\s+service_role/is, 'no service_role INSERT grant');
+console.log('  ✓ no service_role INSERT grant (P3B4A least privilege)');
 
-const srUpdateBlock = sql.match(/GRANT\s+UPDATE\s*\(([^)]*)\)\s+ON\s+public\.crm_activities\s+TO\s+service_role/is);
-assert.ok(srUpdateBlock, 'service_role column-level UPDATE block found');
-assert.doesNotMatch(srUpdateBlock[1], /\bcreated_by\b/i, 'service_role UPDATE excludes created_by');
-console.log('  ✓ service_role column-level UPDATE excludes protected columns');
+assert.doesNotMatch(sql, /GRANT\s+UPDATE\s*\([^)]*\)\s+ON\s+public\.crm_activities\s+TO\s+service_role/is, 'no service_role UPDATE grant');
+console.log('  ✓ no service_role UPDATE grant (P3B4A least privilege)');
 
 // =========================================================
 // RLS POLICIES

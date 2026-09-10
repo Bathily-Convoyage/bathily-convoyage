@@ -168,6 +168,11 @@ CREATE TRIGGER crm_activities_set_updated_at
 --      equal opportunity.contact_id (an opportunity may involve several
 --      contacts over time). But if activity.contact_id is also set,
 --      it must be consistent (rule 1 applies).
+--   4. If assigned_to is non-null, the target user must be an active
+--      internal user: an admin (user_roles role='admin') or an active
+--      operator (user_roles role='operator' AND internal_operators.active
+--      = true). Clients, convoyeurs, inactive operators, and unknown
+--      users are rejected. Admin takes precedence where roles overlap.
 
 CREATE OR REPLACE FUNCTION public.crm_activities_check_cross_entity()
 RETURNS trigger
@@ -178,6 +183,8 @@ AS $$
 DECLARE
   v_contact_org_id    uuid;
   v_opp_org_id        uuid;
+  v_is_admin          boolean;
+  v_is_active_op      boolean;
 BEGIN
   -- Rule 1: contact_id requires matching organization_id
   IF NEW.contact_id IS NOT NULL THEN
@@ -219,6 +226,27 @@ BEGIN
     -- cross-org inconsistency — reject.
     IF v_opp_org_id IS NOT NULL AND NEW.organization_id IS NULL THEN
       RAISE EXCEPTION 'L''activité doit avoir la même organisation que l''opportunité'
+        USING ERRCODE = 'P0001';
+    END IF;
+  END IF;
+
+  -- Rule 4: assigned_to must be an active internal user (admin or active operator)
+  IF NEW.assigned_to IS NOT NULL THEN
+    SELECT EXISTS (
+      SELECT 1 FROM public.user_roles ur
+      WHERE ur.user_id = NEW.assigned_to AND ur.role = 'admin'
+    ) INTO v_is_admin;
+
+    SELECT EXISTS (
+      SELECT 1 FROM public.user_roles ur
+      JOIN public.internal_operators io ON io.user_id = ur.user_id
+      WHERE ur.user_id = NEW.assigned_to
+        AND ur.role = 'operator'
+        AND io.active = true
+    ) INTO v_is_active_op;
+
+    IF NOT v_is_admin AND NOT v_is_active_op THEN
+      RAISE EXCEPTION 'L''assigné doit être un utilisateur interne actif (admin ou opérateur actif)'
         USING ERRCODE = 'P0001';
     END IF;
   END IF;
@@ -313,39 +341,14 @@ GRANT UPDATE (
   metadata
 ) ON public.crm_activities TO authenticated;
 
--- service_role: same column-level principle (application credential,
--- NOT database owner). No access to created_by, id, created_at, updated_at.
+-- service_role: SELECT only (application credential, NOT database owner).
+-- P3B4A: INSERT/UPDATE grants removed. No existing backend path requires
+-- service_role to write crm_activities. INSERT always failed anyway
+-- because created_by trigger sets auth.uid()=NULL (no user context) and
+-- created_by is NOT NULL. Under least privilege, meaningless write
+-- privileges are removed. service_role retains SELECT for read-only
+-- operational access.
 GRANT SELECT ON public.crm_activities TO service_role;
-GRANT INSERT (
-  organization_id,
-  contact_id,
-  opportunity_id,
-  activity_type,
-  direction,
-  subject,
-  body,
-  status,
-  occurred_at,
-  due_at,
-  completed_at,
-  assigned_to,
-  metadata
-) ON public.crm_activities TO service_role;
-GRANT UPDATE (
-  organization_id,
-  contact_id,
-  opportunity_id,
-  activity_type,
-  direction,
-  subject,
-  body,
-  status,
-  occurred_at,
-  due_at,
-  completed_at,
-  assigned_to,
-  metadata
-) ON public.crm_activities TO service_role;
 
 -- SELECT: internal users only.
 CREATE POLICY crm_activities_select_internal

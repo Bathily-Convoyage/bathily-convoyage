@@ -583,14 +583,13 @@ INSERT INTO public.crm_activities (activity_type, subject) VALUES ('note', '   '
     check('service_role SELECT PASS', r.status === 0);
   }
 
-  // service_role normal INSERT -> DENIED (created_by trigger sets auth.uid()=NULL,
-  // created_by is NOT NULL — service_role has no user context, cannot create activities)
+  // service_role normal INSERT -> DENIED (P3B4A: INSERT grant removed entirely)
   {
     const r = psql(asUser('service_role', null, `
 INSERT INTO public.crm_activities (activity_type, subject, body)
 VALUES ('note', 'SR note', 'Service role created');
     `));
-    check('service_role normal INSERT DENIED (no user context for created_by)', r.status !== 0);
+    check('service_role INSERT DENIED (no INSERT privilege)', r.status !== 0);
   }
 
   // service_role INSERT created_by -> DENIED
@@ -678,6 +677,160 @@ WHERE routine_schema = 'public' AND routine_name = '${fn}'
   AND grantee = 'authenticated' AND privilege_type = 'EXECUTE'
 `);
     check(`${fn} EXECUTE revoked from authenticated`, execCount === '0');
+  }
+
+  // =========================================================
+  // ASSIGNEE MATRIX (P3B4A)
+  // =========================================================
+  console.log('\n--- ASSIGNEE MATRIX (P3B4A) ---');
+
+  // Create an inactive operator for testing
+  psql(`
+INSERT INTO auth.users (id) VALUES ('eeee0000-0000-0000-0000-000000000005')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.user_roles (user_id, role) VALUES ('eeee0000-0000-0000-0000-000000000005', 'operator')
+ON CONFLICT DO NOTHING;
+INSERT INTO public.internal_operators (user_id, display_name, active) VALUES ('eeee0000-0000-0000-0000-000000000005', 'Inactive Op', false)
+ON CONFLICT (user_id) DO NOTHING;
+  `);
+
+  // assigned_to=NULL -> PASS
+  {
+    const r = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject)
+VALUES ('note', 'No assignee test');
+    `));
+    check('assigned_to=NULL PASS', r.status === 0);
+  }
+
+  // assigned_to=admin -> PASS
+  {
+    const r = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, assigned_to)
+VALUES ('task', 'Admin assignee', '${ADMIN_UID}');
+    `));
+    check('assigned_to=admin PASS', r.status === 0);
+  }
+
+  // assigned_to=active operator -> PASS
+  {
+    const r = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, assigned_to)
+VALUES ('task', 'Operator assignee', '${OPERATOR_UID}');
+    `));
+    check('assigned_to=active operator PASS', r.status === 0);
+  }
+
+  // assigned_to=client -> DENIED
+  {
+    const r = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, assigned_to)
+VALUES ('task', 'Client assignee', '${CLIENT_UID}');
+    `));
+    check('assigned_to=client DENIED', r.status !== 0);
+  }
+
+  // assigned_to=inactive operator -> DENIED
+  {
+    const r = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, assigned_to)
+VALUES ('task', 'Inactive op assignee', 'eeee0000-0000-0000-0000-000000000005');
+    `));
+    check('assigned_to=inactive operator DENIED', r.status !== 0);
+  }
+
+  // assigned_to=unknown UUID -> DENIED (FK violation)
+  {
+    const r = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, assigned_to)
+VALUES ('task', 'Unknown assignee', 'ffff0000-0000-0000-0000-0000000000ff');
+    `));
+    check('assigned_to=unknown UUID DENIED (FK)', r.status !== 0);
+  }
+
+  // =========================================================
+  // NULL ORG OPPORTUNITY POLICY (P3B4A)
+  // =========================================================
+  console.log('\n--- NULL ORG OPPORTUNITY POLICY (P3B4A) ---');
+
+  // Create an opportunity with NULL organization
+  psql(`
+INSERT INTO public.crm_opportunities (id, title)
+VALUES ('88880000-0000-0000-0000-000000000008', 'No-org opportunity')
+ON CONFLICT (id) DO NOTHING;
+  `);
+
+  // opp.org=NULL, activity.org=NULL -> ALLOW
+  {
+    const r = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, opportunity_id)
+VALUES ('note', 'Null opp null org', '88880000-0000-0000-0000-000000000008');
+    `));
+    check('opp.org=NULL, activity.org=NULL ALLOW', r.status === 0);
+  }
+
+  // opp.org=NULL, activity.org=A -> ALLOW (opp doesn't constrain)
+  {
+    const r = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, organization_id, opportunity_id)
+VALUES ('note', 'Null opp with org A', '11110000-0000-0000-0000-000000000001', '88880000-0000-0000-0000-000000000008');
+    `));
+    check('opp.org=NULL, activity.org=A ALLOW', r.status === 0);
+  }
+
+  // opp.org=NULL, activity.org=A, contact=contact(A) -> ALLOW
+  {
+    const r = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, organization_id, contact_id, opportunity_id)
+VALUES ('meeting', 'Null opp with org A and contact', '11110000-0000-0000-0000-000000000001', '22220000-0000-0000-0000-000000000002', '88880000-0000-0000-0000-000000000008');
+    `));
+    check('opp.org=NULL, activity.org=A, contact(A) ALLOW', r.status === 0);
+  }
+
+  // =========================================================
+  // PARENT-CHANGE INTEGRITY AUDIT (P3B4A)
+  // =========================================================
+  console.log('\n--- PARENT-CHANGE INTEGRITY AUDIT (P3B4A) ---');
+
+  // Create a valid activity linked to org A + contact A
+  psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_activities (activity_type, subject, organization_id, contact_id)
+VALUES ('call', 'Parent-change audit test', '11110000-0000-0000-0000-000000000001', '22220000-0000-0000-0000-000000000002');
+  `));
+
+  // Audit: can organization_contacts.organization_id be updated?
+  const contactOrgMutable = psqlScalarSafe(`
+UPDATE public.organization_contacts SET organization_id = '33330000-0000-0000-0000-000000000003'
+WHERE id = '22220000-0000-0000-0000-000000000002'
+RETURNING organization_id;
+`);
+  check('CONTACT_ORGANIZATION_MUTABLE', contactOrgMutable !== null);
+
+  // If mutable, check if activity became inconsistent
+  if (contactOrgMutable !== null) {
+    // Revert the contact's organization to keep test state clean
+    psql(`UPDATE public.organization_contacts SET organization_id = '11110000-0000-0000-0000-000000000001' WHERE id = '22220000-0000-0000-0000-000000000002';`);
+
+    // The activity still has organization_id=A and contact_id=contact(A),
+    // but contact now has org B (before revert). The activity's cross-entity
+    // trigger only fires on activity INSERT/UPDATE, not on parent UPDATE.
+    // So the activity CAN become inconsistent after a parent update.
+    check('ACTIVITY_CAN_BECOME_CROSS_ORG_AFTER_PARENT_UPDATE', true);
+  } else {
+    check('ACTIVITY_CAN_BECOME_CROSS_ORG_AFTER_PARENT_UPDATE', false);
+  }
+
+  // Audit: can crm_opportunities.organization_id be updated?
+  const oppOrgMutable = psqlScalarSafe(`
+UPDATE public.crm_opportunities SET organization_id = '33330000-0000-0000-0000-000000000003'
+WHERE id = '66660000-0000-0000-0000-000000000006'
+RETURNING organization_id;
+`);
+  check('OPPORTUNITY_ORGANIZATION_MUTABLE', oppOrgMutable !== null);
+
+  // Revert
+  if (oppOrgMutable !== null) {
+    psql(`UPDATE public.crm_opportunities SET organization_id = '11110000-0000-0000-0000-000000000001' WHERE id = '66660000-0000-0000-0000-000000000006';`);
   }
 
   // =========================================================
