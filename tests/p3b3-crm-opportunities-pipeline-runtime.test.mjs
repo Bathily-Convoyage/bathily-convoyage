@@ -367,6 +367,36 @@ VALUES ('88880000-0000-0000-0000-000000000008', 'Mismatch', '11110000-0000-0000-
     check('contact/org mismatch rejected', res.status !== 0 && /n'appartient pas/i.test(res.stderr));
   }
 
+  // =========================================================
+  // CONTACT/ORG 5-STATE MATRIX
+  // =========================================================
+  console.log('\n--- CONTACT/ORG 5-STATE MATRIX ---');
+
+  // State 1: org=A, contact=contact(A) -> ALLOW (already tested above as 7777).
+  check('state1: org=A + contact(A) ALLOW',
+    psqlScalar(`SELECT count(*) FROM public.crm_opportunities WHERE id='77770000-0000-0000-0000-000000000007'`) === '1');
+
+  // State 2: org=A, contact=contact(B) -> DENY (already tested above as 8888).
+  check('state2: org=A + contact(B) DENY',
+    psqlScalar(`SELECT count(*) FROM public.crm_opportunities WHERE id='88880000-0000-0000-0000-000000000008'`) === '0');
+
+  // State 3: org=NULL, contact=NULL -> ALLOW (already tested as early lead 5555).
+  check('state3: org=NULL + contact=NULL ALLOW',
+    psqlScalar(`SELECT count(*) FROM public.crm_opportunities WHERE id='55550000-0000-0000-0000-000000000005'`) === '1');
+
+  // State 4: org=A, contact=NULL -> ALLOW (already tested as org deal 6666).
+  check('state4: org=A + contact=NULL ALLOW',
+    psqlScalar(`SELECT count(*) FROM public.crm_opportunities WHERE id='66660000-0000-0000-0000-000000000006'`) === '1');
+
+  // State 5: org=NULL, contact=contact(A) -> DENY (contact without org).
+  {
+    const res = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_opportunities (id, title, contact_id)
+VALUES ('eeee0000-0000-0000-0000-00000000000e', 'Contact no org', '22220000-0000-0000-0000-000000000002');
+`));
+    check('state5: org=NULL + contact(A) DENY', res.status !== 0 && /organisation/i.test(res.stderr));
+  }
+
   // Reject empty title.
   {
     const res = psql(asUser('authenticated', ADMIN_UID, `
@@ -509,15 +539,40 @@ SELECT public.crm_transition_opportunity('66660000-0000-0000-0000-000000000006',
   }
 
   // =========================================================
-  // DIRECT STAGE UPDATE BLOCKED
+  // DIRECT STAGE UPDATE BLOCKED (column-level privilege)
   // =========================================================
-  console.log('\n--- DIRECT STAGE UPDATE BLOCKED ---');
+  console.log('\n--- DIRECT STAGE UPDATE BLOCKED (column privilege) ---');
 
+  // Operator direct UPDATE stage = DENIED (column privilege).
   {
     const res = psql(asUser('authenticated', OPERATOR_UID, `
 UPDATE public.crm_opportunities SET stage='won' WHERE id='66660000-0000-0000-0000-000000000006';
 `));
-    check('direct authenticated stage UPDATE blocked', res.status !== 0 && /crm_transition_opportunity/i.test(res.stderr));
+    check('operator direct UPDATE stage DENIED', res.status !== 0);
+  }
+
+  // Operator direct UPDATE lost_reason = DENIED (column privilege).
+  {
+    const res = psql(asUser('authenticated', OPERATOR_UID, `
+UPDATE public.crm_opportunities SET lost_reason='hacked' WHERE id='66660000-0000-0000-0000-000000000006';
+`));
+    check('operator direct UPDATE lost_reason DENIED', res.status !== 0);
+  }
+
+  // Admin direct UPDATE stage = DENIED (column privilege applies to all authenticated).
+  {
+    const res = psql(asUser('authenticated', ADMIN_UID, `
+UPDATE public.crm_opportunities SET stage='won' WHERE id='66660000-0000-0000-0000-000000000006';
+`));
+    check('admin direct UPDATE stage DENIED', res.status !== 0);
+  }
+
+  // Admin direct UPDATE lost_reason = DENIED.
+  {
+    const res = psql(asUser('authenticated', ADMIN_UID, `
+UPDATE public.crm_opportunities SET lost_reason='hacked' WHERE id='66660000-0000-0000-0000-000000000006';
+`));
+    check('admin direct UPDATE lost_reason DENIED', res.status !== 0);
   }
 
   // Non-stage field UPDATE allowed.

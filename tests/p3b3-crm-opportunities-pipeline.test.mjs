@@ -197,16 +197,16 @@ assert.match(
 console.log('  ✓ index (opportunity_id, created_at)');
 
 // =========================================================
-// TRIGGERS: updated_at, contact/org, stage protection, immutability, creation event
+// TRIGGERS: updated_at, contact/org, immutability, creation event
 // =========================================================
+// P3B3A: stage protection trigger removed — column-level privileges
+// are the primary control.
 
 const triggerChecks = [
   ['reuses public.set_updated_at()', /EXECUTE FUNCTION public\.set_updated_at\(\)/i],
   ['trigger crm_opportunities_set_updated_at', /CREATE\s+TRIGGER\s+crm_opportunities_set_updated_at/i],
   ['contact/org check trigger', /CREATE\s+TRIGGER\s+crm_opportunities_contact_org_check/i],
   ['contact/org check BEFORE INSERT OR UPDATE', /BEFORE\s+INSERT\s+OR\s+UPDATE\s+ON\s+public\.crm_opportunities/i],
-  ['stage protection trigger', /CREATE\s+TRIGGER\s+crm_opportunities_protect_stage/i],
-  ['stage protection BEFORE UPDATE', /BEFORE\s+UPDATE\s+ON\s+public\.crm_opportunities/i],
   ['immutability trigger', /CREATE\s+TRIGGER\s+crm_pipeline_events_immutable_trigger/i],
   ['immutability BEFORE UPDATE OR DELETE', /BEFORE\s+UPDATE\s+OR\s+DELETE\s+ON\s+public\.crm_pipeline_events/i],
   ['creation event trigger', /CREATE\s+TRIGGER\s+crm_opportunities_create_event/i],
@@ -237,22 +237,85 @@ assert.match(
 console.log('  ✓ contact/org mismatch check uses IS DISTINCT FROM');
 
 // =========================================================
-// STAGE PROTECTION FUNCTION
+// STAGE MUTATION HARDENING (column-level privileges, no trigger)
 // =========================================================
+// P3B3A: stage protection is via column-level UPDATE privileges,
+// not a trigger. The protect_stage trigger was removed.
+// authenticated has NO UPDATE on stage or lost_reason columns.
 
-assert.match(
+// No stage protection trigger function should exist.
+assert.doesNotMatch(
   sql,
-  /NEW\.stage\s+IS\s+DISTINCT\s+FROM\s+OLD\.stage/i,
-  'stage protection checks IS DISTINCT FROM',
+  /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.crm_opportunities_protect_stage\(\)/i,
+  'stage protection trigger function removed',
 );
-console.log('  ✓ stage protection checks IS DISTINCT FROM');
+console.log('  ✓ stage protection trigger function removed');
 
-assert.match(
+// No protect_stage trigger.
+assert.doesNotMatch(
   sql,
+  /CREATE\s+TRIGGER\s+crm_opportunities_protect_stage/i,
+  'stage protection trigger removed',
+);
+console.log('  ✓ stage protection trigger removed');
+
+// No current_user = 'postgres' bypass as stage authorization.
+assert.doesNotMatch(
+  sql.replace(/^\s*--[^\n]*$/gm, ''),
   /current_user\s*<>\s*'postgres'/i,
-  'stage protection blocks non-postgres current_user',
+  'no current_user postgres bypass as stage authorization',
 );
-console.log('  ✓ stage protection blocks non-postgres current_user');
+console.log('  ✓ no current_user postgres bypass as stage authorization');
+
+// Table-wide UPDATE NOT granted to authenticated.
+assert.doesNotMatch(
+  sql,
+  /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON\s+public\.crm_opportunities\s+TO\s+authenticated/i,
+  'no table-wide UPDATE grant to authenticated on crm_opportunities',
+);
+console.log('  ✓ no table-wide UPDATE grant to authenticated on crm_opportunities');
+
+// Column-level UPDATE granted on non-stage columns.
+assert.match(
+  sql,
+  /GRANT\s+UPDATE\s*\([^)]*organization_id[^)]*\)\s+ON\s+public\.crm_opportunities\s+TO\s+authenticated/i,
+  'column-level UPDATE granted on non-stage columns',
+);
+console.log('  ✓ column-level UPDATE granted on non-stage columns');
+
+// stage column NOT in any column-level UPDATE grant.
+const updateGrantBlock = sql.match(/GRANT\s+UPDATE\s*\(([^)]*)\)\s+ON\s+public\.crm_opportunities\s+TO\s+authenticated/is);
+assert.ok(updateGrantBlock, 'column-level UPDATE grant block found');
+assert.doesNotMatch(
+  updateGrantBlock[1],
+  /\bstage\b/i,
+  'stage column NOT in column-level UPDATE grant',
+);
+console.log('  ✓ stage column NOT in column-level UPDATE grant');
+
+// lost_reason column NOT in any column-level UPDATE grant.
+assert.doesNotMatch(
+  updateGrantBlock[1],
+  /\blost_reason\b/i,
+  'lost_reason column NOT in column-level UPDATE grant',
+);
+console.log('  ✓ lost_reason column NOT in column-level UPDATE grant');
+
+// updated_at NOT in column-level UPDATE grant (trigger-managed).
+assert.doesNotMatch(
+  updateGrantBlock[1],
+  /\bupdated_at\b/i,
+  'updated_at NOT in column-level UPDATE grant (trigger-managed)',
+);
+console.log('  ✓ updated_at NOT in column-level UPDATE grant (trigger-managed)');
+
+// SELECT, INSERT, DELETE still granted to authenticated.
+assert.match(
+  sql,
+  /GRANT\s+SELECT,\s*INSERT,\s*DELETE\s+ON\s+public\.crm_opportunities\s+TO\s+authenticated/i,
+  'SELECT, INSERT, DELETE granted to authenticated',
+);
+console.log('  ✓ SELECT, INSERT, DELETE granted to authenticated');
 
 // =========================================================
 // IMMUTABILITY FUNCTION
@@ -370,7 +433,7 @@ const rlsOppChecks = [
   ['REVOKE ALL FROM PUBLIC', /REVOKE ALL ON public\.crm_opportunities FROM PUBLIC/i],
   ['REVOKE ALL FROM anon', /REVOKE ALL ON public\.crm_opportunities FROM anon/i],
   ['REVOKE ALL FROM authenticated', /REVOKE ALL ON public\.crm_opportunities FROM authenticated/i],
-  ['GRANT CRUD to authenticated', /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i],
+  ['GRANT SELECT, INSERT, DELETE to authenticated (no table UPDATE)', /GRANT\s+SELECT,\s*INSERT,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i],
   ['GRANT ALL to service_role', /GRANT ALL ON public\.crm_opportunities TO service_role/i],
   ['SELECT policy uses is_internal_user', /crm_opportunities_select_internal[\s\S]*FOR SELECT[\s\S]*is_internal_user\(\)/i],
   ['INSERT policy uses is_internal_user', /crm_opportunities_insert_internal[\s\S]*FOR INSERT[\s\S]*is_internal_user\(\)/i],
@@ -438,17 +501,17 @@ const consistencyChecks = [
   {
     name: 'opportunities INSERT policy has matching GRANT',
     policy: /crm_opportunities_insert_internal[\s\S]*FOR INSERT/i,
-    grant: /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i,
+    grant: /GRANT\s+SELECT,\s*INSERT,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i,
   },
   {
-    name: 'opportunities UPDATE policy has matching GRANT',
+    name: 'opportunities UPDATE policy has matching column-level GRANT',
     policy: /crm_opportunities_update_internal[\s\S]*FOR UPDATE/i,
-    grant: /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i,
+    grant: /GRANT\s+UPDATE\s*\([^)]*\)\s+ON\s+public\.crm_opportunities\s+TO\s+authenticated/i,
   },
   {
     name: 'opportunities DELETE policy has matching GRANT',
     policy: /crm_opportunities_delete_admin[\s\S]*FOR DELETE/i,
-    grant: /GRANT\s+SELECT,\s*INSERT,\s*UPDATE,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i,
+    grant: /GRANT\s+SELECT,\s*INSERT,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i,
   },
 ];
 

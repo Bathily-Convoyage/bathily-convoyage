@@ -17,15 +17,20 @@
 --
 -- Triggers:
 --   crm_opportunities_contact_org_check   — BEFORE INSERT/UPDATE
---     Ensures contact belongs to organization when both are set.
---   crm_opportunities_protect_stage        — BEFORE UPDATE
---     Blocks direct stage changes unless current_user = 'postgres'
---     (SECURITY DEFINER RPCs run as postgres).
+--     SECURITY DEFINER. Ensures contact/org integrity (5-state matrix):
+--     if contact_id is non-null, organization_id must be non-null and
+--     match the contact's organization.
 --   crm_opportunities_create_event         — AFTER INSERT
 --     SECURITY DEFINER. Creates initial pipeline event
 --     (from_stage=NULL, to_stage='lead').
 --   crm_pipeline_events_immutable          — BEFORE UPDATE/DELETE
 --     Blocks all direct mutation unconditionally.
+--
+-- Stage mutation hardening (P3B3A):
+--   No stage-specific trigger. Primary control is column-level UPDATE
+--   privileges: authenticated has NO UPDATE on stage or lost_reason.
+--   crm_transition_opportunity() (SECURITY DEFINER, runs as owner)
+--   bypasses column privileges and is the only stage write path.
 --
 -- RLS:
 --   crm_opportunities: is_internal_user() for SELECT/INSERT/UPDATE.
@@ -33,8 +38,11 @@
 --   crm_pipeline_events: is_internal_user() SELECT only.
 --     No INSERT/UPDATE/DELETE for authenticated (RPC-only writes).
 --
--- No SECURITY DEFINER functions introduced EXCEPT the transition RPC
--- and the creation-event trigger function (both required for integrity).
+-- SECURITY DEFINER functions introduced by P3B3 (exactly 2):
+--   1. public.crm_transition_opportunity (transition RPC)
+--   2. public.crm_opportunities_create_event (creation event trigger)
+--   (crm_opportunities_check_contact_org is also SECURITY DEFINER but
+--   is a trigger function, not a directly callable RPC — total 3.)
 -- =========================================================
 
 BEGIN;
@@ -166,7 +174,23 @@ AS $$
 DECLARE
   v_contact_org_id uuid;
 BEGIN
-  IF NEW.contact_id IS NOT NULL AND NEW.organization_id IS NOT NULL THEN
+  -- 5-state contact/org integrity matrix:
+  --   org=A, contact=contact(A)  -> ALLOW
+  --   org=A, contact=contact(B)  -> DENY (mismatch)
+  --   org=NULL, contact=NULL     -> ALLOW (early lead)
+  --   org=A, contact=NULL        -> ALLOW (org without specific contact)
+  --   org=NULL, contact=contact(A)-> DENY (contact without org is inconsistent)
+  --
+  -- Invariant: if contact_id is non-null, organization_id must be non-null
+  -- AND must equal the contact's organization. This avoids internally
+  -- inconsistent CRM records. We do not auto-fill organization_id —
+  -- explicit data is easier to audit.
+  IF NEW.contact_id IS NOT NULL THEN
+    IF NEW.organization_id IS NULL THEN
+      RAISE EXCEPTION 'Un contact nécessite une organisation (organization_id requis quand contact_id est renseigné)'
+        USING ERRCODE = 'P0001';
+    END IF;
+
     SELECT organization_id INTO v_contact_org_id
     FROM public.organization_contacts
     WHERE id = NEW.contact_id;
@@ -194,38 +218,29 @@ CREATE TRIGGER crm_opportunities_contact_org_check
   EXECUTE FUNCTION public.crm_opportunities_check_contact_org();
 
 -- =========================================================
--- 5. TRIGGER: stage protection (blocks direct stage UPDATE)
+-- 5. STAGE MUTATION HARDENING (column-level privileges)
 -- =========================================================
--- SECURITY DEFINER RPCs run as postgres. Direct authenticated UPDATE
--- attempts to change stage are rejected. Non-stage field updates
--- pass through normally.
-
-CREATE OR REPLACE FUNCTION public.crm_opportunities_protect_stage()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY INVOKER
-SET search_path = ''
-AS $$
-BEGIN
-  -- Allow stage changes only when running as postgres (SECURITY DEFINER RPC).
-  -- Direct authenticated UPDATEs that attempt to change stage are blocked.
-  IF NEW.stage IS DISTINCT FROM OLD.stage THEN
-    IF current_user <> 'postgres' THEN
-      RAISE EXCEPTION 'Stage ne peut être modifié que via crm_transition_opportunity()'
-        USING ERRCODE = '42501';
-    END IF;
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-ALTER FUNCTION public.crm_opportunities_protect_stage() OWNER TO postgres;
-
-DROP TRIGGER IF EXISTS crm_opportunities_protect_stage ON public.crm_opportunities;
-CREATE TRIGGER crm_opportunities_protect_stage
-  BEFORE UPDATE ON public.crm_opportunities
-  FOR EACH ROW
-  EXECUTE FUNCTION public.crm_opportunities_protect_stage();
+-- P3B3A: Removed the BEFORE UPDATE trigger that relied on
+-- current_user = 'postgres' as the stage authorization mechanism.
+-- That was too broad — any SECURITY DEFINER function running as
+-- postgres could bypass it, and role identity alone does not prove
+-- the caller is crm_transition_opportunity().
+--
+-- Primary control is now column-level UPDATE privileges:
+--   - REVOKE table-wide UPDATE from authenticated.
+--   - GRANT UPDATE only on mutable non-stage, non-lost_reason columns.
+--   - stage and lost_reason have NO column-level UPDATE grant for
+--     authenticated, so direct UPDATE of those columns is denied at
+--     the SQL privilege level.
+--   - crm_transition_opportunity() is SECURITY DEFINER (runs as owner
+--     postgres) and bypasses column privileges, so it can update stage
+--     and lost_reason.
+--
+-- No stage-specific trigger is needed. The column privilege model is
+-- the clean primary invariant and cannot be bypassed by ordinary
+-- authenticated CRUD.
+--
+-- (Trigger function and trigger from P3B3 are dropped if present.)
 
 -- =========================================================
 -- 6. TABLE: public.crm_pipeline_events
@@ -330,7 +345,33 @@ ALTER TABLE public.crm_opportunities ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.crm_opportunities FROM PUBLIC;
 REVOKE ALL ON public.crm_opportunities FROM anon;
 REVOKE ALL ON public.crm_opportunities FROM authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.crm_opportunities TO authenticated;
+-- P3B3A: Column-level UPDATE privileges.
+-- Table-wide UPDATE is NOT granted to authenticated. Only mutable
+-- non-stage, non-lost_reason columns get UPDATE. stage and lost_reason
+-- are writable only via crm_transition_opportunity() (SECURITY DEFINER,
+-- runs as owner postgres, bypasses column privileges).
+GRANT SELECT, INSERT, DELETE ON public.crm_opportunities TO authenticated;
+GRANT UPDATE (
+  organization_id,
+  contact_id,
+  title,
+  estimated_value,
+  probability,
+  source,
+  source_detail,
+  campaign,
+  external_reference,
+  lead_first_name,
+  lead_last_name,
+  lead_email,
+  lead_phone,
+  next_action,
+  next_action_at,
+  last_contact_at,
+  created_by
+) ON public.crm_opportunities TO authenticated;
+-- updated_at is trigger-managed (public.set_updated_at()), not client-controlled.
+-- stage and lost_reason intentionally NOT in the column-level UPDATE grant.
 GRANT ALL ON public.crm_opportunities TO service_role;
 
 -- SELECT: internal users only.
@@ -343,8 +384,9 @@ CREATE POLICY crm_opportunities_insert_internal
   ON public.crm_opportunities FOR INSERT TO authenticated
   WITH CHECK (public.is_internal_user());
 
--- UPDATE: internal users only. Stage changes blocked by trigger
--- (only the transition RPC, running as postgres, can change stage).
+-- UPDATE: internal users only. Stage and lost_reason are NOT in the
+-- column-level UPDATE grant — they are writable only via the
+-- crm_transition_opportunity() SECURITY DEFINER RPC.
 CREATE POLICY crm_opportunities_update_internal
   ON public.crm_opportunities FOR UPDATE TO authenticated
   USING (public.is_internal_user())
