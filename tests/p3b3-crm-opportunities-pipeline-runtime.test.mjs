@@ -331,10 +331,12 @@ ON CONFLICT (id) DO NOTHING;
 `));
 
   // Create early lead without organization (valid).
-  psql(asUser('authenticated', ADMIN_UID, `
+  // P3B3B: Insert as postgres for fixture setup (id not in INSERT grant).
+  // Authenticated INSERT privileges tested separately below.
+  psql(`
 INSERT INTO public.crm_opportunities (id, title, lead_first_name, lead_email)
 VALUES ('55550000-0000-0000-0000-000000000005', 'Early lead', 'Jean', 'jean@test.com');
-`));
+  `);
   check('early lead without organization inserted',
     psqlScalar(`SELECT count(*) FROM public.crm_opportunities WHERE id='55550000-0000-0000-0000-000000000005'`) === '1');
 
@@ -343,27 +345,27 @@ VALUES ('55550000-0000-0000-0000-000000000005', 'Early lead', 'Jean', 'jean@test
     psqlScalar(`SELECT count(*) FROM public.crm_pipeline_events WHERE opportunity_id='55550000-0000-0000-0000-000000000005' AND from_stage IS NULL AND to_stage='lead'`) === '1');
 
   // Create opportunity linked to organization.
-  psql(asUser('authenticated', ADMIN_UID, `
+  psql(`
 INSERT INTO public.crm_opportunities (id, title, organization_id)
 VALUES ('66660000-0000-0000-0000-000000000006', 'Org deal', '11110000-0000-0000-0000-000000000001');
-`));
+  `);
   check('opportunity linked to organization inserted',
     psqlScalar(`SELECT count(*) FROM public.crm_opportunities WHERE id='66660000-0000-0000-0000-000000000006' AND organization_id='11110000-0000-0000-0000-000000000001'`) === '1');
 
   // Create opportunity linked to valid contact (matching org).
-  psql(asUser('authenticated', ADMIN_UID, `
+  psql(`
 INSERT INTO public.crm_opportunities (id, title, organization_id, contact_id)
 VALUES ('77770000-0000-0000-0000-000000000007', 'Contact deal', '11110000-0000-0000-0000-000000000001', '22220000-0000-0000-0000-000000000002');
-`));
+  `);
   check('opportunity with valid contact+org inserted',
     psqlScalar(`SELECT count(*) FROM public.crm_opportunities WHERE id='77770000-0000-0000-0000-000000000007'`) === '1');
 
   // Reject contact/org mismatch (contact belongs to different org).
   {
-    const res = psql(asUser('authenticated', ADMIN_UID, `
+    const res = psql(`
 INSERT INTO public.crm_opportunities (id, title, organization_id, contact_id)
 VALUES ('88880000-0000-0000-0000-000000000008', 'Mismatch', '11110000-0000-0000-0000-000000000001', '44440000-0000-0000-0000-000000000004');
-`));
+    `);
     check('contact/org mismatch rejected', res.status !== 0 && /n'appartient pas/i.test(res.stderr));
   }
 
@@ -390,51 +392,139 @@ VALUES ('88880000-0000-0000-0000-000000000008', 'Mismatch', '11110000-0000-0000-
 
   // State 5: org=NULL, contact=contact(A) -> DENY (contact without org).
   {
-    const res = psql(asUser('authenticated', ADMIN_UID, `
+    const res = psql(`
 INSERT INTO public.crm_opportunities (id, title, contact_id)
 VALUES ('eeee0000-0000-0000-0000-00000000000e', 'Contact no org', '22220000-0000-0000-0000-000000000002');
-`));
+    `);
     check('state5: org=NULL + contact(A) DENY', res.status !== 0 && /organisation/i.test(res.stderr));
   }
 
   // Reject empty title.
   {
-    const res = psql(asUser('authenticated', ADMIN_UID, `
+    const res = psql(`
 INSERT INTO public.crm_opportunities (id, title) VALUES ('99990000-0000-0000-0000-000000000009', '   ');
-`));
+    `);
     check('empty title rejected', res.status !== 0);
   }
 
-  // Reject invalid stage.
+  // Reject invalid stage (CHECK constraint, tested as postgres).
   {
-    const res = psql(asUser('authenticated', ADMIN_UID, `
+    const res = psql(`
 INSERT INTO public.crm_opportunities (id, title, stage) VALUES ('aaaa0000-0000-0000-0000-00000000000a', 'Bad stage', 'invalid_stage');
-`));
+    `);
     check('invalid stage rejected', res.status !== 0 && /check constraint/i.test(res.stderr));
   }
 
   // Reject probability > 100.
   {
-    const res = psql(asUser('authenticated', ADMIN_UID, `
+    const res = psql(`
 INSERT INTO public.crm_opportunities (id, title, probability) VALUES ('bbbb0000-0000-0000-0000-00000000000b', 'Bad prob', 150);
-`));
+    `);
     check('probability > 100 rejected', res.status !== 0 && /check constraint/i.test(res.stderr));
   }
 
   // Reject negative estimated_value.
   {
-    const res = psql(asUser('authenticated', ADMIN_UID, `
+    const res = psql(`
 INSERT INTO public.crm_opportunities (id, title, estimated_value) VALUES ('cccc0000-0000-0000-0000-00000000000c', 'Neg value', -100);
-`));
+    `);
     check('negative estimated_value rejected', res.status !== 0 && /check constraint/i.test(res.stderr));
   }
 
-  // Reject lost_reason when stage != lost.
+  // Reject lost_reason when stage != lost (CHECK constraint, tested as postgres).
+  {
+    const res = psql(`
+INSERT INTO public.crm_opportunities (id, title, stage, lost_reason) VALUES ('dddd0000-0000-0000-0000-00000000000d', 'Bad reason', 'lead', 'Too expensive');
+    `);
+    check('lost_reason when stage!=lost rejected', res.status !== 0 && /check constraint/i.test(res.stderr));
+  }
+
+  // =========================================================
+  // INSERT PRIVILEGE TESTS (P3B3B)
+  // =========================================================
+  console.log('\n--- INSERT PRIVILEGE TESTS ---');
+
+  // Operator normal INSERT (no id, stage, lost_reason, created_by) -> PASS.
+  {
+    const res = psql(asUser('authenticated', OPERATOR_UID, `
+INSERT INTO public.crm_opportunities (title, lead_first_name, lead_email)
+VALUES ('Operator lead', 'Op', 'op@test.com');
+    `));
+    check('operator normal INSERT PASS', res.status === 0);
+  }
+
+  // Admin normal INSERT -> PASS.
   {
     const res = psql(asUser('authenticated', ADMIN_UID, `
-INSERT INTO public.crm_opportunities (id, title, stage, lost_reason) VALUES ('dddd0000-0000-0000-0000-00000000000d', 'Bad reason', 'lead', 'Too expensive');
-`));
-    check('lost_reason when stage!=lost rejected', res.status !== 0 && /check constraint/i.test(res.stderr));
+INSERT INTO public.crm_opportunities (title, lead_first_name, lead_email)
+VALUES ('Admin lead', 'Adm', 'adm@test.com');
+    `));
+    check('admin normal INSERT PASS', res.status === 0);
+  }
+
+  // Operator INSERT with stage='won' -> DENIED (column privilege).
+  {
+    const res = psql(asUser('authenticated', OPERATOR_UID, `
+INSERT INTO public.crm_opportunities (title, stage) VALUES ('Bad insert stage', 'won');
+    `));
+    check('operator INSERT stage=won DENIED', res.status !== 0);
+  }
+
+  // Operator INSERT with stage='lost' -> DENIED.
+  {
+    const res = psql(asUser('authenticated', OPERATOR_UID, `
+INSERT INTO public.crm_opportunities (title, stage) VALUES ('Bad insert lost', 'lost');
+    `));
+    check('operator INSERT stage=lost DENIED', res.status !== 0);
+  }
+
+  // Admin INSERT with stage='negotiating' -> DENIED.
+  {
+    const res = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_opportunities (title, stage) VALUES ('Bad insert neg', 'negotiating');
+    `));
+    check('admin INSERT stage=negotiating DENIED', res.status !== 0);
+  }
+
+  // Operator INSERT with lost_reason -> DENIED.
+  {
+    const res = psql(asUser('authenticated', OPERATOR_UID, `
+INSERT INTO public.crm_opportunities (title, lost_reason) VALUES ('Bad insert reason', 'Too expensive');
+    `));
+    check('operator INSERT lost_reason DENIED', res.status !== 0);
+  }
+
+  // Admin INSERT with lost_reason -> DENIED.
+  {
+    const res = psql(asUser('authenticated', ADMIN_UID, `
+INSERT INTO public.crm_opportunities (title, lost_reason) VALUES ('Bad insert reason adm', 'Too expensive');
+    `));
+    check('admin INSERT lost_reason DENIED', res.status !== 0);
+  }
+
+  // Operator INSERT with created_by (forge attempt) -> DENIED.
+  {
+    const res = psql(asUser('authenticated', OPERATOR_UID, `
+INSERT INTO public.crm_opportunities (title, created_by) VALUES ('Forge creator', 'ffffffff-0000-0000-0000-0000000000ff');
+    `));
+    check('operator INSERT created_by DENIED (non-forgeable)', res.status !== 0);
+  }
+
+  // Created opportunity has stage='lead' (default).
+  check('created opportunity stage=lead (default)',
+    psqlScalar(`SELECT count(*) FROM public.crm_opportunities WHERE title='Operator lead' AND stage='lead'`) === '1');
+
+  // created_by server-derived (equals auth.uid() of creator).
+  check('created_by server-derived (operator)',
+    psqlScalar(`SELECT count(*) FROM public.crm_opportunities WHERE title='Operator lead' AND created_by='${OPERATOR_UID}'`) === '1');
+  check('created_by server-derived (admin)',
+    psqlScalar(`SELECT count(*) FROM public.crm_opportunities WHERE title='Admin lead' AND created_by='${ADMIN_UID}'`) === '1');
+
+  // Exactly one initial event for the operator-created opportunity.
+  {
+    const opId = psqlScalar(`SELECT id FROM public.crm_opportunities WHERE title='Operator lead'`);
+    check('exactly one initial event for operator-created opp',
+      psqlScalar(`SELECT count(*) FROM public.crm_pipeline_events WHERE opportunity_id='${opId}' AND from_stage IS NULL AND to_stage='lead'`) === '1');
   }
 
   // =========================================================
@@ -695,24 +785,54 @@ DELETE FROM public.crm_opportunities WHERE id='66660000-0000-0000-0000-000000000
   // =========================================================
   console.log('\n--- NO SECURITY DEFINER LEAKAGE ---');
 
-  // Verify exactly 3 SECURITY DEFINER functions from P3B3.
+  // P3B3B: Verify exactly 4 SECURITY DEFINER functions from P3B3.
   const sdCount = psqlScalar(`
 SELECT count(*) FROM pg_proc p
 JOIN pg_namespace n ON p.pronamespace = n.oid
 WHERE n.nspname = 'public'
-  AND p.proname IN ('crm_transition_opportunity', 'crm_opportunities_create_event', 'crm_opportunities_check_contact_org')
+  AND p.proname IN ('crm_transition_opportunity', 'crm_opportunities_create_event', 'crm_opportunities_check_contact_org', 'crm_opportunities_set_created_by')
   AND p.prosecdef = true
 `);
-  check('exactly 3 SECURITY DEFINER functions from P3B3', sdCount === '3');
+  check('exactly 4 SECURITY DEFINER functions from P3B3', sdCount === '4');
 
-  // Transition RPC has search_path = ''.
-  const spResult = psqlScalar(`
+  // P3B3B: All 4 SECURITY DEFINER functions must have search_path = ''.
+  const sdFunctions = [
+    'crm_transition_opportunity',
+    'crm_opportunities_create_event',
+    'crm_opportunities_check_contact_org',
+    'crm_opportunities_set_created_by',
+  ];
+  for (const fn of sdFunctions) {
+    const spResult = psqlScalar(`
 SELECT (config).setting FROM pg_proc p
 JOIN pg_namespace n ON p.pronamespace = n.oid
 CROSS JOIN LATERAL unnest(p.proconfig) AS config
-WHERE n.nspname = 'public' AND p.proname = 'crm_transition_opportunity'
+WHERE n.nspname = 'public' AND p.proname = '${fn}'
 `);
-  check('transition RPC has search_path = \'\'', spResult === '');
+    check(`${fn} has search_path = ''`, spResult === '');
+  }
+
+  // P3B3B: Trigger functions have EXECUTE revoked from authenticated.
+  const execRevokedCreateEvent = psqlScalar(`
+SELECT count(*) FROM information_schema.role_routine_grants
+WHERE routine_schema = 'public' AND routine_name = 'crm_opportunities_create_event'
+  AND grantee = 'authenticated' AND privilege_type = 'EXECUTE'
+`);
+  check('create_event EXECUTE revoked from authenticated', execRevokedCreateEvent === '0');
+
+  const execRevokedCheckOrg = psqlScalar(`
+SELECT count(*) FROM information_schema.role_routine_grants
+WHERE routine_schema = 'public' AND routine_name = 'crm_opportunities_check_contact_org'
+  AND grantee = 'authenticated' AND privilege_type = 'EXECUTE'
+`);
+  check('check_contact_org EXECUTE revoked from authenticated', execRevokedCheckOrg === '0');
+
+  const execRevokedSetCreatedBy = psqlScalar(`
+SELECT count(*) FROM information_schema.role_routine_grants
+WHERE routine_schema = 'public' AND routine_name = 'crm_opportunities_set_created_by'
+  AND grantee = 'authenticated' AND privilege_type = 'EXECUTE'
+`);
+  check('set_created_by EXECUTE revoked from authenticated', execRevokedSetCreatedBy === '0');
 
   // =========================================================
   // ATOMIC BEHAVIOR (structural)

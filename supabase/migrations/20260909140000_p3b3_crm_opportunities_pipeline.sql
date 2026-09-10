@@ -20,17 +20,23 @@
 --     SECURITY DEFINER. Ensures contact/org integrity (5-state matrix):
 --     if contact_id is non-null, organization_id must be non-null and
 --     match the contact's organization.
+--   crm_opportunities_set_created_by       — BEFORE INSERT
+--     SECURITY DEFINER. Sets created_by = auth.uid() server-side.
+--     created_by is NOT in the column-level INSERT grant (non-forgeable).
 --   crm_opportunities_create_event         — AFTER INSERT
 --     SECURITY DEFINER. Creates initial pipeline event
 --     (from_stage=NULL, to_stage='lead').
 --   crm_pipeline_events_immutable          — BEFORE UPDATE/DELETE
 --     Blocks all direct mutation unconditionally.
 --
--- Stage mutation hardening (P3B3A):
---   No stage-specific trigger. Primary control is column-level UPDATE
---   privileges: authenticated has NO UPDATE on stage or lost_reason.
+-- Stage mutation + creation hardening (P3B3A + P3B3B):
+--   No stage-specific trigger. Primary control is column-level INSERT
+--   and UPDATE privileges: authenticated has NO INSERT or UPDATE on
+--   stage, lost_reason, created_by, id, created_at, updated_at.
 --   crm_transition_opportunity() (SECURITY DEFINER, runs as owner)
---   bypasses column privileges and is the only stage write path.
+--   bypasses column privileges and is the only stage/lost_reason write path.
+--   At INSERT time, stage defaults to 'lead' and cannot be overridden
+--   by authenticated users (no INSERT privilege on stage column).
 --
 -- RLS:
 --   crm_opportunities: is_internal_user() for SELECT/INSERT/UPDATE.
@@ -38,11 +44,13 @@
 --   crm_pipeline_events: is_internal_user() SELECT only.
 --     No INSERT/UPDATE/DELETE for authenticated (RPC-only writes).
 --
--- SECURITY DEFINER functions introduced by P3B3 (exactly 2):
+-- SECURITY DEFINER functions introduced by P3B3 (exactly 4, all with
+-- SET search_path = ''):
 --   1. public.crm_transition_opportunity (transition RPC)
 --   2. public.crm_opportunities_create_event (creation event trigger)
---   (crm_opportunities_check_contact_org is also SECURITY DEFINER but
---   is a trigger function, not a directly callable RPC — total 3.)
+--   3. public.crm_opportunities_check_contact_org (contact/org trigger)
+--   4. public.crm_opportunities_set_created_by (created_by trigger)
+-- All trigger functions have EXECUTE revoked from PUBLIC, anon, authenticated.
 -- =========================================================
 
 BEGIN;
@@ -209,13 +217,42 @@ END;
 $$;
 
 ALTER FUNCTION public.crm_opportunities_check_contact_org() OWNER TO postgres;
-REVOKE EXECUTE ON FUNCTION public.crm_opportunities_check_contact_org() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.crm_opportunities_check_contact_org() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS crm_opportunities_contact_org_check ON public.crm_opportunities;
 CREATE TRIGGER crm_opportunities_contact_org_check
   BEFORE INSERT OR UPDATE ON public.crm_opportunities
   FOR EACH ROW
   EXECUTE FUNCTION public.crm_opportunities_check_contact_org();
+
+-- =========================================================
+-- 4b. TRIGGER: created_by server-derivation (BEFORE INSERT)
+-- =========================================================
+-- created_by is audit metadata identifying the authenticated creator.
+-- It is NOT in the column-level INSERT grant, so authenticated users
+-- cannot forge it. This trigger sets it server-side from auth.uid().
+-- SECURITY DEFINER so it can call auth.uid() reliably.
+
+CREATE OR REPLACE FUNCTION public.crm_opportunities_set_created_by()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  NEW.created_by := auth.uid();
+  RETURN NEW;
+END;
+$$;
+
+ALTER FUNCTION public.crm_opportunities_set_created_by() OWNER TO postgres;
+REVOKE EXECUTE ON FUNCTION public.crm_opportunities_set_created_by() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS crm_opportunities_set_created_by ON public.crm_opportunities;
+CREATE TRIGGER crm_opportunities_set_created_by
+  BEFORE INSERT ON public.crm_opportunities
+  FOR EACH ROW
+  EXECUTE FUNCTION public.crm_opportunities_set_created_by();
 
 -- =========================================================
 -- 5. STAGE MUTATION HARDENING (column-level privileges)
@@ -345,12 +382,36 @@ ALTER TABLE public.crm_opportunities ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.crm_opportunities FROM PUBLIC;
 REVOKE ALL ON public.crm_opportunities FROM anon;
 REVOKE ALL ON public.crm_opportunities FROM authenticated;
--- P3B3A: Column-level UPDATE privileges.
--- Table-wide UPDATE is NOT granted to authenticated. Only mutable
--- non-stage, non-lost_reason columns get UPDATE. stage and lost_reason
--- are writable only via crm_transition_opportunity() (SECURITY DEFINER,
--- runs as owner postgres, bypasses column privileges).
-GRANT SELECT, INSERT, DELETE ON public.crm_opportunities TO authenticated;
+-- P3B3B: Column-level INSERT + UPDATE privileges.
+-- Table-wide INSERT and UPDATE are NOT granted to authenticated.
+-- Only mutable non-protected columns get INSERT/UPDATE.
+--
+-- Protected columns (NOT in INSERT or UPDATE grants):
+--   id           — default gen_random_uuid()
+--   stage        — default 'lead', writable only via crm_transition_opportunity()
+--   lost_reason  — lifecycle controlled by transition RPC
+--   created_at   — DB default now()
+--   updated_at   — trigger-managed (public.set_updated_at())
+--   created_by   — server-derived via BEFORE INSERT trigger (auth.uid())
+GRANT SELECT, DELETE ON public.crm_opportunities TO authenticated;
+GRANT INSERT (
+  organization_id,
+  contact_id,
+  title,
+  estimated_value,
+  probability,
+  source,
+  source_detail,
+  campaign,
+  external_reference,
+  lead_first_name,
+  lead_last_name,
+  lead_email,
+  lead_phone,
+  next_action,
+  next_action_at,
+  last_contact_at
+) ON public.crm_opportunities TO authenticated;
 GRANT UPDATE (
   organization_id,
   contact_id,
@@ -367,11 +428,10 @@ GRANT UPDATE (
   lead_phone,
   next_action,
   next_action_at,
-  last_contact_at,
-  created_by
+  last_contact_at
 ) ON public.crm_opportunities TO authenticated;
--- updated_at is trigger-managed (public.set_updated_at()), not client-controlled.
--- stage and lost_reason intentionally NOT in the column-level UPDATE grant.
+-- stage, lost_reason, created_by, id, created_at, updated_at intentionally
+-- NOT in the column-level INSERT or UPDATE grants.
 GRANT ALL ON public.crm_opportunities TO service_role;
 
 -- SELECT: internal users only.
@@ -470,7 +530,7 @@ END;
 $$;
 
 ALTER FUNCTION public.crm_opportunities_create_event() OWNER TO postgres;
-REVOKE EXECUTE ON FUNCTION public.crm_opportunities_create_event() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.crm_opportunities_create_event() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS crm_opportunities_create_event ON public.crm_opportunities;
 CREATE TRIGGER crm_opportunities_create_event

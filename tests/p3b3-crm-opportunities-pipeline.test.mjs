@@ -275,6 +275,14 @@ assert.doesNotMatch(
 );
 console.log('  ✓ no table-wide UPDATE grant to authenticated on crm_opportunities');
 
+// P3B3B: No table-wide INSERT grant either.
+assert.doesNotMatch(
+  sql,
+  /GRANT\s+SELECT,\s*INSERT,\s*DELETE\s+ON\s+public\.crm_opportunities\s+TO\s+authenticated/i,
+  'no table-wide INSERT grant to authenticated on crm_opportunities',
+);
+console.log('  ✓ no table-wide INSERT grant to authenticated on crm_opportunities');
+
 // Column-level UPDATE granted on non-stage columns.
 assert.match(
   sql,
@@ -301,6 +309,14 @@ assert.doesNotMatch(
 );
 console.log('  ✓ lost_reason column NOT in column-level UPDATE grant');
 
+// created_by NOT in column-level UPDATE grant (server-derived).
+assert.doesNotMatch(
+  updateGrantBlock[1],
+  /\bcreated_by\b/i,
+  'created_by NOT in column-level UPDATE grant (server-derived)',
+);
+console.log('  ✓ created_by NOT in column-level UPDATE grant (server-derived)');
+
 // updated_at NOT in column-level UPDATE grant (trigger-managed).
 assert.doesNotMatch(
   updateGrantBlock[1],
@@ -309,11 +325,69 @@ assert.doesNotMatch(
 );
 console.log('  ✓ updated_at NOT in column-level UPDATE grant (trigger-managed)');
 
-// SELECT, INSERT, DELETE still granted to authenticated.
+// P3B3B: Column-level INSERT granted on non-protected columns.
 assert.match(
   sql,
-  /GRANT\s+SELECT,\s*INSERT,\s*DELETE\s+ON\s+public\.crm_opportunities\s+TO\s+authenticated/i,
-  'SELECT, INSERT, DELETE granted to authenticated',
+  /GRANT\s+INSERT\s*\([^)]*organization_id[^)]*\)\s+ON\s+public\.crm_opportunities\s+TO\s+authenticated/i,
+  'column-level INSERT granted on non-protected columns',
+);
+console.log('  ✓ column-level INSERT granted on non-protected columns');
+
+// stage column NOT in any column-level INSERT grant.
+const insertGrantBlock = sql.match(/GRANT\s+INSERT\s*\(([^)]*)\)\s+ON\s+public\.crm_opportunities\s+TO\s+authenticated/is);
+assert.ok(insertGrantBlock, 'column-level INSERT grant block found');
+assert.doesNotMatch(
+  insertGrantBlock[1],
+  /\bstage\b/i,
+  'stage column NOT in column-level INSERT grant',
+);
+console.log('  ✓ stage column NOT in column-level INSERT grant');
+
+// lost_reason column NOT in any column-level INSERT grant.
+assert.doesNotMatch(
+  insertGrantBlock[1],
+  /\blost_reason\b/i,
+  'lost_reason column NOT in column-level INSERT grant',
+);
+console.log('  ✓ lost_reason column NOT in column-level INSERT grant');
+
+// created_by NOT in column-level INSERT grant (server-derived).
+assert.doesNotMatch(
+  insertGrantBlock[1],
+  /\bcreated_by\b/i,
+  'created_by NOT in column-level INSERT grant (server-derived)',
+);
+console.log('  ✓ created_by NOT in column-level INSERT grant (server-derived)');
+
+// id NOT in column-level INSERT grant (default generated).
+assert.doesNotMatch(
+  insertGrantBlock[1],
+  /\bid\b/i,
+  'id NOT in column-level INSERT grant (default generated)',
+);
+console.log('  ✓ id NOT in column-level INSERT grant (default generated)');
+
+// created_at NOT in column-level INSERT grant (DB default).
+assert.doesNotMatch(
+  insertGrantBlock[1],
+  /\bcreated_at\b/i,
+  'created_at NOT in column-level INSERT grant (DB default)',
+);
+console.log('  ✓ created_at NOT in column-level INSERT grant (DB default)');
+
+// updated_at NOT in column-level INSERT grant (trigger-managed).
+assert.doesNotMatch(
+  insertGrantBlock[1],
+  /\bupdated_at\b/i,
+  'updated_at NOT in column-level INSERT grant (trigger-managed)',
+);
+console.log('  ✓ updated_at NOT in column-level INSERT grant (trigger-managed)');
+
+// SELECT, DELETE still granted to authenticated (no table-wide INSERT/UPDATE).
+assert.match(
+  sql,
+  /GRANT\s+SELECT,\s*DELETE\s+ON\s+public\.crm_opportunities\s+TO\s+authenticated/i,
+  'SELECT, DELETE granted to authenticated (no table-wide INSERT/UPDATE)',
 );
 console.log('  ✓ SELECT, INSERT, DELETE granted to authenticated');
 
@@ -433,7 +507,7 @@ const rlsOppChecks = [
   ['REVOKE ALL FROM PUBLIC', /REVOKE ALL ON public\.crm_opportunities FROM PUBLIC/i],
   ['REVOKE ALL FROM anon', /REVOKE ALL ON public\.crm_opportunities FROM anon/i],
   ['REVOKE ALL FROM authenticated', /REVOKE ALL ON public\.crm_opportunities FROM authenticated/i],
-  ['GRANT SELECT, INSERT, DELETE to authenticated (no table UPDATE)', /GRANT\s+SELECT,\s*INSERT,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i],
+  ['GRANT SELECT, DELETE to authenticated (no table INSERT/UPDATE)', /GRANT\s+SELECT,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i],
   ['GRANT ALL to service_role', /GRANT ALL ON public\.crm_opportunities TO service_role/i],
   ['SELECT policy uses is_internal_user', /crm_opportunities_select_internal[\s\S]*FOR SELECT[\s\S]*is_internal_user\(\)/i],
   ['INSERT policy uses is_internal_user', /crm_opportunities_insert_internal[\s\S]*FOR INSERT[\s\S]*is_internal_user\(\)/i],
@@ -499,9 +573,9 @@ console.log('  ✓ RPC GRANT EXECUTE to authenticated');
 
 const consistencyChecks = [
   {
-    name: 'opportunities INSERT policy has matching GRANT',
+    name: 'opportunities INSERT policy has matching column-level GRANT',
     policy: /crm_opportunities_insert_internal[\s\S]*FOR INSERT/i,
-    grant: /GRANT\s+SELECT,\s*INSERT,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i,
+    grant: /GRANT\s+INSERT\s*\([^)]*\)\s+ON\s+public\.crm_opportunities\s+TO\s+authenticated/i,
   },
   {
     name: 'opportunities UPDATE policy has matching column-level GRANT',
@@ -511,7 +585,7 @@ const consistencyChecks = [
   {
     name: 'opportunities DELETE policy has matching GRANT',
     policy: /crm_opportunities_delete_admin[\s\S]*FOR DELETE/i,
-    grant: /GRANT\s+SELECT,\s*INSERT,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i,
+    grant: /GRANT\s+SELECT,\s*DELETE\s+ON public\.crm_opportunities TO authenticated/i,
   },
 ];
 
@@ -522,15 +596,83 @@ for (const { name, policy, grant } of consistencyChecks) {
 }
 
 // =========================================================
-// NO SECURITY DEFINER EXCEPT TRANSITION RPC + CREATION EVENT + CONTACT/ORG CHECK
+// SECURITY DEFINER INVENTORY + SEARCH_PATH AUDIT
 // =========================================================
+// P3B3B: All 4 SECURITY DEFINER functions must have SET search_path = ''.
 // Count SECURITY DEFINER as a function attribute (at start of line, not in a comment).
 // Strip all comment lines (including indented ones) before counting.
 const sqlNoComments2 = sql.replace(/^\s*--[^\n]*$/gm, '');
 const securityDefinerCount = (sqlNoComments2.match(/^SECURITY\s+DEFINER/gim) || []).length;
-// Expected: crm_transition_opportunity + crm_opportunities_create_event + crm_opportunities_check_contact_org = 3
-assert.equal(securityDefinerCount, 3, `exactly 3 SECURITY DEFINER functions (transition RPC, creation event, contact/org check), found ${securityDefinerCount}`);
-console.log(`  ✓ exactly 3 SECURITY DEFINER functions (count=${securityDefinerCount})`);
+// Expected: crm_transition_opportunity + crm_opportunities_create_event +
+// crm_opportunities_check_contact_org + crm_opportunities_set_created_by = 4
+assert.equal(securityDefinerCount, 4, `exactly 4 SECURITY DEFINER functions, found ${securityDefinerCount}`);
+console.log(`  ✓ exactly 4 SECURITY DEFINER functions (count=${securityDefinerCount})`);
+
+// All 4 SECURITY DEFINER functions must have SET search_path = ''.
+const sdFunctions = [
+  'crm_transition_opportunity',
+  'crm_opportunities_create_event',
+  'crm_opportunities_check_contact_org',
+  'crm_opportunities_set_created_by',
+];
+for (const fn of sdFunctions) {
+  const block = sql.match(
+    new RegExp(`CREATE\\s+OR\\s+REPLACE\\s+FUNCTION\\s+public\\.${fn}\\([\\s\\S]*?\\$\\$;`, 'i'),
+  );
+  assert.ok(block, `function block found for ${fn}`);
+  assert.match(block[0], /SECURITY\s+DEFINER/i, `${fn} is SECURITY DEFINER`);
+  assert.match(block[0], /SET\s+search_path\s*=\s*''/i, `${fn} has SET search_path = ''`);
+  console.log(`  ✓ ${fn}: SECURITY DEFINER + SET search_path = ''`);
+}
+
+// =========================================================
+// TRIGGER FUNCTION EXECUTE REVOCATIONS
+// =========================================================
+// Trigger functions should not be directly callable by authenticated/anon.
+assert.match(
+  sql,
+  /REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.crm_opportunities_create_event\(\)\s+FROM\s+PUBLIC,\s*anon,\s*authenticated/i,
+  'create_event EXECUTE revoked from PUBLIC, anon, authenticated',
+);
+console.log('  ✓ create_event EXECUTE revoked from PUBLIC, anon, authenticated');
+
+assert.match(
+  sql,
+  /REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.crm_opportunities_check_contact_org\(\)\s+FROM\s+PUBLIC,\s*anon,\s*authenticated/i,
+  'check_contact_org EXECUTE revoked from PUBLIC, anon, authenticated',
+);
+console.log('  ✓ check_contact_org EXECUTE revoked from PUBLIC, anon, authenticated');
+
+assert.match(
+  sql,
+  /REVOKE\s+EXECUTE\s+ON\s+FUNCTION\s+public\.crm_opportunities_set_created_by\(\)\s+FROM\s+PUBLIC,\s*anon,\s*authenticated/i,
+  'set_created_by EXECUTE revoked from PUBLIC, anon, authenticated',
+);
+console.log('  ✓ set_created_by EXECUTE revoked from PUBLIC, anon, authenticated');
+
+// =========================================================
+// CREATED_BY SERVER-DERIVATION TRIGGER
+// =========================================================
+assert.match(
+  sql,
+  /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.crm_opportunities_set_created_by\(\)/i,
+  'set_created_by function exists',
+);
+console.log('  ✓ set_created_by function exists');
+
+assert.match(
+  sql,
+  /CREATE\s+TRIGGER\s+crm_opportunities_set_created_by/i,
+  'set_created_by trigger exists',
+);
+console.log('  ✓ set_created_by trigger exists');
+
+assert.match(
+  sql,
+  /NEW\.created_by\s*:=\s*auth\.uid\(\)/i,
+  'set_created_by assigns auth.uid()',
+);
+console.log('  ✓ set_created_by assigns auth.uid()');
 
 // =========================================================
 // NO MODIFICATION TO EXISTING TABLES
