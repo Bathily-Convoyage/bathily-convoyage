@@ -1,0 +1,60 @@
+# Bathily-Convoyage — Current State
+
+Snapshot opérationnel court. Mis à jour après chaque milestone.
+
+Liens :
+- Plan : [ROADMAP.md](ROADMAP.md)
+- Décisions : [DECISIONS.md](DECISIONS.md)
+
+Last updated: 2026-09-11
+
+```text
+PROJECT
+Bathily-Convoyage
+
+LAST_CLOSED
+PROJECT-GOV-1 — Roadmap & Governance Baseline
+STATUS=CLOSED_PASS
+
+PREVIOUS_TECHNICAL_MILESTONE
+P3C2 — CRM Business Actions
+STATUS=CLOSED_PASS
+
+PRODUCTION_GIT
+main=f60e325022387724ca254ca7afdd79339eb9f895
+PR_91=MERGED
+
+PRODUCTION_CLOUDFLARE
+STATUS=PASS
+SOURCE_BRANCH=main
+SOURCE_SHA=f60e325...
+
+PRODUCTION_SUPABASE
+P3C2_MIGRATION_1=20260911120000
+P3C2_MIGRATION_2=20260911130000
+MIGRATION_HISTORY_ALIGNED=YES
+P3C2_PROD_SMOKE=PASS
+
+ACTIVE_ROADMAP_ITEM
+NONE
+
+NEXT_ROADMAP_ITEM
+RM-01 — CRM Production Hardening
+
+FOLLOWING
+RM-02 — Ajustements Positionnement commercial
+
+CURRENT_GATE
+RM_01_NOT_STARTED
+
+REMOTE_AUTHORIZATION
+NONE
+
+KNOWN_LOCAL_NON_PROJECT_ARTIFACT
+répondeur.mp3
+MUST_NOT_TOUCH=YES
+```
+
+Notes :
+- `origin/main` vérifié à `f60e325022387724ca254ca7afdd79339eb9f895` lors de l'audit PROJECT-GOV-1 (2026-09-11).
+- PROJECT-GOV-1 prepared on branch `chore/project-gov-1` from verified `origin/main`=`f60e325022387724ca254ca7afdd79339eb9f895`.
