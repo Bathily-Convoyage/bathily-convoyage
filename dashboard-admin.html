@@ -1702,6 +1702,16 @@
     .crm-tl-meta { font-size: 0.7rem; color: var(--gray-mid); margin-top: 4px; }
     .crm-tl-date { font-size: 0.65rem; color: var(--gray-mid); margin-top: 4px; }
     .crm-tl-filters .crm-input { flex: 1 1 160px; }
+    /* P3C2 — CRM MUTATION UI */
+    .crm-detail-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+    .crm-sec-btn { margin-left: auto; }
+    .crm-card-btn { margin-top: 8px; }
+    .crm-chk-lbl { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer; }
+    .crm-seg-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .crm-seg-toggle { display: flex; align-items: center; gap: 4px; padding: 6px 10px; border: 1px solid var(--border-light); border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
+    .crm-seg-toggle input { margin: 0; }
+    #crmModalBody .f-row { flex-wrap: wrap; }
+    #crmModalBody .f-grp { flex: 1 1 200px; min-width: 200px; }
     @media (max-width: 900px) {
       .crm-kpis { grid-template-columns: 1fr 1fr; }
     }
@@ -2624,6 +2634,16 @@ Cadeau premium personnalisé</textarea>
         <div id="crmTimelineMore" style="text-align:center;margin:12px 0;"></div>
       </div>
     </main>
+  </div>
+
+  <!-- CRM MUTATION MODAL (P3C2) -->
+  <div class="modal-overlay" id="crmModalOverlay">
+    <div class="modal-box" style="max-width:700px;">
+      <button class="modal-close" onclick="CrmAdmin.closeModal()"><i class="fas fa-times"></i></button>
+      <h3 class="modal-h" id="crmModalTitle">CRM</h3>
+      <div id="crmModalBody" style="max-height:60vh;overflow-y:auto;"></div>
+      <div id="crmModalFooter" style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;"></div>
+    </div>
   </div>
 
   <!-- MODALS -->
