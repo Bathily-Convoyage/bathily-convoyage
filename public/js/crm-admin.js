@@ -124,6 +124,11 @@
   var _oppData = [];
   var _oppMap = {};              // id -> opportunity row (edit lookup)
   var _oppFilters = { q: '', stage: 'all' };
+  var OPP_PAGE_SIZE = 100;       // RM01A-008: bounded opportunity loading
+  // RM-01E-R2: offset tracks raw backend page position (advances by
+  // page.length, not deduped count) to prevent range overlap on duplicates.
+  // loaded tracks the deduped renderable count for display only.
+  var _oppCursor = { offset: 0, loaded: 0, hasMore: false, loading: false };
   var _actData = [];
   var _actMap = {};              // id -> activity row (edit lookup)
   var _actFilters = { q: '', type: 'all', status: 'all', org: 'all' };
@@ -498,26 +503,33 @@
       if (orgRes.error) { handleRpcError(orgRes.error, 'crmOrgDetailBody', 'organizations select'); return; }
       if (!orgRes.data) { setError('crmOrgDetailBody', 'Organisation introuvable.'); return; }
 
-      // Parallel reads of children + linked entities.
-      var segRes = await client.from('organization_segments').select('segment').eq('organization_id', id);
-      var sitesRes = await client.from('organization_sites')
-        .select('id,name,site_type,address_line1,address_line2,postal_code,city,country,phone,email,active')
-        .eq('organization_id', id).order('created_at', { ascending: true });
-      var contactsRes = await client.from('organization_contacts')
-        .select('id,first_name,last_name,job_title,department,email,phone,mobile,preferred_channel,decision_maker,primary_contact,active,notes')
-        .eq('organization_id', id).order('primary_contact', { ascending: false });
-      var oppRes = await client.from('crm_opportunities')
-        .select('id,title,stage,estimated_value,probability,source,next_action,next_action_at,last_contact_at,lost_reason,created_at')
-        .eq('organization_id', id).order('created_at', { ascending: false });
-      var actRes = await client.from('crm_activities')
-        .select('id,activity_type,subject,status,occurred_at,due_at,completed_at,assigned_to,created_by,opportunity_id')
-        .eq('organization_id', id).order('created_at', { ascending: false }).limit(50);
-      var devisRes = await client.from('devis')
-        .select('id,reference,status,total_ht,created_at')
-        .eq('organization_id', id).order('created_at', { ascending: false }).limit(50);
-      var missRes = await client.from('missions')
-        .select('id,reference,status,created_at,devis_id')
-        .eq('organization_id', id).order('created_at', { ascending: false }).limit(50);
+      // RM01A-009: parallelize independent child/linked reads with Promise.all.
+      // All 7 reads are scoped by the same organization_id and none depends on
+      // another's result. The org identity read above is sequential (it gates
+      // the rest — if the org doesn't exist, children are meaningless).
+      var results = await Promise.all([
+        client.from('organization_segments').select('segment').eq('organization_id', id),
+        client.from('organization_sites')
+          .select('id,name,site_type,address_line1,address_line2,postal_code,city,country,phone,email,active')
+          .eq('organization_id', id).order('created_at', { ascending: true }),
+        client.from('organization_contacts')
+          .select('id,first_name,last_name,job_title,department,email,phone,mobile,preferred_channel,decision_maker,primary_contact,active,notes')
+          .eq('organization_id', id).order('primary_contact', { ascending: false }),
+        client.from('crm_opportunities')
+          .select('id,title,stage,estimated_value,probability,source,next_action,next_action_at,last_contact_at,lost_reason,created_at')
+          .eq('organization_id', id).order('created_at', { ascending: false }),
+        client.from('crm_activities')
+          .select('id,activity_type,subject,status,occurred_at,due_at,completed_at,assigned_to,created_by,opportunity_id')
+          .eq('organization_id', id).order('created_at', { ascending: false }).limit(50),
+        client.from('devis')
+          .select('id,reference,status,total_ht,created_at')
+          .eq('organization_id', id).order('created_at', { ascending: false }).limit(50),
+        client.from('missions')
+          .select('id,reference,status,created_at,devis_id')
+          .eq('organization_id', id).order('created_at', { ascending: false }).limit(50)
+      ]);
+      var segRes = results[0], sitesRes = results[1], contactsRes = results[2],
+          oppRes = results[3], actRes = results[4], devisRes = results[5], missRes = results[6];
 
       var errors = [segRes, sitesRes, contactsRes, oppRes, actRes, devisRes, missRes].filter(function (r) { return r.error; });
       if (errors.length) {
@@ -746,18 +758,37 @@
   // ---------------------------------------------------------
   // OPPORTUNITIES
   // ---------------------------------------------------------
-  async function loadCrmOpportunities() {
+  async function loadCrmOpportunities(reset) {
     var client = sb();
     if (!client) { setError('crmOppBody', 'Client Supabase indisponible.'); return; }
-    setLoading('crmOppBody', 'Chargement des opportunités…');
+    if (reset || !_oppCursor.loaded) {
+      _oppData = [];
+      _oppMap = {};
+      _oppCursor = { offset: 0, loaded: 0, hasMore: false, loading: false };
+      setLoading('crmOppBody', 'Chargement des opportunités…');
+    }
+    _oppCursor.loading = true;
     try {
+      // RM01A-008: bounded select with deterministic ordering and page size.
+      // RM-01E-R2: secondary order on immutable unique 'id' ensures a stable
+      // total order for range pagination (prevents duplicates/skips when
+      // multiple rows share the same created_at).
       var res = await client.from('crm_opportunities')
         .select('id,title,stage,estimated_value,probability,source,source_detail,next_action,next_action_at,last_contact_at,organization_id,contact_id,created_at,lost_reason')
-        .order('created_at', { ascending: false });
-      if (res.error) { handleRpcError(res.error, 'crmOppBody', 'crm_opportunities select'); return; }
-      _oppData = res.data || [];
-      _oppMap = {};
-      _oppData.forEach(function (op) { _oppMap[op.id] = op; });
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .range(_oppCursor.offset, _oppCursor.offset + OPP_PAGE_SIZE - 1);
+      if (res.error) { handleRpcError(res.error, 'crmOppBody', 'crm_opportunities select'); _oppCursor.loading = false; return; }
+      var page = res.data || [];
+      // RM-01E-R2: advance offset by RAW page length (not deduped count)
+      // to prevent range overlap when duplicates appear.
+      _oppCursor.offset += page.length;
+      // Detect if more pages exist (Supabase range returns exactly PAGE_SIZE when more exist).
+      _oppCursor.hasMore = page.length === OPP_PAGE_SIZE;
+      page.forEach(function (op) {
+        if (!_oppMap[op.id]) { _oppData.push(op); _oppMap[op.id] = op; }
+      });
+      _oppCursor.loaded = _oppData.length;
       // Ensure org map is populated for name lookups.
       if (!_orgMap || Object.keys(_orgMap).length === 0) {
         try {
@@ -770,13 +801,18 @@
           }
         } catch (_) {}
       }
-      // Resolve contact names for the opportunities list. Only populate
-      // _contactMap if it is empty (the org detail loader populates it
-      // with full contact objects needed for editing).
-      if (_oppData.length && Object.keys(_contactMap).length === 0) {
+      // RM01A-010: scoped contact loading. Instead of a global 1000-row fetch,
+      // collect unique contact_ids from the loaded opportunities and fetch
+      // only those contacts (bounded by the page size). No N+1 — single
+      // batched read using .in().
+      var contactIds = [];
+      page.forEach(function (op) {
+        if (op.contact_id && !_contactMap[op.contact_id]) contactIds.push(op.contact_id);
+      });
+      if (contactIds.length) {
         try {
           var ct = await client.from('organization_contacts')
-            .select('id,first_name,last_name').limit(1000);
+            .select('id,first_name,last_name').in('id', contactIds);
           if (!ct.error && ct.data) {
             ct.data.forEach(function (c) { _contactMap[c.id] = c; });
           }
@@ -784,6 +820,12 @@
       }
       renderCrmOpportunities();
     } catch (e) { handleRpcError(e, 'crmOppBody', 'loadCrmOpportunities'); }
+    _oppCursor.loading = false;
+  }
+
+  function loadMoreOpportunities() {
+    if (_oppCursor.loading || !_oppCursor.hasMore) return Promise.resolve();
+    return loadCrmOpportunities(false);
   }
 
   function renderCrmOpportunities() {
@@ -805,8 +847,25 @@
     var body = document.getElementById('crmOppBody');
     if (!body) return;
     var html = '<button class="btn-red btn-sm" style="margin-bottom:12px;" onclick="CrmAdmin.openCreateOpportunityForm()"><i class="fas fa-plus"></i> Nouvelle opportunité</button>';
+    // RM-01E-R2: filter truncation disclosure. Filters are client-side over
+    // loaded rows only. Never claim global "no result" when hasMore is true.
+    var filtersActive = (_oppFilters.stage !== 'all') || !!((_oppFilters.q || '').trim());
+    var incomplete = _oppCursor.hasMore;
+    if (incomplete && filtersActive && rows.length > 0) {
+      html += '<div class="crm-muted" style="margin-bottom:8px;"><i class="fas fa-info-circle"></i> ' +
+        'Résultats parmi les opportunités chargées. D\'autres opportunités ne sont pas encore chargées.</div>';
+    }
     if (!rows.length) {
-      html += '<div class="crm-state crm-empty"><i class="fas fa-inbox"></i> Aucune opportunité.</div>';
+      if (incomplete && filtersActive) {
+        // Search/filter covers only loaded rows; more rows exist in DB.
+        html += '<div class="crm-state crm-empty"><i class="fas fa-search"></i> ' +
+          'Aucune opportunité chargée ne correspond à votre recherche. ' +
+          'D\'autres opportunités ne sont pas encore chargées.</div>' +
+          '<div style="margin-top:8px;"><button class="btn-outline" onclick="CrmAdmin.loadMoreOpportunities()"' +
+          (_oppCursor.loading ? ' disabled' : '') + '><i class="fas fa-arrow-down"></i> Afficher plus</button></div>';
+      } else {
+        html += '<div class="crm-state crm-empty"><i class="fas fa-inbox"></i> Aucune opportunité.</div>';
+      }
       body.innerHTML = html;
       return;
     }
@@ -837,6 +896,14 @@
         '</tr>';
     });
     html += '</tbody></table></div>';
+    // RM01A-008: load-more button when more pages exist.
+    if (_oppCursor.hasMore) {
+      html += '<div id="crmOppMore" style="margin-top:12px;">' +
+        '<button class="btn-outline" onclick="CrmAdmin.loadMoreOpportunities()" ' +
+        (_oppCursor.loading ? 'disabled' : '') + '>' +
+        (_oppCursor.loading ? '<i class="fas fa-spinner fa-spin"></i> Chargement…' : '<i class="fas fa-arrow-down"></i> Afficher plus') +
+        '</button></div>';
+    }
     body.innerHTML = html;
   }
   function setOppFilter(key, val) { _oppFilters[key] = val; renderCrmOpportunities(); }
@@ -2218,6 +2285,7 @@
     loadDashboard: loadCrmDashboard,
     loadOrganizations: loadCrmOrganizations,
     loadOpportunities: loadCrmOpportunities,
+    loadMoreOpportunities: loadMoreOpportunities,
     loadActivities: loadCrmActivities,
     loadTimeline: loadCrmTimeline,
     openOrgDetail: openCrmOrgDetail,
@@ -2287,6 +2355,13 @@
     _CRM_ERROR_MAP: CRM_ERROR_MAP,
     _actorLabel: actorLabel,
     _setInternalUserMapForTest: function (m) { _internalUserMap = m || {}; },
-    _renderTimelineRow: renderTimelineRow
+    _renderTimelineRow: renderTimelineRow,
+    // RM-01E test helpers
+    _OPP_PAGE_SIZE: OPP_PAGE_SIZE,
+    _getOppCursorForTest: function () { return _oppCursor; },
+    _setOppCursorForTest: function (c) { _oppCursor = c; },
+    _loadCrmOrgDetail: loadCrmOrgDetail,
+    _loadCrmOpportunities: loadCrmOpportunities,
+    _loadMoreOpportunities: loadMoreOpportunities
   };
 })();
