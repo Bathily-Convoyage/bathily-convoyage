@@ -125,7 +125,10 @@
   var _oppMap = {};              // id -> opportunity row (edit lookup)
   var _oppFilters = { q: '', stage: 'all' };
   var OPP_PAGE_SIZE = 100;       // RM01A-008: bounded opportunity loading
-  var _oppCursor = { loaded: 0, hasMore: false, loading: false };
+  // RM-01E-R2: offset tracks raw backend page position (advances by
+  // page.length, not deduped count) to prevent range overlap on duplicates.
+  // loaded tracks the deduped renderable count for display only.
+  var _oppCursor = { offset: 0, loaded: 0, hasMore: false, loading: false };
   var _actData = [];
   var _actMap = {};              // id -> activity row (edit lookup)
   var _actFilters = { q: '', type: 'all', status: 'all', org: 'all' };
@@ -761,18 +764,25 @@
     if (reset || !_oppCursor.loaded) {
       _oppData = [];
       _oppMap = {};
-      _oppCursor = { loaded: 0, hasMore: false, loading: false };
+      _oppCursor = { offset: 0, loaded: 0, hasMore: false, loading: false };
       setLoading('crmOppBody', 'Chargement des opportunités…');
     }
     _oppCursor.loading = true;
     try {
       // RM01A-008: bounded select with deterministic ordering and page size.
+      // RM-01E-R2: secondary order on immutable unique 'id' ensures a stable
+      // total order for range pagination (prevents duplicates/skips when
+      // multiple rows share the same created_at).
       var res = await client.from('crm_opportunities')
         .select('id,title,stage,estimated_value,probability,source,source_detail,next_action,next_action_at,last_contact_at,organization_id,contact_id,created_at,lost_reason')
         .order('created_at', { ascending: false })
-        .range(_oppCursor.loaded, _oppCursor.loaded + OPP_PAGE_SIZE - 1);
+        .order('id', { ascending: false })
+        .range(_oppCursor.offset, _oppCursor.offset + OPP_PAGE_SIZE - 1);
       if (res.error) { handleRpcError(res.error, 'crmOppBody', 'crm_opportunities select'); _oppCursor.loading = false; return; }
       var page = res.data || [];
+      // RM-01E-R2: advance offset by RAW page length (not deduped count)
+      // to prevent range overlap when duplicates appear.
+      _oppCursor.offset += page.length;
       // Detect if more pages exist (Supabase range returns exactly PAGE_SIZE when more exist).
       _oppCursor.hasMore = page.length === OPP_PAGE_SIZE;
       page.forEach(function (op) {
@@ -814,8 +824,8 @@
   }
 
   function loadMoreOpportunities() {
-    if (_oppCursor.loading || !_oppCursor.hasMore) return;
-    loadCrmOpportunities(false);
+    if (_oppCursor.loading || !_oppCursor.hasMore) return Promise.resolve();
+    return loadCrmOpportunities(false);
   }
 
   function renderCrmOpportunities() {
@@ -837,8 +847,25 @@
     var body = document.getElementById('crmOppBody');
     if (!body) return;
     var html = '<button class="btn-red btn-sm" style="margin-bottom:12px;" onclick="CrmAdmin.openCreateOpportunityForm()"><i class="fas fa-plus"></i> Nouvelle opportunité</button>';
+    // RM-01E-R2: filter truncation disclosure. Filters are client-side over
+    // loaded rows only. Never claim global "no result" when hasMore is true.
+    var filtersActive = (_oppFilters.stage !== 'all') || !!((_oppFilters.q || '').trim());
+    var incomplete = _oppCursor.hasMore;
+    if (incomplete && filtersActive && rows.length > 0) {
+      html += '<div class="crm-muted" style="margin-bottom:8px;"><i class="fas fa-info-circle"></i> ' +
+        'Résultats parmi les opportunités chargées. D\'autres opportunités ne sont pas encore chargées.</div>';
+    }
     if (!rows.length) {
-      html += '<div class="crm-state crm-empty"><i class="fas fa-inbox"></i> Aucune opportunité.</div>';
+      if (incomplete && filtersActive) {
+        // Search/filter covers only loaded rows; more rows exist in DB.
+        html += '<div class="crm-state crm-empty"><i class="fas fa-search"></i> ' +
+          'Aucune opportunité chargée ne correspond à votre recherche. ' +
+          'D\'autres opportunités ne sont pas encore chargées.</div>' +
+          '<div style="margin-top:8px;"><button class="btn-outline" onclick="CrmAdmin.loadMoreOpportunities()"' +
+          (_oppCursor.loading ? ' disabled' : '') + '><i class="fas fa-arrow-down"></i> Afficher plus</button></div>';
+      } else {
+        html += '<div class="crm-state crm-empty"><i class="fas fa-inbox"></i> Aucune opportunité.</div>';
+      }
       body.innerHTML = html;
       return;
     }

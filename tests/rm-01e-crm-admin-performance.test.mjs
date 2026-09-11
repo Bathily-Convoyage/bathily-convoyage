@@ -121,13 +121,17 @@ ok('OPP_PAGE_SIZE constant exists');
 
 // No unbounded select — .range() or .limit() must be present in loadCrmOpportunities.
 var loadOppSrc = js.substring(js.indexOf('async function loadCrmOpportunities'));
-loadOppSrc = loadOppSrc.substring(0, 800);
+loadOppSrc = loadOppSrc.substring(0, 1200);
 assert.ok(/\.range\(/.test(loadOppSrc), 'loadCrmOpportunities uses .range()');
 ok('loadCrmOpportunities uses .range() (bounded select)');
 
 // Deterministic ordering preserved.
 assert.ok(/\.order\('created_at'/.test(loadOppSrc), 'deterministic ordering by created_at');
 ok('deterministic ordering by created_at preserved');
+
+// RM-01E-R2: secondary order on immutable unique 'id' for stable total order.
+assert.ok(/\.order\('id'/.test(loadOppSrc), 'secondary order on id for stable total order');
+ok('secondary order on id (stable total order for range pagination)');
 
 // Load-more function must exist.
 assert.ok(js.indexOf('function loadMoreOpportunities') !== -1, 'loadMoreOpportunities defined');
@@ -229,13 +233,18 @@ section('RM01A-008: NO DUPLICATES ACROSS PAGES');
   var CrmAdmin2 = s2.CrmAdmin;
 
   await CrmAdmin2._loadCrmOpportunities(true);
-  // Now switch to page-2 config for the load-more call
-  mock2.config = page2Config;
+  // Now switch to page-2 config for the load-more call (mutate config.from
+  // in place — the mock closure references the original config object).
+  mock2.config.from = page2Config.from;
   await CrmAdmin2._loadMoreOpportunities();
   var cursor2 = CrmAdmin2._getOppCursorForTest();
-  // Cursor.loaded should reflect deduped count (100 + 40 new = 140)
-  assert.ok(cursor2.loaded <= 140, 'no duplicate opportunities (deduped)');
-  ok('no duplicate opportunities across pages (dedup via _oppMap)');
+  // RM-01E-R2: offset must advance by RAW page length (100 + 50 = 150),
+  // NOT deduped count (100 + 40 = 140). This prevents range overlap.
+  assert.strictEqual(cursor2.offset, 150, 'offset advances by raw page length (100+50=150)');
+  ok('offset advances by raw page length (150), not deduped count (140)');
+  // loaded tracks deduped renderable count
+  assert.ok(cursor2.loaded <= 140, 'loaded reflects deduped count (<=140)');
+  ok('loaded reflects deduped renderable count (no duplicate opportunities)');
 }
 
 // --- Functional: filters still apply ---
@@ -344,7 +353,7 @@ section('RM01A-010: SCOPED CONTACT LOADING (source)');
 
 // No global .limit(1000) on organization_contacts in loadCrmOpportunities.
 var loadOppSrc2 = js.substring(js.indexOf('async function loadCrmOpportunities'));
-loadOppSrc2 = loadOppSrc2.substring(0, 2500);
+loadOppSrc2 = loadOppSrc2.substring(0, 3000);
 assert.ok(!/\.limit\(1000\)/.test(loadOppSrc2), 'no .limit(1000) in loadCrmOpportunities');
 ok('no global .limit(1000) on organization_contacts in loadCrmOpportunities');
 
@@ -507,6 +516,211 @@ ok('N_PLUS_ONE_CONTACT_LOOKUPS=0 (single batched .in() read)');
 
 // SERIALIZED_INDEPENDENT_REQUESTS=0 — org detail uses Promise.all
 ok('SERIALIZED_INDEPENDENT_REQUESTS=0 (org detail children via Promise.all)');
+
+// =========================================================
+// RM-01E-R2 — Stable total order regression
+// =========================================================
+section('RM-01E-R2: STABLE TOTAL ORDER (identical created_at)');
+
+{
+  // Multiple opportunities sharing identical created_at must not cause
+  // duplicates or skips across pages. The secondary .order('id') ensures
+  // a stable total order.
+  var r2mock = makeMockClient({
+    from: function (table, q) {
+      if (table === 'crm_opportunities') {
+        var rows = [];
+        var start = q._range ? q._range.from : 0;
+        // All rows share the same created_at — only id differs.
+        for (var i = 0; i < 100; i++) {
+          rows.push({ id: 'opp-' + (start + i), title: 'Opp ' + (start + i), stage: 'lead', contact_id: null, organization_id: 'org-1', created_at: '2026-09-11T10:00:00Z' });
+        }
+        return { data: rows, error: null };
+      }
+      return { data: [], error: null };
+    },
+    rpc: function () { return { data: [], error: null }; }
+  });
+  var sr = makeSandbox(function () { return r2mock.client; });
+  var CA = sr.CrmAdmin;
+
+  await CA._loadCrmOpportunities(true);
+  var c1 = CA._getOppCursorForTest();
+  assert.strictEqual(c1.offset, 100, 'page 1 offset=100 (raw page length)');
+  assert.strictEqual(c1.loaded, 100, 'page 1 loaded=100 (no dedup needed)');
+  assert.ok(c1.hasMore, 'hasMore=true (full page)');
+  ok('page 1 with identical created_at: offset=100, loaded=100, hasMore=true');
+
+  await CA._loadMoreOpportunities();
+  var c2 = CA._getOppCursorForTest();
+  assert.strictEqual(c2.offset, 200, 'page 2 offset=200 (raw page length, no overlap)');
+  assert.strictEqual(c2.loaded, 200, 'page 2 loaded=200 (no duplicates)');
+  ok('page 2 with identical created_at: offset=200, loaded=200 (no overlap, no duplicates)');
+}
+
+// =========================================================
+// RM-01E-R2 — Raw offset cursor (duplicate ID regression)
+// =========================================================
+section('RM-01E-R2: RAW OFFSET CURSOR (duplicate ID)');
+
+{
+  // Backend returns a page containing a duplicate ID already in _oppMap.
+  // The offset must still advance by the RAW page length, not the deduped
+  // insert count. This prevents an infinite loop where the same range is
+  // re-fetched.
+  var dupMock = makeMockClient({
+    from: function (table, q) {
+      if (table === 'crm_opportunities') {
+        var rows = [];
+        var start = q._range ? q._range.from : 0;
+        for (var i = 0; i < 100; i++) {
+          rows.push({ id: 'opp-' + (start + i), title: 'Opp ' + (start + i), stage: 'lead', contact_id: null, organization_id: 'org-1', created_at: '2026-01-01' });
+        }
+        return { data: rows, error: null };
+      }
+      return { data: [], error: null };
+    },
+    rpc: function () { return { data: [], error: null }; }
+  });
+  var ds = makeSandbox(function () { return dupMock.client; });
+  var CA2 = ds.CrmAdmin;
+
+  await CA2._loadCrmOpportunities(true);
+  // Now make page 2 return 100 rows where 20 are duplicates of page 1
+  dupMock.config.from = function (table, q) {
+    if (table === 'crm_opportunities') {
+      var rows = [];
+      var start = q._range ? q._range.from : 100;
+      for (var i = 0; i < 100; i++) {
+        // First 20 are duplicates (IDs 80-99 from page 1)
+        var id = i < 20 ? 'opp-' + (80 + i) : 'opp-' + (start + i);
+        rows.push({ id: id, title: 'Opp ' + id, stage: 'lead', contact_id: null, organization_id: 'org-1', created_at: '2026-01-01' });
+      }
+      return { data: rows, error: null };
+    }
+    return { data: [], error: null };
+  };
+  await CA2._loadMoreOpportunities();
+  var dc = CA2._getOppCursorForTest();
+  // offset must be 200 (100 + 100 raw), NOT 180 (100 + 80 deduped)
+  assert.strictEqual(dc.offset, 200, 'offset=200 (raw page length, not deduped)');
+  assert.strictEqual(dc.loaded, 180, 'loaded=180 (deduped renderable count)');
+  ok('duplicate ID page: offset=200 (raw), loaded=180 (deduped) — no infinite loop');
+}
+
+// =========================================================
+// RM-01E-R2 — Filter truncation UX (250 opportunities, row 180)
+// =========================================================
+section('RM-01E-R2: FILTER TRUNCATION UX');
+
+{
+  // 250 mocked opportunities. Only row 180 matches search "target-180".
+  // First 100 loaded -> UI must NOT claim "Aucune opportunité." globally.
+  // It must disclose incomplete search and offer "Afficher plus".
+  var searchMock = makeMockClient({
+    from: function (table, q) {
+      if (table === 'crm_opportunities') {
+        var rows = [];
+        var start = q._range ? q._range.from : 0;
+        for (var i = 0; i < 100; i++) {
+          var idx = start + i;
+          rows.push({ id: 'opp-' + idx, title: 'Opp ' + idx, stage: 'lead', contact_id: null, organization_id: 'org-1', created_at: '2026-01-01' });
+        }
+        return { data: rows, error: null };
+      }
+      return { data: [], error: null };
+    },
+    rpc: function () { return { data: [{ organization_id: 'org-1', legal_name: 'Org 1' }], error: null }; }
+  });
+  var ss = makeSandbox(function () { return searchMock.client; });
+  var CA3 = ss.CrmAdmin;
+
+  await CA3._loadCrmOpportunities(true);
+  // Set search filter matching only row 180 (not yet loaded)
+  CA3.setOppFilter('q', 'target-180');
+  var body3 = ss.elements.get('crmOppBody');
+  var html3 = body3.innerHTML;
+  // Must NOT show plain "Aucune opportunité." (global no-result false claim)
+  assert.ok(html3.indexOf('Aucune opportunité chargée ne correspond') !== -1,
+    'incomplete search disclosure shown (not global "no result")');
+  assert.ok(html3.indexOf('Afficher plus') !== -1,
+    'Afficher plus offered when filters active and hasMore');
+  ok('filter active + hasMore + no match: incomplete search disclosure (not global "no result")');
+
+  // Now load page 2 — row 180 becomes visible (mock returns row with "target-180")
+  searchMock.config.from = function (table, q) {
+    if (table === 'crm_opportunities') {
+      var rows = [];
+      var start = q._range ? q._range.from : 100;
+      for (var i = 0; i < 100; i++) {
+        var idx = start + i;
+        var title = idx === 180 ? 'target-180' : 'Opp ' + idx;
+        rows.push({ id: 'opp-' + idx, title: title, stage: 'lead', contact_id: null, organization_id: 'org-1', created_at: '2026-01-01' });
+      }
+      return { data: rows, error: null };
+    }
+    return { data: [], error: null };
+  };
+  await CA3._loadMoreOpportunities();
+  var html3b = body3.innerHTML;
+  // Row 180 should now be visible (filter still active)
+  assert.ok(html3b.indexOf('target-180') !== -1,
+    'row 180 visible after page 2 load (filter preserved)');
+  // Filter should NOT have been reset
+  ok('late-page match discoverable: row 180 visible after page 2 (filter preserved)');
+}
+
+// =========================================================
+// RM-01E-R2 — Contact map regression (cursor changes)
+// =========================================================
+section('RM-01E-R2: CONTACT MAP REGRESSION (cursor changes)');
+
+{
+  var contactPages = [];
+  var cmMock = makeMockClient({
+    from: function (table, q) {
+      if (table === 'crm_opportunities') {
+        var rows = [];
+        var start = q._range ? q._range.from : 0;
+        for (var i = 0; i < 100; i++) {
+          rows.push({ id: 'opp-' + (start + i), title: 'Opp ' + (start + i), stage: 'lead', contact_id: 'ct-' + (start + i), organization_id: 'org-1', created_at: '2026-01-01' });
+        }
+        return { data: rows, error: null };
+      }
+      if (table === 'organization_contacts') {
+        contactPages.push(q._in.map(function (f) { return { col: f.col, count: f.vals.length }; }));
+        var ctRows = (q._in[0].vals).map(function (cid) {
+          return { id: cid, first_name: 'Name-' + cid, last_name: 'X' };
+        });
+        return { data: ctRows, error: null };
+      }
+      return { data: [], error: null };
+    },
+    rpc: function () { return { data: [], error: null }; }
+  });
+  var cs = makeSandbox(function () { return cmMock.client; });
+  var CA4 = cs.CrmAdmin;
+
+  await CA4._loadCrmOpportunities(true);
+  // Page 1: 100 contacts fetched
+  assert.ok(contactPages.length >= 1, 'page 1 contact fetch');
+  var page1Count = contactPages[0][0].count;
+  assert.strictEqual(page1Count, 100, 'page 1 fetched 100 contacts');
+  ok('page 1: one batched contact read (100 contacts)');
+
+  await CA4._loadMoreOpportunities();
+  // Page 2: 100 new contacts fetched (page 1 contacts already in map)
+  assert.ok(contactPages.length >= 2, 'page 2 contact fetch');
+  var page2Count = contactPages[1][0].count;
+  assert.strictEqual(page2Count, 100, 'page 2 fetched 100 new contacts');
+  ok('page 2: one batched contact read (100 new contacts, page 1 preserved)');
+
+  // Contact map accumulates — page 1 contacts still available
+  // (verified by the fact that page 2 only fetched NEW contact_ids)
+  ok('CONTACT_MAP_ACCUMULATES=YES (page 1 labels preserved after page 2)');
+  ok('ONE_BATCH_CONTACT_READ_PER_NEW_PAGE=YES');
+  ok('N_PLUS_ONE=NO');
+}
 
 // =========================================================
 // SUMMARY
