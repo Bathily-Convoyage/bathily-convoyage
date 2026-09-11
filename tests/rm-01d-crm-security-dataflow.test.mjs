@@ -87,9 +87,9 @@ section('RM01A-005: ERROR SANITIZATION (source)');
 assert.ok(js.indexOf('function crmUserError') !== -1, 'crmUserError defined');
 ok('crmUserError helper exists');
 
-// isSafeCrmMessage helper must exist.
-assert.ok(js.indexOf('function isSafeCrmMessage') !== -1, 'isSafeCrmMessage defined');
-ok('isSafeCrmMessage helper exists');
+// CRM_ERROR_MAP trusted-mapping structure must exist.
+assert.ok(js.indexOf('CRM_ERROR_MAP') !== -1, 'CRM_ERROR_MAP defined');
+ok('CRM_ERROR_MAP trusted-mapping structure exists');
 
 // handleRpcError must no longer fall back to error.message directly.
 var hreSrc = js.substring(js.indexOf('function handleRpcError'));
@@ -142,8 +142,8 @@ section('RM01A-005: ERROR SANITIZATION (functional)');
   ok('connection error sanitized (no internal detail in user message)');
 }
 
-// --- Functional: safe business validation messages preserved ---
-section('RM01A-005: SAFE VALIDATION MESSAGES PRESERVED');
+// --- Functional: safe business validation messages preserved (trusted mapping) ---
+section('RM01A-005: TRUSTED MAPPING — SAFE BUSINESS FEEDBACK');
 
 {
   var s = makeSandbox();
@@ -156,24 +156,36 @@ section('RM01A-005: SAFE VALIDATION MESSAGES PRESERVED');
   assert.ok(rls.indexOf('réservée aux utilisateurs internes') === -1, 'raw RLS detail not in user message');
   ok('RLS/authorization error -> stable safe message (raw detail not exposed)');
 
-  // Safe business validation messages from CRM RPCs/triggers preserved.
-  var safeMessages = [
-    'Un contact nécessite une organisation (organization_id requis quand contact_id est renseigné)',
-    'Contact introuvable',
-    'Le contact n\'appartient pas à cette organisation',
-    'Opportunité introuvable',
-    'Transition non autorisée : lead -> won',
-    'Transition no-op : stage déjà lost',
-    'Le devis doit avoir la même organisation que l\'opportunité',
-    'Devis introuvable',
-    'La mission doit avoir la même organisation que le devis',
-    'Curseur invalide : p_before_event_at et p_before_event_key doivent être tous deux NULL ou tous deux non-NULL'
+  // Trusted mapping: known business errors return FIXED trusted French strings,
+  // never the raw input. OUTPUT != raw input for every server/database error.
+  var trustedMappings = [
+    { input: 'Un contact nécessite une organisation (organization_id requis quand contact_id est renseigné)',
+      expected: 'Un contact nécessite une organisation.' },
+    { input: 'Contact introuvable',
+      expected: 'Contact introuvable.' },
+    { input: 'Le contact n\'appartient pas à cette organisation',
+      expected: 'Le contact n\'appartient pas à cette organisation.' },
+    { input: 'Opportunité introuvable',
+      expected: 'Opportunité introuvable.' },
+    { input: 'Transition non autorisée : lead -> won',
+      expected: 'Transition non autorisée.' },
+    { input: 'Transition no-op : stage déjà lost',
+      expected: 'Transition no-op : aucune modification.' },
+    { input: 'Le devis doit avoir la même organisation que l\'opportunité',
+      expected: 'Le devis doit avoir la même organisation que l\'opportunité.' },
+    { input: 'Devis introuvable',
+      expected: 'Devis introuvable.' },
+    { input: 'La mission doit avoir la même organisation que le devis',
+      expected: 'La mission doit avoir la même organisation que le devis.' },
+    { input: 'Curseur invalide : p_before_event_at et p_before_event_key doivent être tous deux NULL ou tous deux non-NULL',
+      expected: 'Curseur de pagination invalide.' }
   ];
-  safeMessages.forEach(function (msg) {
-    var r = CrmAdmin._crmUserError({ message: msg }, 'fallback');
-    assert.strictEqual(r, msg, 'safe business message preserved: ' + msg.substring(0, 40));
+  trustedMappings.forEach(function (tc) {
+    var r = CrmAdmin._crmUserError({ message: tc.input }, 'fallback');
+    assert.strictEqual(r, tc.expected, 'trusted mapping: ' + tc.input.substring(0, 40));
+    assert.ok(r !== tc.input, 'output != raw input: ' + tc.input.substring(0, 40));
   });
-  ok(safeMessages.length + ' safe business validation messages preserved (actionable, not hidden)');
+  ok(trustedMappings.length + ' trusted mappings return fixed French strings (output != raw input)');
 
   // null/undefined error -> fallback.
   assert.strictEqual(CrmAdmin._crmUserError(null, 'Fallback.'), 'Fallback.', 'null error -> fallback');
@@ -181,40 +193,71 @@ section('RM01A-005: SAFE VALIDATION MESSAGES PRESERVED');
   ok('null/undefined error -> fallback message');
 }
 
-// --- RM-01D-R1: Adversarial tests (appended DB detail must not leak) ---
-section('RM01A-005: ADVERSARIAL — APPENDED DB DETAIL MUST NOT LEAK');
+// --- RM-01D-R3: Adversarial tests (trusted-mapping: raw input never returned) ---
+section('RM01A-005: ADVERSARIAL — TRUSTED MAPPING (R3)');
 
 {
   var s = makeSandbox();
   var CrmAdmin = s.CrmAdmin;
 
-  // Messages that START with a safe prefix but have appended DB detail
-  // must NOT render the full string. The end-anchored patterns prevent this.
-  var adversarial = [
-    // Safe prefix + appended DB table/detail
-    { input: 'Transition non autorisée: relation public.secrets',
-      mustNotContain: ['public.secrets', 'relation'] },
-    { input: 'Opportunité introuvable SQLSTATE 42501',
-      mustNotContain: ['SQLSTATE', 'introuvable SQLSTATE'] },
-    { input: 'Un contact nécessite une organisation DETAIL: users password...',
-      mustNotContain: ['DETAIL', 'password', 'users'] },
-    { input: 'Contact introuvable; SELECT * FROM auth.users',
-      mustNotContain: ['SELECT', 'auth.users', 'FROM'] },
-    { input: 'Devis introuvable\nLINE 1: SELECT secretd',
-      mustNotContain: ['SELECT', 'secretd', 'LINE 1'] },
-    { input: 'Curseur invalide : p_before_event_at HINT: use index on public.secrets',
-      mustNotContain: ['HINT', 'public.secrets', 'index'] }
-  ];
-  adversarial.forEach(function (tc) {
-    var r = CrmAdmin._crmUserError({ message: tc.input }, 'Generic fallback');
-    tc.mustNotContain.forEach(function (forbidden) {
-      assert.ok(r.indexOf(forbidden) === -1,
-        'adversarial: "' + forbidden + '" not in result for input: ' + tc.input.substring(0, 50));
-    });
-  });
-  ok(adversarial.length + ' adversarial examples sanitized (appended DB detail not leaked)');
+  // A. Parenthetical arbitrary content must not leak.
+  var rA = CrmAdmin._crmUserError({ message: 'Un contact nécessite une organisation (DETAIL users password)' }, 'Generic fallback');
+  assert.strictEqual(rA, 'Un contact nécessite une organisation.', 'A: parenthetical -> fixed trusted message');
+  assert.ok(rA.indexOf('DETAIL') === -1, 'A: DETAIL not in output');
+  assert.ok(rA.indexOf('users') === -1, 'A: users not in output');
+  assert.ok(rA.indexOf('password') === -1, 'A: password not in output');
+  ok('A: parenthetical arbitrary content sanitized -> fixed trusted message');
 
-  // Truly generic DB errors (no safe prefix) -> generic fallback.
+  // B. Transition dynamic content must not leak.
+  var rB = CrmAdmin._crmUserError({ message: 'Transition non autorisée : available -> won' }, 'Generic fallback');
+  assert.strictEqual(rB, 'Transition non autorisée.', 'B: transition -> fixed trusted message');
+  assert.ok(rB.indexOf('available') === -1, 'B: stage name not in output');
+  assert.ok(rB.indexOf('won') === -1, 'B: stage name not in output');
+  assert.ok(rB.indexOf('->') === -1, 'B: arrow not in output');
+  ok('B: transition dynamic content sanitized -> fixed trusted message');
+
+  // C. Transition + appended DB detail must not leak.
+  var rC = CrmAdmin._crmUserError({ message: 'Transition non autorisée : available -> won DETAIL secret' }, 'Generic fallback');
+  assert.ok(rC.indexOf('DETAIL') === -1, 'C: DETAIL not in output');
+  assert.ok(rC.indexOf('secret') === -1, 'C: secret not in output');
+  assert.ok(rC.indexOf('available') === -1, 'C: stage name not in output');
+  assert.ok(rC.indexOf('won') === -1, 'C: stage name not in output');
+  assert.ok(rC.indexOf('->') === -1, 'C: arrow not in output');
+  ok('C: transition + appended DB detail sanitized -> fixed trusted message');
+
+  // D. SQLSTATE must not leak.
+  var rD = CrmAdmin._crmUserError({ message: 'Opportunité introuvable SQLSTATE 42501' }, 'Generic fallback');
+  assert.ok(rD.indexOf('42501') === -1, 'D: SQLSTATE 42501 not in output');
+  assert.ok(rD.indexOf('SQLSTATE') === -1, 'D: SQLSTATE keyword not in output');
+  assert.strictEqual(rD, 'Opportunité introuvable.', 'D: -> fixed trusted message');
+  ok('D: SQLSTATE leak prevented -> fixed trusted message');
+
+  // E. Table name must not leak.
+  var rE = CrmAdmin._crmUserError({ message: 'permission denied for table organizations' }, 'Generic fallback');
+  assert.ok(rE.indexOf('organizations') === -1, 'E: table name not in output');
+  assert.ok(rE.indexOf('Accès refusé') !== -1, 'E: -> RLS safe message');
+  ok('E: table name leak prevented -> RLS safe message');
+
+  // F. Known legitimate business messages still produce meaningful French feedback.
+  var legitCases = [
+    { input: 'Transition non autorisée : lead -> won', expected: 'Transition non autorisée.' },
+    { input: 'Opportunité introuvable', expected: 'Opportunité introuvable.' },
+    { input: 'Un contact nécessite une organisation (organization_id requis quand contact_id est renseigné)',
+      expected: 'Un contact nécessite une organisation.' },
+    { input: 'Contact introuvable', expected: 'Contact introuvable.' },
+    { input: 'Devis introuvable', expected: 'Devis introuvable.' },
+    { input: 'Curseur invalide : p_before_event_at et p_before_event_key doivent être tous deux NULL ou tous deux non-NULL',
+      expected: 'Curseur de pagination invalide.' }
+  ];
+  legitCases.forEach(function (tc) {
+    var r = CrmAdmin._crmUserError({ message: tc.input }, 'fallback');
+    assert.strictEqual(r, tc.expected, 'F: legitimate -> trusted French: ' + tc.input.substring(0, 40));
+    assert.ok(r !== tc.input, 'F: output != raw input: ' + tc.input.substring(0, 40));
+    assert.ok(r !== 'fallback', 'F: not generic fallback for known business: ' + tc.input.substring(0, 40));
+  });
+  ok(legitCases.length + ' legitimate business messages -> meaningful fixed French feedback (not raw, not generic)');
+
+  // Generic DB errors (no known prefix) -> generic fallback.
   var genericErrors = [
     'duplicate key value violates unique constraint...',
     'column foo does not exist',
@@ -228,25 +271,33 @@ section('RM01A-005: ADVERSARIAL — APPENDED DB DETAIL MUST NOT LEAK');
     assert.strictEqual(r, 'Generic fallback', 'generic DB error -> fallback: ' + msg.substring(0, 40));
   });
   ok(genericErrors.length + ' generic DB errors -> generic fallback (no raw detail)');
+}
 
-  // Legitimate safe messages (exact RPC format) ARE still rendered.
-  var legitSafe = [
-    'Transition non autorisée : lead -> won',
-    'Transition no-op : stage déjà lost',
-    'Opportunité introuvable',
-    'Un contact nécessite une organisation (organization_id requis quand contact_id est renseigné)',
-    'Curseur invalide : p_before_event_at et p_before_event_key doivent être tous deux NULL ou tous deux non-NULL',
-    'Contact introuvable',
-    'Le contact n\'appartient pas à cette organisation',
-    'Devis introuvable',
-    'La mission doit avoir la même organisation que le devis',
-    'Le devis doit avoir la même organisation que l\'opportunité'
-  ];
-  legitSafe.forEach(function (msg) {
-    var r = CrmAdmin._crmUserError({ message: msg }, 'fallback');
-    assert.strictEqual(r, msg, 'legitimate safe message preserved: ' + msg.substring(0, 40));
+// --- RM-01D-R3: Static invariant (no raw server error return path) ---
+section('RM01A-005: STATIC INVARIANT — NO RAW SERVER ERROR RETURN PATH');
+
+{
+  // Extract crmUserError function body and verify no raw return paths.
+  var fnStart = js.indexOf('function crmUserError(');
+  var fnEnd = js.indexOf('function handleRpcError', fnStart);
+  var fnBody = js.substring(fnStart, fnEnd);
+  assert.ok(!/return\s+msg\s*;/.test(fnBody), 'no "return msg" path');
+  assert.ok(!/return\s+error\.message\s*;/.test(fnBody), 'no "return error.message" path');
+  assert.ok(!/return\s+match\[0\]\s*;/.test(fnBody), 'no "return match[0]" path');
+  assert.ok(!/return\s+err\.message\s*;/.test(fnBody), 'no "return err.message" path');
+  ok('RAW_SERVER_ERROR_RETURN_PATHS=0 (no raw msg/error.message/match[0] return path)');
+
+  // Verify CRM_ERROR_MAP exists and has entries.
+  assert.ok(js.indexOf('CRM_ERROR_MAP') !== -1, 'CRM_ERROR_MAP defined');
+  assert.ok(CrmAdmin._CRM_ERROR_MAP && CrmAdmin._CRM_ERROR_MAP.length > 0, 'CRM_ERROR_MAP non-empty');
+  ok('CRM_ERROR_MAP trusted-mapping structure present (' + CrmAdmin._CRM_ERROR_MAP.length + ' entries)');
+
+  // Verify every map entry has a fixed message (not a function/capture).
+  CrmAdmin._CRM_ERROR_MAP.forEach(function (entry) {
+    assert.ok(entry.test && typeof entry.test.test === 'function', 'map entry has regex test');
+    assert.ok(typeof entry.message === 'string' && entry.message.length > 0, 'map entry has fixed string message');
   });
-  ok(legitSafe.length + ' legitimate safe RPC messages preserved (actionable, end-anchored)');
+  ok('all CRM_ERROR_MAP entries have fixed string messages (no dynamic capture)');
 }
 
 // --- Functional: raw errors logged to console for diagnostics ---

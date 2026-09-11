@@ -204,61 +204,62 @@
   }
 
   // ---------------------------------------------------------
-  // RM01A-005: CRM error sanitization
+  // RM01A-005: CRM error sanitization (trusted-mapping model)
   // ---------------------------------------------------------
-  // Narrow helper: preserves known safe business-level messages from
-  // CRM RPCs/triggers (French, actionable, no SQL internals) while
-  // replacing unexpected/raw DB errors with a generic French message.
-  // Raw error detail is always logged to console.error for diagnostics.
-  // This is NOT a blanket mapper — domain validation messages remain
-  // user-readable.
-  var SAFE_CRM_MESSAGE_PATTERNS = [
-    // Patterns are end-anchored ($) so appended DB detail cannot leak.
-    // Variable parts (stage names) use tightly controlled character classes.
-    /^Réservé aux utilisateurs internes$/,
-    /^Un contact nécessite une organisation \([^)]+\)$/,
-    /^Contact introuvable$/,
-    /^Le contact n'appartient pas à cette organisation$/,
-    /^Opportunité introuvable$/,
-    // RPC emits: "Transition non autorisée : <from_stage> -> <to_stage>"
-    // Stage names are lowercase letters/underscores only.
-    /^Transition non autorisée : [a-z_]+ -> [a-z_]+$/,
-    // RPC emits: "Transition no-op : stage déjà <stage>"
-    /^Transition no-op : stage déjà [a-z_]+$/,
-    /^Le devis doit avoir la même organisation que l'opportunité$/,
-    /^L'opportunité n'appartient pas à cette organisation$/,
-    /^Le client n'appartient pas à cette organisation$/,
-    /^Devis introuvable$/,
-    /^La mission doit avoir la même organisation que le devis$/,
-    /^Le devis n'appartient pas à cette organisation$/,
-    /^Curseur invalide : p_before_event_at et p_before_event_key doivent être tous deux NULL ou tous deux non-NULL$/,
-    /^Organisation introuvable\.?$/,
-    /^SIRET : \d+ chiffres requis\.?$/,
-    /^SIREN : \d+ chiffres requis\.?$/,
-    /^La raison sociale est obligatoire\.?$/,
-    /^Le nom du site est obligatoire\.?$/,
-    /^Le titre est obligatoire\.?$/,
-    /^Le sujet est obligatoire\.?$/,
-    /^Probabilité : 0 à 100\.?$/,
-    /^Valeur estimée doit être positive\.?$/
+  // SECURITY INVARIANT: crmUserError() never returns the raw database
+  // error message (msg) directly. For every server/database-originated
+  // error classification, it returns a STATIC TRUSTED French string
+  // from CRM_ERROR_MAP (or a generic fallback). The raw message is only
+  // used for classification (regex test) and logged to console.error
+  // for diagnostics — never rendered to the DOM.
+  //
+  // Frontend-only validation strings (setModalError with hardcoded
+  // French text, not from Supabase) bypass this helper entirely and
+  // are trusted by construction.
+  //
+  // Map structure: { test: RegExp, message: "Fixed trusted French text." }
+  // The regex classifies the raw input; the fixed message is the output.
+  // OUTPUT != raw input for every server/database error.
+  var CRM_ERROR_MAP = [
+    // Authorization / internal-user gate (RPCs raise these)
+    { test: /^Réservé aux utilisateurs internes/, message: "Réservé aux utilisateurs internes." },
+    { test: /^Authentification requise/, message: "Authentification requise." },
+    { test: /^Non autorisé/, message: "Accès refusé. Cette opération nécessite un utilisateur interne (admin/opérateur)." },
+    // Contact/org integrity (triggers + RPCs)
+    { test: /^Un contact nécessite une organisation/, message: "Un contact nécessite une organisation." },
+    { test: /^Contact introuvable/, message: "Contact introuvable." },
+    { test: /Le contact n'appartient pas à cette organisation/, message: "Le contact n'appartient pas à cette organisation." },
+    // Opportunity pipeline (crm_transition_opportunity RPC)
+    { test: /^Opportunité introuvable/, message: "Opportunité introuvable." },
+    { test: /^Transition non autorisée/, message: "Transition non autorisée." },
+    { test: /^Transition no-op/, message: "Transition no-op : aucune modification." },
+    // Business links (devis/mission integrity)
+    { test: /^Le devis doit avoir la même organisation/, message: "Le devis doit avoir la même organisation que l'opportunité." },
+    { test: /L'opportunité n'appartient pas à cette organisation/, message: "L'opportunité n'appartient pas à cette organisation." },
+    { test: /Le client n'appartient pas à cette organisation/, message: "Le client n'appartient pas à cette organisation." },
+    { test: /^Devis introuvable/, message: "Devis introuvable." },
+    { test: /^La mission doit avoir la même organisation/, message: "La mission doit avoir la même organisation que le devis." },
+    { test: /Le devis n'appartient pas à cette organisation/, message: "Le devis n'appartient pas à cette organisation." },
+    // Timeline cursor contract (crm_timeline_read RPC)
+    { test: /^Curseur invalide/, message: "Curseur de pagination invalide." },
+    // Organization lookup
+    { test: /^Organisation introuvable/, message: "Organisation introuvable." }
   ];
-  function isSafeCrmMessage(msg) {
-    if (!msg || typeof msg !== 'string') return false;
-    return SAFE_CRM_MESSAGE_PATTERNS.some(function (p) { return p.test(msg); });
-  }
   function crmUserError(err, fallback) {
     if (!err) return fallback || 'Une erreur est survenue. Veuillez réessayer.';
     // Always log raw error for diagnostics (never rendered to DOM).
     console.error('[CRM] error:', err);
     var msg = (err && typeof err === 'object' && err.message) ? err.message : String(err);
-    // Known safe business-level messages from CRM RPCs/triggers take priority
-    // (checked before the RLS pattern to avoid false matches like
-    // "Transition non autorisée" which is a business rule, not an RLS error).
-    if (isSafeCrmMessage(msg)) return msg;
-    // RLS / authorization errors: stable, safe, honest message.
-    // Match only messages that START with "Non autorisé" or contain the
-    // SQLSTATE 42501 / jwt / permission-denied indicators.
-    if (/^Non autorisé|42501|jwt|permission/i.test(msg)) {
+    // Classify against the trusted map. Return the FIXED message, never msg.
+    for (var i = 0; i < CRM_ERROR_MAP.length; i++) {
+      if (CRM_ERROR_MAP[i].test.test(msg)) {
+        return CRM_ERROR_MAP[i].message;
+      }
+    }
+    // RLS / authorization errors (SQLSTATE 42501, jwt, permission-denied):
+    // stable, safe, honest message. Checked after business map to avoid
+    // false matches like "Transition non autorisée" (business rule, not RLS).
+    if (/42501|jwt|^permission/i.test(msg)) {
       return "Accès refusé par la base de données. Cette opération nécessite un utilisateur interne (admin/opérateur).";
     }
     // Everything else: generic fallback (raw detail not rendered to DOM).
@@ -2283,7 +2284,7 @@
     _fetchOpportunitiesForOrg: fetchOpportunitiesForOrg,
     // RM-01D test helpers
     _crmUserError: crmUserError,
-    _isSafeCrmMessage: isSafeCrmMessage,
+    _CRM_ERROR_MAP: CRM_ERROR_MAP,
     _actorLabel: actorLabel,
     _setInternalUserMapForTest: function (m) { _internalUserMap = m || {}; },
     _renderTimelineRow: renderTimelineRow
