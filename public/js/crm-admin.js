@@ -513,7 +513,7 @@
           .select('id,name,site_type,address_line1,address_line2,postal_code,city,country,phone,email,active')
           .eq('organization_id', id).order('created_at', { ascending: true }),
         client.from('organization_contacts')
-          .select('id,first_name,last_name,job_title,department,email,phone,mobile,preferred_channel,decision_maker,primary_contact,active,notes')
+          .select('id,organization_id,first_name,last_name,job_title,department,email,phone,mobile,preferred_channel,decision_maker,primary_contact,active,notes')
           .eq('organization_id', id).order('primary_contact', { ascending: false }),
         client.from('crm_opportunities')
           .select('id,title,stage,estimated_value,probability,source,next_action,next_action_at,last_contact_at,lost_reason,created_at')
