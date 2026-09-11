@@ -32,7 +32,7 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
 const htmlPath = path.join(projectRoot, 'dashboard-admin.html');
-const jsPath = path.join(projectRoot, 'js', 'crm-admin.js');
+const jsPath = path.join(projectRoot, 'public', 'js', 'crm-admin.js');
 const migPrimary = path.join(projectRoot, 'supabase', 'migrations', '20260911120000_p3c2a_crm_set_primary_contact.sql');
 const migUsers = path.join(projectRoot, 'supabase', 'migrations', '20260911130000_p3c2b_crm_list_internal_users.sql');
 
