@@ -572,6 +572,7 @@
     html += '<div class="crm-detail-actions"><button class="btn-outline crm-back" onclick="CrmAdmin.closeOrgDetail()"><i class="fas fa-arrow-left"></i> Retour</button>' +
       '<button class="btn-sm btn-red" onclick="CrmAdmin.openEditOrgForm(\'' + o.id + '\')"><i class="fas fa-edit"></i> Modifier</button>' +
       '<button class="btn-sm btn-outline" onclick="CrmAdmin.openSegmentManager(\'' + o.id + '\')"><i class="fas fa-tags"></i> Segments</button>' +
+      '<button class="btn-sm btn-outline" onclick="CrmAdmin.openLinkClientPicker(\'' + o.id + '\')"><i class="fas fa-link"></i> Lier un client</button>' +
       '<button class="btn-sm btn-outline" onclick="CrmAdmin.archiveOrg(\'' + o.id + '\')"><i class="fas fa-archive"></i> Archiver</button></div>';
 
     // Identity
@@ -686,13 +687,15 @@
     }
 
     // Linked devis
-    html += '<div class="sec-title"><h3 class="crm-sub-h">Devis liés (' + ctx.devis.length + ')</h3></div>';
+    html += '<div class="sec-title"><h3 class="crm-sub-h">Devis liés (' + ctx.devis.length + ')</h3>' +
+      '<button class="btn-sm btn-outline crm-sec-btn" onclick="CrmAdmin.openLinkDevisPicker(\'' + o.id + '\')"><i class="fas fa-link"></i> Lier un devis</button></div>';
     if (ctx.devis.length) {
       html += '<div class="table-scroll"><table class="data-table"><thead><tr>' +
-        '<th>Référence</th><th>Statut</th><th>Montant HT</th><th>Créé le</th></tr></thead><tbody>';
+        '<th>Référence</th><th>Statut</th><th>Montant HT</th><th>Créé le</th><th>Actions</th></tr></thead><tbody>';
       ctx.devis.forEach(function (d) {
         html += '<tr><td>' + esc(d.reference || '—') + '</td><td>' + esc(d.status || '—') + '</td>' +
-          '<td class="td-price">' + fmtEur(d.total_ht) + '</td><td>' + fmtDate(d.created_at) + '</td></tr>';
+          '<td class="td-price">' + fmtEur(d.total_ht) + '</td><td>' + fmtDate(d.created_at) + '</td>' +
+          '<td><button class="btn-sm btn-outline" onclick="CrmAdmin.openLinkDevisForm(\'' + d.id + '\',{organization_id:\'' + o.id + '\'})" title="Lier au CRM"><i class="fas fa-link"></i></button></td></tr>';
       });
       html += '</tbody></table></div>';
     } else {
@@ -700,12 +703,16 @@
     }
 
     // Linked missions
-    html += '<div class="sec-title"><h3 class="crm-sub-h">Missions liées (' + ctx.missions.length + ')</h3></div>';
+    html += '<div class="sec-title"><h3 class="crm-sub-h">Missions liées (' + ctx.missions.length + ')</h3>' +
+      '<button class="btn-sm btn-outline crm-sec-btn" onclick="CrmAdmin.openLinkMissionPicker(\'' + o.id + '\')"><i class="fas fa-link"></i> Lier une mission</button></div>';
     if (ctx.missions.length) {
       html += '<div class="table-scroll"><table class="data-table"><thead><tr>' +
-        '<th>Référence</th><th>Statut</th><th>Créée le</th></tr></thead><tbody>';
+        '<th>Référence</th><th>Statut</th><th>Créée le</th><th>Actions</th></tr></thead><tbody>';
       ctx.missions.forEach(function (m) {
-        html += '<tr><td>' + esc(m.reference || '—') + '</td><td>' + esc(m.status || '—') + '</td><td>' + fmtDate(m.created_at) + '</td></tr>';
+        var mLks = m.devis_id ? '{devis_id:\'' + m.devis_id + '\',organization_id:\'' + o.id + '\'}' : '{organization_id:\'' + o.id + '\'}';
+        html += '<tr><td>' + esc(m.reference || '—') + '</td><td>' + esc(m.status || '—') + '</td>' +
+          '<td>' + fmtDate(m.created_at) + '</td>' +
+          '<td><button class="btn-sm btn-outline" onclick="CrmAdmin.openLinkMissionForm(\'' + m.id + '\',' + mLks + ')" title="Lier au devis"><i class="fas fa-link"></i></button></td></tr>';
       });
       html += '</tbody></table></div>';
     } else {
@@ -1622,14 +1629,18 @@
   }
 
   // DIRECT_RLS_CRUD: organization_contacts UPDATE
-  // If primary_contact changes, use the atomic RPC.
+  // RM01A-003: when the primary flag CHANGES, the field update and the
+  // primary reassignment must share a single transaction boundary so
+  // no partial update can persist on failure. We route through the
+  // crm_update_contact_atomic RPC (all-or-nothing). When the primary
+  // flag is UNCHANGED, the direct RLS UPDATE path is preserved.
   async function submitEditContact(orgId, contactId) {
     if (_mutating) return;
     clearModalError();
     var payload = collectContactForm(orgId);
     if (!payload) return;
     var wantPrimary = payload.primary_contact;
-    delete payload.primary_contact; // handle via RPC
+    delete payload.primary_contact; // handle via RPC or atomic path
     setModalBusy(true);
     try {
       var client = sb();
@@ -1638,21 +1649,33 @@
         .select('primary_contact').eq('id', contactId).maybeSingle();
       if (curRes.error) { setModalBusy(false); setModalError(crmUserError(curRes.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       var wasPrimary = curRes.data ? curRes.data.primary_contact : false;
-      var res = await client.from('organization_contacts').update(payload).eq('id', contactId);
-      if (res.error) { setModalBusy(false); setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
-      // If primary state changed, use the atomic RPC.
-      if (wantPrimary && !wasPrimary) {
-        var priRes = await client.rpc('crm_set_primary_contact', {
-          p_organization_id: orgId, p_contact_id: contactId
+      if (wantPrimary !== wasPrimary) {
+        // Primary state changes — atomic RPC (field update + primary
+        // reassignment in one transaction). No partial-update path.
+        var atomicRes = await client.rpc('crm_update_contact_atomic', {
+          p_contact_id: contactId,
+          p_organization_id: orgId,
+          p_first_name: payload.first_name,
+          p_last_name: payload.last_name,
+          p_job_title: payload.job_title,
+          p_department: payload.department,
+          p_email: payload.email,
+          p_phone: payload.phone,
+          p_mobile: payload.mobile,
+          p_preferred_channel: payload.preferred_channel,
+          p_decision_maker: payload.decision_maker,
+          p_active: payload.active,
+          p_notes: payload.notes,
+          p_primary_contact: wantPrimary
         });
-        if (priRes.error) { setModalBusy(false); setModalError(crmUserError(priRes.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
-      } else if (!wantPrimary && wasPrimary) {
-        var unPriRes = await client.rpc('crm_set_primary_contact', {
-          p_organization_id: orgId, p_contact_id: null
-        });
-        if (unPriRes.error) { setModalBusy(false); setModalError(crmUserError(unPriRes.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
+        setModalBusy(false);
+        if (atomicRes.error) { setModalError(crmUserError(atomicRes.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
+      } else {
+        // Primary unchanged — direct RLS UPDATE (preserved path).
+        var res = await client.from('organization_contacts').update(payload).eq('id', contactId);
+        setModalBusy(false);
+        if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       }
-      setModalBusy(false);
       closeCrmModal();
       loadCrmOrgDetail(orgId);
     } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); }
@@ -1856,6 +1879,66 @@
     var orgId = val('link_devis_org');
     await populateContactSelect('link_devis_contact', orgId, null);
     await populateOpportunitySelect('link_devis_opp', orgId, null);
+  }
+  async function onLinkMissionOrgChange() {
+    return populateDevisSelect('link_mission_devis', val('link_mission_org'), null);
+  }
+
+  // ---------------------------------------------------------
+  // RM-01F: Scoped devis selector for the mission link form.
+  // Replaces the raw UUID text input with a human-readable
+  // <select> populated from devis belonging to the selected
+  // organization. The submitted value remains the correct UUID.
+  // ---------------------------------------------------------
+  function devisOptionLabel(d) {
+    var t = d.reference || d.id || '—';
+    if (d.status) t += ' (' + d.status + ')';
+    return t;
+  }
+  async function fetchDevisForOrg(orgId) {
+    if (!orgId) return [];
+    var client = sb();
+    if (!client) return [];
+    try {
+      var res = await client.from('devis')
+        .select('id,reference,status')
+        .eq('organization_id', orgId)
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (res.error) { console.error('[CRM] devis for org:', res.error); return null; }
+      return res.data || [];
+    } catch (e) { console.error('[CRM] devis for org:', e); return null; }
+  }
+  async function populateDevisSelect(selectId, orgId, selectedId) {
+    var el = document.getElementById(selectId);
+    if (!el) return;
+    if (!orgId) {
+      el.innerHTML = '<option value="">— Sélectionnez une organisation —</option>';
+      el.value = '';
+      return;
+    }
+    el.innerHTML = '<option value="">Chargement des devis…</option>';
+    el.disabled = true;
+    var devis = await fetchDevisForOrg(orgId);
+    el.disabled = false;
+    if (devis === null) {
+      el.innerHTML = '<option value="">Erreur de chargement des devis</option>';
+      el.value = '';
+      return;
+    }
+    if (!devis.length) {
+      el.innerHTML = '<option value="">Aucun devis pour cette organisation</option>';
+      el.value = '';
+      return;
+    }
+    var found = false;
+    var opts = '<option value="">—</option>' + devis.map(function (d) {
+      var sel = '';
+      if (selectedId && d.id === selectedId) { sel = ' selected'; found = true; }
+      return '<option value="' + esc(d.id) + '"' + sel + '>' + esc(devisOptionLabel(d)) + '</option>';
+    }).join('');
+    el.innerHTML = opts;
+    el.value = found ? selectedId : '';
   }
 
   function openCreateOpportunityForm() {
@@ -2137,6 +2220,7 @@
       setModalBusy(false);
       if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return false; }
       closeCrmModal();
+      refreshAfterLink();
       return true;
     } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); return false; }
   }
@@ -2156,6 +2240,7 @@
       setModalBusy(false);
       if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return false; }
       closeCrmModal();
+      refreshAfterLink();
       return true;
     } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); return false; }
   }
@@ -2174,8 +2259,17 @@
       setModalBusy(false);
       if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return false; }
       closeCrmModal();
+      refreshAfterLink();
       return true;
     } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); return false; }
+  }
+
+  // RM-01F: refresh the relevant CRM view after a successful link.
+  // If an organization detail is open, reload it (shows updated
+  // devis/mission lists). Always refresh the summary counts.
+  function refreshAfterLink() {
+    refreshOrgSummary();
+    if (_currentOrgId) loadCrmOrgDetail(_currentOrgId);
   }
 
   function openLinkClientForm(clientId, currentOrgId) {
@@ -2220,12 +2314,13 @@
   function openLinkMissionForm(missionId, currentLinks) {
     currentLinks = currentLinks || {};
     var body = '<div class="f-grp"><label>Mission ID</label><input type="text" value="' + esc(missionId) + '" readonly></div>' +
-      '<div class="f-grp"><label>Devis (UUID)</label><input type="text" id="link_mission_devis" class="crm-input" value="' + esc(currentLinks.devis_id || '') + '"></div>' +
-      '<div class="f-grp"><label>Organisation</label><select id="link_mission_org" class="crm-select">' + orgOptions(currentLinks.organization_id) + '</select></div>' +
+      '<div class="f-grp"><label>Organisation</label><select id="link_mission_org" class="crm-select" onchange="CrmAdmin.onLinkMissionOrgChange()">' + orgOptions(currentLinks.organization_id) + '</select></div>' +
+      '<div class="f-grp"><label>Devis (optionnel)</label><select id="link_mission_devis" class="crm-select"><option value="">—</option></select></div>' +
       '<div id="crmModalError"></div>';
     var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
       '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitLinkMission(\'' + esc(missionId) + '\')">Lier</button>';
     openCrmModal('Lier mission → devis + organisation', body, footer);
+    populateDevisSelect('link_mission_devis', currentLinks.organization_id, currentLinks.devis_id);
   }
 
   async function submitLinkMission(missionId) {
@@ -2234,6 +2329,132 @@
     var devisId = val('link_mission_devis') || null;
     var orgId = val('link_mission_org') || null;
     await linkMissionDevis(missionId, devisId, orgId);
+  }
+
+  // =========================================================
+  // RM-01F: Link entity pickers
+  // =========================================================
+  // Make the existing link workflows reachable from the Admin UI.
+  // Each picker fetches candidate entities via RLS direct reads
+  // (scoped, bounded), presents a human-readable <select>, and on
+  // confirm opens the already-existing link form with the chosen
+  // entity. No new business rule, no new linking semantics.
+  // ---------------------------------------------------------
+  function clientOptionLabel(c) {
+    var n = ((c.prenom || '') + ' ' + (c.nom || '')).trim() || '—';
+    var bits = [];
+    if (c.societe) bits.push(c.societe);
+    if (c.email) bits.push(c.email);
+    return n + (bits.length ? ' (' + bits.join(' · ') + ')' : '');
+  }
+  function missionOptionLabel(m) {
+    var t = m.reference || m.id || '—';
+    if (m.status) t += ' (' + m.status + ')';
+    return t;
+  }
+
+  async function fetchClientsForPicker() {
+    var client = sb();
+    if (!client) return null;
+    try {
+      var res = await client.from('clients')
+        .select('id,nom,prenom,email,societe')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (res.error) { console.error('[CRM] clients for picker:', res.error); return null; }
+      return res.data || [];
+    } catch (e) { console.error('[CRM] clients for picker:', e); return null; }
+  }
+  async function fetchDevisForPicker() {
+    var client = sb();
+    if (!client) return null;
+    try {
+      var res = await client.from('devis')
+        .select('id,reference,status')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (res.error) { console.error('[CRM] devis for picker:', res.error); return null; }
+      return res.data || [];
+    } catch (e) { console.error('[CRM] devis for picker:', e); return null; }
+  }
+  async function fetchMissionsForPicker() {
+    var client = sb();
+    if (!client) return null;
+    try {
+      var res = await client.from('missions')
+        .select('id,reference,status')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (res.error) { console.error('[CRM] missions for picker:', res.error); return null; }
+      return res.data || [];
+    } catch (e) { console.error('[CRM] missions for picker:', e); return null; }
+  }
+
+  // Generic picker modal: shows a <select> of entities and a confirm
+  // button. On confirm, calls onConfirm(selectedId). The modal reuses
+  // the shared CRM modal infrastructure.
+  async function openEntityPicker(title, fetchFn, labelFn, onConfirmName) {
+    var body = '<div class="f-grp"><label>Chargement…</label></div><div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin._pickerConfirm()">Lier</button>';
+    openCrmModal(title, body, footer);
+    var entities = await fetchFn();
+    if (entities === null) {
+      setModalError('Erreur de chargement des données.');
+      return;
+    }
+    if (!entities.length) {
+      setModalError('Aucun élément disponible.');
+      return;
+    }
+    var opts = '<option value="">— Sélectionnez —</option>' + entities.map(function (e) {
+      return '<option value="' + esc(e.id) + '">' + esc(labelFn(e)) + '</option>';
+    }).join('');
+    var bodyHtml = '<div class="f-grp"><label>Élément</label><select id="picker_entity" class="crm-select">' + opts + '</select></div>' +
+      '<div id="crmModalError"></div>';
+    var bodyEl = document.getElementById('crmModalBody');
+    if (bodyEl) bodyEl.innerHTML = bodyHtml;
+    _pickerConfirmFn = onConfirmName;
+  }
+  var _pickerConfirmFn = null;
+  function pickerConfirm() {
+    var id = val('picker_entity') || '';
+    if (!id) { setModalError('Veuillez sélectionner un élément.'); return; }
+    var fnName = _pickerConfirmFn;
+    _pickerConfirmFn = null;
+    if (fnName && typeof window.CrmAdmin[fnName] === 'function') {
+      window.CrmAdmin[fnName](id);
+    }
+  }
+
+  // Pickers → open the existing link forms with the selected entity.
+  async function openLinkClientPicker(orgId) {
+    if (!orgId) return;
+    await openEntityPicker('Lier un client', fetchClientsForPicker, clientOptionLabel, '_openLinkClientForPicker');
+    _pickerOrgContext = orgId;
+  }
+  async function openLinkDevisPicker(orgId) {
+    if (!orgId) return;
+    await openEntityPicker('Lier un devis', fetchDevisForPicker, devisOptionLabel, '_openLinkDevisForPicker');
+    _pickerOrgContext = orgId;
+  }
+  async function openLinkMissionPicker(orgId) {
+    if (!orgId) return;
+    await openEntityPicker('Lier une mission', fetchMissionsForPicker, missionOptionLabel, '_openLinkMissionForPicker');
+    _pickerOrgContext = orgId;
+  }
+  var _pickerOrgContext = null;
+  function openLinkClientForPicker(clientId) {
+    var orgId = _pickerOrgContext; _pickerOrgContext = null;
+    openLinkClientForm(clientId, orgId);
+  }
+  function openLinkDevisForPicker(devisId) {
+    var orgId = _pickerOrgContext; _pickerOrgContext = null;
+    openLinkDevisForm(devisId, { organization_id: orgId });
+  }
+  function openLinkMissionForPicker(missionId) {
+    var orgId = _pickerOrgContext; _pickerOrgContext = null;
+    openLinkMissionForm(missionId, { organization_id: orgId });
   }
 
   // =========================================================
@@ -2329,10 +2550,19 @@
     submitLinkDevis: submitLinkDevis,
     openLinkMissionForm: openLinkMissionForm,
     submitLinkMission: submitLinkMission,
+    // RM-01F link UI entry points (pickers)
+    openLinkClientPicker: openLinkClientPicker,
+    openLinkDevisPicker: openLinkDevisPicker,
+    openLinkMissionPicker: openLinkMissionPicker,
+    _pickerConfirm: pickerConfirm,
+    _openLinkClientForPicker: openLinkClientForPicker,
+    _openLinkDevisForPicker: openLinkDevisForPicker,
+    _openLinkMissionForPicker: openLinkMissionForPicker,
     // RM-01C scoped relationship selectors (onchange handlers)
     onOppOrgChange: onOppOrgChange,
     onActOrgChange: onActOrgChange,
     onLinkDevisOrgChange: onLinkDevisOrgChange,
+    onLinkMissionOrgChange: onLinkMissionOrgChange,
     // Exposed for static tests (no secrets, no privileged paths).
     _buildTimelineParams: buildTimelineParams,
     _STAGE_LABELS: STAGE_LABELS,
@@ -2362,6 +2592,16 @@
     _setOppCursorForTest: function (c) { _oppCursor = c; },
     _loadCrmOrgDetail: loadCrmOrgDetail,
     _loadCrmOpportunities: loadCrmOpportunities,
-    _loadMoreOpportunities: loadMoreOpportunities
+    _loadMoreOpportunities: loadMoreOpportunities,
+    // RM-01F test helpers
+    _populateDevisSelect: populateDevisSelect,
+    _fetchDevisForOrg: fetchDevisForOrg,
+    _fetchClientsForPicker: fetchClientsForPicker,
+    _fetchDevisForPicker: fetchDevisForPicker,
+    _fetchMissionsForPicker: fetchMissionsForPicker,
+    _devisOptionLabel: devisOptionLabel,
+    _clientOptionLabel: clientOptionLabel,
+    _missionOptionLabel: missionOptionLabel,
+    _collectContactForm: collectContactForm
   };
 })();
