@@ -411,6 +411,10 @@
   // ORGANIZATION DETAIL
   // ---------------------------------------------------------
   function openCrmOrgDetail(id) {
+    // Defensive navigation guard: never issue a Supabase query with an
+    // empty/null organization id. Rows without organization_id must not
+    // behave as normal org navigation targets.
+    if (!id) return;
     _currentOrgId = id;
     var listV = document.getElementById('crmOrgListView');
     var detV = document.getElementById('crmOrgDetailView');
@@ -756,7 +760,11 @@
       '<th>Prob.</th><th>Prochaine action</th><th>Date</th><th>Dernier contact</th><th>Source</th><th>Actions</th></tr></thead><tbody>';
     rows.forEach(function (op) {
       var c = _contactMap[op.contact_id];
-      html += '<tr style="cursor:pointer;" onclick="CrmAdmin.openOrgDetail(\'' + (op.organization_id || '') + '\')">' +
+      // Rows without organization_id are not navigable (RM01A-006).
+      var rowAttr = op.organization_id
+        ? ' style="cursor:pointer;" onclick="CrmAdmin.openOrgDetail(\'' + op.organization_id + '\')"'
+        : '';
+      html += '<tr' + rowAttr + '>' +
         '<td>' + esc(op.title) + (op.stage === 'lost' && op.lost_reason ? ' <span class="crm-muted">(' + esc(op.lost_reason) + ')</span>' : '') + '</td>' +
         '<td>' + orgName(op.organization_id) + '</td>' +
         '<td>' + esc(c ? contactName(c) : '—') + '</td>' +
@@ -831,7 +839,11 @@
       // auth.users is not readable via RLS, so the assigned user name cannot
       // be resolved. We show a neutral placeholder rather than a raw UUID.
       var assigned = a.assigned_to ? 'Utilisateur interne' : '—';
-      html += '<tr style="cursor:pointer;" onclick="CrmAdmin.openOrgDetail(\'' + (a.organization_id || '') + '\')">' +
+      // Rows without organization_id are not navigable (RM01A-006).
+      var rowAttr = a.organization_id
+        ? ' style="cursor:pointer;" onclick="CrmAdmin.openOrgDetail(\'' + a.organization_id + '\')"'
+        : '';
+      html += '<tr' + rowAttr + '>' +
         '<td>' + esc(a.subject) + '</td>' +
         '<td>' + pill(ACTIVITY_TYPE_LABELS[a.activity_type] || a.activity_type, 'sp-cours', ACTIVITY_TYPE_ICON[a.activity_type]) + '</td>' +
         '<td>' + pill(ACTIVITY_STATUS_LABELS[a.status] || a.status, ACTIVITY_STATUS_PILL[a.status]) + '</td>' +
@@ -1082,17 +1094,17 @@
         esc(ORG_STATUS_LABELS[s] || s) + '</option>';
     }).join('');
     return [
-      field('legal_name', 'Raison sociale *', 'text', o.legal_name, '', true),
-      field('trade_name', 'Nom commercial', 'text', o.trade_name),
-      field('siret', 'SIRET (14 chiffres)', 'text', o.siret),
-      field('siren', 'SIREN (9 chiffres)', 'text', o.siren),
-      field('vat_number', 'N° TVA', 'text', o.vat_number),
-      field('email', 'Email', 'email', o.email),
-      field('phone', 'Téléphone', 'tel', o.phone),
-      field('website', 'Site web', 'url', o.website),
-      field('source', 'Source', 'text', o.source),
-      field('source_detail', 'Détail source', 'text', o.source_detail),
-      field('external_reference', 'Référence externe', 'text', o.external_reference),
+      field('org_legal_name', 'Raison sociale *', 'text', o.legal_name, '', true),
+      field('org_trade_name', 'Nom commercial', 'text', o.trade_name),
+      field('org_siret', 'SIRET (14 chiffres)', 'text', o.siret),
+      field('org_siren', 'SIREN (9 chiffres)', 'text', o.siren),
+      field('org_vat_number', 'N° TVA', 'text', o.vat_number),
+      field('org_email', 'Email', 'email', o.email),
+      field('org_phone', 'Téléphone', 'tel', o.phone),
+      field('org_website', 'Site web', 'url', o.website),
+      field('org_source', 'Source', 'text', o.source),
+      field('org_source_detail', 'Détail source', 'text', o.source_detail),
+      field('org_external_reference', 'Référence externe', 'text', o.external_reference),
       '<div class="f-grp"><label>Statut</label><select id="org_status" class="crm-select">' + statusOpts + '</select></div>',
       '<div class="f-grp"><label>Notes</label><textarea id="org_notes" rows="3">' + esc(o.notes || '') + '</textarea></div>'
     ].join('');
@@ -1508,8 +1520,8 @@
     o = o || {};
     return [
       field('opp_title', 'Titre *', 'text', o.title, '', true),
-      '<div class="f-grp"><label>Organisation</label><select id="opp_organization_id" class="crm-select">' + orgOptions(o.organization_id) + '</select></div>',
-      '<div class="f-grp"><label>Contact (optionnel)</label><input type="text" id="opp_contact_id" class="crm-input" value="' + esc(o.contact_id || '') + '" placeholder="UUID contact"></div>',
+      '<div class="f-grp"><label>Organisation</label><select id="opp_organization_id" class="crm-select" onchange="CrmAdmin.onOppOrgChange()">' + orgOptions(o.organization_id) + '</select></div>',
+      '<div class="f-grp"><label>Contact (optionnel)</label><select id="opp_contact_id" class="crm-select"><option value="">—</option></select></div>',
       field('opp_estimated_value', 'Valeur estimée (€)', 'number', o.estimated_value),
       field('opp_probability', 'Probabilité (0-100)', 'number', o.probability),
       field('opp_source', 'Source', 'text', o.source),
@@ -1538,6 +1550,150 @@
     return opts;
   }
 
+  // ---------------------------------------------------------
+  // Scoped relationship selectors (RM01A-011)
+  // Replace raw UUID text inputs with controlled <select> controls
+  // populated from existing data. Options are scoped to the
+  // selected organization so operators cannot accidentally link
+  // cross-organization records. The submitted value remains the
+  // correct UUID. No new RPCs, no schema or business-rule changes.
+  // ---------------------------------------------------------
+  function contactOptionLabel(c) {
+    var n = ((c.first_name || '') + ' ' + (c.last_name || '')).trim() || '—';
+    var bits = [];
+    if (c.job_title) bits.push(c.job_title);
+    if (c.email) bits.push(c.email);
+    return n + (bits.length ? ' (' + bits.join(' · ') + ')' : '');
+  }
+
+  function opportunityOptionLabel(op) {
+    var t = op.title || '—';
+    if (op.stage && STAGE_LABELS[op.stage]) t += ' (' + STAGE_LABELS[op.stage] + ')';
+    return t;
+  }
+
+  // Fetch contacts for a single organization (RLS direct read).
+  // Returns null on error so callers can surface an empty/error state.
+  async function fetchContactsForOrg(orgId) {
+    if (!orgId) return [];
+    var client = sb();
+    if (!client) return [];
+    try {
+      var res = await client.from('organization_contacts')
+        .select('id,first_name,last_name,job_title,email,phone,mobile,active')
+        .eq('organization_id', orgId)
+        .order('primary_contact', { ascending: false });
+      if (res.error) { console.error('[CRM] contacts for org:', res.error); return null; }
+      return res.data || [];
+    } catch (e) { console.error('[CRM] contacts for org:', e); return null; }
+  }
+
+  // Fetch opportunities for a single organization. Reuses the cached
+  // _oppData when available; otherwise issues a scoped RLS read.
+  async function fetchOpportunitiesForOrg(orgId) {
+    if (!orgId) return [];
+    if (_oppData && _oppData.length) {
+      return _oppData.filter(function (op) { return op.organization_id === orgId; });
+    }
+    var client = sb();
+    if (!client) return [];
+    try {
+      var res = await client.from('crm_opportunities')
+        .select('id,title,stage')
+        .eq('organization_id', orgId)
+        .order('created_at', { ascending: false });
+      if (res.error) { console.error('[CRM] opps for org:', res.error); return null; }
+      return res.data || [];
+    } catch (e) { console.error('[CRM] opps for org:', e); return null; }
+  }
+
+  // Populate a contact <select> scoped to an organization. Handles
+  // loading, empty, error and stale-selection states. The selected
+  // id is preserved only when it belongs to the org; otherwise the
+  // selection is cleared deterministically.
+  async function populateContactSelect(selectId, orgId, selectedId) {
+    var el = document.getElementById(selectId);
+    if (!el) return;
+    if (!orgId) {
+      el.innerHTML = '<option value="">— Sélectionnez une organisation —</option>';
+      el.value = '';
+      return;
+    }
+    el.innerHTML = '<option value="">Chargement des contacts…</option>';
+    el.disabled = true;
+    var contacts = await fetchContactsForOrg(orgId);
+    el.disabled = false;
+    if (contacts === null) {
+      el.innerHTML = '<option value="">Erreur de chargement des contacts</option>';
+      el.value = '';
+      return;
+    }
+    if (!contacts.length) {
+      el.innerHTML = '<option value="">Aucun contact pour cette organisation</option>';
+      el.value = '';
+      return;
+    }
+    var found = false;
+    var opts = '<option value="">—</option>' + contacts.map(function (c) {
+      var sel = '';
+      if (selectedId && c.id === selectedId) { sel = ' selected'; found = true; }
+      return '<option value="' + esc(c.id) + '"' + sel + '>' + esc(contactOptionLabel(c)) + '</option>';
+    }).join('');
+    el.innerHTML = opts;
+    el.value = found ? selectedId : '';
+  }
+
+  // Populate an opportunity <select> scoped to an organization.
+  async function populateOpportunitySelect(selectId, orgId, selectedId) {
+    var el = document.getElementById(selectId);
+    if (!el) return;
+    if (!orgId) {
+      el.innerHTML = '<option value="">— Sélectionnez une organisation —</option>';
+      el.value = '';
+      return;
+    }
+    el.innerHTML = '<option value="">Chargement des opportunités…</option>';
+    el.disabled = true;
+    var opps = await fetchOpportunitiesForOrg(orgId);
+    el.disabled = false;
+    if (opps === null) {
+      el.innerHTML = '<option value="">Erreur de chargement des opportunités</option>';
+      el.value = '';
+      return;
+    }
+    if (!opps.length) {
+      el.innerHTML = '<option value="">Aucune opportunité pour cette organisation</option>';
+      el.value = '';
+      return;
+    }
+    var found = false;
+    var opts = '<option value="">—</option>' + opps.map(function (op) {
+      var sel = '';
+      if (selectedId && op.id === selectedId) { sel = ' selected'; found = true; }
+      return '<option value="' + esc(op.id) + '"' + sel + '>' + esc(opportunityOptionLabel(op)) + '</option>';
+    }).join('');
+    el.innerHTML = opts;
+    el.value = found ? selectedId : '';
+  }
+
+  // onchange handlers: when the parent organization changes, stale
+  // child selections are cleared (selectedId=null forces a reset).
+  // These return/await the populate promises so callers (and tests)
+  // can await completion deterministically.
+  function onOppOrgChange() {
+    return populateContactSelect('opp_contact_id', val('opp_organization_id'), null);
+  }
+  async function onActOrgChange() {
+    var orgId = val('act_organization_id');
+    await populateOpportunitySelect('act_opportunity_id', orgId, null);
+    await populateContactSelect('act_contact_id', orgId, null);
+  }
+  async function onLinkDevisOrgChange() {
+    var orgId = val('link_devis_org');
+    await populateContactSelect('link_devis_contact', orgId, null);
+    await populateOpportunitySelect('link_devis_opp', orgId, null);
+  }
+
   function openCreateOpportunityForm() {
     var body = '<div class="f-row">' + opportunityFormFields({}) + '</div>' +
       '<div class="crm-muted" style="margin:8px 0;">L\'opportunité sera créée au stade « Lead ». Utilisez le pipeline pour changer de stade.</div>' +
@@ -1545,6 +1701,7 @@
     var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
       '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitCreateOpportunity()">Créer</button>';
     openCrmModal('Nouvelle opportunité', body, footer);
+    populateContactSelect('opp_contact_id', '', null);
   }
 
   function openEditOpportunityForm(oppId) {
@@ -1560,6 +1717,7 @@
     var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
       '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitEditOpportunity(\'' + oppId + '\')">Enregistrer</button>';
     openCrmModal('Modifier l\'opportunité', body, footer);
+    populateContactSelect('opp_contact_id', opp.organization_id, opp.contact_id);
   }
 
   // DIRECT_RLS_CRUD: crm_opportunities INSERT
@@ -1706,9 +1864,9 @@
       '<div class="f-grp"><label>Type *</label><select id="act_activity_type" class="crm-select">' + typeOpts + '</select></div>',
       '<div class="f-grp"><label>Direction</label><select id="act_direction" class="crm-select"><option value="">—</option>' + dirOpts + '</select></div>',
       '<div class="f-grp"><label>Statut</label><select id="act_status" class="crm-select">' + statusOpts + '</select></div>',
-      '<div class="f-grp"><label>Organisation</label><select id="act_organization_id" class="crm-select">' + orgOptions(a.organization_id) + '</select></div>',
-      '<div class="f-grp"><label>Opportunité (UUID)</label><input type="text" id="act_opportunity_id" class="crm-input" value="' + esc(a.opportunity_id || '') + '"></div>',
-      '<div class="f-grp"><label>Contact (UUID)</label><input type="text" id="act_contact_id" class="crm-input" value="' + esc(a.contact_id || '') + '"></div>',
+      '<div class="f-grp"><label>Organisation</label><select id="act_organization_id" class="crm-select" onchange="CrmAdmin.onActOrgChange()">' + orgOptions(a.organization_id) + '</select></div>',
+      '<div class="f-grp"><label>Opportunité (optionnel)</label><select id="act_opportunity_id" class="crm-select"><option value="">—</option></select></div>',
+      '<div class="f-grp"><label>Contact (optionnel)</label><select id="act_contact_id" class="crm-select"><option value="">—</option></select></div>',
       '<div class="f-grp"><label>Assigné à</label><select id="act_assigned_to" class="crm-select"><option value="">—</option>' + internalUserOptions(a.assigned_to) + '</select></div>',
       field('act_occurred_at', 'Date d\'occurrence', 'datetime-local', a.occurred_at ? a.occurred_at.slice(0, 16) : ''),
       field('act_due_at', 'Échéance', 'datetime-local', a.due_at ? a.due_at.slice(0, 16) : ''),
@@ -1722,6 +1880,8 @@
     var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
       '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitCreateActivity()">Créer</button>';
     openCrmModal('Nouvelle activité', body, footer);
+    populateOpportunitySelect('act_opportunity_id', '', null);
+    populateContactSelect('act_contact_id', '', null);
   }
 
   function openEditActivityForm(actId) {
@@ -1734,6 +1894,8 @@
     var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
       '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitEditActivity(\'' + actId + '\')">Enregistrer</button>';
     openCrmModal('Modifier l\'activité', body, footer);
+    populateOpportunitySelect('act_opportunity_id', activity.organization_id, activity.opportunity_id);
+    populateContactSelect('act_contact_id', activity.organization_id, activity.contact_id);
   }
 
   // DIRECT_RLS_CRUD: crm_activities INSERT
@@ -1871,13 +2033,15 @@
   function openLinkDevisForm(devisId, currentLinks) {
     currentLinks = currentLinks || {};
     var body = '<div class="f-grp"><label>Devis ID</label><input type="text" value="' + esc(devisId) + '" readonly></div>' +
-      '<div class="f-grp"><label>Organisation</label><select id="link_devis_org" class="crm-select">' + orgOptions(currentLinks.organization_id) + '</select></div>' +
-      '<div class="f-grp"><label>Contact (UUID)</label><input type="text" id="link_devis_contact" class="crm-input" value="' + esc(currentLinks.contact_id || '') + '"></div>' +
-      '<div class="f-grp"><label>Opportunité (UUID)</label><input type="text" id="link_devis_opp" class="crm-input" value="' + esc(currentLinks.opportunity_id || '') + '"></div>' +
+      '<div class="f-grp"><label>Organisation</label><select id="link_devis_org" class="crm-select" onchange="CrmAdmin.onLinkDevisOrgChange()">' + orgOptions(currentLinks.organization_id) + '</select></div>' +
+      '<div class="f-grp"><label>Contact (optionnel)</label><select id="link_devis_contact" class="crm-select"><option value="">—</option></select></div>' +
+      '<div class="f-grp"><label>Opportunité (optionnel)</label><select id="link_devis_opp" class="crm-select"><option value="">—</option></select></div>' +
       '<div id="crmModalError"></div>';
     var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
       '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitLinkDevis(\'' + esc(devisId) + '\')">Lier</button>';
     openCrmModal('Lier devis → CRM', body, footer);
+    populateContactSelect('link_devis_contact', currentLinks.organization_id, currentLinks.contact_id);
+    populateOpportunitySelect('link_devis_opp', currentLinks.organization_id, currentLinks.opportunity_id);
   }
 
   async function submitLinkDevis(devisId) {
@@ -2000,6 +2164,10 @@
     submitLinkDevis: submitLinkDevis,
     openLinkMissionForm: openLinkMissionForm,
     submitLinkMission: submitLinkMission,
+    // RM-01C scoped relationship selectors (onchange handlers)
+    onOppOrgChange: onOppOrgChange,
+    onActOrgChange: onActOrgChange,
+    onLinkDevisOrgChange: onLinkDevisOrgChange,
     // Exposed for static tests (no secrets, no privileged paths).
     _buildTimelineParams: buildTimelineParams,
     _STAGE_LABELS: STAGE_LABELS,
@@ -2010,6 +2178,12 @@
     _RECORD_KIND_LABELS: RECORD_KIND_LABELS,
     _TIMELINE_DEFAULT_LIMIT: TIMELINE_DEFAULT_LIMIT,
     _TIMELINE_MAX_LIMIT: TIMELINE_MAX_LIMIT,
-    _TRANSITION_MAP: TRANSITION_MAP
+    _TRANSITION_MAP: TRANSITION_MAP,
+    // RM-01C test helpers
+    _collectOrgForm: collectOrgForm,
+    _populateContactSelect: populateContactSelect,
+    _populateOpportunitySelect: populateOpportunitySelect,
+    _fetchContactsForOrg: fetchContactsForOrg,
+    _fetchOpportunitiesForOrg: fetchOpportunitiesForOrg
   };
 })();
