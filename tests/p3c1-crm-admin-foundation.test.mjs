@@ -323,11 +323,16 @@ ok('existing load functions intact');
 assert.match(html, /class="mobile-bottom-nav"/, 'mobile bottom nav present');
 ok('mobile bottom nav intact');
 
-// No destructive CRM operations in P3C1
-assert.ok(!js.match(/\.delete\(\)/), 'no delete calls in crm-admin.js');
-ok('no delete operations (P3C1 read-only)');
-assert.ok(!js.match(/stage.*UPDATE|UPDATE.*stage/i), 'no direct stage update');
-ok('no direct stage UPDATE');
+// No destructive CRM operations on immutable tables.
+// P3C2 adds legitimate .delete() on mutable CRM tables
+// (organization_segments). Immutable tables must never be
+// deleted from the frontend.
+assert.ok(!js.match(/crm_pipeline_events.*\.delete\(\)|\.delete\(\).*crm_pipeline_events/i), 'no pipeline_events delete');
+ok('no direct crm_pipeline_events DELETE');
+assert.ok(!js.match(/crm_link_events.*\.delete\(\)|\.delete\(\).*crm_link_events/i), 'no link_events delete');
+ok('no direct crm_link_events DELETE');
+assert.ok(!js.match(/\.update\(\s*\{\s*stage/i), 'no direct stage update');
+ok('no direct .update({ stage:... })');
 assert.ok(!js.match(/crm_pipeline_events.*insert|insert.*crm_pipeline_events/i), 'no pipeline event writes');
 ok('no direct crm_pipeline_events INSERT');
 assert.ok(!js.match(/crm_link_events.*insert|insert.*crm_link_events/i), 'no link event writes');

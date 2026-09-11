@@ -122,9 +122,14 @@
   var _orgMap = {};              // id -> summary row (name lookup)
   var _orgFilters = { q: '', status: 'all', sort: 'legal_name', dir: 'asc' };
   var _oppData = [];
+  var _oppMap = {};              // id -> opportunity row (edit lookup)
   var _oppFilters = { q: '', stage: 'all' };
   var _actData = [];
+  var _actMap = {};              // id -> activity row (edit lookup)
   var _actFilters = { q: '', type: 'all', status: 'all', org: 'all' };
+  var _siteMap = {};             // id -> site row (edit lookup, org detail)
+  var _contactMap = {};          // id -> contact row (edit lookup + name lookup)
+  var _orgSegments = [];         // current org detail segments (CHECK-constrained)
   var _tlFilters = { organizationId: null, missionId: null, opportunityId: null, clientId: null };
   var _tlCursor = { eventAt: null, eventKey: null, hasMore: false, loading: false };
   var _orgDetailTimelineCursor = { eventAt: null, eventKey: null, hasMore: false, loading: false };
@@ -360,7 +365,8 @@
     });
 
     var countEl = document.getElementById('crmOrgCount');
-    if (countEl) countEl.innerHTML = rows.length + ' organisation' + (rows.length > 1 ? 's' : '') + ' <em>active(s)</em>';
+    if (countEl) countEl.innerHTML = rows.length + ' organisation' + (rows.length > 1 ? 's' : '') + ' <em>active(s)</em> ' +
+      '<button class="btn-red btn-sm" style="margin-left:8px;" onclick="CrmAdmin.openCreateOrgForm()"><i class="fas fa-plus"></i> Nouvelle</button>';
 
     var tbody = document.getElementById('crmOrgTableBody');
     if (!tbody) return;
@@ -471,6 +477,15 @@
         devis: devisRes.data || [],
         missions: missRes.data || []
       });
+      // Cache entity rows for ID-based edit lookup (avoids serializing
+      // full database objects into inline onclick handlers).
+      _siteMap = {};
+      (sitesRes.data || []).forEach(function (s) { _siteMap[s.id] = s; });
+      _contactMap = {};
+      (contactsRes.data || []).forEach(function (c) { _contactMap[c.id] = c; });
+      _orgSegments = (segRes.data || []).map(function (s) { return s.segment; });
+      (oppRes.data || []).forEach(function (op) { _oppMap[op.id] = op; });
+      (actRes.data || []).forEach(function (a) { _actMap[a.id] = a; });
 
       // Timeline (cursor-paginated)
       _orgDetailTimelineCursor = { eventAt: null, eventKey: null, hasMore: false, loading: false };
@@ -482,8 +497,11 @@
     var o = ctx.org;
     var html = '';
 
-    // Back button
-    html += '<button class="btn-outline crm-back" onclick="CrmAdmin.closeOrgDetail()"><i class="fas fa-arrow-left"></i> Retour</button>';
+    // Back button + actions
+    html += '<div class="crm-detail-actions"><button class="btn-outline crm-back" onclick="CrmAdmin.closeOrgDetail()"><i class="fas fa-arrow-left"></i> Retour</button>' +
+      '<button class="btn-sm btn-red" onclick="CrmAdmin.openEditOrgForm(\'' + o.id + '\')"><i class="fas fa-edit"></i> Modifier</button>' +
+      '<button class="btn-sm btn-outline" onclick="CrmAdmin.openSegmentManager(\'' + o.id + '\')"><i class="fas fa-tags"></i> Segments</button>' +
+      '<button class="btn-sm btn-outline" onclick="CrmAdmin.archiveOrg(\'' + o.id + '\')"><i class="fas fa-archive"></i> Archiver</button></div>';
 
     // Identity
     html += '<div class="crm-detail-head"><h2 class="sec-h">' + esc(o.trade_name || o.legal_name) + '</h2>' +
@@ -517,7 +535,8 @@
     }
 
     // Sites
-    html += '<div class="sec-title"><h3 class="crm-sub-h">Sites (' + ctx.sites.length + ')</h3></div>';
+    html += '<div class="sec-title"><h3 class="crm-sub-h">Sites (' + ctx.sites.length + ')</h3>' +
+      '<button class="btn-sm btn-outline crm-sec-btn" onclick="CrmAdmin.openCreateSiteForm(\'' + o.id + '\')"><i class="fas fa-plus"></i> Site</button></div>';
     if (ctx.sites.length) {
       html += '<div class="crm-card-grid">';
       ctx.sites.forEach(function (s) {
@@ -529,6 +548,7 @@
           '<div class="crm-muted">' + esc(s.site_type) + '</div>' +
           (addr ? '<div class="crm-muted">' + addr + '</div>' : '') +
           (s.phone || s.email ? '<div class="crm-muted">' + esc(s.phone || '') + ' ' + esc(s.email || '') + '</div>' : '') +
+          '<button class="btn-sm btn-outline crm-card-btn" onclick="CrmAdmin.openEditSiteForm(\'' + o.id + '\',\'' + s.id + '\')"><i class="fas fa-edit"></i></button>' +
           '</div>';
       });
       html += '</div>';
@@ -537,7 +557,8 @@
     }
 
     // Contacts
-    html += '<div class="sec-title"><h3 class="crm-sub-h">Contacts (' + ctx.contacts.length + ')</h3></div>';
+    html += '<div class="sec-title"><h3 class="crm-sub-h">Contacts (' + ctx.contacts.length + ')</h3>' +
+      '<button class="btn-sm btn-outline crm-sec-btn" onclick="CrmAdmin.openCreateContactForm(\'' + o.id + '\')"><i class="fas fa-plus"></i> Contact</button></div>';
     if (ctx.contacts.length) {
       html += '<div class="table-scroll"><table class="data-table"><thead><tr>' +
         '<th>Nom</th><th>Fonction</th><th>Email</th><th>Téléphone</th><th>Canal</th><th>Rôle</th><th>Statut</th></tr></thead><tbody>';
@@ -548,7 +569,8 @@
         html += '<tr><td>' + esc(contactName(c)) + '</td><td>' + esc(c.job_title || '—') + '</td>' +
           '<td>' + esc(c.email || '—') + '</td><td>' + esc(c.phone || c.mobile || '—') + '</td>' +
           '<td>' + esc(c.preferred_channel || '—') + '</td><td>' + (roles.length ? roles.join(', ') : '—') + '</td>' +
-          '<td>' + (c.active ? pill('Actif', 'sp-ok') : pill('Inactif', 'sp-att')) + '</td></tr>';
+          '<td>' + (c.active ? pill('Actif', 'sp-ok') : pill('Inactif', 'sp-att')) + '</td>' +
+          '<td><button class="btn-sm btn-outline" onclick="CrmAdmin.openEditContactForm(\'' + o.id + '\',\'' + c.id + '\')"><i class="fas fa-edit"></i></button></td></tr>';
       });
       html += '</tbody></table></div>';
     } else {
@@ -559,14 +581,16 @@
     html += '<div class="sec-title"><h3 class="crm-sub-h">Opportunités (' + ctx.opportunities.length + ')</h3></div>';
     if (ctx.opportunities.length) {
       html += '<div class="table-scroll"><table class="data-table"><thead><tr>' +
-        '<th>Titre</th><th>Étape</th><th>Valeur</th><th>Prob.</th><th>Prochaine action</th><th>Dernier contact</th></tr></thead><tbody>';
+        '<th>Titre</th><th>Étape</th><th>Valeur</th><th>Prob.</th><th>Prochaine action</th><th>Dernier contact</th><th>Actions</th></tr></thead><tbody>';
       ctx.opportunities.forEach(function (op) {
         html += '<tr><td>' + esc(op.title) + '</td>' +
           '<td>' + pill(STAGE_LABELS[op.stage] || op.stage, STAGE_PILL[op.stage]) + '</td>' +
           '<td class="td-price">' + fmtEur(op.estimated_value) + '</td>' +
           '<td>' + (op.probability != null ? op.probability + '%' : '—') + '</td>' +
           '<td>' + (op.next_action ? esc(op.next_action) + ' <span class="crm-muted">(' + fmtDate(op.next_action_at) + ')</span>' : '—') + '</td>' +
-          '<td>' + fmtDate(op.last_contact_at) + '</td></tr>';
+          '<td>' + fmtDate(op.last_contact_at) + '</td>' +
+          '<td><button class="btn-sm btn-outline" onclick="CrmAdmin.openEditOpportunityForm(\'' + op.id + '\')"><i class="fas fa-edit"></i></button> ' +
+          '<button class="btn-sm btn-outline" onclick="CrmAdmin.openTransitionForm(\'' + op.id + '\',\'' + op.stage + '\')"><i class="fas fa-exchange-alt"></i></button></td></tr>';
       });
       html += '</tbody></table></div>';
     } else {
@@ -577,12 +601,13 @@
     html += '<div class="sec-title"><h3 class="crm-sub-h">Activités (' + ctx.activities.length + ')</h3></div>';
     if (ctx.activities.length) {
       html += '<div class="table-scroll"><table class="data-table"><thead><tr>' +
-        '<th>Sujet</th><th>Type</th><th>Statut</th><th>Échéance</th><th>Effectuée le</th></tr></thead><tbody>';
+        '<th>Sujet</th><th>Type</th><th>Statut</th><th>Échéance</th><th>Effectuée le</th><th>Actions</th></tr></thead><tbody>';
       ctx.activities.slice(0, 20).forEach(function (a) {
         html += '<tr><td>' + esc(a.subject) + '</td>' +
           '<td>' + pill(ACTIVITY_TYPE_LABELS[a.activity_type] || a.activity_type, 'sp-cours', ACTIVITY_TYPE_ICON[a.activity_type]) + '</td>' +
           '<td>' + pill(ACTIVITY_STATUS_LABELS[a.status] || a.status, ACTIVITY_STATUS_PILL[a.status]) + '</td>' +
-          '<td>' + fmtDate(a.due_at) + '</td><td>' + fmtDate(a.occurred_at) + '</td></tr>';
+          '<td>' + fmtDate(a.due_at) + '</td><td>' + fmtDate(a.occurred_at) + '</td>' +
+          '<td><button class="btn-sm btn-outline" onclick="CrmAdmin.openEditActivityForm(\'' + a.id + '\')"><i class="fas fa-edit"></i></button></td></tr>';
       });
       html += '</tbody></table></div>';
     } else {
@@ -670,6 +695,8 @@
         .order('created_at', { ascending: false });
       if (res.error) { handleRpcError(res.error, 'crmOppBody', 'crm_opportunities select'); return; }
       _oppData = res.data || [];
+      _oppMap = {};
+      _oppData.forEach(function (op) { _oppMap[op.id] = op; });
       // Ensure org map is populated for name lookups.
       if (!_orgMap || Object.keys(_orgMap).length === 0) {
         try {
@@ -682,14 +709,14 @@
           }
         } catch (_) {}
       }
-      // Resolve contact names (separate light query would need per-id; instead
-      // fetch all contacts once for the lookup map).
-      if (_oppData.length) {
+      // Resolve contact names for the opportunities list. Only populate
+      // _contactMap if it is empty (the org detail loader populates it
+      // with full contact objects needed for editing).
+      if (_oppData.length && Object.keys(_contactMap).length === 0) {
         try {
           var ct = await client.from('organization_contacts')
             .select('id,first_name,last_name').limit(1000);
           if (!ct.error && ct.data) {
-            _contactMap = {};
             ct.data.forEach(function (c) { _contactMap[c.id] = c; });
           }
         } catch (_) {}
@@ -697,7 +724,6 @@
       renderCrmOpportunities();
     } catch (e) { handleRpcError(e, 'crmOppBody', 'loadCrmOpportunities'); }
   }
-  var _contactMap = {};
 
   function renderCrmOpportunities() {
     var rows = _oppData.slice();
@@ -717,15 +743,17 @@
 
     var body = document.getElementById('crmOppBody');
     if (!body) return;
+    var html = '<button class="btn-red btn-sm" style="margin-bottom:12px;" onclick="CrmAdmin.openCreateOpportunityForm()"><i class="fas fa-plus"></i> Nouvelle opportunité</button>';
     if (!rows.length) {
-      body.innerHTML = '<div class="crm-state crm-empty"><i class="fas fa-inbox"></i> Aucune opportunité.</div>';
+      html += '<div class="crm-state crm-empty"><i class="fas fa-inbox"></i> Aucune opportunité.</div>';
+      body.innerHTML = html;
       return;
     }
 
-    // Read-only table view (Kanban deferred — table fits the existing arch cleanly).
-    var html = '<div class="table-scroll"><table class="data-table"><thead><tr>' +
+    // Table view with action buttons.
+    html += '<div class="table-scroll"><table class="data-table"><thead><tr>' +
       '<th>Titre</th><th>Organisation</th><th>Contact</th><th>Étape</th><th>Valeur</th>' +
-      '<th>Prob.</th><th>Prochaine action</th><th>Date</th><th>Dernier contact</th><th>Source</th></tr></thead><tbody>';
+      '<th>Prob.</th><th>Prochaine action</th><th>Date</th><th>Dernier contact</th><th>Source</th><th>Actions</th></tr></thead><tbody>';
     rows.forEach(function (op) {
       var c = _contactMap[op.contact_id];
       html += '<tr style="cursor:pointer;" onclick="CrmAdmin.openOrgDetail(\'' + (op.organization_id || '') + '\')">' +
@@ -739,6 +767,8 @@
         '<td>' + fmtDate(op.next_action_at) + '</td>' +
         '<td>' + fmtDate(op.last_contact_at) + '</td>' +
         '<td>' + esc(op.source || '—') + '</td>' +
+        '<td onclick="event.stopPropagation();"><button class="btn-sm btn-outline" onclick="CrmAdmin.openEditOpportunityForm(\'' + op.id + '\')"><i class="fas fa-edit"></i></button> ' +
+        '<button class="btn-sm btn-outline" onclick="CrmAdmin.openTransitionForm(\'' + op.id + '\',\'' + op.stage + '\')"><i class="fas fa-exchange-alt"></i></button></td>' +
         '</tr>';
     });
     html += '</tbody></table></div>';
@@ -759,6 +789,8 @@
         .order('created_at', { ascending: false }).limit(200);
       if (res.error) { handleRpcError(res.error, 'crmActBody', 'crm_activities select'); return; }
       _actData = res.data || [];
+      _actMap = {};
+      _actData.forEach(function (a) { _actMap[a.id] = a; });
       if (!_orgMap || Object.keys(_orgMap).length === 0) {
         try {
           var sum = await client.rpc('crm_organizations_summary');
@@ -786,13 +818,15 @@
 
     var body = document.getElementById('crmActBody');
     if (!body) return;
+    var html = '<button class="btn-red btn-sm" style="margin-bottom:12px;" onclick="CrmAdmin.openCreateActivityForm()"><i class="fas fa-plus"></i> Nouvelle activité</button>';
     if (!rows.length) {
-      body.innerHTML = '<div class="crm-state crm-empty"><i class="fas fa-inbox"></i> Aucune activité.</div>';
+      html += '<div class="crm-state crm-empty"><i class="fas fa-inbox"></i> Aucune activité.</div>';
+      body.innerHTML = html;
       return;
     }
-    var html = '<div class="table-scroll"><table class="data-table"><thead><tr>' +
+    html += '<div class="table-scroll"><table class="data-table"><thead><tr>' +
       '<th>Sujet</th><th>Type</th><th>Statut</th><th>Organisation</th><th>Opportunité</th>' +
-      '<th>Assigné à</th><th>Effectuée le</th><th>Échéance</th><th>Terminée le</th></tr></thead><tbody>';
+      '<th>Assigné à</th><th>Effectuée le</th><th>Échéance</th><th>Terminée le</th><th>Actions</th></tr></thead><tbody>';
     rows.forEach(function (a) {
       // auth.users is not readable via RLS, so the assigned user name cannot
       // be resolved. We show a neutral placeholder rather than a raw UUID.
@@ -807,6 +841,7 @@
         '<td>' + fmtDate(a.occurred_at) + '</td>' +
         '<td>' + fmtDate(a.due_at) + '</td>' +
         '<td>' + fmtDate(a.completed_at) + '</td>' +
+        '<td onclick="event.stopPropagation();"><button class="btn-sm btn-outline" onclick="CrmAdmin.openEditActivityForm(\'' + a.id + '\')"><i class="fas fa-edit"></i></button></td>' +
         '</tr>';
     });
     html += '</tbody></table></div>';
@@ -929,12 +964,989 @@
     });
   }
 
+  // =========================================================
+  // P3C2 — CRM MUTATION LAYER
+  // =========================================================
+  // Centralized write operations. All frontend CRM writes pass
+  // through these functions. No scattered .insert()/.update()
+  // calls in rendering code.
+  //
+  // Paths:
+  //   DIRECT_RLS_CRUD: organizations, organization_segments,
+  //     organization_sites, organization_contacts,
+  //     crm_opportunities (business fields only),
+  //     crm_activities (business fields only)
+  //   EXISTING_RPC: crm_transition_opportunity,
+  //     crm_link_client_organization, crm_link_devis_crm,
+  //     crm_link_mission_devis
+  //   NEW_RPC: crm_set_primary_contact, crm_list_internal_users
+  // =========================================================
+
+  // ---------------------------------------------------------
+  // Mutation state
+  // ---------------------------------------------------------
+  var _mutating = false; // prevents duplicate submit
+  var _internalUsers = []; // crm_list_internal_users() cache
+  var _internalUsersLoaded = false;
+
+  // ---------------------------------------------------------
+  // Transition map — mirrors the DB RPC validation exactly.
+  // The UI uses this to show valid candidate transitions. The
+  // RPC is the real validator; this is UX guidance only.
+  // ---------------------------------------------------------
+  var TRANSITION_MAP = {
+    lead:           ['qualified', 'contacted', 'lost', 'dormant'],
+    qualified:      ['contacted', 'meeting', 'quote_requested', 'lost', 'dormant'],
+    contacted:      ['meeting', 'quote_requested', 'lost', 'dormant'],
+    meeting:        ['quote_requested', 'quote_sent', 'lost', 'dormant'],
+    quote_requested: ['quote_sent', 'lost', 'dormant'],
+    quote_sent:     ['negotiating', 'won', 'lost', 'dormant'],
+    negotiating:    ['won', 'lost', 'dormant'],
+    dormant:        ['contacted', 'qualified', 'lost'],
+    won:            [],
+    lost:           []
+  };
+
+  // ---------------------------------------------------------
+  // Modal management — generic CRM modal for all forms
+  // ---------------------------------------------------------
+  function openCrmModal(title, bodyHtml, footerHtml) {
+    var overlay = document.getElementById('crmModalOverlay');
+    if (!overlay) return;
+    var titleEl = document.getElementById('crmModalTitle');
+    var bodyEl = document.getElementById('crmModalBody');
+    var footerEl = document.getElementById('crmModalFooter');
+    if (titleEl) titleEl.innerHTML = esc(title);
+    if (bodyEl) bodyEl.innerHTML = bodyHtml;
+    if (footerEl) footerEl.innerHTML = footerHtml || '';
+    overlay.classList.add('open');
+  }
+  function closeCrmModal() {
+    var overlay = document.getElementById('crmModalOverlay');
+    if (overlay) overlay.classList.remove('open');
+  }
+  function setModalError(msg) {
+    var el = document.getElementById('crmModalError');
+    if (el) el.innerHTML = '<div class="crm-state crm-error"><i class="fas fa-exclamation-triangle"></i> ' + esc(msg) + '</div>';
+  }
+  function clearModalError() {
+    var el = document.getElementById('crmModalError');
+    if (el) el.innerHTML = '';
+  }
+  function setModalBusy(busy) {
+    _mutating = busy;
+    var btn = document.getElementById('crmModalSubmit');
+    if (!btn) return;
+    if (busy) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement…';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = 'Enregistrer';
+    }
+  }
+
+  // ---------------------------------------------------------
+  // Internal user loading (for assigned_to picker)
+  // ---------------------------------------------------------
+  async function ensureInternalUsers() {
+    if (_internalUsersLoaded) return _internalUsers;
+    var client = sb();
+    if (!client) return [];
+    try {
+      var res = await client.rpc('crm_list_internal_users');
+      if (res.error) { console.error('[CRM] crm_list_internal_users:', res.error); return []; }
+      _internalUsers = res.data || [];
+      _internalUsersLoaded = true;
+    } catch (e) { console.error('[CRM] crm_list_internal_users:', e); }
+    return _internalUsers;
+  }
+
+  function internalUserOptions(selectedId) {
+    return _internalUsers.map(function (u) {
+      var sel = (selectedId && u.user_id === selectedId) ? ' selected' : '';
+      return '<option value="' + esc(u.user_id) + '"' + sel + '>' +
+        esc(u.display_name) + ' (' + esc(u.role) + ')</option>';
+    }).join('');
+  }
+
+  // =========================================================
+  // P3C2-A: ORGANIZATION MUTATIONS
+  // =========================================================
+
+  // Organization form fields (schema-aligned, no invented fields)
+  function orgFormFields(o) {
+    o = o || {};
+    var statusOpts = ['active', 'inactive', 'archived'].map(function (s) {
+      return '<option value="' + s + '"' + (o.status === s ? ' selected' : '') + '>' +
+        esc(ORG_STATUS_LABELS[s] || s) + '</option>';
+    }).join('');
+    return [
+      field('legal_name', 'Raison sociale *', 'text', o.legal_name, '', true),
+      field('trade_name', 'Nom commercial', 'text', o.trade_name),
+      field('siret', 'SIRET (14 chiffres)', 'text', o.siret),
+      field('siren', 'SIREN (9 chiffres)', 'text', o.siren),
+      field('vat_number', 'N° TVA', 'text', o.vat_number),
+      field('email', 'Email', 'email', o.email),
+      field('phone', 'Téléphone', 'tel', o.phone),
+      field('website', 'Site web', 'url', o.website),
+      field('source', 'Source', 'text', o.source),
+      field('source_detail', 'Détail source', 'text', o.source_detail),
+      field('external_reference', 'Référence externe', 'text', o.external_reference),
+      '<div class="f-grp"><label>Statut</label><select id="org_status" class="crm-select">' + statusOpts + '</select></div>',
+      '<div class="f-grp"><label>Notes</label><textarea id="org_notes" rows="3">' + esc(o.notes || '') + '</textarea></div>'
+    ].join('');
+  }
+
+  function openCreateOrgForm() {
+    var body = '<div class="f-row">' + orgFormFields({}) + '</div><div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitCreateOrg()">Créer</button>';
+    openCrmModal('Nouvelle organisation', body, footer);
+  }
+
+  function openEditOrgForm(orgId) {
+    var client = sb();
+    if (!client) return;
+    client.from('organizations').select('*').eq('id', orgId).maybeSingle()
+      .then(function (res) {
+        if (res.error || !res.data) { setModalError('Organisation introuvable.'); return; }
+        var o = res.data;
+        var body = '<div class="f-row">' + orgFormFields(o) + '</div><div id="crmModalError"></div>';
+        var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+          '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitEditOrg(\'' + orgId + '\')">Enregistrer</button>';
+        openCrmModal('Modifier l\'organisation', body, footer);
+      });
+  }
+
+  // DIRECT_RLS_CRUD: organizations INSERT
+  async function submitCreateOrg() {
+    if (_mutating) return;
+    clearModalError();
+    var payload = collectOrgForm();
+    if (!payload) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.from('organizations').insert(payload).select().single();
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message || 'Erreur lors de la création.'); return; }
+      closeCrmModal();
+      await refreshOrgSummary();
+      openCrmOrgDetail(res.data.id);
+    } catch (e) { setModalBusy(false); setModalError(e.message || 'Erreur inattendue.'); }
+  }
+
+  // DIRECT_RLS_CRUD: organizations UPDATE (no stage/lost_reason/created_by)
+  async function submitEditOrg(orgId) {
+    if (_mutating) return;
+    clearModalError();
+    var payload = collectOrgForm();
+    if (!payload) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.from('organizations').update(payload).eq('id', orgId).select().single();
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message || 'Erreur lors de la modification.'); return; }
+      closeCrmModal();
+      await refreshOrgSummary();
+      loadCrmOrgDetail(orgId);
+    } catch (e) { setModalBusy(false); setModalError(e.message || 'Erreur inattendue.'); }
+  }
+
+  // DIRECT_RLS_CRUD: organizations UPDATE status='archived'
+  async function archiveOrg(orgId) {
+    if (_mutating) return;
+    if (!confirm('Archiver cette organisation ? Elle ne sera plus visible dans les listes actives.')) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.from('organizations').update({ status: 'archived' }).eq('id', orgId);
+      setModalBusy(false);
+      if (res.error) { alert(res.error.message || 'Erreur lors de l\'archivage.'); return; }
+      await refreshOrgSummary();
+      closeCrmOrgDetail();
+      renderCrmOrganizations();
+    } catch (e) { setModalBusy(false); alert(e.message || 'Erreur inattendue.'); }
+  }
+
+  function collectOrgForm() {
+    var legalName = (document.getElementById('org_legal_name') || {}).value;
+    if (!legalName || !legalName.trim()) { setModalError('La raison sociale est obligatoire.'); return null; }
+    var siret = (document.getElementById('org_siret') || {}).value;
+    if (siret && !/^\d{14}$/.test(siret)) { setModalError('SIRET : 14 chiffres requis.'); return null; }
+    var siren = (document.getElementById('org_siren') || {}).value;
+    if (siren && !/^\d{9}$/.test(siren)) { setModalError('SIREN : 9 chiffres requis.'); return null; }
+    return {
+      legal_name: legalName.trim(),
+      trade_name: val('org_trade_name'),
+      siret: siret || null,
+      siren: siren || null,
+      vat_number: val('org_vat_number'),
+      email: val('org_email'),
+      phone: val('org_phone'),
+      website: val('org_website'),
+      source: val('org_source'),
+      source_detail: val('org_source_detail'),
+      external_reference: val('org_external_reference'),
+      status: val('org_status') || 'active',
+      notes: val('org_notes')
+    };
+  }
+
+  // =========================================================
+  // P3C2-A: SEGMENT MUTATIONS
+  // =========================================================
+
+  // DIRECT_RLS_CRUD: organization_segments INSERT
+  async function addSegment(orgId, segment) {
+    var client = sb();
+    if (!client) return;
+    try {
+      var res = await client.from('organization_segments')
+        .insert({ organization_id: orgId, segment: segment });
+      if (res.error) { alert(res.error.message); return; }
+      loadCrmOrgDetail(orgId);
+    } catch (e) { alert(e.message); }
+  }
+
+  // DIRECT_RLS_CRUD: organization_segments DELETE
+  async function removeSegment(orgId, segment) {
+    var client = sb();
+    if (!client) return;
+    try {
+      var res = await client.from('organization_segments')
+        .delete().eq('organization_id', orgId).eq('segment', segment);
+      if (res.error) { alert(res.error.message); return; }
+      loadCrmOrgDetail(orgId);
+    } catch (e) { alert(e.message); }
+  }
+
+  function openSegmentManager(orgId) {
+    var currentSegments = _orgSegments || [];
+    var allSegs = SEGMENTS.map(function (s) {
+      var has = currentSegments.indexOf(s) !== -1;
+      return '<label class="crm-seg-toggle"><input type="checkbox" value="' + s + '"' +
+        (has ? ' checked' : '') + '> ' + esc(SEGMENT_LABELS[s] || s) + '</label>';
+    }).join('');
+    var body = '<div class="crm-seg-list">' + allSegs + '</div><div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitSegments(\'' + orgId + '\')">Enregistrer</button>';
+    openCrmModal('Gérer les segments', body, footer);
+  }
+
+  async function submitSegments(orgId) {
+    if (_mutating) return;
+    clearModalError();
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var checkboxes = document.querySelectorAll('.crm-seg-toggle input[type=checkbox]');
+      var desired = [];
+      checkboxes.forEach(function (cb) { if (cb.checked) desired.push(cb.value); });
+      // Fetch current
+      var curRes = await client.from('organization_segments').select('segment').eq('organization_id', orgId);
+      if (curRes.error) { setModalBusy(false); setModalError(curRes.error.message); return; }
+      var current = (curRes.data || []).map(function (r) { return r.segment; });
+      var toAdd = desired.filter(function (s) { return current.indexOf(s) === -1; });
+      var toRemove = current.filter(function (s) { return desired.indexOf(s) === -1; });
+      // Add new
+      for (var i = 0; i < toAdd.length; i++) {
+        var addRes = await client.from('organization_segments')
+          .insert({ organization_id: orgId, segment: toAdd[i] });
+        if (addRes.error) { setModalBusy(false); setModalError(addRes.error.message); return; }
+      }
+      // Remove old
+      for (var j = 0; j < toRemove.length; j++) {
+        var delRes = await client.from('organization_segments')
+          .delete().eq('organization_id', orgId).eq('segment', toRemove[j]);
+        if (delRes.error) { setModalBusy(false); setModalError(delRes.error.message); return; }
+      }
+      setModalBusy(false);
+      closeCrmModal();
+      loadCrmOrgDetail(orgId);
+    } catch (e) { setModalBusy(false); setModalError(e.message); }
+  }
+
+  // =========================================================
+  // P3C2-B: SITE MUTATIONS
+  // =========================================================
+
+  function siteFormFields(s) {
+    s = s || {};
+    var typeOpts = ['headquarters', 'showroom', 'workshop', 'depot', 'warehouse',
+      'office', 'pickup', 'delivery', 'auction_site', 'other'].map(function (t) {
+      return '<option value="' + t + '"' + (s.site_type === t ? ' selected' : '') + '>' + esc(t) + '</option>';
+    }).join('');
+    return [
+      field('site_name', 'Nom *', 'text', s.name, '', true),
+      '<div class="f-grp"><label>Type</label><select id="site_site_type" class="crm-select">' + typeOpts + '</select></div>',
+      field('site_address1', 'Adresse ligne 1', 'text', s.address_line1),
+      field('site_address2', 'Adresse ligne 2', 'text', s.address_line2),
+      field('site_postal_code', 'Code postal', 'text', s.postal_code),
+      field('site_city', 'Ville', 'text', s.city),
+      field('site_country', 'Pays (code ISO)', 'text', s.country || 'FR'),
+      field('site_phone', 'Téléphone', 'tel', s.phone),
+      field('site_email', 'Email', 'email', s.email),
+      '<div class="f-grp"><label class="crm-chk-lbl"><input type="checkbox" id="site_active"' +
+        (s.active !== false ? ' checked' : '') + '> Site actif</label></div>'
+    ].join('');
+  }
+
+  function openCreateSiteForm(orgId) {
+    var body = '<div class="f-row">' + siteFormFields({}) + '</div><div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitCreateSite(\'' + orgId + '\')">Créer</button>';
+    openCrmModal('Nouveau site', body, footer);
+  }
+
+  function openEditSiteForm(orgId, siteId) {
+    var site = _siteMap[siteId];
+    if (!site) {
+      Swal.fire('Erreur', 'Site introuvable dans le cache local. Rechargez le détail.', 'error');
+      return;
+    }
+    if (String(site.organization_id || '') !== String(orgId || '')) {
+      Swal.fire('Erreur', 'Ce site n\'appartient pas à cette organisation.', 'error');
+      return;
+    }
+    var body = '<div class="f-row">' + siteFormFields(site) + '</div><div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitEditSite(\'' + orgId + '\',\'' + siteId + '\')">Enregistrer</button>';
+    openCrmModal('Modifier le site', body, footer);
+  }
+
+  // DIRECT_RLS_CRUD: organization_sites INSERT
+  async function submitCreateSite(orgId) {
+    if (_mutating) return;
+    clearModalError();
+    var payload = collectSiteForm(orgId);
+    if (!payload) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.from('organization_sites').insert(payload);
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message); return; }
+      closeCrmModal();
+      loadCrmOrgDetail(orgId);
+    } catch (e) { setModalBusy(false); setModalError(e.message); }
+  }
+
+  // DIRECT_RLS_CRUD: organization_sites UPDATE
+  async function submitEditSite(orgId, siteId) {
+    if (_mutating) return;
+    clearModalError();
+    var payload = collectSiteForm(orgId);
+    if (!payload) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.from('organization_sites').update(payload).eq('id', siteId);
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message); return; }
+      closeCrmModal();
+      loadCrmOrgDetail(orgId);
+    } catch (e) { setModalBusy(false); setModalError(e.message); }
+  }
+
+  function collectSiteForm(orgId) {
+    var name = val('site_name');
+    if (!name || !name.trim()) { setModalError('Le nom du site est obligatoire.'); return null; }
+    return {
+      organization_id: orgId,
+      name: name.trim(),
+      site_type: val('site_site_type') || 'other',
+      address_line1: val('site_address1') || null,
+      address_line2: val('site_address2') || null,
+      postal_code: val('site_postal_code') || null,
+      city: val('site_city') || null,
+      country: val('site_country') || 'FR',
+      phone: val('site_phone') || null,
+      email: val('site_email') || null,
+      active: document.getElementById('site_active').checked
+    };
+  }
+
+  // =========================================================
+  // P3C2-B: CONTACT MUTATIONS
+  // =========================================================
+
+  function contactFormFields(c) {
+    c = c || {};
+    var channelOpts = ['email', 'phone', 'mobile', 'sms', 'whatsapp', 'none'].map(function (ch) {
+      return '<option value="' + ch + '"' + (c.preferred_channel === ch ? ' selected' : '') + '>' + esc(ch) + '</option>';
+    }).join('');
+    return [
+      field('contact_first_name', 'Prénom', 'text', c.first_name),
+      field('contact_last_name', 'Nom', 'text', c.last_name),
+      field('contact_job_title', 'Fonction', 'text', c.job_title),
+      field('contact_department', 'Département', 'text', c.department),
+      field('contact_email', 'Email', 'email', c.email),
+      field('contact_phone', 'Téléphone', 'tel', c.phone),
+      field('contact_mobile', 'Mobile', 'tel', c.mobile),
+      '<div class="f-grp"><label>Canal préféré</label><select id="contact_preferred_channel" class="crm-select"><option value="">—</option>' + channelOpts + '</select></div>',
+      '<div class="f-grp"><label class="crm-chk-lbl"><input type="checkbox" id="contact_decision_maker"' + (c.decision_maker ? ' checked' : '') + '> Décideur</label></div>',
+      '<div class="f-grp"><label class="crm-chk-lbl"><input type="checkbox" id="contact_primary"' + (c.primary_contact ? ' checked' : '') + '> Contact principal</label></div>',
+      '<div class="f-grp"><label class="crm-chk-lbl"><input type="checkbox" id="contact_active"' + (c.active !== false ? ' checked' : '') + '> Actif</label></div>',
+      '<div class="f-grp"><label>Notes</label><textarea id="contact_notes" rows="3">' + esc(c.notes || '') + '</textarea></div>'
+    ].join('');
+  }
+
+  function openCreateContactForm(orgId) {
+    var body = '<div class="f-row">' + contactFormFields({}) + '</div><div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitCreateContact(\'' + orgId + '\')">Créer</button>';
+    openCrmModal('Nouveau contact', body, footer);
+  }
+
+  function openEditContactForm(orgId, contactId) {
+    var contact = _contactMap[contactId];
+    if (!contact) {
+      Swal.fire('Erreur', 'Contact introuvable dans le cache local. Rechargez le détail.', 'error');
+      return;
+    }
+    if (String(contact.organization_id || '') !== String(orgId || '')) {
+      Swal.fire('Erreur', 'Ce contact n\'appartient pas à cette organisation.', 'error');
+      return;
+    }
+    var body = '<div class="f-row">' + contactFormFields(contact) + '</div><div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitEditContact(\'' + orgId + '\',\'' + contactId + '\')">Enregistrer</button>';
+    openCrmModal('Modifier le contact', body, footer);
+  }
+
+  // DIRECT_RLS_CRUD: organization_contacts INSERT
+  // If primary_contact is checked, use the atomic RPC instead of
+  // setting primary_contact=true directly (avoids unique index race).
+  async function submitCreateContact(orgId) {
+    if (_mutating) return;
+    clearModalError();
+    var payload = collectContactForm(orgId);
+    if (!payload) return;
+    var wantPrimary = payload.primary_contact;
+    delete payload.primary_contact; // never send primary_contact on INSERT
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.from('organization_contacts').insert(payload).select().single();
+      if (res.error) { setModalBusy(false); setModalError(res.error.message); return; }
+      // If primary was requested, use the atomic RPC.
+      if (wantPrimary) {
+        var priRes = await client.rpc('crm_set_primary_contact', {
+          p_organization_id: orgId, p_contact_id: res.data.id
+        });
+        if (priRes.error) { setModalBusy(false); setModalError(priRes.error.message); return; }
+      }
+      setModalBusy(false);
+      closeCrmModal();
+      loadCrmOrgDetail(orgId);
+    } catch (e) { setModalBusy(false); setModalError(e.message); }
+  }
+
+  // DIRECT_RLS_CRUD: organization_contacts UPDATE
+  // If primary_contact changes, use the atomic RPC.
+  async function submitEditContact(orgId, contactId) {
+    if (_mutating) return;
+    clearModalError();
+    var payload = collectContactForm(orgId);
+    if (!payload) return;
+    var wantPrimary = payload.primary_contact;
+    delete payload.primary_contact; // handle via RPC
+    setModalBusy(true);
+    try {
+      var client = sb();
+      // Fetch current to check if primary changed
+      var curRes = await client.from('organization_contacts')
+        .select('primary_contact').eq('id', contactId).maybeSingle();
+      if (curRes.error) { setModalBusy(false); setModalError(curRes.error.message); return; }
+      var wasPrimary = curRes.data ? curRes.data.primary_contact : false;
+      var res = await client.from('organization_contacts').update(payload).eq('id', contactId);
+      if (res.error) { setModalBusy(false); setModalError(res.error.message); return; }
+      // If primary state changed, use the atomic RPC.
+      if (wantPrimary && !wasPrimary) {
+        var priRes = await client.rpc('crm_set_primary_contact', {
+          p_organization_id: orgId, p_contact_id: contactId
+        });
+        if (priRes.error) { setModalBusy(false); setModalError(priRes.error.message); return; }
+      } else if (!wantPrimary && wasPrimary) {
+        var unPriRes = await client.rpc('crm_set_primary_contact', {
+          p_organization_id: orgId, p_contact_id: null
+        });
+        if (unPriRes.error) { setModalBusy(false); setModalError(unPriRes.error.message); return; }
+      }
+      setModalBusy(false);
+      closeCrmModal();
+      loadCrmOrgDetail(orgId);
+    } catch (e) { setModalBusy(false); setModalError(e.message); }
+  }
+
+  function collectContactForm(orgId) {
+    return {
+      organization_id: orgId,
+      first_name: val('contact_first_name') || null,
+      last_name: val('contact_last_name') || null,
+      job_title: val('contact_job_title') || null,
+      department: val('contact_department') || null,
+      email: val('contact_email') || null,
+      phone: val('contact_phone') || null,
+      mobile: val('contact_mobile') || null,
+      preferred_channel: val('contact_preferred_channel') || null,
+      decision_maker: document.getElementById('contact_decision_maker').checked,
+      primary_contact: document.getElementById('contact_primary').checked,
+      active: document.getElementById('contact_active').checked,
+      notes: val('contact_notes') || null
+    };
+  }
+
+  // =========================================================
+  // P3C2-C: OPPORTUNITY MUTATIONS
+  // =========================================================
+
+  function opportunityFormFields(o) {
+    o = o || {};
+    return [
+      field('opp_title', 'Titre *', 'text', o.title, '', true),
+      '<div class="f-grp"><label>Organisation</label><select id="opp_organization_id" class="crm-select">' + orgOptions(o.organization_id) + '</select></div>',
+      '<div class="f-grp"><label>Contact (optionnel)</label><input type="text" id="opp_contact_id" class="crm-input" value="' + esc(o.contact_id || '') + '" placeholder="UUID contact"></div>',
+      field('opp_estimated_value', 'Valeur estimée (€)', 'number', o.estimated_value),
+      field('opp_probability', 'Probabilité (0-100)', 'number', o.probability),
+      field('opp_source', 'Source', 'text', o.source),
+      field('opp_source_detail', 'Détail source', 'text', o.source_detail),
+      field('opp_campaign', 'Campagne', 'text', o.campaign),
+      field('opp_external_reference', 'Référence externe', 'text', o.external_reference),
+      field('opp_lead_first_name', 'Prénom lead', 'text', o.lead_first_name),
+      field('opp_lead_last_name', 'Nom lead', 'text', o.lead_last_name),
+      field('opp_lead_email', 'Email lead', 'email', o.lead_email),
+      field('opp_lead_phone', 'Téléphone lead', 'tel', o.lead_phone),
+      field('opp_next_action', 'Prochaine action', 'text', o.next_action),
+      field('opp_next_action_at', 'Date prochaine action', 'datetime-local', o.next_action_at ? o.next_action_at.slice(0, 16) : ''),
+      field('opp_last_contact_at', 'Dernier contact', 'datetime-local', o.last_contact_at ? o.last_contact_at.slice(0, 16) : '')
+    ].join('');
+  }
+
+  function orgOptions(selectedId) {
+    var opts = '<option value="">—</option>';
+    if (_orgSummary.length) {
+      opts += _orgSummary.map(function (r) {
+        var nm = esc(r.trade_name || r.legal_name || '—');
+        return '<option value="' + r.organization_id + '"' +
+          (r.organization_id === selectedId ? ' selected' : '') + '>' + nm + '</option>';
+      }).join('');
+    }
+    return opts;
+  }
+
+  function openCreateOpportunityForm() {
+    var body = '<div class="f-row">' + opportunityFormFields({}) + '</div>' +
+      '<div class="crm-muted" style="margin:8px 0;">L\'opportunité sera créée au stade « Lead ». Utilisez le pipeline pour changer de stade.</div>' +
+      '<div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitCreateOpportunity()">Créer</button>';
+    openCrmModal('Nouvelle opportunité', body, footer);
+  }
+
+  function openEditOpportunityForm(oppId) {
+    var opp = _oppMap[oppId];
+    if (!opp) {
+      Swal.fire('Erreur', 'Opportunité introuvable dans le cache local. Rechargez la liste.', 'error');
+      return;
+    }
+    var body = '<div class="f-row">' + opportunityFormFields(opp) + '</div>' +
+      '<div class="crm-muted" style="margin:8px 0;">Stade actuel : ' + esc(STAGE_LABELS[opp.stage] || opp.stage) +
+      '. Utilisez le pipeline pour changer de stade.</div>' +
+      '<div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitEditOpportunity(\'' + oppId + '\')">Enregistrer</button>';
+    openCrmModal('Modifier l\'opportunité', body, footer);
+  }
+
+  // DIRECT_RLS_CRUD: crm_opportunities INSERT
+  // NEVER sends stage, lost_reason, created_by — column-level grants reject them.
+  async function submitCreateOpportunity() {
+    if (_mutating) return;
+    clearModalError();
+    var payload = collectOpportunityForm();
+    if (!payload) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.from('crm_opportunities').insert(payload).select().single();
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message); return; }
+      closeCrmModal();
+      loadCrmOpportunities();
+    } catch (e) { setModalBusy(false); setModalError(e.message); }
+  }
+
+  // DIRECT_RLS_CRUD: crm_opportunities UPDATE (business fields only)
+  // NEVER sends stage, lost_reason, created_by.
+  async function submitEditOpportunity(oppId) {
+    if (_mutating) return;
+    clearModalError();
+    var payload = collectOpportunityForm();
+    if (!payload) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.from('crm_opportunities').update(payload).eq('id', oppId);
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message); return; }
+      closeCrmModal();
+      loadCrmOpportunities();
+    } catch (e) { setModalBusy(false); setModalError(e.message); }
+  }
+
+  function collectOpportunityForm() {
+    var title = val('opp_title');
+    if (!title || !title.trim()) { setModalError('Le titre est obligatoire.'); return null; }
+    var orgId = val('opp_organization_id') || null;
+    var contactId = val('opp_contact_id') || null;
+    // If contact is set, org must be set (DB trigger enforces, but check early)
+    if (contactId && !orgId) { setModalError('Un contact nécessite une organisation.'); return null; }
+    var prob = val('opp_probability');
+    if (prob !== '' && prob != null) {
+      prob = parseInt(prob, 10);
+      if (isNaN(prob) || prob < 0 || prob > 100) { setModalError('Probabilité : 0 à 100.'); return null; }
+    } else { prob = null; }
+    var value = val('opp_estimated_value');
+    if (value !== '' && value != null) {
+      value = parseFloat(value);
+      if (isNaN(value) || value < 0) { setModalError('Valeur estimée doit être positive.'); return null; }
+    } else { value = null; }
+    return {
+      title: title.trim(),
+      organization_id: orgId,
+      contact_id: contactId || null,
+      estimated_value: value,
+      probability: prob,
+      source: val('opp_source') || null,
+      source_detail: val('opp_source_detail') || null,
+      campaign: val('opp_campaign') || null,
+      external_reference: val('opp_external_reference') || null,
+      lead_first_name: val('opp_lead_first_name') || null,
+      lead_last_name: val('opp_lead_last_name') || null,
+      lead_email: val('opp_lead_email') || null,
+      lead_phone: val('opp_lead_phone') || null,
+      next_action: val('opp_next_action') || null,
+      next_action_at: val('opp_next_action_at') ? val('opp_next_action_at') + ':00' : null,
+      last_contact_at: val('opp_last_contact_at') ? val('opp_last_contact_at') + ':00' : null
+    };
+  }
+
+  // EXISTING_RPC: crm_transition_opportunity
+  async function transitionOpportunity(oppId, toStage, reason) {
+    if (_mutating) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var params = { p_opportunity_id: oppId, p_to_stage: toStage };
+      if (reason) params.p_reason = reason;
+      var res = await client.rpc('crm_transition_opportunity', params);
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message); return false; }
+      closeCrmModal();
+      loadCrmOpportunities();
+      if (_currentOrgId) loadCrmOrgDetail(_currentOrgId);
+      return true;
+    } catch (e) { setModalBusy(false); setModalError(e.message); return false; }
+  }
+
+  function openTransitionForm(oppId, currentStage) {
+    var candidates = TRANSITION_MAP[currentStage] || [];
+    if (!candidates.length) {
+      var body = '<div class="crm-state crm-empty"><i class="fas fa-info-circle"></i> Stade terminal — aucune transition possible depuis « ' +
+        esc(STAGE_LABELS[currentStage] || currentStage) + ' ».</div>';
+      openCrmModal('Transition de pipeline', body,
+        '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Fermer</button>');
+      return;
+    }
+    var stageOpts = candidates.map(function (s) {
+      return '<option value="' + s + '">' + esc(STAGE_LABELS[s] || s) + '</option>';
+    }).join('');
+    var body = '<div class="f-grp"><label>Stade actuel</label><div class="crm-muted">' +
+      esc(STAGE_LABELS[currentStage] || currentStage) + '</div></div>' +
+      '<div class="f-grp"><label>Nouveau stade *</label><select id="trans_to_stage" class="crm-select">' + stageOpts + '</select></div>' +
+      '<div class="f-grp"><label>Raison (optionnel)</label><textarea id="trans_reason" rows="2"></textarea></div>' +
+      '<div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitTransition(\'' + oppId + '\',\'' + currentStage + '\')">Transition</button>';
+    openCrmModal('Transition de pipeline', body, footer);
+  }
+
+  async function submitTransition(oppId, currentStage) {
+    if (_mutating) return;
+    clearModalError();
+    var toStage = val('trans_to_stage');
+    if (!toStage) { setModalError('Sélectionnez un stage.'); return; }
+    var reason = val('trans_reason') || null;
+    await transitionOpportunity(oppId, toStage, reason);
+  }
+
+  // =========================================================
+  // P3C2-D: ACTIVITY MUTATIONS
+  // =========================================================
+
+  function activityFormFields(a) {
+    a = a || {};
+    var typeOpts = ACTIVITY_TYPES.map(function (t) {
+      return '<option value="' + t + '"' + (a.activity_type === t ? ' selected' : '') + '>' +
+        esc(ACTIVITY_TYPE_LABELS[t] || t) + '</option>';
+    }).join('');
+    var statusOpts = ACTIVITY_STATUS.map(function (s) {
+      return '<option value="' + s + '"' + (a.status === s ? ' selected' : '') + '>' +
+        esc(ACTIVITY_STATUS_LABELS[s] || s) + '</option>';
+    }).join('');
+    var dirOpts = ['inbound', 'outbound', 'internal'].map(function (d) {
+      return '<option value="' + d + '"' + (a.direction === d ? ' selected' : '') + '>' + esc(d) + '</option>';
+    }).join('');
+    return [
+      field('act_subject', 'Sujet *', 'text', a.subject, '', true),
+      '<div class="f-grp"><label>Type *</label><select id="act_activity_type" class="crm-select">' + typeOpts + '</select></div>',
+      '<div class="f-grp"><label>Direction</label><select id="act_direction" class="crm-select"><option value="">—</option>' + dirOpts + '</select></div>',
+      '<div class="f-grp"><label>Statut</label><select id="act_status" class="crm-select">' + statusOpts + '</select></div>',
+      '<div class="f-grp"><label>Organisation</label><select id="act_organization_id" class="crm-select">' + orgOptions(a.organization_id) + '</select></div>',
+      '<div class="f-grp"><label>Opportunité (UUID)</label><input type="text" id="act_opportunity_id" class="crm-input" value="' + esc(a.opportunity_id || '') + '"></div>',
+      '<div class="f-grp"><label>Contact (UUID)</label><input type="text" id="act_contact_id" class="crm-input" value="' + esc(a.contact_id || '') + '"></div>',
+      '<div class="f-grp"><label>Assigné à</label><select id="act_assigned_to" class="crm-select"><option value="">—</option>' + internalUserOptions(a.assigned_to) + '</select></div>',
+      field('act_occurred_at', 'Date d\'occurrence', 'datetime-local', a.occurred_at ? a.occurred_at.slice(0, 16) : ''),
+      field('act_due_at', 'Échéance', 'datetime-local', a.due_at ? a.due_at.slice(0, 16) : ''),
+      field('act_completed_at', 'Date de complétion', 'datetime-local', a.completed_at ? a.completed_at.slice(0, 16) : ''),
+      '<div class="f-grp"><label>Description</label><textarea id="act_body" rows="3">' + esc(a.body || '') + '</textarea></div>'
+    ].join('');
+  }
+
+  function openCreateActivityForm() {
+    var body = '<div class="f-row">' + activityFormFields({}) + '</div><div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitCreateActivity()">Créer</button>';
+    openCrmModal('Nouvelle activité', body, footer);
+  }
+
+  function openEditActivityForm(actId) {
+    var activity = _actMap[actId];
+    if (!activity) {
+      Swal.fire('Erreur', 'Activité introuvable dans le cache local. Rechargez la liste.', 'error');
+      return;
+    }
+    var body = '<div class="f-row">' + activityFormFields(activity) + '</div><div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitEditActivity(\'' + actId + '\')">Enregistrer</button>';
+    openCrmModal('Modifier l\'activité', body, footer);
+  }
+
+  // DIRECT_RLS_CRUD: crm_activities INSERT
+  // NEVER sends created_by — server-derived via trigger.
+  async function submitCreateActivity() {
+    if (_mutating) return;
+    clearModalError();
+    var payload = collectActivityForm();
+    if (!payload) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.from('crm_activities').insert(payload);
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message); return; }
+      closeCrmModal();
+      loadCrmActivities();
+    } catch (e) { setModalBusy(false); setModalError(e.message); }
+  }
+
+  // DIRECT_RLS_CRUD: crm_activities UPDATE
+  async function submitEditActivity(actId) {
+    if (_mutating) return;
+    clearModalError();
+    var payload = collectActivityForm();
+    if (!payload) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.from('crm_activities').update(payload).eq('id', actId);
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message); return; }
+      closeCrmModal();
+      loadCrmActivities();
+    } catch (e) { setModalBusy(false); setModalError(e.message); }
+  }
+
+  function collectActivityForm() {
+    var subject = val('act_subject');
+    if (!subject || !subject.trim()) { setModalError('Le sujet est obligatoire.'); return null; }
+    var orgId = val('act_organization_id') || null;
+    var contactId = val('act_contact_id') || null;
+    var oppId = val('act_opportunity_id') || null;
+    // If contact is set, org must be set (DB trigger enforces)
+    if (contactId && !orgId) { setModalError('Un contact nécessite une organisation.'); return null; }
+    return {
+      subject: subject.trim(),
+      activity_type: val('act_activity_type') || 'note',
+      direction: val('act_direction') || null,
+      status: val('act_status') || 'completed',
+      organization_id: orgId,
+      contact_id: contactId || null,
+      opportunity_id: oppId || null,
+      assigned_to: val('act_assigned_to') || null,
+      occurred_at: val('act_occurred_at') ? val('act_occurred_at') + ':00' : null,
+      due_at: val('act_due_at') ? val('act_due_at') + ':00' : null,
+      completed_at: val('act_completed_at') ? val('act_completed_at') + ':00' : null,
+      body: val('act_body') || null
+    };
+  }
+
+  // =========================================================
+  // P3C2-E: CRM LINK MUTATIONS
+  // =========================================================
+
+  // EXISTING_RPC: crm_link_client_organization
+  async function linkClientOrganization(clientId, organizationId) {
+    if (_mutating) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.rpc('crm_link_client_organization', {
+        p_client_id: clientId, p_organization_id: organizationId || null
+      });
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message); return false; }
+      closeCrmModal();
+      return true;
+    } catch (e) { setModalBusy(false); setModalError(e.message); return false; }
+  }
+
+  // EXISTING_RPC: crm_link_devis_crm
+  async function linkDevisCrm(devisId, organizationId, contactId, opportunityId) {
+    if (_mutating) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.rpc('crm_link_devis_crm', {
+        p_devis_id: devisId,
+        p_organization_id: organizationId || null,
+        p_contact_id: contactId || null,
+        p_opportunity_id: opportunityId || null
+      });
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message); return false; }
+      closeCrmModal();
+      return true;
+    } catch (e) { setModalBusy(false); setModalError(e.message); return false; }
+  }
+
+  // EXISTING_RPC: crm_link_mission_devis
+  async function linkMissionDevis(missionId, devisId, organizationId) {
+    if (_mutating) return;
+    setModalBusy(true);
+    try {
+      var client = sb();
+      var res = await client.rpc('crm_link_mission_devis', {
+        p_mission_id: missionId,
+        p_devis_id: devisId || null,
+        p_organization_id: organizationId || null
+      });
+      setModalBusy(false);
+      if (res.error) { setModalError(res.error.message); return false; }
+      closeCrmModal();
+      return true;
+    } catch (e) { setModalBusy(false); setModalError(e.message); return false; }
+  }
+
+  function openLinkClientForm(clientId, currentOrgId) {
+    var body = '<div class="f-grp"><label>Client ID</label><input type="text" value="' + esc(clientId) + '" readonly></div>' +
+      '<div class="f-grp"><label>Organisation</label><select id="link_org_id" class="crm-select">' + orgOptions(currentOrgId) + '</select></div>' +
+      '<div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitLinkClient(\'' + esc(clientId) + '\')">Lier</button>';
+    openCrmModal('Lier client → organisation', body, footer);
+  }
+
+  async function submitLinkClient(clientId) {
+    if (_mutating) return;
+    clearModalError();
+    var orgId = val('link_org_id') || null;
+    await linkClientOrganization(clientId, orgId);
+  }
+
+  function openLinkDevisForm(devisId, currentLinks) {
+    currentLinks = currentLinks || {};
+    var body = '<div class="f-grp"><label>Devis ID</label><input type="text" value="' + esc(devisId) + '" readonly></div>' +
+      '<div class="f-grp"><label>Organisation</label><select id="link_devis_org" class="crm-select">' + orgOptions(currentLinks.organization_id) + '</select></div>' +
+      '<div class="f-grp"><label>Contact (UUID)</label><input type="text" id="link_devis_contact" class="crm-input" value="' + esc(currentLinks.contact_id || '') + '"></div>' +
+      '<div class="f-grp"><label>Opportunité (UUID)</label><input type="text" id="link_devis_opp" class="crm-input" value="' + esc(currentLinks.opportunity_id || '') + '"></div>' +
+      '<div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitLinkDevis(\'' + esc(devisId) + '\')">Lier</button>';
+    openCrmModal('Lier devis → CRM', body, footer);
+  }
+
+  async function submitLinkDevis(devisId) {
+    if (_mutating) return;
+    clearModalError();
+    var orgId = val('link_devis_org') || null;
+    var contactId = val('link_devis_contact') || null;
+    var oppId = val('link_devis_opp') || null;
+    await linkDevisCrm(devisId, orgId, contactId, oppId);
+  }
+
+  function openLinkMissionForm(missionId, currentLinks) {
+    currentLinks = currentLinks || {};
+    var body = '<div class="f-grp"><label>Mission ID</label><input type="text" value="' + esc(missionId) + '" readonly></div>' +
+      '<div class="f-grp"><label>Devis (UUID)</label><input type="text" id="link_mission_devis" class="crm-input" value="' + esc(currentLinks.devis_id || '') + '"></div>' +
+      '<div class="f-grp"><label>Organisation</label><select id="link_mission_org" class="crm-select">' + orgOptions(currentLinks.organization_id) + '</select></div>' +
+      '<div id="crmModalError"></div>';
+    var footer = '<button class="btn-outline" onclick="CrmAdmin.closeModal()">Annuler</button>' +
+      '<button class="btn-red" id="crmModalSubmit" onclick="CrmAdmin.submitLinkMission(\'' + esc(missionId) + '\')">Lier</button>';
+    openCrmModal('Lier mission → devis + organisation', body, footer);
+  }
+
+  async function submitLinkMission(missionId) {
+    if (_mutating) return;
+    clearModalError();
+    var devisId = val('link_mission_devis') || null;
+    var orgId = val('link_mission_org') || null;
+    await linkMissionDevis(missionId, devisId, orgId);
+  }
+
+  // =========================================================
+  // Shared form helpers
+  // =========================================================
+  function val(id) {
+    var el = document.getElementById(id);
+    return el ? el.value : '';
+  }
+  function field(id, label, type, value, placeholder, required) {
+    return '<div class="f-grp"><label>' + esc(label) + '</label>' +
+      '<input type="' + type + '" id="' + id + '" class="crm-input" value="' + esc(value || '') + '"' +
+      (placeholder ? ' placeholder="' + esc(placeholder) + '"' : '') +
+      (required ? ' required' : '') + '></div>';
+  }
+
+  // =========================================================
+  // Data refresh helpers
+  // =========================================================
+  async function refreshOrgSummary() {
+    var client = sb();
+    if (!client) return;
+    try {
+      var res = await client.rpc('crm_organizations_summary');
+      if (!res.error && res.data) {
+        _orgSummary = res.data;
+        _orgMap = {};
+        res.data.forEach(function (r) { _orgMap[r.organization_id] = r; });
+        populateOrgSelects();
+      }
+    } catch (_) {}
+  }
+
   // ---------------------------------------------------------
   // Init
   // ---------------------------------------------------------
   function initAll() {
     // Preload dashboard + lists. Tabs load their own data on first open too.
     loadCrmDashboard();
+    // Preload internal users for the activity assigned_to picker.
+    ensureInternalUsers();
   }
 
   // ---------------------------------------------------------
@@ -955,6 +1967,39 @@
     setOrgSort: setOrgSort,
     setOppFilter: setOppFilter,
     setActFilter: setActFilter,
+    // P3C2 mutations
+    closeModal: closeCrmModal,
+    openCreateOrgForm: openCreateOrgForm,
+    openEditOrgForm: openEditOrgForm,
+    submitCreateOrg: submitCreateOrg,
+    submitEditOrg: submitEditOrg,
+    archiveOrg: archiveOrg,
+    openSegmentManager: openSegmentManager,
+    submitSegments: submitSegments,
+    openCreateSiteForm: openCreateSiteForm,
+    openEditSiteForm: openEditSiteForm,
+    submitCreateSite: submitCreateSite,
+    submitEditSite: submitEditSite,
+    openCreateContactForm: openCreateContactForm,
+    openEditContactForm: openEditContactForm,
+    submitCreateContact: submitCreateContact,
+    submitEditContact: submitEditContact,
+    openCreateOpportunityForm: openCreateOpportunityForm,
+    openEditOpportunityForm: openEditOpportunityForm,
+    submitCreateOpportunity: submitCreateOpportunity,
+    submitEditOpportunity: submitEditOpportunity,
+    openTransitionForm: openTransitionForm,
+    submitTransition: submitTransition,
+    openCreateActivityForm: openCreateActivityForm,
+    openEditActivityForm: openEditActivityForm,
+    submitCreateActivity: submitCreateActivity,
+    submitEditActivity: submitEditActivity,
+    openLinkClientForm: openLinkClientForm,
+    submitLinkClient: submitLinkClient,
+    openLinkDevisForm: openLinkDevisForm,
+    submitLinkDevis: submitLinkDevis,
+    openLinkMissionForm: openLinkMissionForm,
+    submitLinkMission: submitLinkMission,
     // Exposed for static tests (no secrets, no privileged paths).
     _buildTimelineParams: buildTimelineParams,
     _STAGE_LABELS: STAGE_LABELS,
@@ -964,6 +2009,7 @@
     _SOURCE_LABELS: SOURCE_LABELS,
     _RECORD_KIND_LABELS: RECORD_KIND_LABELS,
     _TIMELINE_DEFAULT_LIMIT: TIMELINE_DEFAULT_LIMIT,
-    _TIMELINE_MAX_LIMIT: TIMELINE_MAX_LIMIT
+    _TIMELINE_MAX_LIMIT: TIMELINE_MAX_LIMIT,
+    _TRANSITION_MAP: TRANSITION_MAP
   };
 })();
