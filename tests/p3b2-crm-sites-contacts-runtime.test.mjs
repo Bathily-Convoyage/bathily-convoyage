@@ -242,7 +242,7 @@ if (startRes.status !== 0) {
 // Wait for readiness.
 let ready = false;
 for (let i = 0; i < 60; i++) {
-  const probe = docker(['exec', '-e', `PGPASSWORD=${PGPASSWORD}`, CONTAINER, 'pg_isready', '-U', PGUSER], { stdio: 'pipe' });
+  const probe = docker(['exec', '-e', `PGPASSWORD=${PGPASSWORD}`, CONTAINER, 'pg_isready', '-h', '127.0.0.1', '-p', '5432', '-U', PGUSER], { stdio: 'pipe' });
   if (probe.stdout.includes('accepting connections')) { ready = true; break; }
   spawnSync('node', ['-e', 'setTimeout(()=>{},300)'], { stdio: 'ignore' });
 }

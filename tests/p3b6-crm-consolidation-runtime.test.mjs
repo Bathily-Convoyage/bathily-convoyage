@@ -240,7 +240,7 @@ if (startRes.status !== 0) {
 
 let ready = false;
 for (let i = 0; i < 30; i++) {
-  const r = docker(['exec', '-e', `PGPASSWORD=${PGPASSWORD}`, CONTAINER, 'pg_isready', '-U', PGUSER], { stdio: 'pipe' });
+  const r = docker(['exec', '-e', `PGPASSWORD=${PGPASSWORD}`, CONTAINER, 'pg_isready', '-h', '127.0.0.1', '-p', '5432', '-U', PGUSER], { stdio: 'pipe' });
   if (r.status === 0) { ready = true; break; }
   docker(['exec', CONTAINER, 'sleep', '1'], { stdio: 'pipe' });
 }
