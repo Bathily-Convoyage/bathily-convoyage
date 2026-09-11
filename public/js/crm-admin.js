@@ -202,18 +202,72 @@
     if (!el) return;
     el.innerHTML = '<div class="crm-state crm-error"><i class="fas fa-exclamation-triangle"></i> ' + esc(msg || 'Erreur de chargement.') + '</div>';
   }
+
+  // ---------------------------------------------------------
+  // RM01A-005: CRM error sanitization
+  // ---------------------------------------------------------
+  // Narrow helper: preserves known safe business-level messages from
+  // CRM RPCs/triggers (French, actionable, no SQL internals) while
+  // replacing unexpected/raw DB errors with a generic French message.
+  // Raw error detail is always logged to console.error for diagnostics.
+  // This is NOT a blanket mapper — domain validation messages remain
+  // user-readable.
+  var SAFE_CRM_MESSAGE_PATTERNS = [
+    // Patterns are end-anchored ($) so appended DB detail cannot leak.
+    // Variable parts (stage names) use tightly controlled character classes.
+    /^Réservé aux utilisateurs internes$/,
+    /^Un contact nécessite une organisation \([^)]+\)$/,
+    /^Contact introuvable$/,
+    /^Le contact n'appartient pas à cette organisation$/,
+    /^Opportunité introuvable$/,
+    // RPC emits: "Transition non autorisée : <from_stage> -> <to_stage>"
+    // Stage names are lowercase letters/underscores only.
+    /^Transition non autorisée : [a-z_]+ -> [a-z_]+$/,
+    // RPC emits: "Transition no-op : stage déjà <stage>"
+    /^Transition no-op : stage déjà [a-z_]+$/,
+    /^Le devis doit avoir la même organisation que l'opportunité$/,
+    /^L'opportunité n'appartient pas à cette organisation$/,
+    /^Le client n'appartient pas à cette organisation$/,
+    /^Devis introuvable$/,
+    /^La mission doit avoir la même organisation que le devis$/,
+    /^Le devis n'appartient pas à cette organisation$/,
+    /^Curseur invalide : p_before_event_at et p_before_event_key doivent être tous deux NULL ou tous deux non-NULL$/,
+    /^Organisation introuvable\.?$/,
+    /^SIRET : \d+ chiffres requis\.?$/,
+    /^SIREN : \d+ chiffres requis\.?$/,
+    /^La raison sociale est obligatoire\.?$/,
+    /^Le nom du site est obligatoire\.?$/,
+    /^Le titre est obligatoire\.?$/,
+    /^Le sujet est obligatoire\.?$/,
+    /^Probabilité : 0 à 100\.?$/,
+    /^Valeur estimée doit être positive\.?$/
+  ];
+  function isSafeCrmMessage(msg) {
+    if (!msg || typeof msg !== 'string') return false;
+    return SAFE_CRM_MESSAGE_PATTERNS.some(function (p) { return p.test(msg); });
+  }
+  function crmUserError(err, fallback) {
+    if (!err) return fallback || 'Une erreur est survenue. Veuillez réessayer.';
+    // Always log raw error for diagnostics (never rendered to DOM).
+    console.error('[CRM] error:', err);
+    var msg = (err && typeof err === 'object' && err.message) ? err.message : String(err);
+    // Known safe business-level messages from CRM RPCs/triggers take priority
+    // (checked before the RLS pattern to avoid false matches like
+    // "Transition non autorisée" which is a business rule, not an RLS error).
+    if (isSafeCrmMessage(msg)) return msg;
+    // RLS / authorization errors: stable, safe, honest message.
+    // Match only messages that START with "Non autorisé" or contain the
+    // SQLSTATE 42501 / jwt / permission-denied indicators.
+    if (/^Non autorisé|42501|jwt|permission/i.test(msg)) {
+      return "Accès refusé par la base de données. Cette opération nécessite un utilisateur interne (admin/opérateur).";
+    }
+    // Everything else: generic fallback (raw detail not rendered to DOM).
+    return fallback || 'Une erreur est survenue. Veuillez réessayer.';
+  }
+
   function handleRpcError(error, containerId, context) {
     console.error('[CRM] ' + (context || 'RPC error') + ':', error);
-    var msg = 'Erreur de chargement.';
-    if (error && error.message) {
-      // RLS / authorization errors are surfaced honestly, never worked around.
-      if (/Non autorisé|42501|jwt|permission/i.test(error.message)) {
-        msg = "Accès refusé par la base de données. Cette opération nécessite un utilisateur interne (admin/opérateur).";
-      } else {
-        msg = error.message;
-      }
-    }
-    setError(containerId, msg);
+    setError(containerId, crmUserError(error, 'Erreur de chargement.'));
   }
 
   // ---------------------------------------------------------
@@ -665,6 +719,8 @@
     }
     _orgDetailTimelineCursor.loading = true;
     try {
+      // RM01A-012: ensure internal user map is loaded for actor attribution.
+      await ensureInternalUsers();
       var params = buildTimelineParams({ organizationId: orgId }, _orgDetailTimelineCursor, TIMELINE_DEFAULT_LIMIT);
       var res = await client.rpc('crm_timeline_read', params);
       if (res.error) { handleRpcError(res.error, container.id, 'crm_timeline_read (org)'); _orgDetailTimelineCursor.loading = false; return; }
@@ -890,6 +946,8 @@
     }
     _tlCursor.loading = true;
     try {
+      // RM01A-012: ensure internal user map is loaded for actor attribution.
+      await ensureInternalUsers();
       var params = buildTimelineParams(filters, _tlCursor, TIMELINE_DEFAULT_LIMIT);
       var res = await client.rpc('crm_timeline_read', params);
       if (res.error) { handleRpcError(res.error, container.id, 'crm_timeline_read'); _tlCursor.loading = false; return; }
@@ -923,6 +981,37 @@
     el.innerHTML = html;
   }
 
+  // ---------------------------------------------------------
+  // RM01A-012: Timeline actor attribution
+  // ---------------------------------------------------------
+  // Resolves actor_user_id to a human-readable label using the cached
+  // internal user map (built once from crm_list_internal_users, no N+1).
+  // Display priority:
+  //   1. user display name (from _internalUserMap)
+  //   2. role-based label (Administrateur/Opérateur) when actor_role is set
+  //   3. "Système" for system-generated state projections (no actor)
+  //   4. "Acteur inconnu" as last-resort diagnostic fallback
+  // Actor UUIDs are never shown in the normal UI when a readable identity exists.
+  function actorLabel(r) {
+    // 1. Resolve actor_user_id to display name via cached internal users.
+    if (r.actor_user_id && _internalUserMap[r.actor_user_id]) {
+      return _internalUserMap[r.actor_user_id].display_name || 'Utilisateur interne';
+    }
+    // 2. actor exists but cannot be resolved — don't falsely label as system.
+    if (r.actor_user_id) {
+      if (r.actor_role === 'admin') return 'Administrateur';
+      if (r.actor_role === 'operator') return 'Opérateur';
+      return 'Utilisateur interne';
+    }
+    // 3. No actor_user_id. If role is set, use role-based label.
+    if (r.actor_role === 'admin') return 'Administrateur';
+    if (r.actor_role === 'operator') return 'Opérateur';
+    // 4. No actor at all — system-generated state projection (devis/mission/activity).
+    if (r.record_kind === 'state_projection') return 'Système';
+    // 5. Last-resort fallback.
+    return 'Acteur inconnu';
+  }
+
   function renderTimelineRow(r) {
     var kindCls = r.record_kind === 'immutable_event' ? 'crm-tl-immutable' : 'crm-tl-projection';
     var kindLbl = RECORD_KIND_LABELS[r.record_kind] || r.record_kind;
@@ -941,7 +1030,8 @@
       if (m.due_at) metaBits.push('Échéance : ' + fmtDate(m.due_at));
     }
     var metaHtml = metaBits.length ? '<div class="crm-tl-meta">' + metaBits.join(' · ') + '</div>' : '';
-    var actor = r.actor_role ? '<span class="crm-tl-actor">' + esc(r.actor_role) + '</span>' : '';
+    // RM01A-012: human-readable actor label instead of raw role/UUID.
+    var actor = '<span class="crm-tl-actor">' + esc(actorLabel(r)) + '</span>';
     return '<div class="crm-tl-row ' + kindCls + '">' +
       '<div class="crm-tl-ico"><i class="fas ' + srcIc + '"></i></div>' +
       '<div class="crm-tl-body">' +
@@ -1000,6 +1090,7 @@
   var _mutating = false; // prevents duplicate submit
   var _internalUsers = []; // crm_list_internal_users() cache
   var _internalUsersLoaded = false;
+  var _internalUserMap = {}; // user_id -> { display_name, role } for actor attribution (RM01A-012)
 
   // ---------------------------------------------------------
   // Transition map — mirrors the DB RPC validation exactly.
@@ -1070,6 +1161,11 @@
       if (res.error) { console.error('[CRM] crm_list_internal_users:', res.error); return []; }
       _internalUsers = res.data || [];
       _internalUsersLoaded = true;
+      // Build actor-resolution map (RM01A-012): user_id -> display info.
+      _internalUserMap = {};
+      _internalUsers.forEach(function (u) {
+        _internalUserMap[u.user_id] = { display_name: u.display_name, role: u.role };
+      });
     } catch (e) { console.error('[CRM] crm_list_internal_users:', e); }
     return _internalUsers;
   }
@@ -1142,11 +1238,11 @@
       var client = sb();
       var res = await client.from('organizations').insert(payload).select().single();
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message || 'Erreur lors de la création.'); return; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Erreur lors de la création.')); return; }
       closeCrmModal();
       await refreshOrgSummary();
       openCrmOrgDetail(res.data.id);
-    } catch (e) { setModalBusy(false); setModalError(e.message || 'Erreur inattendue.'); }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Erreur inattendue.')); }
   }
 
   // DIRECT_RLS_CRUD: organizations UPDATE (no stage/lost_reason/created_by)
@@ -1160,11 +1256,11 @@
       var client = sb();
       var res = await client.from('organizations').update(payload).eq('id', orgId).select().single();
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message || 'Erreur lors de la modification.'); return; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Erreur lors de la modification.')); return; }
       closeCrmModal();
       await refreshOrgSummary();
       loadCrmOrgDetail(orgId);
-    } catch (e) { setModalBusy(false); setModalError(e.message || 'Erreur inattendue.'); }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Erreur inattendue.')); }
   }
 
   // DIRECT_RLS_CRUD: organizations UPDATE status='archived'
@@ -1176,11 +1272,11 @@
       var client = sb();
       var res = await client.from('organizations').update({ status: 'archived' }).eq('id', orgId);
       setModalBusy(false);
-      if (res.error) { alert(res.error.message || 'Erreur lors de l\'archivage.'); return; }
+      if (res.error) { alert(crmUserError(res.error, 'Erreur lors de l\'archivage.')); return; }
       await refreshOrgSummary();
       closeCrmOrgDetail();
       renderCrmOrganizations();
-    } catch (e) { setModalBusy(false); alert(e.message || 'Erreur inattendue.'); }
+    } catch (e) { setModalBusy(false); alert(crmUserError(e, 'Erreur inattendue.')); }
   }
 
   function collectOrgForm() {
@@ -1218,9 +1314,9 @@
     try {
       var res = await client.from('organization_segments')
         .insert({ organization_id: orgId, segment: segment });
-      if (res.error) { alert(res.error.message); return; }
+      if (res.error) { alert(crmUserError(res.error, 'Une erreur est survenue.')); return; }
       loadCrmOrgDetail(orgId);
-    } catch (e) { alert(e.message); }
+    } catch (e) { alert(crmUserError(e, 'Une erreur est survenue.')); }
   }
 
   // DIRECT_RLS_CRUD: organization_segments DELETE
@@ -1230,9 +1326,9 @@
     try {
       var res = await client.from('organization_segments')
         .delete().eq('organization_id', orgId).eq('segment', segment);
-      if (res.error) { alert(res.error.message); return; }
+      if (res.error) { alert(crmUserError(res.error, 'Une erreur est survenue.')); return; }
       loadCrmOrgDetail(orgId);
-    } catch (e) { alert(e.message); }
+    } catch (e) { alert(crmUserError(e, 'Une erreur est survenue.')); }
   }
 
   function openSegmentManager(orgId) {
@@ -1259,7 +1355,7 @@
       checkboxes.forEach(function (cb) { if (cb.checked) desired.push(cb.value); });
       // Fetch current
       var curRes = await client.from('organization_segments').select('segment').eq('organization_id', orgId);
-      if (curRes.error) { setModalBusy(false); setModalError(curRes.error.message); return; }
+      if (curRes.error) { setModalBusy(false); setModalError(crmUserError(curRes.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       var current = (curRes.data || []).map(function (r) { return r.segment; });
       var toAdd = desired.filter(function (s) { return current.indexOf(s) === -1; });
       var toRemove = current.filter(function (s) { return desired.indexOf(s) === -1; });
@@ -1267,18 +1363,18 @@
       for (var i = 0; i < toAdd.length; i++) {
         var addRes = await client.from('organization_segments')
           .insert({ organization_id: orgId, segment: toAdd[i] });
-        if (addRes.error) { setModalBusy(false); setModalError(addRes.error.message); return; }
+        if (addRes.error) { setModalBusy(false); setModalError(crmUserError(addRes.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       }
       // Remove old
       for (var j = 0; j < toRemove.length; j++) {
         var delRes = await client.from('organization_segments')
           .delete().eq('organization_id', orgId).eq('segment', toRemove[j]);
-        if (delRes.error) { setModalBusy(false); setModalError(delRes.error.message); return; }
+        if (delRes.error) { setModalBusy(false); setModalError(crmUserError(delRes.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       }
       setModalBusy(false);
       closeCrmModal();
       loadCrmOrgDetail(orgId);
-    } catch (e) { setModalBusy(false); setModalError(e.message); }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); }
   }
 
   // =========================================================
@@ -1340,10 +1436,10 @@
       var client = sb();
       var res = await client.from('organization_sites').insert(payload);
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message); return; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       closeCrmModal();
       loadCrmOrgDetail(orgId);
-    } catch (e) { setModalBusy(false); setModalError(e.message); }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); }
   }
 
   // DIRECT_RLS_CRUD: organization_sites UPDATE
@@ -1357,10 +1453,10 @@
       var client = sb();
       var res = await client.from('organization_sites').update(payload).eq('id', siteId);
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message); return; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       closeCrmModal();
       loadCrmOrgDetail(orgId);
-    } catch (e) { setModalBusy(false); setModalError(e.message); }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); }
   }
 
   function collectSiteForm(orgId) {
@@ -1443,18 +1539,18 @@
     try {
       var client = sb();
       var res = await client.from('organization_contacts').insert(payload).select().single();
-      if (res.error) { setModalBusy(false); setModalError(res.error.message); return; }
+      if (res.error) { setModalBusy(false); setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       // If primary was requested, use the atomic RPC.
       if (wantPrimary) {
         var priRes = await client.rpc('crm_set_primary_contact', {
           p_organization_id: orgId, p_contact_id: res.data.id
         });
-        if (priRes.error) { setModalBusy(false); setModalError(priRes.error.message); return; }
+        if (priRes.error) { setModalBusy(false); setModalError(crmUserError(priRes.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       }
       setModalBusy(false);
       closeCrmModal();
       loadCrmOrgDetail(orgId);
-    } catch (e) { setModalBusy(false); setModalError(e.message); }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); }
   }
 
   // DIRECT_RLS_CRUD: organization_contacts UPDATE
@@ -1472,26 +1568,26 @@
       // Fetch current to check if primary changed
       var curRes = await client.from('organization_contacts')
         .select('primary_contact').eq('id', contactId).maybeSingle();
-      if (curRes.error) { setModalBusy(false); setModalError(curRes.error.message); return; }
+      if (curRes.error) { setModalBusy(false); setModalError(crmUserError(curRes.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       var wasPrimary = curRes.data ? curRes.data.primary_contact : false;
       var res = await client.from('organization_contacts').update(payload).eq('id', contactId);
-      if (res.error) { setModalBusy(false); setModalError(res.error.message); return; }
+      if (res.error) { setModalBusy(false); setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       // If primary state changed, use the atomic RPC.
       if (wantPrimary && !wasPrimary) {
         var priRes = await client.rpc('crm_set_primary_contact', {
           p_organization_id: orgId, p_contact_id: contactId
         });
-        if (priRes.error) { setModalBusy(false); setModalError(priRes.error.message); return; }
+        if (priRes.error) { setModalBusy(false); setModalError(crmUserError(priRes.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       } else if (!wantPrimary && wasPrimary) {
         var unPriRes = await client.rpc('crm_set_primary_contact', {
           p_organization_id: orgId, p_contact_id: null
         });
-        if (unPriRes.error) { setModalBusy(false); setModalError(unPriRes.error.message); return; }
+        if (unPriRes.error) { setModalBusy(false); setModalError(crmUserError(unPriRes.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       }
       setModalBusy(false);
       closeCrmModal();
       loadCrmOrgDetail(orgId);
-    } catch (e) { setModalBusy(false); setModalError(e.message); }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); }
   }
 
   function collectContactForm(orgId) {
@@ -1732,10 +1828,10 @@
       var client = sb();
       var res = await client.from('crm_opportunities').insert(payload).select().single();
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message); return; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       closeCrmModal();
       loadCrmOpportunities();
-    } catch (e) { setModalBusy(false); setModalError(e.message); }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); }
   }
 
   // DIRECT_RLS_CRUD: crm_opportunities UPDATE (business fields only)
@@ -1750,10 +1846,10 @@
       var client = sb();
       var res = await client.from('crm_opportunities').update(payload).eq('id', oppId);
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message); return; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       closeCrmModal();
       loadCrmOpportunities();
-    } catch (e) { setModalBusy(false); setModalError(e.message); }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); }
   }
 
   function collectOpportunityForm() {
@@ -1803,12 +1899,12 @@
       if (reason) params.p_reason = reason;
       var res = await client.rpc('crm_transition_opportunity', params);
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message); return false; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return false; }
       closeCrmModal();
       loadCrmOpportunities();
       if (_currentOrgId) loadCrmOrgDetail(_currentOrgId);
       return true;
-    } catch (e) { setModalBusy(false); setModalError(e.message); return false; }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); return false; }
   }
 
   function openTransitionForm(oppId, currentStage) {
@@ -1910,10 +2006,10 @@
       var client = sb();
       var res = await client.from('crm_activities').insert(payload);
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message); return; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       closeCrmModal();
       loadCrmActivities();
-    } catch (e) { setModalBusy(false); setModalError(e.message); }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); }
   }
 
   // DIRECT_RLS_CRUD: crm_activities UPDATE
@@ -1927,10 +2023,10 @@
       var client = sb();
       var res = await client.from('crm_activities').update(payload).eq('id', actId);
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message); return; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return; }
       closeCrmModal();
       loadCrmActivities();
-    } catch (e) { setModalBusy(false); setModalError(e.message); }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); }
   }
 
   function collectActivityForm() {
@@ -1971,10 +2067,10 @@
         p_client_id: clientId, p_organization_id: organizationId || null
       });
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message); return false; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return false; }
       closeCrmModal();
       return true;
-    } catch (e) { setModalBusy(false); setModalError(e.message); return false; }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); return false; }
   }
 
   // EXISTING_RPC: crm_link_devis_crm
@@ -1990,10 +2086,10 @@
         p_opportunity_id: opportunityId || null
       });
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message); return false; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return false; }
       closeCrmModal();
       return true;
-    } catch (e) { setModalBusy(false); setModalError(e.message); return false; }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); return false; }
   }
 
   // EXISTING_RPC: crm_link_mission_devis
@@ -2008,10 +2104,10 @@
         p_organization_id: organizationId || null
       });
       setModalBusy(false);
-      if (res.error) { setModalError(res.error.message); return false; }
+      if (res.error) { setModalError(crmUserError(res.error, 'Une erreur est survenue. Veuillez réessayer.')); return false; }
       closeCrmModal();
       return true;
-    } catch (e) { setModalBusy(false); setModalError(e.message); return false; }
+    } catch (e) { setModalBusy(false); setModalError(crmUserError(e, 'Une erreur inattendue est survenue.')); return false; }
   }
 
   function openLinkClientForm(clientId, currentOrgId) {
@@ -2184,6 +2280,12 @@
     _populateContactSelect: populateContactSelect,
     _populateOpportunitySelect: populateOpportunitySelect,
     _fetchContactsForOrg: fetchContactsForOrg,
-    _fetchOpportunitiesForOrg: fetchOpportunitiesForOrg
+    _fetchOpportunitiesForOrg: fetchOpportunitiesForOrg,
+    // RM-01D test helpers
+    _crmUserError: crmUserError,
+    _isSafeCrmMessage: isSafeCrmMessage,
+    _actorLabel: actorLabel,
+    _setInternalUserMapForTest: function (m) { _internalUserMap = m || {}; },
+    _renderTimelineRow: renderTimelineRow
   };
 })();
