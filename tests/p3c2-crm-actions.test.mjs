@@ -328,12 +328,15 @@ assert.ok(/delete payload\.primary_contact/.test(createContactSrc), 'deletes pri
 ok('submitCreateContact removes primary_contact from INSERT payload (uses RPC instead)');
 
 // submitEditContact must use RPC for primary changes
+// RM-01F: primary-changing edits now use the atomic crm_update_contact_atomic
+// RPC (field update + primary reassignment in one transaction). The
+// crm_set_primary_contact RPC is still used by submitCreateContact.
 var editContactSrc = js.substring(js.indexOf('async function submitEditContact'));
-editContactSrc = editContactSrc.substring(0, 1200);
+editContactSrc = editContactSrc.substring(0, 2200);
 assert.ok(/delete payload\.primary_contact/.test(editContactSrc), 'deletes primary_contact from UPDATE payload');
 ok('submitEditContact removes primary_contact from UPDATE payload (uses RPC instead)');
-assert.ok(/crm_set_primary_contact/.test(editContactSrc), 'uses crm_set_primary_contact RPC');
-ok('submitEditContact uses crm_set_primary_contact RPC for primary changes');
+assert.ok(/crm_update_contact_atomic/.test(editContactSrc), 'uses crm_update_contact_atomic RPC');
+ok('submitEditContact uses crm_update_contact_atomic RPC for atomic primary changes');
 
 // =========================================================
 // 11. NO service_role / auth.users / IMMUTABLE WRITES
