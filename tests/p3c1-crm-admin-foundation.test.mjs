@@ -29,7 +29,7 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
 const htmlPath = path.join(projectRoot, 'dashboard-admin.html');
-const jsPath = path.join(projectRoot, 'js', 'crm-admin.js');
+const jsPath = path.join(projectRoot, 'public', 'js', 'crm-admin.js');
 const migrationPath = path.join(projectRoot, 'supabase', 'migrations', '20260910120000_p3b6_crm_consolidation.sql');
 const html = fs.readFileSync(htmlPath, 'utf8');
 const js = fs.readFileSync(jsPath, 'utf8');
@@ -44,8 +44,8 @@ function section(t) { console.log('\n--- ' + t + ' ---'); }
 // =========================================================
 section('CRM NAVIGATION RENDERING');
 
-assert.ok(fs.existsSync(jsPath), 'js/crm-admin.js exists');
-ok('js/crm-admin.js exists');
+assert.ok(fs.existsSync(jsPath), 'public/js/crm-admin.js exists');
+ok('public/js/crm-admin.js exists');
 
 // Sidebar CRM section
 assert.match(html, /<div class="nav-section-lbl">CRM<\/div>/, 'CRM nav section label');
