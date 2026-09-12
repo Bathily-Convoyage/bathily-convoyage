@@ -6,13 +6,14 @@ const CANONICAL_PACKS = ['starter', 'serenite', 'excellence'];
 
 const PACK_ALIASES = {
   starter: 'starter',
+  essentiel: 'starter',
   'starter — inclus (convoyeur certifié, suivi gps, état des lieux 20 photos)': 'starter',
   serenite: 'serenite',
   'sérénité': 'serenite',
   'sérénité — +69€ (nettoyage int./ext., lavage, rdv planifié, support vip)': 'serenite',
   'serenite — +69€ (nettoyage int./ext., lavage, rdv planifié, support vip)': 'serenite',
   excellence: 'excellence',
-  'excellence — +159€ (plein carburant, photos 4k, livraison directe)': 'excellence'
+  'excellence — +149€ (planification prioritaire, créneau privilégié, remise personnalisée, préparation, carburant sur demande — facturé au réel)': 'excellence'
 };
 
 export function normalizePack(value) {
@@ -41,7 +42,7 @@ const BASE_RATES_PRO = {
   Luxe: { route: 1.50, plateau: 1.50 }
 };
 
-const PACK_PRICES_PUBLIC = { starter: 0, serenite: 69, excellence: 159 };
+const PACK_PRICES_PUBLIC = { starter: 0, serenite: 69, excellence: 149 };
 const PACK_PRICES_PRO = { starter: 0, serenite: 55, excellence: 125 };
 
 const UTIL_SIZE_COEFFS = { '3': 1.0, '6': 1.10, '10': 1.20, '14': 1.30, '20': 1.50 };
@@ -56,9 +57,13 @@ const COEFFS = {
   urgence_pro: 1.25,
   gardiennage_public: 30,
   gardiennage_pro: 20,
-  haute_saison: 1.15,
   remuneration_rate: 0.60
 };
+
+// RM-02 global B2C pricing adjustment technical guardrail.
+// Not a commercial business rule — defensive validation only.
+const GLOBAL_ADJUST_MIN = -50;
+const GLOBAL_ADJUST_MAX = 50;
 
 function toRad(deg) { return deg * Math.PI / 180; }
 
@@ -106,9 +111,10 @@ async function calculateDistance(depart, arrivee) {
 }
 
 function isHauteSaison(date) {
-  const d = date ? new Date(date) : new Date();
-  const month = d.getMonth(); // 0-11
-  return month >= 5 && month <= 8; // juin-septembre
+  // RM-02: automatic +15% summer/high-season surcharge removed (DEC-008).
+  // Function retained as a no-op for backward compatibility with any caller
+  // that still references it; it never reports a high-season period.
+  return false;
 }
 
 /**
@@ -129,6 +135,7 @@ export function calculateQuote(opts) {
     utilSize,
     isPro = false,
     promoPercent = 0,
+    globalAdjustPercent,
     dateLivraison,
     distance // authoritative distance; caller may ignore client distance
   } = opts;
@@ -140,6 +147,16 @@ export function calculateQuote(opts) {
   const normalizedPack = normalizePack(pack);
   if (!normalizedPack) {
     return { error: 'pack_inconnu', pack_reçu: pack };
+  }
+
+  // RM-02: normalize + defensive clamp for the B2C global adjustment.
+  // B2B is never adjusted. Malformed/non-numeric values fall back to 0.
+  let effectiveGlobalAdjust = 0;
+  if (!isPro) {
+    const raw = Number(globalAdjustPercent);
+    if (Number.isFinite(raw)) {
+      effectiveGlobalAdjust = Math.max(GLOBAL_ADJUST_MIN, Math.min(GLOBAL_ADJUST_MAX, raw));
+    }
   }
 
   const baseRates = isPro ? BASE_RATES_PRO : BASE_RATES_PUBLIC;
@@ -166,33 +183,49 @@ export function calculateQuote(opts) {
     basePrice = Math.round(basePrice * UTIL_SIZE_COEFFS[utilSize]);
   }
 
-  let total = basePrice + (packPrices[normalizedPack] || 0);
+  const packPrice = packPrices[normalizedPack] || 0;
+
+  // RM-02: distance discount preserves historical (basePrice + packPrice) basis.
+  const distCoeff = distance >= 800 ? COEFFS.dist_800plus
+    : distance >= 500 ? COEFFS.dist_500plus
+    : 1.0;
+
+  // Normal historical chain — (basePrice + packPrice) × dist_coeff.
+  let total = Math.round((basePrice + packPrice) * distCoeff);
 
   const applied = [];
 
-  // Remise longue distance
   if (distance >= 800) {
-    total = Math.round(total * COEFFS.dist_800plus);
     applied.push({ label: 'Remise longue distance (-15%)', value: -0.15 });
   } else if (distance >= 500) {
-    total = Math.round(total * COEFFS.dist_500plus);
     applied.push({ label: 'Remise distance (-10%)', value: -0.10 });
   }
 
-  // Haute saison
-  if (isHauteSaison(dateLivraison)) {
-    total = Math.round(total * COEFFS.haute_saison);
-    applied.push({ label: 'Haute saison (+15%)', value: 0.15 });
-  }
+  // RM-02: seasonal +15% removed (DEC-008). dateLivraison no longer alters price.
 
-  // Urgence
+  // Urgence — computed from the normal subtotal (transport + pack × dist_coeff).
   if (isUrgence) {
     const coeff = isPro ? COEFFS.urgence_pro : COEFFS.urgence_public;
     total = Math.round(total * coeff);
     applied.push({ label: `Urgence (+${Math.round((coeff - 1) * 100)}%)`, value: coeff - 1 });
   }
 
-  // Gardiennage
+  // RM-02: global B2C transport adjustment — additive delta, transport only.
+  // Computed AFTER urgency so urgency never amplifies the adjustment.
+  // Pack, urgency surcharge, and gardiennage are NOT affected by the delta.
+  let globalAdjustDelta = 0;
+  if (!isPro && effectiveGlobalAdjust !== 0) {
+    const transportDiscounted = Math.round(basePrice * distCoeff);
+    globalAdjustDelta = Math.round(transportDiscounted * effectiveGlobalAdjust / 100);
+    total += globalAdjustDelta;
+    applied.push({
+      label: `Ajustement global B2C (${effectiveGlobalAdjust > 0 ? '+' : ''}${effectiveGlobalAdjust}%)`,
+      value: effectiveGlobalAdjust / 100,
+      delta: globalAdjustDelta
+    });
+  }
+
+  // Gardiennage — flat fee, additive, never adjusted by global adjustment.
   if (isGardiennage) {
     const fee = isPro ? COEFFS.gardiennage_pro : COEFFS.gardiennage_public;
     total += fee;
@@ -234,6 +267,9 @@ export function calculateQuote(opts) {
       promoPercent,
       discount,
       basePrice,
+      packPrice,
+      global_adjust_percent: isPro ? 0 : effectiveGlobalAdjust,
+      global_adjust_delta: globalAdjustDelta,
       applied_coeffs: applied
     }
   };
