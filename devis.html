@@ -1710,6 +1710,18 @@
           document.getElementById('transportMode').value = modeParam;
         }
 
+        // RM-02C2D1: preserve pack selection from homepage cards.
+        // Lightweight frontend normalization: essentiel -> starter.
+        // Invalid values are ignored safely (default selection kept).
+        const packParam = urlParams.get('pack');
+        if (packParam) {
+          const normalizedPack = packParam === 'essentiel' ? 'starter' : packParam;
+          if (['starter', 'serenite', 'excellence'].includes(normalizedPack)) {
+            const packSelectEl = document.getElementById('packSelect');
+            if (packSelectEl) packSelectEl.value = normalizedPack;
+          }
+        }
+
         const savedDevis = localStorage.getItem('bathily_devis');
         if (savedDevis) {
           const parsed = JSON.parse(savedDevis);
