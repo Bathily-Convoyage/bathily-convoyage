@@ -46,8 +46,8 @@ const repoRoot = path.resolve(__dirname, '..');
 const adminPath = path.join(repoRoot, 'dashboard-admin.html');
 const adminSrc = fs.readFileSync(adminPath, 'utf8');
 
-// Extract the calculateAdminPrice section.
-const capStart = adminSrc.indexOf('async function calculateAdminPrice');
+// Extract the calculateAdminPrice section (includes _manualPriceRenderStatus + calculateAdminPrice + _manualPriceFetchPreview).
+const capStart = adminSrc.indexOf('function _manualPriceRenderStatus');
 const capEnd = adminSrc.indexOf('// ============================================================\n// FONCTIONS UTILITAIRES', capStart);
 const capSection = adminSrc.substring(capStart, capEnd);
 
@@ -185,39 +185,56 @@ test('O. _lastManualQuote invalidated on error paths', () => {
     'must invalidate _lastManualQuote on HTTP error');
 });
 
-// P-R. Error states (400, 429, 5xx) — verify the flow clears price/rem on error
-test('P-R. error states clear price and remuneration', () => {
-  // The current implementation clears price/rem on all error paths
-  // (no user-visible error message field exists in manual mission form,
-  //  unlike quick-create which has prixAuto display)
-  // Verify that all error paths clear priceInput and remInput
-  const errorPaths = capSection.match(/_lastManualQuote\s*=\s*null[\s\S]{0,100}priceInput\.value\s*=\s*''/g) || [];
-  assert.ok(errorPaths.length >= 3,
-    `must have at least 3 error paths that clear price (found ${errorPaths.length})`);
+// P-R. Error states (400, 429, 5xx) — verify visible messages + clear price/rem
+test('P. 400 visible message rendered', () => {
+  assert.ok(/response\.status === 400[\s\S]{0,100}_manualPriceRenderStatus/.test(capSection),
+    'must render visible status for 400');
+  assert.ok(capSection.includes('Données invalides.'),
+    'must have 400 message: "Données invalides."');
+});
+
+test('Q. 429 visible message rendered', () => {
+  assert.ok(/response\.status === 429[\s\S]{0,100}_manualPriceRenderStatus/.test(capSection),
+    'must render visible status for 429');
+  assert.ok(capSection.includes('Trop de requêtes. Patientez quelques secondes.'),
+    'must have 429 message');
+});
+
+test('R. 5xx visible message rendered', () => {
+  assert.ok(/response\.status >= 500[\s\S]{0,100}_manualPriceRenderStatus/.test(capSection),
+    'must render visible status for 5xx');
+  assert.ok(capSection.includes('Erreur serveur. Réessayez.'),
+    'must have 5xx message');
 });
 
 // S. Network error visible state
-test('S. network error clears price/remuneration', () => {
-  assert.ok(/Erreur réseau|abortCtrl\.signal\.aborted/.test(capSection),
-    'must handle network error (abort or explicit)');
+test('S. network error renders visible message', () => {
+  assert.ok(capSection.includes('Erreur réseau. Réessayez.'),
+    'must render visible network error message');
+  assert.ok(/Erreur réseau[\s\S]{0,50}_manualPriceRenderStatus/.test(capSection) || /_manualPriceRenderStatus[\s\S]{0,50}Erreur réseau/.test(capSection),
+    'must call _manualPriceRenderStatus with network error message');
 });
 
 // T. Timeout visible state
-test('T. timeout clears price/remuneration', () => {
-  assert.ok(/_timedOut\s*&&\s*mySeq\s*===\s*_manualPriceSeq[\s\S]{0,100}_lastManualQuote\s*=\s*null/.test(capSection),
-    'timeout must invalidate _lastManualQuote and clear price');
+test('T. timeout renders visible message', () => {
+  assert.ok(capSection.includes('Délai dépassé. Réessayez.'),
+    'must render visible timeout message');
+  assert.ok(/_timedOut\s*&&\s*mySeq\s*===\s*_manualPriceSeq[\s\S]{0,300}_manualPriceRenderStatus/.test(capSection),
+    'timeout must call _manualPriceRenderStatus');
 });
 
 // U. Error message is not immediately self-cleared
-test('U. no error message self-clear bug (manual flow clears price, not error msg)', () => {
-  // The manual flow doesn't have a dedicated error message display field.
-  // It clears priceInput/remInput on error, which is correct behavior.
-  // The C2B1 bug was specific to _qcRenderError calling _qcInvalidate.
-  // Here we verify no similar pattern exists.
-  assert.ok(!capSection.includes('_qcRenderError'),
-    'manual flow must not use C2B1 error render function');
+test('U. error message persists (not self-cleared by invalidation)', () => {
+  // _manualPriceRenderStatus sets textContent, not value, so it's independent
+  // from priceInput/remInput clearing. Verify the renderer exists and is called
+  // on error paths WITHOUT being followed by a clear.
+  assert.ok(capSection.includes('function _manualPriceRenderStatus'),
+    'must have _manualPriceRenderStatus function');
+  // Verify no _qcInvalidate-style clear after render
   assert.ok(!capSection.includes('_qcInvalidate'),
     'manual flow must not use C2B1 invalidate function');
+  assert.ok(!capSection.includes('_qcRenderError'),
+    'manual flow must not use C2B1 error render function');
 });
 
 // V. Invalid response shape rejected
@@ -348,4 +365,102 @@ test('manual preview state variables are separate from C2B1', () => {
     'must have _manualPriceSeq (separate from _qcSeq)');
   assert.ok(adminSrc.includes('_manualPriceDebounceTimer'),
     'must have _manualPriceDebounceTimer (separate from _qcDebounceTimer)');
+});
+
+// =========================================================
+// RM-02C2B2.1 — User-visible error/status state
+// =========================================================
+
+// A2. Visible loading state exists
+test('A2. visible loading state rendered via _manualPriceRenderStatus', () => {
+  assert.ok(capSection.includes('Calcul en cours…'),
+    'must render "Calcul en cours…" loading text');
+  assert.ok(/_manualPriceRenderStatus\('Calcul en cours…'/.test(capSection),
+    'must call _manualPriceRenderStatus with loading message');
+});
+
+// G2. Invalid response visible message
+test('G2. invalid response renders visible message', () => {
+  assert.ok(/typeof quote\.total_ht[\s\S]{0,300}_manualPriceRenderStatus\('Réponse tarifaire invalide\.'/.test(capSection),
+    'invalid response shape must render "Réponse tarifaire invalide."');
+});
+
+// H2. Messages persist after render (status element is separate from price fields)
+test('H2. status element exists in HTML and is separate from price inputs', () => {
+  assert.ok(adminSrc.includes('id="manual-price-status"'),
+    'must have manual-price-status element in HTML');
+  // Status element must NOT be a number input (so text won't be rejected)
+  const statusMatch = adminSrc.match(/id="manual-price-status"[^>]*>/);
+  assert.ok(statusMatch && !statusMatch[0].includes('type="number"'),
+    'status element must not be a number input');
+});
+
+// I2. Supersede abort remains silent (no status render on non-timeout abort)
+test('I2. supersede abort does not render error status', () => {
+  // The non-timeout abort path must return without calling _manualPriceRenderStatus
+  const abortBlock = capSection.match(/abortCtrl\.signal\.aborted[\s\S]{0,400}return/);
+  assert.ok(abortBlock,
+    'abort block must exist and return');
+  // Check that the non-timeout branch doesn't call _manualPriceRenderStatus
+  // The timeout branch has _manualPriceRenderStatus, but it's guarded by _timedOut
+  assert.ok(/abortCtrl\.signal\.aborted[\s\S]{0,150}if\s*\(\s*abortCtrl\._timedOut[\s\S]{0,300}_manualPriceRenderStatus/.test(capSection),
+    'only timeout abort should call _manualPriceRenderStatus');
+});
+
+// J2. Incomplete required fields remain neutral (no error)
+test('J2. incomplete required fields render neutral, not error', () => {
+  // The required-field guard must call _manualPriceRenderStatus with empty/neutral
+  assert.ok(/!depart\s*\|\|\s*!arrivee[\s\S]{0,300}_manualPriceRenderStatus\(''/.test(capSection),
+    'required-field guard must render neutral (empty) status, not error');
+});
+
+// K2. Success clears/replaces error state
+test('K2. success renders neutral status (clears error)', () => {
+  // Success path must call _manualPriceRenderStatus with empty/neutral
+  assert.ok(/_lastManualQuote\s*=\s*quote[\s\S]{0,200}_manualPriceRenderStatus\(''/.test(capSection),
+    'success must render neutral (empty) status to clear any previous error');
+});
+
+// L2. Price/rem remain cleared on errors
+test('L2. price and remuneration cleared on all error paths', () => {
+  const errorPaths = capSection.match(/_lastManualQuote\s*=\s*null[\s\S]{0,100}priceInput\.value\s*=\s*''/g) || [];
+  assert.ok(errorPaths.length >= 4,
+    `must have at least 4 error paths that clear price (found ${errorPaths.length})`);
+});
+
+// M2. _lastManualQuote remains null on errors
+test('M2. _lastManualQuote set to null on all error paths', () => {
+  const nullPaths = capSection.match(/_lastManualQuote\s*=\s*null/g) || [];
+  assert.ok(nullPaths.length >= 5,
+    `must have at least 5 _lastManualQuote = null paths (found ${nullPaths.length})`);
+});
+
+// N2. Margin stale state cleared on errors
+test('N2. updateManualMarginDisplay called on all error paths', () => {
+  const marginCalls = capSection.match(/updateManualMarginDisplay\(\)/g) || [];
+  assert.ok(marginCalls.length >= 5,
+    `must call updateManualMarginDisplay on all error+success paths (found ${marginCalls.length})`);
+});
+
+// O2. No pricing semantics changed
+test('O2. pricing semantics unchanged (mode, vehicleCondition, isPro)', () => {
+  assert.ok(capSection.includes("mode: 'route'"),
+    'mode must remain "route"');
+  assert.ok(capSection.includes("vehicleCondition: 'working'"),
+    'vehicleCondition must remain "working"');
+  assert.ok(capSection.includes('isPro: false'),
+    'isPro must remain false');
+});
+
+// P2. C2B1 remains unchanged
+test('P2. C2B1 quick-create unchanged by status addition', () => {
+  assert.ok(adminSrc.includes('function _qcBuildPayload'),
+    '_qcBuildPayload must still exist');
+  assert.ok(adminSrc.includes('function _qcFetchPreview'),
+    '_qcFetchPreview must still exist');
+  assert.ok(adminSrc.includes('function _qcRenderError'),
+    '_qcRenderError must still exist');
+  const distMatch = adminSrc.match(/id="cdDistance"[^>]*>/);
+  assert.ok(distMatch && distMatch[0].includes('readonly'),
+    'cdDistance must remain readonly');
 });

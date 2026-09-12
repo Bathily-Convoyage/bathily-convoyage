@@ -2768,6 +2768,7 @@ Cadeau premium personnalisé</textarea>
         <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid);">Marge brute estimée :</span>
         <strong id="manual-marge-val" style="font-size:1.15rem; color:var(--success);">0€</strong>
       </div>
+      <div id="manual-price-status" style="margin-bottom:10px; font-size:0.8rem; color:var(--gray-mid); min-height:1.2em;"></div>
       <div class="modal-btns">
         <button class="btn-red" id="createMissionManualBtn"><i class="fas fa-plus"></i> Créer la mission</button>
         <button class="btn-outline" onclick="closeModal('modalMission')">Annuler</button>
@@ -7499,6 +7500,19 @@ Cadeau premium personnalisé</textarea>
 // et met à jour le champ "Montant Client" en direct
 // (State declarations moved to top level — see HOTFIX MISSIONS-EXT-2B-HF1)
 
+function _manualPriceRenderStatus(message, type) {
+  const el = document.getElementById('manual-price-status');
+  if (!el) return;
+  el.textContent = message || '';
+  if (type === 'error') {
+    el.style.color = 'var(--red, #c0392b)';
+  } else if (type === 'loading') {
+    el.style.color = 'var(--gray-mid, #888)';
+  } else {
+    el.style.color = 'var(--gray-mid, #888)';
+  }
+}
+
 async function calculateAdminPrice(immediate) {
   const depart = document.getElementById('manual-depart')?.value.trim();
   const arrivee = document.getElementById('manual-arrivee')?.value.trim();
@@ -7513,6 +7527,7 @@ async function calculateAdminPrice(immediate) {
     if (priceInput) priceInput.value = '';
     if (remInput) remInput.value = '';
     updateManualMarginDisplay();
+    _manualPriceRenderStatus('', 'neutral');
     return;
   }
 
@@ -7521,6 +7536,7 @@ async function calculateAdminPrice(immediate) {
   if (priceInput) priceInput.value = '';
   if (remInput) remInput.value = '';
   updateManualMarginDisplay();
+  _manualPriceRenderStatus('Calcul en cours…', 'loading');
 
   if (immediate) {
     if (_manualPriceDebounceTimer) { clearTimeout(_manualPriceDebounceTimer); _manualPriceDebounceTimer = null; }
@@ -7545,6 +7561,7 @@ async function _manualPriceFetchPreview() {
     if (priceInput) priceInput.value = '';
     if (remInput) remInput.value = '';
     updateManualMarginDisplay();
+    _manualPriceRenderStatus('', 'neutral');
     return;
   }
 
@@ -7589,11 +7606,13 @@ async function _manualPriceFetchPreview() {
   } catch (err) {
     clearTimeout(timeoutId);
     if (abortCtrl.signal.aborted) {
+      // Supersede abort: silent. Timeout abort: visible message.
       if (abortCtrl._timedOut && mySeq === _manualPriceSeq) {
         _lastManualQuote = null;
         if (priceInput) priceInput.value = '';
         if (remInput) remInput.value = '';
         updateManualMarginDisplay();
+        _manualPriceRenderStatus('Délai dépassé. Réessayez.', 'error');
       }
       return;
     }
@@ -7602,6 +7621,7 @@ async function _manualPriceFetchPreview() {
     if (priceInput) priceInput.value = '';
     if (remInput) remInput.value = '';
     updateManualMarginDisplay();
+    _manualPriceRenderStatus('Erreur réseau. Réessayez.', 'error');
     return;
   }
   clearTimeout(timeoutId);
@@ -7616,6 +7636,7 @@ async function _manualPriceFetchPreview() {
     if (priceInput) priceInput.value = '';
     if (remInput) remInput.value = '';
     updateManualMarginDisplay();
+    _manualPriceRenderStatus('Réponse tarifaire invalide.', 'error');
     return;
   }
   if (mySeq !== _manualPriceSeq) return;
@@ -7625,6 +7646,15 @@ async function _manualPriceFetchPreview() {
     if (priceInput) priceInput.value = '';
     if (remInput) remInput.value = '';
     updateManualMarginDisplay();
+    if (response.status === 400) {
+      _manualPriceRenderStatus((quote && quote.error) ? quote.error : 'Données invalides.', 'error');
+    } else if (response.status === 429) {
+      _manualPriceRenderStatus('Trop de requêtes. Patientez quelques secondes.', 'error');
+    } else if (response.status >= 500) {
+      _manualPriceRenderStatus('Erreur serveur. Réessayez.', 'error');
+    } else {
+      _manualPriceRenderStatus((quote && quote.error) ? quote.error : 'Calcul impossible.', 'error');
+    }
     return;
   }
 
@@ -7634,6 +7664,7 @@ async function _manualPriceFetchPreview() {
     if (priceInput) priceInput.value = '';
     if (remInput) remInput.value = '';
     updateManualMarginDisplay();
+    _manualPriceRenderStatus('Réponse tarifaire invalide.', 'error');
     return;
   }
 
@@ -7642,6 +7673,7 @@ async function _manualPriceFetchPreview() {
   if (priceInput) priceInput.value = quote.total_ht;
   if (remInput && quote.remuneration_convoyeur != null) remInput.value = quote.remuneration_convoyeur;
   updateManualMarginDisplay();
+  _manualPriceRenderStatus('', 'neutral');
 }
 
 // ============================================================
