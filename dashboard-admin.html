@@ -23,7 +23,6 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-  <script src="/js/pricing.js"></script>
   <style>
     * {
       margin: 0;
@@ -5370,6 +5369,28 @@ Cadeau premium personnalisé</textarea>
     const sb = getSupabase();
     if (!sb) return Swal.fire('Erreur', 'Connexion Supabase requise.', 'error');
 
+    // RM-02C2B1.1: Shared payload builder used by BOTH preview and submit.
+    // Defined in createDevisAdmin scope so didOpen and preConfirm share it.
+    function _qcBuildPayload() {
+      const depart = document.getElementById('cdDepart').value.trim();
+      const arrivee = document.getElementById('cdArrivee').value.trim();
+      const vehicule = document.getElementById('cdVehicule').value;
+      const mode = document.getElementById('cdMode').value;
+      const pack = document.getElementById('cdPack').value;
+      const isPro = document.getElementById('cdPro').value === 'true';
+      return {
+        depart,
+        arrivee,
+        type: vehicule,
+        mode,
+        pack: pack.toLowerCase(),
+        isUrgence: false,
+        isGardiennage: false,
+        vehicleCondition: 'working',
+        isPro
+      };
+    }
+
     const { value: formValues } = await Swal.fire({
       title: '<i class="fas fa-file-plus"></i> Créer un devis personnalisé',
       html: `
@@ -5424,7 +5445,7 @@ Cadeau premium personnalisé</textarea>
             </div>
             <div>
               <label style="font-size:0.7rem;font-weight:600;">Distance (km)</label>
-              <input id="cdDistance" class="swal2-input" type="number" style="width:100%;margin:0;" placeholder="Ex: 775" oninput="updateAdminDevisPrice()">
+              <input id="cdDistance" class="swal2-input" type="number" style="width:100%;margin:0;background:#f5f5f5;color:#888;" placeholder="Auto" readonly>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
@@ -5474,30 +5495,172 @@ Cadeau premium personnalisé</textarea>
       cancelButtonText: 'Annuler',
       focusConfirm: false,
       didOpen: () => {
-        // Auto-calcul du prix quand la distance change
-        const distInput = document.getElementById('cdDistance');
+        // RM-02C2B1: Authoritative preview via /api/calculate-quote.
+        // Replaces legacy BathilyPricing.calculate() local pricing.
+        const departInput = document.getElementById('cdDepart');
+        const arriveeInput = document.getElementById('cdArrivee');
         const vehSelect = document.getElementById('cdVehicule');
         const modeSelect = document.getElementById('cdMode');
+        const packSelect = document.getElementById('cdPack');
+        const proSelect = document.getElementById('cdPro');
+        const distInput = document.getElementById('cdDistance');
         const prixAuto = document.getElementById('cdPrixAuto');
         const prixFinal = document.getElementById('cdPrix');
         const remConv = document.getElementById('cdRemConv');
 
-        function recalc() {
-          const dist = parseFloat(distInput.value) || 0;
-          const veh = vehSelect.value;
-          const mode = modeSelect.value;
-          if (dist > 0 && window.BathilyPricing) {
-            const result = window.BathilyPricing.calculate({ vehType: veh, distance: dist, mode: mode });
-            prixAuto.value = result.prix + ' €';
-            if (!prixFinal.value) {
-              prixFinal.value = result.prix;
-              remConv.value = Math.round(result.prix * 0.60);
+        // Request control state (scoped to this dialog instance).
+        let _qcAbortCtrl = null;
+        let _qcSeq = 0;
+        let _qcDebounceTimer = null;
+        let _qcLastValidQuote = null;
+        const QC_DEBOUNCE_MS = 300;
+        const QC_TIMEOUT_MS = 12000;
+
+        function _qcInvalidate() {
+          _qcLastValidQuote = null;
+          if (prixAuto) prixAuto.value = '';
+        }
+
+        function _qcRenderLoading() {
+          if (prixAuto) prixAuto.value = 'Calcul en cours…';
+        }
+
+        function _qcRenderError(msg) {
+          _qcLastValidQuote = null;
+          if (prixAuto) prixAuto.value = msg || 'Erreur de calcul';
+        }
+
+        function _qcRenderNeutral() {
+          if (prixAuto) prixAuto.value = '';
+          _qcInvalidate();
+        }
+
+        // Shared payload builder (_qcBuildPayload) is defined in createDevisAdmin
+        // scope so both didOpen (preview) and preConfirm (submit) use it.
+
+        async function _qcFetchPreview() {
+          const payload = _qcBuildPayload();
+          if (!payload.depart || !payload.arrivee) {
+            if (_qcDebounceTimer) { clearTimeout(_qcDebounceTimer); _qcDebounceTimer = null; }
+            if (_qcAbortCtrl) { try { _qcAbortCtrl.abort(); } catch (e) {} _qcAbortCtrl = null; }
+            _qcInvalidate();
+            _qcRenderNeutral();
+            return;
+          }
+
+          // Invalidate stale price immediately before requesting.
+          _qcInvalidate();
+          _qcRenderLoading();
+
+          if (_qcAbortCtrl) { try { _qcAbortCtrl.abort(); } catch (e) {} }
+          const abortCtrl = new AbortController();
+          _qcAbortCtrl = abortCtrl;
+          const mySeq = ++_qcSeq;
+
+          abortCtrl._timedOut = false;
+          const timeoutId = setTimeout(function() {
+            abortCtrl._timedOut = true;
+            try { abortCtrl.abort(); } catch (e) {}
+          }, QC_TIMEOUT_MS);
+
+          let resp;
+          try {
+            resp = await fetch('/api/calculate-quote', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+              signal: abortCtrl.signal
+            });
+          } catch (err) {
+            clearTimeout(timeoutId);
+            if (abortCtrl.signal.aborted) {
+              if (abortCtrl._timedOut && mySeq === _qcSeq) {
+                _qcRenderError('Délai dépassé. Réessayez.');
+              }
+              return;
             }
+            if (mySeq !== _qcSeq) return;
+            _qcRenderError('Erreur réseau. Réessayez.');
+            return;
+          }
+          clearTimeout(timeoutId);
+          if (mySeq !== _qcSeq) return;
+
+          let quote;
+          try {
+            quote = await resp.json();
+          } catch (e) {
+            if (mySeq !== _qcSeq) return;
+            _qcRenderError('Réponse invalide. Réessayez.');
+            return;
+          }
+          if (mySeq !== _qcSeq) return;
+
+          if (!resp.ok || quote.error) {
+            if (resp.status === 429) {
+              _qcRenderError('Trop de requêtes. Patientez quelques secondes.');
+            } else if (resp.status === 400) {
+              _qcRenderError((quote && quote.error) ? quote.error : 'Données invalides.');
+            } else if (resp.status >= 500) {
+              _qcRenderError('Erreur serveur. Réessayez.');
+            } else {
+              _qcRenderError((quote && quote.error) ? quote.error : 'Calcul impossible.');
+            }
+            return;
+          }
+
+          if (typeof quote.total_ht !== 'number' || typeof quote.distance !== 'number') {
+            _qcRenderError('Réponse tarifaire invalide.');
+            return;
+          }
+
+          // Cache and render from backend values only.
+          _qcLastValidQuote = quote;
+          if (prixAuto) prixAuto.value = quote.total_ht + ' €';
+          // Display backend distance (read-only — operator cannot override).
+          if (distInput) distInput.value = quote.distance;
+          // Auto-fill final price + remuneration if not already set.
+          if (prixFinal && !prixFinal.value) {
+            prixFinal.value = quote.total_ht;
+            if (remConv) remConv.value = quote.remuneration_convoyeur;
           }
         }
-        distInput.addEventListener('input', recalc);
-        vehSelect.addEventListener('change', recalc);
-        modeSelect.addEventListener('change', recalc);
+
+        function _qcRefresh(immediate) {
+          const payload = _qcBuildPayload();
+          if (!payload.depart || !payload.arrivee) {
+            if (_qcDebounceTimer) { clearTimeout(_qcDebounceTimer); _qcDebounceTimer = null; }
+            if (_qcAbortCtrl) { try { _qcAbortCtrl.abort(); } catch (e) {} _qcAbortCtrl = null; }
+            _qcInvalidate();
+            _qcRenderNeutral();
+            return;
+          }
+          // Invalidate stale price immediately before scheduling/requesting.
+          _qcInvalidate();
+          _qcRenderLoading();
+
+          if (immediate) {
+            if (_qcDebounceTimer) { clearTimeout(_qcDebounceTimer); _qcDebounceTimer = null; }
+            _qcFetchPreview();
+          } else {
+            if (_qcDebounceTimer) clearTimeout(_qcDebounceTimer);
+            _qcDebounceTimer = setTimeout(function() {
+              _qcDebounceTimer = null;
+              _qcFetchPreview();
+            }, QC_DEBOUNCE_MS);
+          }
+        }
+
+        // Text/address inputs: debounced.
+        departInput.addEventListener('input', function() { _qcRefresh(false); });
+        arriveeInput.addEventListener('input', function() { _qcRefresh(false); });
+        departInput.addEventListener('blur', function() { _qcRefresh(true); });
+        arriveeInput.addEventListener('blur', function() { _qcRefresh(true); });
+        // Discrete controls: immediate.
+        vehSelect.addEventListener('change', function() { _qcRefresh(true); });
+        modeSelect.addEventListener('change', function() { _qcRefresh(true); });
+        packSelect.addEventListener('change', function() { _qcRefresh(true); });
+        proSelect.addEventListener('change', function() { _qcRefresh(true); });
       },
       preConfirm: async () => {
         const prenom = document.getElementById('cdPrenom').value.trim();
@@ -5519,22 +5682,13 @@ Cadeau premium personnalisé</textarea>
         if (!prenom || !nom || !email) { Swal.showValidationMessage('Prénom, nom et email sont obligatoires'); return false; }
         if (!depart || !arrivee) { Swal.showValidationMessage('Départ et arrivée sont obligatoires'); return false; }
 
+        // Submit revalidates through /api/calculate-quote (does NOT trust cached preview).
         let quote;
         try {
           const resp = await fetch('/api/calculate-quote', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              depart,
-              arrivee,
-              type: vehicule,
-              mode,
-              pack: pack.toLowerCase(),
-              isUrgence: false,
-              isGardiennage: false,
-              vehicleCondition: 'working',
-              isPro
-            })
+            body: JSON.stringify(_qcBuildPayload())
           });
           quote = await resp.json();
           if (!resp.ok || quote.error) {
