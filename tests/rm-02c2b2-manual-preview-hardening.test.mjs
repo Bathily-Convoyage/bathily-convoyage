@@ -357,6 +357,85 @@ test('no duplicate event listeners for manual pricing', () => {
   assert.ok(departInputChangeCount >= 1, 'departField must have input listener in pricing section');
 });
 
+// =========================================================
+// RM-02C2B2.2 — Address event dedup
+// =========================================================
+
+// A. depart has only one immediate terminal listener (blur, not change)
+test('A2.2. depart has only one immediate terminal listener (blur)', () => {
+  const blurCount = (listenerSection.match(/departField\.addEventListener\('blur'/g) || []).length;
+  const changeCount = (listenerSection.match(/departField\.addEventListener\('change'/g) || []).length;
+  assert.equal(blurCount, 1, `departField must have exactly 1 blur listener (found ${blurCount})`);
+  assert.equal(changeCount, 0, `departField must have 0 change listeners (found ${changeCount}) — blur is the terminal event`);
+});
+
+// B. arrivee has only one immediate terminal listener (blur, not change)
+test('B2.2. arrivee has only one immediate terminal listener (blur)', () => {
+  const blurCount = (listenerSection.match(/arriveeField\.addEventListener\('blur'/g) || []).length;
+  const changeCount = (listenerSection.match(/arriveeField\.addEventListener\('change'/g) || []).length;
+  assert.equal(blurCount, 1, `arriveeField must have exactly 1 blur listener (found ${blurCount})`);
+  assert.equal(changeCount, 0, `arriveeField must have 0 change listeners (found ${changeCount}) — blur is the terminal event`);
+});
+
+// C. no blur+change dual immediate registration remains
+test('C2.2. no blur+change dual immediate registration on text address fields', () => {
+  // Verify no address field has BOTH blur AND change listeners
+  const departBlur = (listenerSection.match(/departField\.addEventListener\('blur'/g) || []).length;
+  const departChange = (listenerSection.match(/departField\.addEventListener\('change'/g) || []).length;
+  assert.ok(!(departBlur > 0 && departChange > 0),
+    'departField must not have both blur AND change (dual immediate binding)');
+
+  const arriveeBlur = (listenerSection.match(/arriveeField\.addEventListener\('blur'/g) || []).length;
+  const arriveeChange = (listenerSection.match(/arriveeField\.addEventListener\('change'/g) || []).length;
+  assert.ok(!(arriveeBlur > 0 && arriveeChange > 0),
+    'arriveeField must not have both blur AND change (dual immediate binding)');
+});
+
+// D. input remains debounced
+test('D2.2. input remains debounced on address fields', () => {
+  assert.ok(/departField\.addEventListener\('input'.*calculateAdminPrice\(false\)/.test(listenerSection),
+    'departField input must call calculateAdminPrice(false) (debounced)');
+  assert.ok(/arriveeField\.addEventListener\('input'.*calculateAdminPrice\(false\)/.test(listenerSection),
+    'arriveeField input must call calculateAdminPrice(false) (debounced)');
+});
+
+// E. autocomplete onSelect remains immediate
+test('E2.2. autocomplete onSelect remains immediate', () => {
+  assert.ok(/setupAddress\('manual-depart'[\s\S]{0,300}calculateAdminPrice\(true\)/.test(adminSrc),
+    'depart autocomplete onSelect must call calculateAdminPrice(true)');
+  assert.ok(/setupAddress\('manual-arrivee'[\s\S]{0,300}calculateAdminPrice\(true\)/.test(adminSrc),
+    'arrivee autocomplete onSelect must call calculateAdminPrice(true)');
+});
+
+// F. discrete control change remains immediate
+test('F2.2. discrete controls (vehicle, pack) remain immediate on change', () => {
+  assert.ok(/vehTypeField\.addEventListener\('change'.*calculateAdminPrice\(true\)/.test(listenerSection),
+    'vehicle type change must call calculateAdminPrice(true) (immediate)');
+  assert.ok(/packField\.addEventListener\('change'.*calculateAdminPrice\(true\)/.test(listenerSection),
+    'pack change must call calculateAdminPrice(true) (immediate)');
+});
+
+// G. pending debounce is cancelled before immediate request
+test('G2.2. immediate path cancels pending debounce timer', () => {
+  assert.ok(/if\s*\(\s*immediate\s*\)[\s\S]{0,100}clearTimeout\(\s*_manualPriceDebounceTimer/.test(capSection),
+    'immediate path must clear pending debounce timer before requesting');
+});
+
+// H. C2B1 remains unchanged
+test('H2.2. C2B1 quick-create unchanged by dedup fix', () => {
+  assert.ok(adminSrc.includes('function _qcBuildPayload'),
+    '_qcBuildPayload must still exist');
+  assert.ok(adminSrc.includes('function _qcFetchPreview'),
+    '_qcFetchPreview must still exist');
+  assert.ok(adminSrc.includes('QC_DEBOUNCE_MS = 300'),
+    'QC_DEBOUNCE_MS must still exist');
+  assert.ok(adminSrc.includes('QC_TIMEOUT_MS = 12000'),
+    'QC_TIMEOUT_MS must still exist');
+  const distMatch = adminSrc.match(/id="cdDistance"[^>]*>/);
+  assert.ok(distMatch && distMatch[0].includes('readonly'),
+    'cdDistance must remain readonly');
+});
+
 // Additional: manual state variables are separate from C2B1
 test('manual preview state variables are separate from C2B1', () => {
   assert.ok(adminSrc.includes('_manualPriceAbortCtrl'),

@@ -7720,12 +7720,10 @@ const vehTypeField = document.getElementById('adminVehType');
 if (departField) {
   departField.addEventListener('input', function() { calculateAdminPrice(false); });
   departField.addEventListener('blur', function() { calculateAdminPrice(true); });
-  departField.addEventListener('change', function() { calculateAdminPrice(true); });
 }
 if (arriveeField) {
   arriveeField.addEventListener('input', function() { calculateAdminPrice(false); });
   arriveeField.addEventListener('blur', function() { calculateAdminPrice(true); });
-  arriveeField.addEventListener('change', function() { calculateAdminPrice(true); });
 }
 if (vehTypeField) {
   vehTypeField.addEventListener('change', function() { calculateAdminPrice(true); });
