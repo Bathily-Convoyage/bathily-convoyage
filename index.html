@@ -3801,17 +3801,21 @@
         <!-- Packs de service -->
 
         <style>
+          .hp-pack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 900px; margin: 0 auto; }
           .hp-pack-card { cursor: pointer; display: block; text-decoration: none; color: inherit; transition: all 0.3s; }
           .hp-pack-card:hover { transform: translateY(-6px); text-decoration: none; }
           .hp-pack-card--std:hover { border-color: var(--bordeaux-light); box-shadow: 0 12px 32px rgba(10,77,104,0.08); }
           .hp-pack-card--featured:hover { box-shadow: 0 16px 40px rgba(10,77,104,0.15); }
+          @media (max-width: 768px) {
+            .hp-pack-grid { grid-template-columns: 1fr; }
+          }
         </style>
 
         <div style="margin-top: 50px;" class="reveal">
 
           <h4 style="font-family: 'Montserrat', sans-serif; font-size: 1.2rem; margin-bottom: 24px; color: var(--gray-dark); text-align: center;">Niveaux de service optionnels</h4>
 
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 900px; margin: 0 auto;">
+          <div class="hp-pack-grid">
 
             <a href="devis.html?pack=starter" class="hp-pack-card hp-pack-card--std" style="background: white; border: 2px solid var(--border-light); border-radius: 20px; padding: 28px 24px; text-align: center; position: relative;">
 
