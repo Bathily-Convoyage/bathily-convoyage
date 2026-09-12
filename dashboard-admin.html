@@ -2768,6 +2768,7 @@ Cadeau premium personnalisé</textarea>
         <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--gray-mid);">Marge brute estimée :</span>
         <strong id="manual-marge-val" style="font-size:1.15rem; color:var(--success);">0€</strong>
       </div>
+      <div id="manual-price-status" style="margin-bottom:10px; font-size:0.8rem; color:var(--gray-mid); min-height:1.2em;"></div>
       <div class="modal-btns">
         <button class="btn-red" id="createMissionManualBtn"><i class="fas fa-plus"></i> Créer la mission</button>
         <button class="btn-outline" onclick="closeModal('modalMission')">Annuler</button>
@@ -6737,6 +6738,13 @@ Cadeau premium personnalisé</textarea>
   // <script> block. Moved to top level so all scopes can access them.
   let _lastManualQuote = null;
 
+  // RM-02C2B2: Manual preview request control state.
+  let _manualPriceAbortCtrl = null;
+  let _manualPriceSeq = 0;
+  let _manualPriceDebounceTimer = null;
+  const MANUAL_PRICE_DEBOUNCE_MS = 300;
+  const MANUAL_PRICE_TIMEOUT_MS = 12000;
+
   // WAVE ADMIN-MISSION-CREATION-V2: Address selection state
   let _adminDepartSelected = false;
   let _adminDepartData = null;
@@ -7492,17 +7500,68 @@ Cadeau premium personnalisé</textarea>
 // et met à jour le champ "Montant Client" en direct
 // (State declarations moved to top level — see HOTFIX MISSIONS-EXT-2B-HF1)
 
-async function calculateAdminPrice() {
+function _manualPriceRenderStatus(message, type) {
+  const el = document.getElementById('manual-price-status');
+  if (!el) return;
+  el.textContent = message || '';
+  if (type === 'error') {
+    el.style.color = 'var(--red, #c0392b)';
+  } else if (type === 'loading') {
+    el.style.color = 'var(--gray-mid, #888)';
+  } else {
+    el.style.color = 'var(--gray-mid, #888)';
+  }
+}
+
+async function calculateAdminPrice(immediate) {
   const depart = document.getElementById('manual-depart')?.value.trim();
   const arrivee = document.getElementById('manual-arrivee')?.value.trim();
   const priceInput = document.getElementById('manual-price');
   const remInput = document.getElementById('manual-remuneration');
 
-  // Si un des deux champs est vide, on réinitialise le prix
+  // Required-field guard: no request if depart or arrivee is empty.
   if (!depart || !arrivee) {
+    if (_manualPriceDebounceTimer) { clearTimeout(_manualPriceDebounceTimer); _manualPriceDebounceTimer = null; }
+    if (_manualPriceAbortCtrl) { try { _manualPriceAbortCtrl.abort(); } catch (e) {} _manualPriceAbortCtrl = null; }
+    _lastManualQuote = null;
     if (priceInput) priceInput.value = '';
     if (remInput) remInput.value = '';
+    updateManualMarginDisplay();
+    _manualPriceRenderStatus('', 'neutral');
+    return;
+  }
+
+  // Invalidate stale price immediately before scheduling/requesting.
+  _lastManualQuote = null;
+  if (priceInput) priceInput.value = '';
+  if (remInput) remInput.value = '';
+  updateManualMarginDisplay();
+  _manualPriceRenderStatus('Calcul en cours…', 'loading');
+
+  if (immediate) {
+    if (_manualPriceDebounceTimer) { clearTimeout(_manualPriceDebounceTimer); _manualPriceDebounceTimer = null; }
+    _manualPriceFetchPreview();
+  } else {
+    if (_manualPriceDebounceTimer) clearTimeout(_manualPriceDebounceTimer);
+    _manualPriceDebounceTimer = setTimeout(function() {
+      _manualPriceDebounceTimer = null;
+      _manualPriceFetchPreview();
+    }, MANUAL_PRICE_DEBOUNCE_MS);
+  }
+}
+
+async function _manualPriceFetchPreview() {
+  const depart = document.getElementById('manual-depart')?.value.trim();
+  const arrivee = document.getElementById('manual-arrivee')?.value.trim();
+  const priceInput = document.getElementById('manual-price');
+  const remInput = document.getElementById('manual-remuneration');
+
+  if (!depart || !arrivee) {
     _lastManualQuote = null;
+    if (priceInput) priceInput.value = '';
+    if (remInput) remInput.value = '';
+    updateManualMarginDisplay();
+    _manualPriceRenderStatus('', 'neutral');
     return;
   }
 
@@ -7513,8 +7572,21 @@ async function calculateAdminPrice() {
   const isUrgence = selectedOptions.includes('urgence');
   const isGardiennage = selectedOptions.includes('gardiennage');
 
+  // Abort previous in-flight request.
+  if (_manualPriceAbortCtrl) { try { _manualPriceAbortCtrl.abort(); } catch (e) {} }
+  const abortCtrl = new AbortController();
+  _manualPriceAbortCtrl = abortCtrl;
+  const mySeq = ++_manualPriceSeq;
+
+  abortCtrl._timedOut = false;
+  const timeoutId = setTimeout(function() {
+    abortCtrl._timedOut = true;
+    try { abortCtrl.abort(); } catch (e) {}
+  }, MANUAL_PRICE_TIMEOUT_MS);
+
+  let response;
   try {
-    const response = await fetch('/api/calculate-quote', {
+    response = await fetch('/api/calculate-quote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -7528,23 +7600,80 @@ async function calculateAdminPrice() {
         vehicleCondition: 'working',
         isPro: false,
         dateLivraison: date
-      })
+      }),
+      signal: abortCtrl.signal
     });
-    const quote = await response.json();
-    if (!response.ok || quote.error) {
-      throw new Error(quote.error || 'Calcul tarifaire impossible');
-    }
-    _lastManualQuote = quote;
-    if (priceInput) priceInput.value = quote.total_ht;
-    if (remInput) remInput.value = quote.remuneration_convoyeur;
-    updateManualMarginDisplay();
   } catch (err) {
-    console.warn('Erreur calculate-quote admin:', err);
+    clearTimeout(timeoutId);
+    if (abortCtrl.signal.aborted) {
+      // Supersede abort: silent. Timeout abort: visible message.
+      if (abortCtrl._timedOut && mySeq === _manualPriceSeq) {
+        _lastManualQuote = null;
+        if (priceInput) priceInput.value = '';
+        if (remInput) remInput.value = '';
+        updateManualMarginDisplay();
+        _manualPriceRenderStatus('Délai dépassé. Réessayez.', 'error');
+      }
+      return;
+    }
+    if (mySeq !== _manualPriceSeq) return;
     _lastManualQuote = null;
     if (priceInput) priceInput.value = '';
     if (remInput) remInput.value = '';
     updateManualMarginDisplay();
+    _manualPriceRenderStatus('Erreur réseau. Réessayez.', 'error');
+    return;
   }
+  clearTimeout(timeoutId);
+  if (mySeq !== _manualPriceSeq) return;
+
+  let quote;
+  try {
+    quote = await response.json();
+  } catch (e) {
+    if (mySeq !== _manualPriceSeq) return;
+    _lastManualQuote = null;
+    if (priceInput) priceInput.value = '';
+    if (remInput) remInput.value = '';
+    updateManualMarginDisplay();
+    _manualPriceRenderStatus('Réponse tarifaire invalide.', 'error');
+    return;
+  }
+  if (mySeq !== _manualPriceSeq) return;
+
+  if (!response.ok || quote.error) {
+    _lastManualQuote = null;
+    if (priceInput) priceInput.value = '';
+    if (remInput) remInput.value = '';
+    updateManualMarginDisplay();
+    if (response.status === 400) {
+      _manualPriceRenderStatus((quote && quote.error) ? quote.error : 'Données invalides.', 'error');
+    } else if (response.status === 429) {
+      _manualPriceRenderStatus('Trop de requêtes. Patientez quelques secondes.', 'error');
+    } else if (response.status >= 500) {
+      _manualPriceRenderStatus('Erreur serveur. Réessayez.', 'error');
+    } else {
+      _manualPriceRenderStatus((quote && quote.error) ? quote.error : 'Calcul impossible.', 'error');
+    }
+    return;
+  }
+
+  // Validate response shape before using it.
+  if (typeof quote.total_ht !== 'number' || typeof quote.distance !== 'number') {
+    _lastManualQuote = null;
+    if (priceInput) priceInput.value = '';
+    if (remInput) remInput.value = '';
+    updateManualMarginDisplay();
+    _manualPriceRenderStatus('Réponse tarifaire invalide.', 'error');
+    return;
+  }
+
+  // Success: update from authoritative response only.
+  _lastManualQuote = quote;
+  if (priceInput) priceInput.value = quote.total_ht;
+  if (remInput && quote.remuneration_convoyeur != null) remInput.value = quote.remuneration_convoyeur;
+  updateManualMarginDisplay();
+  _manualPriceRenderStatus('', 'neutral');
 }
 
 // ============================================================
@@ -7583,25 +7712,26 @@ function haversineAdmin(lat1, lon1, lat2, lon2) {
   return Math.round(R * c * 1.22); // coefficient pour approcher la route
 }
 // ---- Calcul automatique du tarif (admin) ----
+// RM-02C2B2: Hardened request control with debounce, abort, stale guard.
 const departField = document.getElementById('manual-depart');
 const arriveeField = document.getElementById('manual-arrivee');
 const vehTypeField = document.getElementById('adminVehType');
 
 if (departField) {
-  departField.addEventListener('blur', calculateAdminPrice);
-  departField.addEventListener('change', calculateAdminPrice);
+  departField.addEventListener('input', function() { calculateAdminPrice(false); });
+  departField.addEventListener('blur', function() { calculateAdminPrice(true); });
 }
 if (arriveeField) {
-  arriveeField.addEventListener('blur', calculateAdminPrice);
-  arriveeField.addEventListener('change', calculateAdminPrice);
+  arriveeField.addEventListener('input', function() { calculateAdminPrice(false); });
+  arriveeField.addEventListener('blur', function() { calculateAdminPrice(true); });
 }
 if (vehTypeField) {
-  vehTypeField.addEventListener('change', calculateAdminPrice);
+  vehTypeField.addEventListener('change', function() { calculateAdminPrice(true); });
 }
 
 const packField = document.getElementById('manual-pack');
 if (packField) {
-  packField.addEventListener('change', calculateAdminPrice);
+  packField.addEventListener('change', function() { calculateAdminPrice(true); });
 }
 
 // ---- Mise à jour automatique de la marge ----
@@ -9465,13 +9595,13 @@ if ("serviceWorker" in navigator) {
         _adminDepartSelected = !!item;
         _adminDepartData = item || null;
         _clearAddrErr('errDepartAddr');
-        if(typeof calculateAdminPrice === 'function') calculateAdminPrice();
+        if(typeof calculateAdminPrice === 'function') calculateAdminPrice(true);
       });
       AddressAutocomplete.setupAddress('manual-arrivee', 'arriveeSuggests', function(item) {
         _adminArriveeSelected = !!item;
         _adminArriveeData = item || null;
         _clearAddrErr('errArriveeAddr');
-        if(typeof calculateAdminPrice === 'function') calculateAdminPrice();
+        if(typeof calculateAdminPrice === 'function') calculateAdminPrice(true);
       });
       // Track typing to invalidate selection state
       function _initAddrChangeTracking() {
