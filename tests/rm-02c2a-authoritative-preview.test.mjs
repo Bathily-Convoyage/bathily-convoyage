@@ -947,3 +947,56 @@ test('STALE_INPUT. utilSize change invalidates cached quote before request', asy
   assert.equal(result._lastValidQuote, null,
     'cached quote must be null immediately after utilSize change');
 });
+
+// =========================================================
+// RM-02C2A.3 — Vehicle type immediate refresh
+// =========================================================
+
+// Static check: setVehicleType calls calculatePrice(true), not calculatePrice()
+test('VEH_TYPE. setVehicleType calls calculatePrice(true) for immediate refresh', () => {
+  // Extract the setVehicleType function body from devis.html
+  const match = devisSrc.match(/function setVehicleType[\s\S]*?\n    \}/);
+  assert.ok(match, 'setVehicleType function found in devis.html');
+  const fnBody = match[0];
+  assert.ok(fnBody.includes('calculatePrice(true)'),
+    'setVehicleType must call calculatePrice(true) for immediate refresh');
+  assert.ok(!/\bcalculatePrice\(\s*\)/.test(fnBody),
+    'setVehicleType must NOT call calculatePrice() without true');
+});
+
+// Behavioral: vehicle type click invalidates + fires immediate request
+test('VEH_TYPE. vehicle type change invalidates and fires immediate request', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  await establishValidQuote(env, result, 452, 377);
+  // Simulate vehicle type change via calculatePrice(true) — the path
+  // setVehicleType now takes after the fix
+  env.setElement('vehiculeType', { value: 'Moto' });
+  result.calculatePrice(true);
+  // Immediately after click (before any timer fires):
+  assert.equal(result._currentPrice, 0,
+    'price invalidated immediately on vehicle type change');
+  assert.equal(result._lastValidQuote, null,
+    'cached quote invalidated immediately on vehicle type change');
+  assert.equal(env.state.fetchCalls.length, 2,
+    'immediate request fired on vehicle type change (initial + type change)');
+  // Advance time past 300ms — no extra request should fire
+  env.advanceTimers(400);
+  assert.equal(env.state.fetchCalls.length, 2,
+    'no extra request after 300ms (immediate path does not debounce)');
+});
+
+// Behavioral: no second request after 300ms (proves immediate, not debounced)
+test('VEH_TYPE. no extra request after 300ms (immediate, not debounced)', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  await establishValidQuote(env, result, 452, 377);
+  env.setElement('vehiculeType', { value: 'Utilitaire' });
+  result.calculatePrice(true);
+  const requestsAfterClick = env.state.fetchCalls.length;
+  // Advance well past debounce window
+  env.advanceTimers(500);
+  const requestsAfter300ms = env.state.fetchCalls.length;
+  assert.equal(requestsAfter300ms, requestsAfterClick,
+    `no extra request after 300ms (got ${requestsAfter300ms}, expected ${requestsAfterClick})`);
+});
