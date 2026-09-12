@@ -5526,8 +5526,8 @@ Cadeau premium personnalisé</textarea>
         }
 
         function _qcRenderError(msg) {
+          _qcLastValidQuote = null;
           if (prixAuto) prixAuto.value = msg || 'Erreur de calcul';
-          _qcInvalidate();
         }
 
         function _qcRenderNeutral() {

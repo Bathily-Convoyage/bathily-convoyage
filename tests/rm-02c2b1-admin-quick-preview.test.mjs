@@ -278,3 +278,49 @@ test('V. submit still performs fresh /api/calculate-quote request', () => {
   assert.ok(!preConfirmSection.includes('_qcLastValidQuote'),
     'submit must NOT use cached preview quote');
 });
+
+// =========================================================
+// RM-02C2B1.2 — Error rendering preservation
+// =========================================================
+
+// W. _qcRenderError does not clear its own message
+test('W. _qcRenderError does not call _qcInvalidate after writing message', () => {
+  const fnStart = qcSection.indexOf('function _qcRenderError');
+  const fnEnd = qcSection.indexOf('}', fnStart + 20);
+  const fnBody = qcSection.substring(fnStart, fnEnd + 1);
+  assert.ok(fnBody.includes('prixAuto.value = msg'),
+    '_qcRenderError must write message to prixAuto');
+  assert.ok(!fnBody.includes('_qcInvalidate()'),
+    '_qcRenderError must NOT call _qcInvalidate() (would erase the message)');
+});
+
+// X. _qcRenderError invalidates cached quote directly
+test('X. _qcRenderError invalidates _qcLastValidQuote directly', () => {
+  const fnStart = qcSection.indexOf('function _qcRenderError');
+  const fnEnd = qcSection.indexOf('}', fnStart + 20);
+  const fnBody = qcSection.substring(fnStart, fnEnd + 1);
+  assert.ok(fnBody.includes('_qcLastValidQuote = null'),
+    '_qcRenderError must set _qcLastValidQuote = null directly');
+});
+
+// Y. Error messages remain visible (400, 429, 500, network, timeout)
+test('Y. error messages are not erased after being rendered', () => {
+  // _qcRenderError must be the LAST state mutation for error paths
+  // Verify _qcRenderError calls do NOT have _qcInvalidate() after them
+  const errorCalls = qcSection.match(/_qcRenderError\([^)]+\)\s*;[\s\S]{0,30}/g) || [];
+  for (const call of errorCalls) {
+    assert.ok(!call.includes('_qcInvalidate()'),
+      '_qcRenderError call must not be followed by _qcInvalidate()');
+  }
+});
+
+// Z. Normal abort (supersede) remains silent
+test('Z. normal abort (supersede) does not render error', () => {
+  // The abort path for non-timeout aborts should return without rendering
+  assert.ok(/abortCtrl\.signal\.aborted[\s\S]{0,80}if\s*\(\s*abortCtrl\._timedOut[\s\S]{0,80}\)/.test(qcSection),
+    'non-timeout abort must check _timedOut before rendering');
+  // The timeout branch renders error, the non-timeout branch returns silently
+  const abortBlock = qcSection.match(/abortCtrl\.signal\.aborted[\s\S]{0,200}return/);
+  assert.ok(abortBlock,
+    'non-timeout abort must return silently (no error render)');
+});
