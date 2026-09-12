@@ -692,9 +692,9 @@
             <div class="f-grp">
               <label>Pack de service</label>
               <select id="packSelect">
-                <option value="starter">Starter — Inclus (suivi de mission, état des lieux numérique avec photos, service client)</option>
-                <option value="serenite">Sérénité — +69€ (nettoyage int./ext., lavage, RDV planifié, support VIP)</option>
-                <option value="excellence">Excellence — +159€ (plein carburant, photos 4K, livraison dim./férié, priorité)</option>
+                <option value="starter">Essentiel — Inclus (suivi de mission, état des lieux numérique avec photos, coordination prise en charge/livraison, service client standard)</option>
+                <option value="serenite">Sérénité — +69€ (nettoyage int./ext. avant livraison, lavage, support renforcé, support prioritaire, coordination créneaux renforcée)</option>
+                <option value="excellence">Excellence — +149€ (planification prioritaire, créneau privilégié sous réserve, remise personnalisée, préparation avant remise, plein ou complément de carburant sur demande — carburant facturé au réel)</option>
               </select>
             </div>
 
@@ -732,7 +732,7 @@
                 <div><strong>Route :</strong> 1,20€/km (auto) · 1,00€/km (moto)</div>
                 <div><strong>Plateau :</strong> 1,40€/km + forfait 350€</div>
                 <div><strong>Min. route :</strong> 150€ (auto) · 120€ (moto)</div>
-                <div><strong>Packs :</strong> Starter 0€ · Sérénité 69€ · Excellence 159€</div>
+                <div><strong>Packs :</strong> Essentiel 0€ · Sérénité 69€ · Excellence 149€</div>
               </div>
               <div style="font-size:0.7rem;color:var(--gray-mid);margin-top:8px;">Remise longue distance : -10% dès 500km · -15% dès 800km</div>
             </div>
@@ -1003,7 +1003,7 @@
       var mode = document.getElementById('modeTransport').value;
       var modeLabel = mode === 'plateau' ? 'Plateau (sans km au compteur)' : 'Route (pilote professionnel)';
       var pack = document.getElementById('packSelect').value;
-      var packLabel = { starter: 'Starter (inclus)', serenite: 'Sérénité (+69€)', excellence: 'Excellence (+159€)' }[pack];
+      var packLabel = { starter: 'Essentiel (inclus)', serenite: 'Sérénité (+69€)', excellence: 'Excellence (+149€)' }[pack];
       var marque = document.getElementById('marqueInput').value.trim();
       var modele = document.getElementById('modeleInput').value.trim();
       var vehLabel = (marque && modele) ? marque + ' ' + modele : type;
@@ -1188,70 +1188,23 @@
 
     // ========== AUTOCOMPLÉTION ADRESSES (GéoPlateforme via shared library) ==========
     // Custom implementation removed — uses js/address-autocomplete.js
-    // Selection triggers calculatePrice() to preserve existing pricing behavior
+    // Selection triggers authoritative preview (immediate, not debounced)
     if (window.AddressAutocomplete) {
-      AddressAutocomplete.setupCity('depart', 'departSuggests', function() { calculatePrice(); });
-      AddressAutocomplete.setupCity('arrivee', 'arriveeSuggests', function() { calculatePrice(); });
+      AddressAutocomplete.setupCity('depart', 'departSuggests', function() { calculatePrice(true); });
+      AddressAutocomplete.setupCity('arrivee', 'arriveeSuggests', function() { calculatePrice(true); });
     }
 
-    // ========== GÉOCODAGE ET CALCUL DE DISTANCE ==========
+    // ========== AUTHORITATIVE PREVIEW (RM-02C2A) ==========
+    // Preview price comes from /api/calculate-quote (same as submit).
+    // No local business pricing logic in the browser.
     let _currentDistance = 0;
     let _currentPrice = 0;
-    let isCalculatingDistance = false;
-
-    async function geocodeAddress(query) {
-      if (!query || query.length < 2) return null;
-      try {
-        const response = await fetch(`https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(query)}&limit=1`);
-        const data = await response.json();
-        if (data.features && data.features.length > 0) {
-          const [lon, lat] = data.features[0].geometry.coordinates;
-          return { lat, lon };
-        }
-        return null;
-      } catch (err) {
-        console.warn("Erreur géocodage:", err);
-        return null;
-      }
-    }
-
-    function haversine(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      let dist = R * c;
-      dist = Math.round(dist * 1.22);
-      return dist;
-    }
-
-    async function calculateDistance(depart, arrivee) {
-      if (!depart || !arrivee) return 0;
-      try {
-        const coord1 = await geocodeAddress(depart);
-        const coord2 = await geocodeAddress(arrivee);
-        if (!coord1 || !coord2) return 0;
-
-        // Tentative OSRM
-        try {
-          const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${coord1.lon},${coord1.lat};${coord2.lon},${coord2.lat}?overview=false`);
-          if (response.ok) {
-            const data = await response.json();
-            if (data.routes && data.routes.length > 0) {
-              return Math.round(data.routes[0].distance / 1000);
-            }
-          }
-        } catch (osrmErr) {
-          console.warn("OSRM échoué, fallback Haversine:", osrmErr);
-        }
-        // Fallback Haversine
-        return haversine(coord1.lat, coord1.lon, coord2.lat, coord2.lon);
-      } catch (err) {
-        console.warn("Erreur calcul distance:", err);
-        return 0;
-      }
-    }
+    let _lastValidQuote = null;     // cached latest valid preview response
+    let _previewAbortCtrl = null;   // AbortController for in-flight preview
+    let _previewSeq = 0;             // monotonic request sequence (stale guard)
+    const PREVIEW_DEBOUNCE_MS = 300;
+    const PREVIEW_TIMEOUT_MS = 12000;
+    let _previewDebounceTimer = null;
 
     // ========== MODE PRO (tarifs) ==========
     const _isProMode = new URLSearchParams(window.location.search).get('pro') === '1';
@@ -1268,7 +1221,7 @@
         tarifsContent.innerHTML = '<div><strong>Route :</strong> 0,90€/km (auto) · 0,77€/km (moto)</div>' +
           '<div><strong>Plateau :</strong> 1,05€/km + forfait 292€</div>' +
           '<div><strong>Min. route :</strong> 125€ (auto) · 100€ (moto)</div>' +
-          '<div><strong>Packs :</strong> Starter 0€ · Sérénité 55€ · Excellence 125€</div>';
+          '<div><strong>Packs :</strong> Essentiel 0€ · Sérénité 55€ · Excellence 125€</div>';
       }
     }
 
@@ -1310,19 +1263,42 @@
       return null;
     }
 
-    // ========== CALCUL DU PRIX (avec distance réelle) ==========
-    let priceDebounce = null;
+    // ========== CALCUL DU PRIX — AUTHORITATIVE BACKEND (RM-02C2A) ==========
+    // Preview comes from POST /api/calculate-quote (same engine as submit).
+    // No local business pricing logic in the browser.
 
-    async function calculatePrice() {
+    function _invalidatePreview() {
+      _lastValidQuote = null;
+      _currentPrice = 0;
+      _currentDistance = 0;
+    }
+
+    function _renderPreviewNeutral(priceDisplay, distanceDisplay) {
+      priceDisplay.innerHTML = `— <span>€ ${_priceSuffix}</span>`;
+      distanceDisplay.textContent = '';
+    }
+
+    function _renderPreviewLoading(priceDisplay, distanceDisplay) {
+      priceDisplay.innerHTML = `... <span>€ ${_priceSuffix}</span>`;
+      distanceDisplay.textContent = '🔄 Calcul...';
+    }
+
+    function _renderPreviewError(priceDisplay, distanceDisplay, msg) {
+      priceDisplay.innerHTML = `<span style="color:#DC2626;">${msg}</span>`;
+      distanceDisplay.textContent = '';
+    }
+
+    function _collectPreviewInputs() {
       const depart = document.getElementById('depart').value.trim();
       const arrivee = document.getElementById('arrivee').value.trim();
       const type = document.getElementById('vehiculeType').value;
-      var mode = document.getElementById('modeTransport').value;
+      let mode = document.getElementById('modeTransport').value;
       const pack = document.getElementById('packSelect').value;
       const isUrgence = document.getElementById('optUrgence').checked;
       const isGardiennage = document.getElementById('optGardiennage').checked;
       const vehicleCondition = document.getElementById('vehicleCondition').value;
       const utilSize = document.getElementById('utilSize').value;
+      const dateLivraison = document.getElementById('dateLivraison')?.value || undefined;
 
       // Si non-roulant, forcer le mode plateau
       if (vehicleCondition === 'non_working') {
@@ -1337,128 +1313,182 @@
       var veInfo = document.getElementById('veRechargeInfo');
       if (veInfo) veInfo.classList.toggle('show', isVE);
 
+      return { depart, arrivee, type, mode, pack, isUrgence, isGardiennage,
+               vehicleCondition, utilSize, dateLivraison };
+    }
+
+    // Single authoritative preview request with debounce/abort/stale guard.
+    // `immediate=true` skips debounce (used by selects/toggles).
+    function calculatePrice(immediate) {
+      const inputs = _collectPreviewInputs();
       const priceDisplay = document.getElementById('priceDisplay');
       const distanceDisplay = document.getElementById('distanceDisplay');
 
-      if (!depart || !arrivee) {
-        priceDisplay.innerHTML = `— <span>€ ${_priceSuffix}</span>`;
-        distanceDisplay.textContent = '';
-        _currentDistance = 0;
-        _currentPrice = 0;
+      // Required-field guard: no request if depart or arrivee missing.
+      if (!inputs.depart || !inputs.arrivee) {
+        if (_previewDebounceTimer !== null) { clearTimeout(_previewDebounceTimer); _previewDebounceTimer = null; }
+        if (_previewAbortCtrl) { _previewAbortCtrl.abort(); _previewAbortCtrl = null; }
+        _invalidatePreview();
+        _renderPreviewNeutral(priceDisplay, distanceDisplay);
         return;
       }
 
-      // Afficher "Calcul en cours..."
-      priceDisplay.innerHTML = `... <span>€ ${_priceSuffix}</span>`;
-      distanceDisplay.textContent = '🔄 Calcul...';
-
-      // Calculer la distance
-      const dist = await calculateDistance(depart, arrivee);
-      _currentDistance = dist;
-
-      if (dist === 0) {
-        priceDisplay.innerHTML = `— <span>€ ${_priceSuffix}</span>`;
-        distanceDisplay.textContent = '⚠️ Distance non calculable';
-        _currentPrice = 0;
-        return;
-      }
-
-      // Tarifs — Public / Pro (avec nouveaux types)
-      const baseRates = _isProMode ? {
-        'Automobile': { route: 0.90, plateau: 1.05 },
-        'Moto': { route: 0.77, plateau: 0.90 },
-        'Utilitaire': { route: 1.15, plateau: 1.20 },
-        'Luxe': { route: 1.50, plateau: 1.50 }
-      } : {
-        'Automobile': { route: 1.20, plateau: 1.40 },
-        'Moto': { route: 1.00, plateau: 1.20 },
-        'Utilitaire': { route: 1.40, plateau: 1.60 },
-        'Luxe': { route: 1.80, plateau: 2.00 }
+      const sendNow = function() {
+        _previewDebounceTimer = null;
+        _fetchAuthoritativePreview(inputs, priceDisplay, distanceDisplay);
       };
-      // Prix de base du trajet
-      let basePrice;
-      if (mode === 'plateau') {
-        // Mode plateau : forfait de base + prix au km
-        var plateauRate = baseRates[type]?.['plateau'] || 1.40;
-        const forfaitPlateau = _isProMode ? 292 : 350;
-        basePrice = forfaitPlateau + Math.round(dist * plateauRate);
+
+      if (immediate) {
+        if (_previewDebounceTimer !== null) { clearTimeout(_previewDebounceTimer); _previewDebounceTimer = null; }
+        sendNow();
       } else {
-        // Mode route : tarif route × distance
-        var routeRate = baseRates[type]?.['route'] || 1.20;
-        basePrice = Math.round(dist * routeRate);
-        const minRoute = _isProMode ? (type === 'Moto' ? 100 : 125) : (type === 'Moto' ? 120 : 150);
-        if (basePrice < minRoute) basePrice = minRoute;
+        if (_previewDebounceTimer !== null) clearTimeout(_previewDebounceTimer);
+        _previewDebounceTimer = setTimeout(sendNow, PREVIEW_DEBOUNCE_MS);
+      }
+    }
+
+    async function _fetchAuthoritativePreview(inputs, priceDisplay, distanceDisplay) {
+      // Abort any in-flight preview request.
+      if (_previewAbortCtrl) { try { _previewAbortCtrl.abort(); } catch (e) {} }
+      const abortCtrl = new AbortController();
+      _previewAbortCtrl = abortCtrl;
+
+      // Stale-response guard: monotonic request id.
+      const mySeq = ++_previewSeq;
+
+      _renderPreviewLoading(priceDisplay, distanceDisplay);
+
+      const timeoutId = setTimeout(function() { try { abortCtrl.abort(); } catch (e) {} }, PREVIEW_TIMEOUT_MS);
+
+      let resp;
+      try {
+        resp = await fetch('/api/calculate-quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            depart: inputs.depart,
+            arrivee: inputs.arrivee,
+            type: inputs.type,
+            mode: inputs.mode,
+            pack: inputs.pack,
+            isUrgence: inputs.isUrgence,
+            isGardiennage: inputs.isGardiennage,
+            vehicleCondition: inputs.vehicleCondition,
+            utilSize: inputs.utilSize,
+            isPro: _isProMode,
+            promoPercent: 0,
+            dateLivraison: inputs.dateLivraison
+          }),
+          signal: abortCtrl.signal
+        });
+      } catch (err) {
+        clearTimeout(timeoutId);
+        // Aborted requests must not render an error.
+        if (abortCtrl.signal.aborted) { return; }
+        // Network failure invalidates stale preview.
+        if (mySeq !== _previewSeq) return;
+        _invalidatePreview();
+        _renderPreviewError(priceDisplay, distanceDisplay, 'Erreur de calcul. Réessayez.');
+        return;
+      }
+      clearTimeout(timeoutId);
+
+      // Stale-response guard: ignore responses from older requests.
+      if (mySeq !== _previewSeq) return;
+
+      let quote;
+      try {
+        quote = await resp.json();
+      } catch (e) {
+        _invalidatePreview();
+        _renderPreviewError(priceDisplay, distanceDisplay, 'Réponse invalide. Réessayez.');
+        return;
       }
 
-      // Coefficient taille utilitaire
-      if (type === 'Utilitaire' && utilSize) {
-        var sizeCoeff = _utilSizeCoeffs[utilSize] || 1.0;
-        basePrice = Math.round(basePrice * sizeCoeff);
+      // Stale-response guard: re-check after async json parse.
+      if (mySeq !== _previewSeq) return;
+
+      if (!resp.ok || quote.error) {
+        if (resp.status === 429) {
+          _invalidatePreview();
+          _renderPreviewError(priceDisplay, distanceDisplay, 'Trop de requêtes. Patientez quelques secondes.');
+          return;
+        }
+        if (resp.status === 400) {
+          _invalidatePreview();
+          _renderPreviewError(priceDisplay, distanceDisplay, (quote && quote.error) ? quote.error : 'Données invalides.');
+          return;
+        }
+        if (resp.status >= 500) {
+          _invalidatePreview();
+          _renderPreviewError(priceDisplay, distanceDisplay, 'Erreur serveur. Réessayez.');
+          return;
+        }
+        _invalidatePreview();
+        _renderPreviewError(priceDisplay, distanceDisplay, (quote && quote.error) ? quote.error : 'Calcul impossible.');
+        return;
       }
 
-      // Pack
-      const packPrices = _isProMode
-        ? { starter: 0, serenite: 55, excellence: 125 }
-        : { starter: 0, serenite: 69, excellence: 159 };
-      let total = basePrice + (packPrices[pack] || 0);
-
-      // ── Tarification dynamique ──
-      var dynamicDetails = [];
-      if (window.BathilyPricing) {
-        var coeffs = window.BathilyPricing.COEFFS;
-        // Remise distance
-        if (dist >= 800) { total = Math.round(total * coeffs.dist_800plus); dynamicDetails.push('Remise longue distance (-15%)'); }
-        else if (dist >= 500) { total = Math.round(total * coeffs.dist_500plus); dynamicDetails.push('Remise distance (-10%)'); }
-        // Haute saison (juin-septembre)
-        var _now = new Date();
-        var _month = _now.getMonth();
-        if (_month >= 5 && _month <= 8) { total = Math.round(total * coeffs.haute_saison); dynamicDetails.push('Tarif haute saison (+15%)'); }
+      // Defensive response validation.
+      if (typeof quote.total_ht !== 'number' || typeof quote.distance !== 'number') {
+        _invalidatePreview();
+        _renderPreviewError(priceDisplay, distanceDisplay, 'Réponse tarifaire invalide.');
+        return;
       }
 
-      // Options (à la carte, hors packs)
-      if (isUrgence) total = Math.round(total * (_isProMode ? 1.25 : 1.30));
-      if (isGardiennage) total += _isProMode ? 20 : 30;
+      // Cache latest valid preview.
+      _lastValidQuote = quote;
+      _currentPrice = quote.total_ht;
+      _currentDistance = quote.distance;
 
-      // Promo Code — validation via Supabase (fallback HELLO10)
+      // Render from backend values only.
+      const details = quote.details || {};
+      const applied = Array.isArray(details.applied_coeffs) ? details.applied_coeffs : [];
+      var dynamicHtml = '';
+      if (applied.length > 0) {
+        var labels = applied.map(function (c) { return c && c.label ? c.label : ''; }).filter(Boolean);
+        if (labels.length > 0) {
+          dynamicHtml = '<br><span style="font-size:0.7rem;color:var(--gray-mid);font-weight:400;">' + labels.join(' · ') + '</span>';
+        }
+      }
+      priceDisplay.innerHTML = `${quote.total_ht} <span>€ ${_priceSuffix}</span>${dynamicHtml}`;
+      distanceDisplay.textContent = `📏 ${quote.distance} km`;
+    }
+
+    // Promo Code validation is independent of pricing (display only).
+    // It no longer recalculates price; submit revalidates through the backend.
+    async function validatePromoDisplay() {
       const promoInput = document.getElementById('promoCodeInput') ? document.getElementById('promoCodeInput').value.trim().toUpperCase() : '';
       const promoMsg = document.getElementById('promoCodeMessage');
-
-      let discount = 0;
+      if (!promoMsg) return;
       if (promoInput) {
         var _promoData = await validatePromoCode(promoInput);
         if (_promoData) {
           promoMsg.style.display = 'block';
           promoMsg.style.color = 'var(--success)';
           promoMsg.textContent = 'Code appliqué : -' + _promoData.remise_pourcent + '% !';
-          discount = Math.round(total * (_promoData.remise_pourcent / 100));
-          total -= discount;
         } else {
           promoMsg.style.display = 'block';
           promoMsg.style.color = '#DC2626';
           promoMsg.textContent = 'Code invalide ou expiré';
         }
-      } else if (promoMsg) {
+      } else {
         promoMsg.style.display = 'none';
       }
-
-      _currentPrice = total;
-
-      var dynamicHtml = '';
-      if (dynamicDetails.length > 0) {
-        dynamicHtml = '<br><span style="font-size:0.7rem;color:var(--gray-mid);font-weight:400;">' + dynamicDetails.join(' · ') + '</span>';
-      }
-      priceDisplay.innerHTML = `${total} <span>€ ${_priceSuffix}</span>${discount > 0 ? `<br><span style="font-size:0.75rem; color:var(--success); font-weight:600;">Remise de ${discount}€ appliquée</span>` : ''}${dynamicHtml}`;
-      distanceDisplay.textContent = `📏 ${dist} km`;
     }
 
     // Écouteurs pour recalculer
-    document.getElementById('modeTransport').addEventListener('change', calculatePrice);
-    document.getElementById('packSelect').addEventListener('change', calculatePrice);
-    document.getElementById('optUrgence').addEventListener('change', calculatePrice);
-    document.getElementById('optGardiennage').addEventListener('change', calculatePrice);
-    document.getElementById('promoCodeInput').addEventListener('input', calculatePrice);
-    document.getElementById('depart').addEventListener('blur', calculatePrice);
-    document.getElementById('arrivee').addEventListener('blur', calculatePrice);
+    // Text/address inputs: debounced (300ms)
+    // Selects/toggles/checkboxes: immediate
+    document.getElementById('modeTransport').addEventListener('change', function() { calculatePrice(true); });
+    document.getElementById('packSelect').addEventListener('change', function() { calculatePrice(true); });
+    document.getElementById('optUrgence').addEventListener('change', function() { calculatePrice(true); });
+    document.getElementById('optGardiennage').addEventListener('change', function() { calculatePrice(true); });
+    document.getElementById('promoCodeInput').addEventListener('input', validatePromoDisplay);
+    document.getElementById('depart').addEventListener('input', function() { calculatePrice(false); });
+    document.getElementById('arrivee').addEventListener('input', function() { calculatePrice(false); });
+    document.getElementById('depart').addEventListener('blur', function() { calculatePrice(true); });
+    document.getElementById('arrivee').addEventListener('blur', function() { calculatePrice(true); });
 
     // ========== SOUMISSION DU DEVIS ==========
     async function submitDevis(event) {
@@ -1695,7 +1725,6 @@
   </script>
 
 <script src="js/address-autocomplete.js"></script>
-<script src="js/pricing.js" defer></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function() {
