@@ -41,6 +41,9 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
+      - name: Run RM-02C1 pricing unit tests
+        run: node --test tests/rm-02c1-pricing-engine.test.mjs
+
       - name: Run all tests
         run: npm test -- --project=chromium --reporter=line
 
@@ -78,6 +81,9 @@ jobs:
 
       - name: Start local Supabase
         run: npx supabase start
+
+      - name: Run RM-02C1 pricing runtime tests
+        run: node --test tests/rm-02c1-global-adjust-runtime.test.mjs
 
       - name: Run CRM authenticated E2E
         run: npm run test:crm-auth-e2e
