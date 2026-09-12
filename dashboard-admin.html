@@ -5369,6 +5369,28 @@ Cadeau premium personnalisé</textarea>
     const sb = getSupabase();
     if (!sb) return Swal.fire('Erreur', 'Connexion Supabase requise.', 'error');
 
+    // RM-02C2B1.1: Shared payload builder used by BOTH preview and submit.
+    // Defined in createDevisAdmin scope so didOpen and preConfirm share it.
+    function _qcBuildPayload() {
+      const depart = document.getElementById('cdDepart').value.trim();
+      const arrivee = document.getElementById('cdArrivee').value.trim();
+      const vehicule = document.getElementById('cdVehicule').value;
+      const mode = document.getElementById('cdMode').value;
+      const pack = document.getElementById('cdPack').value;
+      const isPro = document.getElementById('cdPro').value === 'true';
+      return {
+        depart,
+        arrivee,
+        type: vehicule,
+        mode,
+        pack: pack.toLowerCase(),
+        isUrgence: false,
+        isGardiennage: false,
+        vehicleCondition: 'working',
+        isPro
+      };
+    }
+
     const { value: formValues } = await Swal.fire({
       title: '<i class="fas fa-file-plus"></i> Créer un devis personnalisé',
       html: `
@@ -5513,26 +5535,8 @@ Cadeau premium personnalisé</textarea>
           _qcInvalidate();
         }
 
-        // Shared payload builder used by BOTH preview and submit.
-        function _qcBuildPayload() {
-          const depart = departInput.value.trim();
-          const arrivee = arriveeInput.value.trim();
-          const vehicule = vehSelect.value;
-          const mode = modeSelect.value;
-          const pack = packSelect.value;
-          const isPro = proSelect.value === 'true';
-          return {
-            depart,
-            arrivee,
-            type: vehicule,
-            mode,
-            pack: pack.toLowerCase(),
-            isUrgence: false,
-            isGardiennage: false,
-            vehicleCondition: 'working',
-            isPro
-          };
-        }
+        // Shared payload builder (_qcBuildPayload) is defined in createDevisAdmin
+        // scope so both didOpen (preview) and preConfirm (submit) use it.
 
         async function _qcFetchPreview() {
           const payload = _qcBuildPayload();
@@ -5684,17 +5688,7 @@ Cadeau premium personnalisé</textarea>
           const resp = await fetch('/api/calculate-quote', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              depart,
-              arrivee,
-              type: vehicule,
-              mode,
-              pack: pack.toLowerCase(),
-              isUrgence: false,
-              isGardiennage: false,
-              vehicleCondition: 'working',
-              isPro
-            })
+            body: JSON.stringify(_qcBuildPayload())
           });
           quote = await resp.json();
           if (!resp.ok || quote.error) {

@@ -65,9 +65,11 @@ test('C. quick-create uses shared payload builder (_qcBuildPayload)', () => {
   // Preview must use it
   assert.ok(qcSection.includes('JSON.stringify(payload)') || qcSection.includes('_qcBuildPayload()'),
     'preview must use _qcBuildPayload');
-  // Submit must build equivalent payload (may be inline or use builder)
-  assert.ok(qcSection.includes('preConfirm'),
-    'preConfirm must exist');
+  // Submit must also use it (RM-02C2B1.1: no duplicate inline payload)
+  const preConfirmStart = qcSection.indexOf('preConfirm: async');
+  const preConfirmSection = qcSection.substring(preConfirmStart);
+  assert.ok(preConfirmSection.includes('_qcBuildPayload()'),
+    'submit (preConfirm) must call _qcBuildPayload()');
 });
 
 // D. depart/arrivee required-field guard
@@ -211,4 +213,68 @@ test('dashboard-admin.html has no functional BathilyPricing references', () => {
   const functionalRefs = (stripped.match(/BathilyPricing\./g) || []).length;
   assert.equal(functionalRefs, 0,
     `dashboard-admin.html must not have functional BathilyPricing references (found ${functionalRefs})`);
+});
+
+// =========================================================
+// RM-02C2B1.1 — Payload parity hardening
+// =========================================================
+
+// R. Submit uses _qcBuildPayload (not inline payload)
+test('R. submit preConfirm calls _qcBuildPayload() (no inline payload)', () => {
+  const preConfirmStart = qcSection.indexOf('preConfirm: async');
+  const preConfirmSection = qcSection.substring(preConfirmStart);
+  assert.ok(preConfirmSection.includes('_qcBuildPayload()'),
+    'submit must call _qcBuildPayload()');
+  // No duplicate inline payload object should remain in preConfirm
+  assert.ok(!preConfirmSection.includes('isUrgence: false,'),
+    'submit must NOT contain inline isUrgence field (use _qcBuildPayload)');
+  assert.ok(!preConfirmSection.includes('vehicleCondition: \'working\''),
+    'submit must NOT contain inline vehicleCondition field (use _qcBuildPayload)');
+});
+
+// S. Only one _qcBuildPayload definition exists
+test('S. only one _qcBuildPayload definition exists', () => {
+  const defCount = (adminSrc.match(/function _qcBuildPayload/g) || []).length;
+  assert.equal(defCount, 1,
+    `exactly one _qcBuildPayload definition must exist (found ${defCount})`);
+});
+
+// T. _qcBuildPayload is defined in createDevisAdmin scope (before Swal.fire)
+test('T. _qcBuildPayload defined in createDevisAdmin scope (before Swal.fire)', () => {
+  const fnStart = adminSrc.indexOf('window.createDevisAdmin');
+  const payloadDef = adminSrc.indexOf('function _qcBuildPayload', fnStart);
+  const swalStart = adminSrc.indexOf('Swal.fire({', fnStart);
+  assert.ok(payloadDef > fnStart && payloadDef < swalStart,
+    '_qcBuildPayload must be defined between createDevisAdmin start and Swal.fire');
+});
+
+// U. Same fields/semantics used by both paths
+test('U. _qcBuildPayload produces all required fields with correct semantics', () => {
+  const payloadDefStart = adminSrc.indexOf('function _qcBuildPayload');
+  const payloadDefEnd = adminSrc.indexOf('}', payloadDefStart + 200);
+  const payloadDef = adminSrc.substring(payloadDefStart, payloadDefEnd + 1);
+  // Required fields
+  assert.ok(payloadDef.includes('depart'), 'payload must include depart');
+  assert.ok(payloadDef.includes('arrivee'), 'payload must include arrivee');
+  assert.ok(payloadDef.includes('type:'), 'payload must include type');
+  assert.ok(payloadDef.includes('mode'), 'payload must include mode');
+  assert.ok(payloadDef.includes('pack:'), 'payload must include pack');
+  assert.ok(payloadDef.includes('isUrgence: false'), 'payload must include isUrgence=false');
+  assert.ok(payloadDef.includes('isGardiennage: false'), 'payload must include isGardiennage=false');
+  assert.ok(payloadDef.includes('vehicleCondition: \'working\''), 'payload must include vehicleCondition=working');
+  assert.ok(payloadDef.includes('isPro'), 'payload must include isPro');
+  // Forbidden fields (not in quick-create UI)
+  assert.ok(!payloadDef.includes('utilSize'), 'payload must NOT include utilSize');
+  assert.ok(!payloadDef.includes('promoPercent'), 'payload must NOT include promoPercent');
+  assert.ok(!payloadDef.includes('dateLivraison'), 'payload must NOT include dateLivraison');
+});
+
+// V. Submit still performs fresh /api/calculate-quote request
+test('V. submit still performs fresh /api/calculate-quote request', () => {
+  const preConfirmStart = qcSection.indexOf('preConfirm: async');
+  const preConfirmSection = qcSection.substring(preConfirmStart);
+  assert.ok(preConfirmSection.includes('fetch(\'/api/calculate-quote\''),
+    'submit must call fetch(/api/calculate-quote)');
+  assert.ok(!preConfirmSection.includes('_qcLastValidQuote'),
+    'submit must NOT use cached preview quote');
 });
