@@ -180,18 +180,21 @@ test('BathilyPricing exports calculate, formatResult, BASE_RATES, COEFFS', () =>
 });
 
 // =========================================================
-// dashboard-admin linkage: recalc() calls calculate() and uses result.prix
+// dashboard-admin linkage: quick-create preview uses /api/calculate-quote
+// (RM-02C2B1: replaced BathilyPricing.calculate() with authoritative API)
 // =========================================================
-test('dashboard-admin.html calls BathilyPricing.calculate() in recalc()', () => {
+test('dashboard-admin.html no longer calls BathilyPricing.calculate() in quick-create', () => {
   const adminPath = path.join(repoRoot, 'dashboard-admin.html');
   const adminSrc = fs.readFileSync(adminPath, 'utf8');
+  // Strip comments before checking for functional references
+  const stripped = adminSrc.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
   assert.ok(
-    adminSrc.includes('BathilyPricing.calculate'),
-    'dashboard-admin.html must call BathilyPricing.calculate() for auto-price preview',
+    !stripped.includes('BathilyPricing.calculate'),
+    'dashboard-admin.html must NOT call BathilyPricing.calculate() — replaced by /api/calculate-quote (RM-02C2B1)',
   );
   assert.ok(
-    adminSrc.includes('result.prix'),
-    'dashboard-admin.html must use result.prix from calculate() to populate auto-price field',
+    !stripped.includes('result.prix'),
+    'dashboard-admin.html must NOT use result.prix from legacy calculate()',
   );
 });
 
