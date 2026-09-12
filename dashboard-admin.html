@@ -668,53 +668,6 @@
       margin-top: 3px;
       flex-shrink: 0;
     }
-    .pack-edit-area {
-      margin-top: auto;
-      padding-top: 12px;
-      border-top: 1px dashed var(--border-light);
-    }
-    .pack-edit-area .f-grp { margin-bottom: 10px; }
-    .pack-edit-area .f-grp label {
-      font-size: 0.65rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--gray-mid);
-      margin-bottom: 4px;
-      display: block;
-    }
-    .pack-edit-area input,
-    .pack-edit-area textarea {
-      width: 100%;
-      border: 1px solid var(--border-light);
-      border-radius: 10px;
-      padding: 8px 12px;
-      font-size: 0.8rem;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .pack-edit-area input:focus,
-    .pack-edit-area textarea:focus { border-color: var(--bordeaux); }
-    .pack-edit-area textarea { resize: vertical; min-height: 70px; }
-    .pack-save-btn {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: opacity 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .pack-save-btn:hover { opacity: 0.9; }
-    .pack-save-btn.starter { background: #E6F0F4; color: var(--bordeaux); }
-    .pack-save-btn.serenite { background: var(--bordeaux); color: white; }
-    .pack-save-btn.excellence { background: var(--warning); color: white; }
     .pack-recommend-badge {
       position: absolute;
       top: -1px;
@@ -2159,41 +2112,30 @@
       <div class="tab-content" id="tab-packs-config">
         <div class="dash-header">
           <h1 class="dash-hello">Packs & <em>Options</em></h1>
-          <div class="dash-date">Configurez les prestations incluses dans chaque pack</div>
+          <div class="dash-date">Référentiel des packs — valeurs définies par le moteur tarifaire</div>
+        </div>
+        <div style="background:#E6F0F4;border:1px solid var(--border-light);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:0.85rem;color:var(--gray-dark);">
+          <i class="fas fa-info-circle" style="color:var(--bordeaux);"></i> Valeurs actuellement définies par le moteur tarifaire. Modification depuis l'Admin non disponible pour le moment.
         </div>
         <div class="packs-grid">
-          <!-- Pack Starter -->
+          <!-- Pack Essentiel -->
           <div class="pack-card-wrapper">
             <div class="pack-card">
               <div class="pack-header starter">
                 <div class="pack-icon starter"><i class="fas fa-rocket"></i></div>
                 <div class="pack-title-wrap">
-                  <div class="pack-title" id="display_name_pack_starter">Starter</div>
-                  <div class="pack-subtitle">Essentiel inclus</div>
+                  <div class="pack-title" id="display_name_pack_starter">Essentiel</div>
+                  <div class="pack-subtitle">Inclus par défaut</div>
                 </div>
                 <span class="pack-price-badge free"><i class="fas fa-check"></i> Inclus</span>
               </div>
               <div class="pack-body">
                 <ul class="pack-features-list" id="display_features_pack_starter">
-                  <li><i class="fas fa-check-circle"></i> Logistique de convoyage standard</li>
-                  <li><i class="fas fa-check-circle"></i> Identification par plaque</li>
-                  <li><i class="fas fa-check-circle"></i> État des lieux numérisé (10 photos minimum)</li>
-                  <li><i class="fas fa-check-circle"></i> Suivi GPS basique</li>
+                  <li><i class="fas fa-check-circle"></i> Suivi de mission</li>
+                  <li><i class="fas fa-check-circle"></i> État des lieux numérique avec photos</li>
+                  <li><i class="fas fa-check-circle"></i> Coordination prise en charge / livraison</li>
+                  <li><i class="fas fa-check-circle"></i> Service client standard</li>
                 </ul>
-                <div class="pack-edit-area">
-                  <div class="f-grp">
-                    <label>Nom du pack</label>
-                    <input type="text" id="name_pack_starter" value="Starter">
-                  </div>
-                  <div class="f-grp">
-                    <label>Prestations (une par ligne)</label>
-                    <textarea id="features_pack_starter" rows="4">Logistique de convoyage standard
-Identification par plaque
-État des lieux numérisé (10 photos minimum)
-Suivi GPS basique</textarea>
-                  </div>
-                  <button class="pack-save-btn starter" data-pack="pack_starter"><i class="fas fa-save"></i> Sauvegarder</button>
-                </div>
               </div>
             </div>
           </div>
@@ -2208,31 +2150,16 @@ Suivi GPS basique</textarea>
                   <div class="pack-title" id="display_name_pack_serenite">Sérénité</div>
                   <div class="pack-subtitle">Confort & sérénité</div>
                 </div>
-                <span class="pack-price-badge paid" id="tag_pack_serenite">+49€</span>
+                <span class="pack-price-badge paid" id="tag_pack_serenite">+69€</span>
               </div>
               <div class="pack-body">
                 <ul class="pack-features-list" id="display_features_pack_serenite">
-                  <li><i class="fas fa-check-circle"></i> Nettoyage extérieur haute pression</li>
-                  <li><i class="fas fa-check-circle"></i> Mise à niveau carburant / charge</li>
-                  <li><i class="fas fa-check-circle"></i> Check-list digitale par email</li>
+                  <li><i class="fas fa-check-circle"></i> Tout Essentiel inclus</li>
+                  <li><i class="fas fa-check-circle"></i> Nettoyage standard intérieur / extérieur avant livraison</li>
+                  <li><i class="fas fa-check-circle"></i> Accompagnement renforcé</li>
+                  <li><i class="fas fa-check-circle"></i> Support prioritaire</li>
+                  <li><i class="fas fa-check-circle"></i> Coordination renforcée du rendez-vous / créneau</li>
                 </ul>
-                <div class="pack-edit-area">
-                  <div class="f-grp">
-                    <label>Nom</label>
-                    <input type="text" id="name_pack_serenite" value="Sérénité">
-                  </div>
-                  <div class="f-grp">
-                    <label>Prix (€)</label>
-                    <input type="number" id="price_pack_serenite" value="49" step="1" style="width:100%;border:1px solid var(--border-light);border-radius:10px;padding:8px 12px;font-size:0.8rem;">
-                  </div>
-                  <div class="f-grp">
-                    <label>Prestations (une par ligne)</label>
-                    <textarea id="features_pack_serenite" rows="3">Nettoyage extérieur haute pression
-Mise à niveau carburant / charge
-Check-list digitale par email</textarea>
-                  </div>
-                  <button class="pack-save-btn serenite" data-pack="pack_serenite"><i class="fas fa-save"></i> Sauvegarder</button>
-                </div>
               </div>
             </div>
           </div>
@@ -2246,31 +2173,17 @@ Check-list digitale par email</textarea>
                   <div class="pack-title" id="display_name_pack_excellence">Excellence</div>
                   <div class="pack-subtitle">Premium & prestige</div>
                 </div>
-                <span class="pack-price-badge premium" id="tag_pack_excellence">+129€</span>
+                <span class="pack-price-badge premium" id="tag_pack_excellence">+149€</span>
               </div>
               <div class="pack-body">
                 <ul class="pack-features-list" id="display_features_pack_excellence">
-                  <li><i class="fas fa-check-circle"></i> Préparation esthétique complète</li>
-                  <li><i class="fas fa-check-circle"></i> Full Energy — 100% charge / plein</li>
-                  <li><i class="fas fa-check-circle"></i> Cadeau premium personnalisé</li>
+                  <li><i class="fas fa-check-circle"></i> Tout Sérénité inclus</li>
+                  <li><i class="fas fa-check-circle"></i> Planification prioritaire</li>
+                  <li><i class="fas fa-check-circle"></i> Créneau de livraison privilégié sous réserve de disponibilité</li>
+                  <li><i class="fas fa-check-circle"></i> Remise personnalisée du véhicule</li>
+                  <li><i class="fas fa-check-circle"></i> Préparation avant remise des clés</li>
+                  <li><i class="fas fa-check-circle"></i> Plein ou complément de carburant sur demande — carburant facturé au réel.</li>
                 </ul>
-                <div class="pack-edit-area">
-                  <div class="f-grp">
-                    <label>Nom</label>
-                    <input type="text" id="name_pack_excellence" value="Excellence">
-                  </div>
-                  <div class="f-grp">
-                    <label>Prix (€)</label>
-                    <input type="number" id="price_pack_excellence" value="129" step="1" style="width:100%;border:1px solid var(--border-light);border-radius:10px;padding:8px 12px;font-size:0.8rem;">
-                  </div>
-                  <div class="f-grp">
-                    <label>Prestations (une par ligne)</label>
-                    <textarea id="features_pack_excellence" rows="3">Préparation esthétique complète
-Full Energy — 100% charge / plein
-Cadeau premium personnalisé</textarea>
-                  </div>
-                  <button class="pack-save-btn excellence" data-pack="pack_excellence"><i class="fas fa-save"></i> Sauvegarder</button>
-                </div>
               </div>
             </div>
           </div>
