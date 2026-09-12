@@ -41,11 +41,13 @@ test('calculateAdminPrice calls updateManualMarginDisplay after setting price va
   );
 
   // Find the calculateAdminPrice function body — use a larger window
-  const funcStart = html.indexOf('async function calculateAdminPrice()');
+  // RM-02C2B2: function signature changed to calculateAdminPrice(immediate)
+  // and logic split between calculateAdminPrice and _manualPriceFetchPreview
+  const funcStart = html.indexOf('async function calculateAdminPrice(');
   assert.ok(funcStart !== -1, 'calculateAdminPrice function must exist');
 
-  // Extract the full function body (next 2000 chars to capture entire function)
-  const funcBody = html.substring(funcStart, funcStart + 2000);
+  // Extract the full function body + _manualPriceFetchPreview (next 5000 chars)
+  const funcBody = html.substring(funcStart, funcStart + 5000);
 
   // Verify it calls updateManualMarginDisplay after setting values
   assert.match(
@@ -61,10 +63,11 @@ test('calculateAdminPrice calls updateManualMarginDisplay in error/catch path to
     'utf8'
   );
 
-  const funcStart = html.indexOf('async function calculateAdminPrice()');
-  const funcBody = html.substring(funcStart, funcStart + 2000);
+  // RM-02C2B2: function signature changed, logic split across two functions
+  const funcStart = html.indexOf('async function calculateAdminPrice(');
+  const funcBody = html.substring(funcStart, funcStart + 5000);
 
-  // Count occurrences — should be at least 2 (success path + catch path)
+  // Count occurrences — should be at least 2 (success path + error paths)
   const matches = funcBody.match(/updateManualMarginDisplay\(\)/g) || [];
   assert.ok(
     matches.length >= 2,
