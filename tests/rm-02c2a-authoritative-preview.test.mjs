@@ -330,7 +330,7 @@ function loadScriptInSandbox(env, extraGlobals = {}) {
   // Use getters for let variables so tests can observe live values.
   const fn = new Function(
     ...Object.keys(sandbox),
-    inlineScript + '\n; return { calculatePrice, _fetchAuthoritativePreview, _invalidatePreview, submitDevis, get _lastValidQuote() { return _lastValidQuote; }, get _previewSeq() { return _previewSeq; }, get _previewAbortCtrl() { return _previewAbortCtrl; }, get _currentPrice() { return _currentPrice; }, get _currentDistance() { return _currentDistance; }, get _isProMode() { return _isProMode; } };'
+    inlineScript + '\n; return { calculatePrice, _fetchAuthoritativePreview, _invalidatePreview, _buildQuotePayload, submitDevis, get _lastValidQuote() { return _lastValidQuote; }, get _previewSeq() { return _previewSeq; }, get _previewAbortCtrl() { return _previewAbortCtrl; }, get _currentPrice() { return _currentPrice; }, get _currentDistance() { return _currentDistance; }, get _isProMode() { return _isProMode; } };'
   );
   const result = fn(...Object.values(sandbox));
   return { sandbox, result };
@@ -577,4 +577,224 @@ test('PERF. empty required fields generate zero API calls', () => {
   for (let i = 0; i < 10; i++) result.calculatePrice(true);
   assert.equal(env.state.fetchCalls.length, 0,
     'zero API calls when required fields empty');
+});
+
+// =========================================================
+// RM-02C2A.1 — Timeout vs normal abort distinction
+// =========================================================
+
+// Timeout: explicit error state visible, stale price invalidated
+test('TIMEOUT. 12s timeout shows error and invalidates stale price', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  env.setElement('depart', { value: 'Paris' });
+  env.setElement('arrivee', { value: 'Lyon' });
+  // Queue a response that never arrives fast enough (delay > timeout)
+  env.queueResponse(200, { total_ht: 100, distance: 50, details: {} }, 20000);
+  result.calculatePrice(true);
+  // Advance time past the 12s timeout
+  env.advanceTimers(13000);
+  await new Promise(r => setTimeout(r, 10));
+  // Timeout must show an error, not be silent
+  assert.equal(result._currentPrice, 0, 'price invalidated on timeout');
+  assert.equal(result._lastValidQuote, null, 'no cached quote on timeout');
+  assert.ok(env.elements.priceDisplay.innerHTML.includes('Délai') ||
+            env.elements.priceDisplay.innerHTML.includes('Réessayez'),
+    'timeout error message rendered: ' + env.elements.priceDisplay.innerHTML);
+});
+
+// Supersede abort: silent, no error
+test('TIMEOUT. supersede abort is silent (no error)', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  env.setElement('depart', { value: 'Paris' });
+  env.setElement('arrivee', { value: 'Lyon' });
+  env.queueResponse(200, { total_ht: 100, distance: 50, details: {} }, 5000);
+  result.calculatePrice(true);
+  // Supersede with a new request before timeout
+  env.setElement('depart', { value: 'Marseille' });
+  env.queueResponse(200, { total_ht: 200, distance: 60, details: {} }, 0);
+  result.calculatePrice(true);
+  env.advanceTimers(100);
+  await new Promise(r => setTimeout(r, 10));
+  // The first request was aborted by supersede, not timeout.
+  // No timeout error should be visible from the first request.
+  assert.ok(!env.elements.priceDisplay.innerHTML.includes('Délai'),
+    'supersede must not show timeout error');
+});
+
+// Required-field abort: silent, no error
+test('TIMEOUT. required-field abort is silent (no error)', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  env.setElement('depart', { value: 'Paris' });
+  env.setElement('arrivee', { value: 'Lyon' });
+  env.queueResponse(200, { total_ht: 100, distance: 50, details: {} }, 5000);
+  result.calculatePrice(true);
+  // Clear depart — required-field guard aborts
+  env.setElement('depart', { value: '' });
+  result.calculatePrice(true);
+  env.advanceTimers(100);
+  await new Promise(r => setTimeout(r, 10));
+  // No timeout error from the aborted request
+  assert.ok(!env.elements.priceDisplay.innerHTML.includes('Délai'),
+    'required-field abort must not show timeout error');
+});
+
+// =========================================================
+// RM-02C2A.1 — Debounce + immediate event dedup
+// =========================================================
+
+test('DEDUP. typing then blur before debounce fires = 1 request', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  env.setElement('depart', { value: 'P' });
+  env.setElement('arrivee', { value: 'L' });
+  // Type (debounced)
+  result.calculatePrice(false);
+  // Blur (immediate) before debounce fires
+  result.calculatePrice(true);
+  assert.equal(env.state.fetchCalls.length, 1,
+    `typing+blur = 1 request (got ${env.state.fetchCalls.length})`);
+});
+
+test('DEDUP. typing then autocomplete selection before debounce = 1 request', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  env.setElement('depart', { value: 'P' });
+  env.setElement('arrivee', { value: 'L' });
+  // Type (debounced)
+  result.calculatePrice(false);
+  // Autocomplete selection (immediate) before debounce fires
+  result.calculatePrice(true);
+  assert.equal(env.state.fetchCalls.length, 1,
+    `typing+autocomplete = 1 request (got ${env.state.fetchCalls.length})`);
+});
+
+test('DEDUP. pending debounce cancelled on immediate call', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  env.setElement('depart', { value: 'Paris' });
+  env.setElement('arrivee', { value: 'Lyon' });
+  // Start debounced call
+  result.calculatePrice(false);
+  // Before timer fires, start immediate call
+  result.calculatePrice(true);
+  // Advance time past original debounce — should NOT fire a second request
+  env.advanceTimers(400);
+  assert.equal(env.state.fetchCalls.length, 1,
+    `pending debounce cancelled, only 1 request (got ${env.state.fetchCalls.length})`);
+});
+
+// =========================================================
+// RM-02C2A.1 — Payload parity (preview vs submit)
+// =========================================================
+
+test('PARITY. _buildQuotePayload produces correct fields', () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  env.setElement('depart', { value: 'Paris' });
+  env.setElement('arrivee', { value: 'Lyon' });
+  env.setElement('vehiculeType', { value: 'Automobile' });
+  env.setElement('modeTransport', { value: 'route' });
+  env.setElement('packSelect', { value: 'excellence' });
+  env.setElement('optUrgence', { checked: true });
+  env.setElement('optGardiennage', { checked: false });
+  env.setElement('vehicleCondition', { value: 'working' });
+  env.setElement('utilSize', { value: '6' });
+  env.setElement('dateLivraison', { value: '2026-03-18' });
+  const inputs = {
+    depart: 'Paris', arrivee: 'Lyon', type: 'Automobile',
+    mode: 'route', pack: 'excellence', isUrgence: true,
+    isGardiennage: false, vehicleCondition: 'working',
+    utilSize: '6', dateLivraison: '2026-03-18'
+  };
+  const payload = result._buildQuotePayload(inputs);
+  assert.equal(payload.depart, 'Paris');
+  assert.equal(payload.arrivee, 'Lyon');
+  assert.equal(payload.type, 'Automobile');
+  assert.equal(payload.mode, 'route');
+  assert.equal(payload.pack, 'excellence');
+  assert.equal(payload.isUrgence, true);
+  assert.equal(payload.isGardiennage, false);
+  assert.equal(payload.vehicleCondition, 'working');
+  assert.equal(payload.utilSize, '6');
+  assert.equal(payload.isPro, false);
+  assert.equal(payload.promoPercent, 0);
+  assert.equal(payload.dateLivraison, '2026-03-18');
+});
+
+test('PARITY. devis.html uses _buildQuotePayload for both preview and submit', () => {
+  // Static check: both paths must reference _buildQuotePayload
+  assert.ok(devisSrc.includes('function _buildQuotePayload'),
+    'devis.html must define _buildQuotePayload');
+  const buildMatches = (devisSrc.match(/_buildQuotePayload/g) || []).length;
+  assert.ok(buildMatches >= 3,
+    `devis.html must call _buildQuotePayload in definition + preview + submit (found ${buildMatches})`);
+  // JSON.stringify in calculate-quote calls must use _buildQuotePayload, not inline objects
+  const stringifyMatches = devisSrc.match(/JSON\.stringify\(_buildQuotePayload\(/g) || [];
+  assert.ok(stringifyMatches.length >= 2,
+    `devis.html must call JSON.stringify(_buildQuotePayload(...)) in both preview and submit (found ${stringifyMatches.length})`);
+});
+
+// =========================================================
+// RM-02C2A.1 — Stale state invalidation
+// =========================================================
+
+test('STALE. error response does not leave old price visible', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  env.setElement('depart', { value: 'Paris' });
+  env.setElement('arrivee', { value: 'Lyon' });
+  // First: successful response (price=452)
+  env.queueResponse(200, { total_ht: 452, distance: 377, details: {} });
+  result.calculatePrice(true);
+  env.advanceTimers(10);
+  await new Promise(r => setTimeout(r, 10));
+  assert.equal(result._currentPrice, 452, 'first response cached');
+  // Second: 500 error
+  env.queueResponse(500, { error: 'Erreur serveur' });
+  result.calculatePrice(true);
+  env.advanceTimers(10);
+  await new Promise(r => setTimeout(r, 10));
+  // Old price must NOT remain — must be invalidated to 0
+  assert.equal(result._currentPrice, 0, 'old price invalidated on 500');
+  assert.equal(result._lastValidQuote, null, 'cached quote cleared on 500');
+  assert.ok(env.elements.priceDisplay.innerHTML.includes('Erreur') ||
+            env.elements.priceDisplay.innerHTML.includes('Réessayez'),
+    'error shown instead of old price');
+});
+
+test('STALE. 429 response does not leave old price visible', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  env.setElement('depart', { value: 'Paris' });
+  env.setElement('arrivee', { value: 'Lyon' });
+  env.queueResponse(200, { total_ht: 300, distance: 200, details: {} });
+  result.calculatePrice(true);
+  env.advanceTimers(10);
+  await new Promise(r => setTimeout(r, 10));
+  assert.equal(result._currentPrice, 300, 'first response cached');
+  // Now 429
+  env.queueResponse(429, { error: 'Too many' });
+  result.calculatePrice(true);
+  env.advanceTimers(10);
+  await new Promise(r => setTimeout(r, 10));
+  assert.equal(result._currentPrice, 0, 'old price invalidated on 429');
+  assert.equal(result._lastValidQuote, null, 'cached quote cleared on 429');
+});
+
+test('STALE. empty fields clear cached quote and price', () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  env.setElement('depart', { value: 'Paris' });
+  env.setElement('arrivee', { value: 'Lyon' });
+  // Manually set cached state (simulating a prior successful response)
+  // Then clear fields and call calculatePrice
+  env.setElement('depart', { value: '' });
+  env.setElement('arrivee', { value: '' });
+  result.calculatePrice(true);
+  assert.equal(result._currentPrice, 0, 'price cleared on empty fields');
+  assert.equal(result._currentDistance, 0, 'distance cleared on empty fields');
+  assert.equal(result._lastValidQuote, null, 'cached quote cleared on empty fields');
 });

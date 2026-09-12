@@ -1273,6 +1273,25 @@
       _currentDistance = 0;
     }
 
+    // Shared payload builder for preview AND submit (prevents drift).
+    // Reads form values fresh each call; both paths use the same semantics.
+    function _buildQuotePayload(inputs) {
+      return {
+        depart: inputs.depart,
+        arrivee: inputs.arrivee,
+        type: inputs.type,
+        mode: inputs.mode,
+        pack: inputs.pack,
+        isUrgence: inputs.isUrgence,
+        isGardiennage: inputs.isGardiennage,
+        vehicleCondition: inputs.vehicleCondition,
+        utilSize: inputs.utilSize,
+        isPro: _isProMode,
+        promoPercent: 0,
+        dateLivraison: inputs.dateLivraison
+      };
+    }
+
     function _renderPreviewNeutral(priceDisplay, distanceDisplay) {
       priceDisplay.innerHTML = `— <span>€ ${_priceSuffix}</span>`;
       distanceDisplay.textContent = '';
@@ -1358,33 +1377,32 @@
 
       _renderPreviewLoading(priceDisplay, distanceDisplay);
 
-      const timeoutId = setTimeout(function() { try { abortCtrl.abort(); } catch (e) {} }, PREVIEW_TIMEOUT_MS);
+      // Timeout abort is distinguished from supersede/required-field abort
+      // via _timedOut flag on the controller instance.
+      abortCtrl._timedOut = false;
+      const timeoutId = setTimeout(function() {
+        abortCtrl._timedOut = true;
+        try { abortCtrl.abort(); } catch (e) {}
+      }, PREVIEW_TIMEOUT_MS);
 
       let resp;
       try {
         resp = await fetch('/api/calculate-quote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            depart: inputs.depart,
-            arrivee: inputs.arrivee,
-            type: inputs.type,
-            mode: inputs.mode,
-            pack: inputs.pack,
-            isUrgence: inputs.isUrgence,
-            isGardiennage: inputs.isGardiennage,
-            vehicleCondition: inputs.vehicleCondition,
-            utilSize: inputs.utilSize,
-            isPro: _isProMode,
-            promoPercent: 0,
-            dateLivraison: inputs.dateLivraison
-          }),
+          body: JSON.stringify(_buildQuotePayload(inputs)),
           signal: abortCtrl.signal
         });
       } catch (err) {
         clearTimeout(timeoutId);
-        // Aborted requests must not render an error.
-        if (abortCtrl.signal.aborted) { return; }
+        // Aborted requests must not render an error — UNLESS it was a timeout.
+        if (abortCtrl.signal.aborted) {
+          if (abortCtrl._timedOut && mySeq === _previewSeq) {
+            _invalidatePreview();
+            _renderPreviewError(priceDisplay, distanceDisplay, 'Délai dépassé. Réessayez.');
+          }
+          return;
+        }
         // Network failure invalidates stale preview.
         if (mySeq !== _previewSeq) return;
         _invalidatePreview();
@@ -1558,26 +1576,18 @@
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calcul sécurisé en cours...';
       }
 
-      // Source de vérité tarifaire : backend
+      // Source de vérité tarifaire : backend (shared payload with preview)
       let quote;
       try {
+        const submitInputs = {
+          depart, arrivee, type: vehicule, mode, pack,
+          isUrgence, isGardiennage, vehicleCondition, utilSize,
+          dateLivraison
+        };
         const quoteResponse = await fetch('/api/calculate-quote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            depart,
-            arrivee,
-            type: vehicule,
-            mode,
-            pack,
-            isUrgence,
-            isGardiennage,
-            vehicleCondition,
-            utilSize,
-            isPro: _isProMode,
-            promoPercent: 0,
-            dateLivraison
-          })
+          body: JSON.stringify(_buildQuotePayload(submitInputs))
         });
         quote = await quoteResponse.json();
         if (!quoteResponse.ok || quote.error) {
