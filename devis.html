@@ -1352,6 +1352,12 @@
         return;
       }
 
+      // RM-02C2A.2: Immediately invalidate stale cached quote and show loading
+      // state BEFORE scheduling or triggering the request. The user must never
+      // see an old price as "current" while a new calculation is pending.
+      _invalidatePreview();
+      _renderPreviewLoading(priceDisplay, distanceDisplay);
+
       const sendNow = function() {
         _previewDebounceTimer = null;
         _fetchAuthoritativePreview(inputs, priceDisplay, distanceDisplay);

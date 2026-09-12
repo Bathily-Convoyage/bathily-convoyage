@@ -798,3 +798,152 @@ test('STALE. empty fields clear cached quote and price', () => {
   assert.equal(result._currentDistance, 0, 'distance cleared on empty fields');
   assert.equal(result._lastValidQuote, null, 'cached quote cleared on empty fields');
 });
+
+// =========================================================
+// RM-02C2A.2 — Immediate stale price invalidation on input change
+// =========================================================
+
+// Helper: establish a valid cached quote, then test invalidation
+async function establishValidQuote(env, result, price = 452, distance = 377) {
+  env.setElement('depart', { value: 'Montpellier, France' });
+  env.setElement('arrivee', { value: 'Nîmes, France' });
+  env.queueResponse(200, { total_ht: price, distance, details: {} });
+  result.calculatePrice(true);
+  env.advanceTimers(10);
+  await new Promise(r => setTimeout(r, 10));
+  assert.equal(result._currentPrice, price, `valid quote established: ${price}`);
+  assert.ok(result._lastValidQuote, 'cached quote exists');
+}
+
+// A. Text/address input change invalidates immediately (before debounce)
+test('STALE_INPUT. text change invalidates cached quote immediately', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  await establishValidQuote(env, result, 452, 377);
+  // Change depart to a new valid value (debounced)
+  env.setElement('depart', { value: 'Lyon, France' });
+  result.calculatePrice(false);
+  // Immediately (before debounce fires):
+  assert.equal(result._currentPrice, 0,
+    'price must be 0 immediately after text change (before debounce)');
+  assert.equal(result._lastValidQuote, null,
+    'cached quote must be null immediately after text change');
+  assert.equal(env.state.fetchCalls.length, 1,
+    'no new API request before debounce fires (only the initial one)');
+  // priceDisplay must NOT show old 452
+  assert.ok(!env.elements.priceDisplay.innerHTML.includes('452'),
+    'old price 452 must not be visible during debounce window');
+});
+
+// A.2. No API call before debounce expires
+test('STALE_INPUT. no API call before 300ms debounce expires', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  await establishValidQuote(env, result, 452, 377);
+  env.setElement('depart', { value: 'Lyon, France' });
+  result.calculatePrice(false);
+  // Before 300ms
+  env.advanceTimers(299);
+  assert.equal(env.state.fetchCalls.length, 1,
+    'no new API call before 300ms (only initial)');
+  // After 300ms
+  env.advanceTimers(10);
+  assert.equal(env.state.fetchCalls.length, 2,
+    'API call fires after 300ms debounce');
+});
+
+// A.3. New authoritative response becomes the only valid quote
+test('STALE_INPUT. new response replaces old quote as only valid', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  await establishValidQuote(env, result, 452, 377);
+  env.setElement('depart', { value: 'Lyon, France' });
+  env.queueResponse(200, { total_ht: 300, distance: 200, details: {} });
+  result.calculatePrice(false);
+  env.advanceTimers(350);
+  await new Promise(r => setTimeout(r, 10));
+  assert.equal(result._currentPrice, 300, 'new price from new response');
+  assert.ok(result._lastValidQuote, 'new cached quote exists');
+  assert.equal(result._lastValidQuote.total_ht, 300, 'cached quote is the new one');
+});
+
+// B. Pack select change invalidates before immediate request
+test('STALE_INPUT. pack change invalidates cached quote before request', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  await establishValidQuote(env, result, 452, 377);
+  env.setElement('packSelect', { value: 'excellence' });
+  result.calculatePrice(true);
+  // Immediately after immediate call (before response arrives):
+  // The request fires, but the old cached quote must already be invalidated
+  assert.equal(result._currentPrice, 0,
+    'price must be 0 immediately after pack change (before response)');
+  assert.equal(result._lastValidQuote, null,
+    'cached quote must be null immediately after pack change');
+  assert.equal(env.state.fetchCalls.length, 2,
+    'immediate request fired (initial + pack change)');
+});
+
+// C. Urgency toggle invalidates before immediate request
+test('STALE_INPUT. urgency toggle invalidates cached quote before request', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  await establishValidQuote(env, result, 452, 377);
+  env.setElement('optUrgence', { checked: true });
+  result.calculatePrice(true);
+  assert.equal(result._currentPrice, 0,
+    'price must be 0 immediately after urgency toggle');
+  assert.equal(result._lastValidQuote, null,
+    'cached quote must be null immediately after urgency toggle');
+});
+
+// D. Gardiennage toggle invalidates before immediate request
+test('STALE_INPUT. gardiennage toggle invalidates cached quote before request', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  await establishValidQuote(env, result, 452, 377);
+  env.setElement('optGardiennage', { checked: true });
+  result.calculatePrice(true);
+  assert.equal(result._currentPrice, 0,
+    'price must be 0 immediately after gardiennage toggle');
+  assert.equal(result._lastValidQuote, null,
+    'cached quote must be null immediately after gardiennage toggle');
+});
+
+// E. Vehicle condition change invalidates before immediate request
+test('STALE_INPUT. vehicle condition change invalidates cached quote before request', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  await establishValidQuote(env, result, 452, 377);
+  env.setElement('vehicleCondition', { value: 'non_working' });
+  result.calculatePrice(true);
+  assert.equal(result._currentPrice, 0,
+    'price must be 0 immediately after vehicle condition change');
+  assert.equal(result._lastValidQuote, null,
+    'cached quote must be null immediately after vehicle condition change');
+});
+
+// F. Mode/type/utilSize change invalidates before immediate request
+test('STALE_INPUT. mode change invalidates cached quote before request', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  await establishValidQuote(env, result, 452, 377);
+  env.setElement('modeTransport', { value: 'plateau' });
+  result.calculatePrice(true);
+  assert.equal(result._currentPrice, 0,
+    'price must be 0 immediately after mode change');
+  assert.equal(result._lastValidQuote, null,
+    'cached quote must be null immediately after mode change');
+});
+
+test('STALE_INPUT. utilSize change invalidates cached quote before request', async () => {
+  const env = createMockEnv();
+  const { result } = loadScriptInSandbox(env);
+  await establishValidQuote(env, result, 452, 377);
+  env.setElement('utilSize', { value: '10' });
+  result.calculatePrice(true);
+  assert.equal(result._currentPrice, 0,
+    'price must be 0 immediately after utilSize change');
+  assert.equal(result._lastValidQuote, null,
+    'cached quote must be null immediately after utilSize change');
+});
