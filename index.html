@@ -3800,17 +3800,26 @@
 
         <!-- Packs de service -->
 
+        <style>
+          .hp-pack-card { cursor: pointer; display: block; text-decoration: none; color: inherit; transition: all 0.3s; }
+          .hp-pack-card:hover { transform: translateY(-6px); text-decoration: none; }
+          .hp-pack-card--std:hover { border-color: var(--bordeaux-light); box-shadow: 0 12px 32px rgba(10,77,104,0.08); }
+          .hp-pack-card--featured:hover { box-shadow: 0 16px 40px rgba(10,77,104,0.15); }
+        </style>
+
         <div style="margin-top: 50px;" class="reveal">
 
           <h4 style="font-family: 'Montserrat', sans-serif; font-size: 1.2rem; margin-bottom: 24px; color: var(--gray-dark); text-align: center;">Niveaux de service optionnels</h4>
 
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 900px; margin: 0 auto;">
 
-            <div onclick="window.location.href='devis.html?pack=starter'" style="cursor: pointer; background: white; border: 2px solid var(--border-light); border-radius: 20px; padding: 28px 24px; text-align: center; transition: all 0.3s; position: relative;" onmouseover="this.style.transform='translateY(-6px)';this.style.borderColor='var(--bordeaux-light)';this.style.boxShadow='0 12px 32px rgba(10,77,104,0.08)'" onmouseout="this.style.transform='translateY(0)';this.style.borderColor='var(--border-light)';this.style.boxShadow='none'">
+            <a href="devis.html?pack=starter" class="hp-pack-card hp-pack-card--std" style="background: white; border: 2px solid var(--border-light); border-radius: 20px; padding: 28px 24px; text-align: center; position: relative;">
 
               <div style="font-size:1.6rem;margin-bottom:8px;"><i class="fas fa-rocket" style="color:var(--bordeaux);"></i></div>
 
-              <strong style="font-family:'Montserrat',sans-serif;font-size:1.1rem;color:var(--gray-dark);display:block;margin-bottom:4px;">Formule Starter</strong>
+              <strong style="font-family:'Montserrat',sans-serif;font-size:1.1rem;color:var(--gray-dark);display:block;margin-bottom:4px;">Essentiel</strong>
+
+              <div style="font-size:0.8rem;color:var(--gray-mid);margin-bottom:4px;">L'essentiel pour un convoyage sécurisé et documenté.</div>
 
               <div style="font-family:'Montserrat',sans-serif;font-size:2rem;font-weight:800;color:var(--bordeaux);margin:12px 0;">Inclus<span style="font-size:0.9rem;font-weight:600;"></span></div>
 
@@ -3818,9 +3827,9 @@
 
                 <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Suivi de mission</li>
 
-                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Suivi de mission</li>
-
                 <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>État des lieux numérique avec photos</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Coordination prise en charge / livraison</li>
 
                 <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Service client standard</li>
 
@@ -3828,61 +3837,67 @@
 
               <span style="display:inline-block;padding:8px 20px;background:var(--bordeaux-light);color:var(--bordeaux);border-radius:30px;font-size:0.85rem;font-weight:600;">Choisir →</span>
 
-            </div>
+            </a>
 
-            <div onclick="window.location.href='devis.html?pack=serenite'" style="cursor: pointer; background: white; border: 2px solid var(--bordeaux); border-radius: 20px; padding: 28px 24px; text-align: center; transition: all 0.3s; position: relative; box-shadow: 0 8px 24px rgba(10,77,104,0.1);" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 16px 40px rgba(10,77,104,0.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 8px 24px rgba(10,77,104,0.1)'">
+            <a href="devis.html?pack=serenite" class="hp-pack-card hp-pack-card--featured" style="background: white; border: 2px solid var(--bordeaux); border-radius: 20px; padding: 28px 24px; text-align: center; position: relative; box-shadow: 0 8px 24px rgba(10,77,104,0.1);">
 
-              <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#F5A623;color:#0A4D68;padding:4px 16px;border-radius:20px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">⭐ Plus populaire</div>
+              <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#F5A623;color:#0A4D68;padding:4px 16px;border-radius:20px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">⭐ LE PLUS CHOISI</div>
 
               <div style="font-size:1.6rem;margin-bottom:8px;"><i class="fas fa-gem" style="color:var(--bordeaux);"></i></div>
 
               <strong style="font-family:'Montserrat',sans-serif;font-size:1.1rem;color:var(--gray-dark);display:block;margin-bottom:4px;">Pack Sérénité</strong>
 
+              <div style="font-size:0.8rem;color:var(--gray-mid);margin-bottom:4px;">Plus de confort avant et pendant la livraison.</div>
+
               <div style="font-family:'Montserrat',sans-serif;font-size:2rem;font-weight:800;color:var(--bordeaux);margin:12px 0;">+69€<span style="font-size:0.9rem;font-weight:600;"></span></div>
 
               <ul style="list-style:none;padding:0;margin:16px 0 20px;text-align:left;">
 
-                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Tout Starter inclus</li>
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Tout Essentiel inclus</li>
 
-                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Nettoyage int./ext.</li>
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Nettoyage standard intérieur / extérieur avant livraison</li>
 
-                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Lavage avant livraison</li>
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Accompagnement renforcé</li>
 
-                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>RDV planifié</li>
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Support prioritaire</li>
 
-                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Support VIP</li>
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Coordination renforcée du rendez-vous / créneau</li>
 
               </ul>
 
               <span style="display:inline-block;padding:8px 20px;background:var(--bordeaux);color:white;border-radius:30px;font-size:0.85rem;font-weight:600;">Choisir →</span>
 
-            </div>
+            </a>
 
-            <div onclick="window.location.href='devis.html?pack=excellence'" style="cursor: pointer; background: white; border: 2px solid var(--border-light); border-radius: 20px; padding: 28px 24px; text-align: center; transition: all 0.3s; position: relative;" onmouseover="this.style.transform='translateY(-6px)';this.style.borderColor='var(--bordeaux-light)';this.style.boxShadow='0 12px 32px rgba(10,77,104,0.08)'" onmouseout="this.style.transform='translateY(0)';this.style.borderColor='var(--border-light)';this.style.boxShadow='none'">
+            <a href="devis.html?pack=excellence" class="hp-pack-card hp-pack-card--std" style="background: white; border: 2px solid var(--border-light); border-radius: 20px; padding: 28px 24px; text-align: center; position: relative;">
 
               <div style="font-size:1.6rem;margin-bottom:8px;"><i class="fas fa-crown" style="color:#F5A623;"></i></div>
 
               <strong style="font-family:'Montserrat',sans-serif;font-size:1.1rem;color:var(--gray-dark);display:block;margin-bottom:4px;">Pack Excellence</strong>
 
-              <div style="font-family:'Montserrat',sans-serif;font-size:2rem;font-weight:800;color:var(--bordeaux);margin:12px 0;">+159€<span style="font-size:0.9rem;font-weight:600;"></span></div>
+              <div style="font-size:0.8rem;color:var(--gray-mid);margin-bottom:4px;">Une prise en charge prioritaire et personnalisée.</div>
+
+              <div style="font-family:'Montserrat',sans-serif;font-size:2rem;font-weight:800;color:var(--bordeaux);margin:12px 0;">+149€<span style="font-size:0.9rem;font-weight:600;"></span></div>
 
               <ul style="list-style:none;padding:0;margin:16px 0 20px;text-align:left;">
 
                 <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Tout Sérénité inclus</li>
 
-                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Plein de carburant</li>
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Planification prioritaire</li>
 
-                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Photos pro 4K</li>
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Créneau de livraison privilégié sous réserve de disponibilité</li>
 
-                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Livraison dim./férié</li>
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Remise personnalisée du véhicule</li>
 
-                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Priorité d'affectation</li>
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;border-bottom:1px solid var(--border-light);"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Préparation avant remise des clés</li>
+
+                <li style="font-size:0.82rem;color:var(--gray-mid);padding:6px 0;"><i class="fas fa-check" style="color:var(--success);margin-right:8px;"></i>Plein ou complément de carburant sur demande — carburant facturé au réel.</li>
 
               </ul>
 
               <span style="display:inline-block;padding:8px 20px;background:var(--bordeaux-light);color:var(--bordeaux);border-radius:30px;font-size:0.85rem;font-weight:600;">Choisir →</span>
 
-            </div>
+            </a>
 
           </div>
 
